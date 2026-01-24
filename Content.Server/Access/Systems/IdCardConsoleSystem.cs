@@ -114,9 +114,7 @@ public sealed class IdCardConsoleSystem : SharedIdCardConsoleSystem
         if (HasComp<BankCardComponent>(targetId))
             return;
 
-        var account = _bankCard.CreateAccount();
         var bankCard = AddComp<BankCardComponent>(targetId);
-        bankCard.AccountId = account.AccountId;
         bankCard.PINLocked = false;
         bankCard.IsPayrollEnabled = false;
 
@@ -143,6 +141,11 @@ public sealed class IdCardConsoleSystem : SharedIdCardConsoleSystem
 
         bankCard.Pin = args.Pin;
         bankCard.PINLocked = true;
+
+        if (bankCard.AccountId.HasValue && _bankCard.TryGetAccount(bankCard.AccountId.Value, out var account))
+        {
+            account.AccountPin = args.Pin;
+        }
 
         UpdateUserInterface(uid, component, args);
     }
