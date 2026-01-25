@@ -4,8 +4,8 @@ meta:
   engineVersion: 264.0.0
   forkId: ""
   forkVersion: ""
-  time: 01/25/2026 19:58:44
-  entityCount: 9367
+  time: 01/25/2026 21:35:31
+  entityCount: 9368
 maps:
 - 1
 grids:
@@ -47928,7 +47928,7 @@ entities:
       pos: 20.5,-14.5
       parent: 2
     - type: DnaServer
-      serverId: 10
+      serverId: 11
 - proto: ReverseCymbalsInstrument
   entities:
   - uid: 5377
@@ -49632,6 +49632,13 @@ entities:
     components:
     - type: Transform
       pos: 13.5,-43.5
+      parent: 2
+- proto: SpawnPointObserver
+  entities:
+  - uid: 9368
+    components:
+    - type: Transform
+      pos: 0.5,1.5
       parent: 2
 - proto: SpawnPointParamedic
   entities:
