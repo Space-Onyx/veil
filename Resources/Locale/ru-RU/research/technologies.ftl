@@ -74,4 +74,4 @@ research-technology-clowning-utilities = Клоунские принадлежн
 research-technology-quantum-fiber-weaving = Плетение квантового волокна
 research-technology-bluespace-cargo-transport = Блюспейс-транспортировка грузов
 research-technology-tech-fabs = ТехФабы отделов
-research-technology-spec-tech-fabs = Специализированные Тефабы
+research-technology-spec-tech-fabs = Специализированные ТехФабы
