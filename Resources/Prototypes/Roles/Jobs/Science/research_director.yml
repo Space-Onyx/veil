@@ -170,6 +170,7 @@
   - Brig
   - Cryogenics
   - External # Goobstation
+  - Robotics
   special:
   - !type:AddImplantSpecial
     implants: [ MindShieldImplant ]
