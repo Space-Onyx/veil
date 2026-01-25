@@ -117,8 +117,7 @@ public sealed class BankCardSystem : EntitySystem
             account.Balance += GetSalary(idCard);
         }
 
-        _chatSystem.DispatchGlobalAnnouncement(Loc.GetString("salary-pay-announcement"),
-        colorOverride: Color.FromHex("#18abf5"));
+        _chatSystem.DispatchGlobalAnnouncement(Loc.GetString("salary-pay-announcement"), Loc.GetString("salary-pay-sender"), colorOverride: Color.FromHex("#18abf5"));
     }
 
     private int GetSalary(IdCardComponent idCard)
