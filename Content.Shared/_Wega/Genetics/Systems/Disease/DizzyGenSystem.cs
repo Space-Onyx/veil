@@ -1,6 +1,7 @@
 using Content.Shared.Drunk;
 using Content.Shared.StatusEffect;
 using Robust.Shared.Timing;
+using Content.Shared.Nutrition.Components;
 
 namespace Content.Shared.Genetics.Systems;
 
@@ -40,7 +41,7 @@ public sealed class DizzySystem : EntitySystem
         if (!_statusEffectsSystem.HasStatusEffect(ent, DizzyKey))
         {
             EnsureComp<DizzyEffectComponent>(ent, out var dizzyEffect);
-            _statusEffectsSystem.TryAddStatusEffect<DizzyEffectComponent>(ent, DizzyKey, TimeSpan.FromMinutes(10), true);
+            _statusEffectsSystem.TryAddStatusEffect<DrinkComponent>(ent, DizzyKey, TimeSpan.FromMinutes(10), true);
 
             dizzyEffect.Intensity = ent.Comp.InitialIntensity;
         }
@@ -48,7 +49,7 @@ public sealed class DizzySystem : EntitySystem
 
     private void OnShutdown(Entity<DizzyGenComponent> ent, ref ComponentShutdown args)
     {
-        RemComp<DizzyEffectComponent>(ent);
+        RemComp<DrinkComponent>(ent);
         _statusEffectsSystem.TryRemoveStatusEffect(ent, DizzyKey);
     }
 }
