@@ -207,6 +207,7 @@ namespace Content.Server.Administration.Systems
             AddAdminVerbs(ev);
             AddDebugVerbs(ev);
             AddSmiteVerbs(ev);
+            AddAdminADTSmitesVerbs(ev); // ADT-Tweak
             AddTricksVerbs(ev);
             AddAntagVerbs(ev);
         }
