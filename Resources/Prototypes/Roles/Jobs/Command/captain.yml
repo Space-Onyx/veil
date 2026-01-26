@@ -154,7 +154,7 @@
     - !type:DepartmentTimeRequirement
       department: Command
       time: 28000 # 8 hours
-    - !type:SpeciesRequirement
+    - !type:SpeciesRequirement # Goob - None Felinid
       inverted: true
       species:
       - Abductor
