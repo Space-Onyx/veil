@@ -114,7 +114,15 @@ public sealed class BankCardSystem : EntitySystem
                 _mobState.IsDead(account.Mind.Value.Comp.CurrentEntity!.Value))
                 continue;
 
-            account.Balance += GetSalary(idCard);
+            var salary = GetSalary(idCard);
+            account.Balance += salary;
+            account.AddTransaction(new TransactionRecord(
+                TransactionRecord.TransactionType.Deposit,
+                Loc.GetString("bank-program-ui-salary-description"),
+                salary,
+                Robust.Shared.Maths.Color.Lime,
+                DateTime.MinValue.Add(_gameTicker.RoundStartTimeSpan)
+            ));
         }
 
         _chatSystem.DispatchGlobalAnnouncement(Loc.GetString("salary-pay-announcement"), Loc.GetString("salary-pay-sender"), colorOverride: Color.FromHex("#18abf5"));

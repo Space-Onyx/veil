@@ -46,3 +46,4 @@ bank-program-ui-history-search-placeholder = Поиск по истории...
 bank-program-ui-exit-history = Выйти из истории
 bank-program-ui-transaction-history = История транзакций
 bank-program-ui-transaction-comment = Комментарий: { $comment }
+bank-program-ui-salary-description = Выплата зарплаты

@@ -43,3 +43,4 @@ bank-program-ui-history-search-placeholder = Search history...
 bank-program-ui-exit-history = Exit History
 bank-program-ui-transaction-history = Transaction History
 bank-program-ui-transaction-comment = Comment: { $comment }
+bank-program-ui-salary-description = Salary Payment
