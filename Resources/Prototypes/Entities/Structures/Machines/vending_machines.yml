@@ -992,7 +992,6 @@
     brokenState: broken
     normalState: normal-unshaded
     ejectState: eject-unshaded
-    denyState: deny-unshaded
   - type: DatasetVocalizer
     dataset: DinnerwareAds
   - type: SpeakOnUIClosed
