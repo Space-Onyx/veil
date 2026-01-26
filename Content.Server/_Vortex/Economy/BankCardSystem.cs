@@ -25,6 +25,7 @@ using Robust.Server.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Configuration;
+using Robust.Shared.Timing;
 
 namespace Content.Server._Vortex.Economy;
 
@@ -44,6 +45,7 @@ public sealed class BankCardSystem : EntitySystem
     [Dependency] private readonly GameTicker _gameTicker = default!;
     [Dependency] private readonly CartridgeLoaderSystem _cartridgeLoader = default!;
     [Dependency] private readonly IConfigurationManager _cfg = default!;
+    [Dependency] private readonly IGameTiming _timing = default!;
 
     private int SalaryDelay => _cfg.GetCVar(CCVars.SalaryTime);
 
@@ -121,7 +123,7 @@ public sealed class BankCardSystem : EntitySystem
                 Loc.GetString("bank-program-ui-salary-description"),
                 salary,
                 Robust.Shared.Maths.Color.Lime,
-                DateTime.MinValue.Add(_gameTicker.RoundStartTimeSpan)
+                DateTime.MinValue.Add(_timing.CurTime.Subtract(_gameTicker.RoundStartTimeSpan))
             ));
         }
 
@@ -309,7 +311,7 @@ public sealed class BankCardSystem : EntitySystem
             description,
             amount,
             color,
-            DateTime.MinValue.Add(_gameTicker.RoundStartTimeSpan)
+            DateTime.MinValue.Add(_timing.CurTime.Subtract(_gameTicker.RoundStartTimeSpan))
         ));
 
         return true;
