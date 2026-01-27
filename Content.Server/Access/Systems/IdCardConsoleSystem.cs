@@ -249,6 +249,14 @@ public sealed class IdCardConsoleSystem : SharedIdCardConsoleSystem
         _idCard.TryChangeFullName(targetId, newFullName, player: player);
         _idCard.TryChangeJobTitle(targetId, newJobTitle, player: player);
 
+        // <Vortex Economy> Update bank account name if it exists
+        if (TryComp<BankCardComponent>(targetId, out var bankCard) && bankCard.AccountId.HasValue &&
+            _bankCard.TryGetAccount(bankCard.AccountId.Value, out var account))
+        {
+            account.Name = newFullName;
+        }
+        // </Vortex Economy>
+
         if (_prototype.TryIndex<JobPrototype>(newJobProto, out var job)
             && _prototype.TryIndex(job.Icon, out var jobIcon))
         {
