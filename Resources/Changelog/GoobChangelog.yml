@@ -4054,7 +4054,7 @@ Entries:
         Ashen passage now deals heat damage to the user on activation. Ashen
         path heretics receive less damage from this, the higher their path stage
         is, the lower the damage will be. Flesh stalkers and raw prophets will
-        not take damage when jaunting
+        not take damage when jaunting 
   id: 455
   time: '2025-01-11T14:09:57.0000000+00:00'
 - author: Piras314
@@ -4080,7 +4080,7 @@ Entries:
     - type: Tweak
       message: >-
         Lethargic sting doesn't inject mute toxin but slowly drains victim's
-        stamina.
+        stamina. 
     - type: Tweak
       message: Toggling of ling equipment doesn't cost any chemicals anymore.
   id: 457
@@ -6841,7 +6841,7 @@ Entries:
     - type: Tweak
       message: >-
         Alert icons for separate (OG) layout now start from the top right of
-        your screen instead of the middle right, just like in MRP.
+        your screen instead of the middle right, just like in MRP. 
     - type: Tweak
       message: >-
         Ore redemption/processing machines now display if you will obtain points
@@ -7216,7 +7216,7 @@ Entries:
     - type: Add
       message: >-
         The firefighter backpack and attached nozzle can now be found in atmos
-        lockers or ordered through cargo.
+        lockers or ordered through cargo. 
     - type: Tweak
       message: 'RPD crates can now be ordered through cargo. '
   id: 841
@@ -7564,7 +7564,7 @@ Entries:
     - type: Add
       message: >-
         Added the Holo-Cigar, a new syndicate uplink item, that turns you into
-        Big Boss. It allows you to dual wield any firearms effectively
+        Big Boss. It allows you to dual wield any firearms effectively 
   id: 881
   time: '2025-04-16T08:44:31.0000000+00:00'
 - author: Aviu
@@ -7950,7 +7950,7 @@ Entries:
       message: >-
         Radiation now uses 2D propagation system, standing on top of or holding
         radiation sources in your hand is extremely ill advised. doubly more so
-        than before.
+        than before. 
     - type: Tweak
       message: >-
         Radiation propagation now takes into account distance traveled through
@@ -8166,7 +8166,7 @@ Entries:
     - type: Add
       message: >-
         Moths move slightly slower but can dash with their wings with 65%
-        chance.
+        chance. 
     - type: Tweak
       message: Voxes now do not rot, but you can't clone them.
     - type: Tweak
@@ -9299,7 +9299,7 @@ Entries:
         Changed the colors of the body doll! Now the main color when your part
         is about to get lopped off is pure red. It will be gray when you have no
         parts, and will have the old crit/disabled reddish color when its
-        bleeding.
+        bleeding. 
     - type: Tweak
       message: >-
         The health analyzer now displays what parts are bleeding, and shows it
@@ -9690,7 +9690,7 @@ Entries:
       message: >-
         Added experimental law boards. When inserted in ai upload console, gives
         ionstormed laws to the station AI, and after 2 minutes turns laws back
-        to normal giving research points to RnD.
+        to normal giving research points to RnD. 
   id: 1084
   time: '2025-05-19T07:58:24.0000000+00:00'
 - author: Armok
@@ -10616,7 +10616,7 @@ Entries:
     - type: Fix
       message: >-
         Regular security winter boots no longer have jackboots bonuses, it also
-        was an oversight.
+        was an oversight. 
     - type: Fix
       message: >-
         CMO webbing comes with a bone manipulator instead of bone gel, it was
@@ -11004,7 +11004,7 @@ Entries:
     - type: Tweak
       message: >-
         Reflective vest can no longer be abused to completely circumvent AI
-        turrets.
+        turrets. 
   id: 1213
   time: '2025-06-15T05:40:36.0000000+00:00'
 - author: OnsenCapy
@@ -11244,7 +11244,7 @@ Entries:
     - type: Add
       message: >-
         Chitinous armour plays an animation and unique sound when being
-        equipped.
+        equipped. 
     - type: Tweak
       message: >-
         Chitinous armour has had its physical protection reduced (65% -> 45%)
@@ -11635,7 +11635,7 @@ Entries:
         Fixed a bunch of bugs with wound logic, including but not limited to
         traumas adding wounds with damage that would be unhealable, wounds going
         over the cap and resulting in permanent pain as you would be unable to
-        reset it,
+        reset it, 
     - type: Fix
       message: >-
         Bone break alerts should go away now when removing the parts (you'll
@@ -11796,7 +11796,7 @@ Entries:
     - type: Add
       message: >-
         2 new signallers: voice signaller and proximity signaller that do
-        exactly what its name implies.
+        exactly what its name implies. 
   id: 1293
   time: '2025-07-01T19:04:38.0000000+00:00'
 - author: wachte1
@@ -13634,7 +13634,7 @@ Entries:
     - type: Add
       message: >-
         You can now create freedom cheese blocks and cheese slices (based on
-        American processed cheese).
+        American processed cheese). 
   id: 1515
   time: '2025-08-18T04:04:07.0000000+00:00'
 - author: CometVoid
@@ -13790,7 +13790,7 @@ Entries:
     - type: Fix
       message: >-
         Vehicles now move at 1.4 of their original values. This is due to
-        spritning being added making them semi obsolete. Beware of clown cars.
+        spritning being added making them semi obsolete. Beware of clown cars. 
   id: 1534
   time: '2025-08-30T03:23:43.0000000+00:00'
 - author: RatherUncreativeName
@@ -13874,12 +13874,12 @@ Entries:
     - type: Tweak
       message: >-
         Replaced tirimol from epipens with dexalin, NO MORE COMBAT EPIPEN
-        INJECTIONS, REJOICE!
+        INJECTIONS, REJOICE! 
     - type: Tweak
       message: >-
         Nerfed autoinjector brute cartridge heal from 98 dmg healed max to
         ~60-70 and from ~28 healing/dmg type to ~21 healing/dmg type and nerfed
-        burn cartridge by a similar amount
+        burn cartridge by a similar amount 
   id: 1545
   time: '2025-08-30T03:51:52.0000000+00:00'
 - author: ImWeax
@@ -14173,7 +14173,7 @@ Entries:
       message: >-
         Siphon entropy now only takes 1 second instead of 5. If you still can't
         reach tier 2 after this change, I don't know what to tell you. Like
-        honestly.
+        honestly. 
     - type: Tweak
       message: >-
         Vacuous spire now takes gas canisters instead of portable air scrubbers,
@@ -14279,7 +14279,7 @@ Entries:
     - type: Add
       message: >-
         You can now buy a whole lot of more stuff from salvage vend, including
-        WAY more lategame gear, like a clarke. :)
+        WAY more lategame gear, like a clarke. :) 
     - type: Add
       message: 'Made Combat gloves renewable. '
   id: 1588
@@ -14289,7 +14289,7 @@ Entries:
     - type: Tweak
       message: >-
         Stunbaton wideswing damage buffed to not be entirely useless,
-        spriteclicking is still superior.
+        spriteclicking is still superior. 
     - type: Tweak
       message: 'GreatShield Mace given minor staminadamage buff. '
   id: 1589
@@ -14701,7 +14701,7 @@ Entries:
     - type: Add
       message: >-
         Added a knife into BSO's backpack on spawn and removed it from the
-        boots
+        boots 
   id: 1638
   time: '2025-09-11T18:51:33.0000000+00:00'
 - author: deltanedas
@@ -15677,7 +15677,7 @@ Entries:
     - type: Tweak
       message: >-
         Shadowkin blood now renders like other blood types (blood, spider blood,
-        slime) when in puddles
+        slime) when in puddles 
     - type: Fix
       message: Shadowkin blood now can activate Blood nodes on artifacts
   id: 1754
@@ -16541,7 +16541,7 @@ Entries:
     - type: Add
       message: >-
         Interaction Verbs from Einstein Engines. GoobMRP folk: This brings back
-        the 'Interact' dropdown in the context menu.
+        the 'Interact' dropdown in the context menu. 
     - type: Tweak
       message: Interaction Verb 'Look At' changed to 'Stare' for impact
   id: 1852
@@ -16840,7 +16840,7 @@ Entries:
     - type: Add
       message: >-
         Loneops can now buy the sandevistan at an increased price. “Bout Time I
-        Chrome The F Up.”
+        Chrome The F Up.” 
   id: 1884
   time: '2025-10-25T16:07:41.0000000+00:00'
 - author: loltart
@@ -16854,7 +16854,7 @@ Entries:
     - type: Add
       message: >-
         Added dart monkeys which throw darts at balloons. They are purchasable
-        from cargo.
+        from cargo. 
   id: 1886
   time: '2025-10-25T16:09:23.0000000+00:00'
 - author: Armok
@@ -17033,7 +17033,7 @@ Entries:
     - type: Tweak
       message: >-
         Changed icons of everything in the station category to be more
-        appealing.
+        appealing. 
   id: 1908
   time: '2025-10-27T12:23:51.0000000+00:00'
 - author: Fishbait
@@ -17845,7 +17845,7 @@ Entries:
     - type: Tweak
       message: >-
         Barozine will now last twice as long! This means space medipens will
-        protect you from pressure damage for twice as long.
+        protect you from pressure damage for twice as long. 
     - type: Tweak
       message: >-
         Space Medipens now have more leproazine in them, this means they'll give
@@ -18298,7 +18298,7 @@ Entries:
         Combat mechs are quite complicated, so you should be quite knowledgeable
         in arsenal technology to build those. Made Gygax technology have
         Advanced Riot Control, Portable Microfusion Weaponry, Smart Weaponry,
-        and Thermal Vision Tech as prerequisites.
+        and Thermal Vision Tech as prerequisites. 
   id: 2061
   time: '2025-11-24T13:48:38.0000000+00:00'
 - author: Androidonator
@@ -18508,7 +18508,7 @@ Entries:
     - type: Add
       message: >-
         R&D is now able to extend station comms coverage with extended
-        communication research.
+        communication research. 
   id: 2083
   time: '2025-11-27T11:02:16.0000000+00:00'
 - author: RatherUncreativeName
@@ -19195,7 +19195,7 @@ Entries:
     - type: Add
       message: >-
         Chaplain can now select one of 8 armor set variants using armaments
-        beacon.
+        beacon. 
   id: 2165
   time: '2025-12-13T03:00:08.0000000+00:00'
 - author: squishy97
@@ -19203,7 +19203,7 @@ Entries:
     - type: Tweak
       message: >-
         buffed onis attack and defense to be in line with more of their tanky
-        mele build styles, and nerfed their shoving capabilities to compensate
+        mele build styles, and nerfed their shoving capabilities to compensate 
   id: 2166
   time: '2025-12-13T03:06:34.0000000+00:00'
 - author: wachte1
@@ -19255,7 +19255,7 @@ Entries:
     - type: Add
       message: >-
         Mid round lings and heretics are back as well as mid round heretics
-        being buffed slightly
+        being buffed slightly 
   id: 2173
   time: '2025-12-13T08:19:40.0000000+00:00'
 - author: Gab
@@ -20315,3 +20315,251 @@ Entries:
         instead.
   id: 2302
   time: '2026-01-26T08:18:43.0000000+00:00'
+- author: Kenkaitos
+  changes:
+    - type: Fix
+      message: Bluespace anomaly can't teleport Blob tiles anymore
+  id: 2303
+  time: '2026-01-26T20:15:49.0000000+00:00'
+- author: LuciferEOS
+  changes:
+    - type: Add
+      message: >-
+        Warning, entering biological dead zone at 2000m from the station.
+        Unknown large life signatures detected. 
+  id: 2304
+  time: '2026-01-27T02:29:05.0000000+00:00'
+- author: OnsenCapy
+  changes:
+    - type: Add
+      message: >-
+        Missing lavaland mobs have been implemented, though not functional, only
+        to facilitate future work on Lavaland.
+  id: 2305
+  time: '2026-01-27T08:47:35.0000000+00:00'
+- author: Beanyboi69
+  changes:
+    - type: Add
+      message: More words to mobster accent. Fuggedaboutit.
+  id: 2306
+  time: '2026-01-27T09:14:16.0000000+00:00'
+- author: NorwayFox
+  changes:
+    - type: Add
+      message: Added a Shadowkin entry to the GuideBook.
+  id: 2307
+  time: '2026-01-27T09:14:48.0000000+00:00'
+- author: the_biggestbruh
+  changes:
+    - type: Fix
+      message: >-
+        Fixed changeling void adaption not transferring from changing
+        identities.
+  id: 2308
+  time: '2026-01-27T09:15:29.0000000+00:00'
+- author: Kenkaitos
+  changes:
+    - type: Fix
+      message: >-
+        Fixed Blob's split core ability. Now you can't accidentally split your
+        own core and make you ghosted
+  id: 2309
+  time: '2026-01-27T09:15:54.0000000+00:00'
+- author: H2Owe
+  changes:
+    - type: Add
+      message: Contractor ghostrole(WIP admin spawn playtest)
+  id: 2310
+  time: '2026-01-27T09:16:49.0000000+00:00'
+- author: FloatingFeeling
+  changes:
+    - type: Tweak
+      message: All gun descriptions have been tweaked.
+  id: 2311
+  time: '2026-01-27T09:18:01.0000000+00:00'
+- author: DeusMaldPr
+  changes:
+    - type: Tweak
+      message: Made shadowkudzu (Shadow anom shadows) spread way slower
+  id: 2312
+  time: '2026-01-27T09:19:26.0000000+00:00'
+- author: 10kee
+  changes:
+    - type: Add
+      message: 3 new Vox species sounds
+    - type: Add
+      message: Vox can now wag their tails
+    - type: Tweak
+      message: Changed the Vox cry and sigh noises
+  id: 2313
+  time: '2026-01-27T09:20:43.0000000+00:00'
+- author: ZOXELON
+  changes:
+    - type: Add
+      message: Added zombie accent for dwarves!
+  id: 2314
+  time: '2026-01-27T09:21:01.0000000+00:00'
+- author: LuciferEOS
+  changes:
+    - type: Add
+      message: Suit sensors will now scramble if you get shocked.
+  id: 2315
+  time: '2026-01-27T09:21:25.0000000+00:00'
+- author: Kenkaitos
+  changes:
+    - type: Fix
+      message: >-
+        Fixed Cosmic Cult vote bug if the chosen is deleted after vote is
+        finished
+  id: 2316
+  time: '2026-01-27T09:23:33.0000000+00:00'
+- author: Ilya246
+  changes:
+    - type: Add
+      message: >-
+        Mice and rodentia now have an ability letting them call other mice
+        nearby.
+  id: 2317
+  time: '2026-01-27T09:24:52.0000000+00:00'
+- author: Ilya246
+  changes:
+    - type: Tweak
+      message: Animals now understand Tau Ceti Basic.
+  id: 2318
+  time: '2026-01-27T09:26:25.0000000+00:00'
+- author: ZOXELON
+  changes:
+    - type: Add
+      message: Added tutus to the autodrobe!
+  id: 2319
+  time: '2026-01-27T09:36:25.0000000+00:00'
+- author: Rouden
+  changes:
+    - type: Tweak
+      message: >-
+        Fully reworked and rebalanced all salvage and shaft miner weapons. All
+        weapons now become x2 times stronger while between 20-50 kPa.
+    - type: Add
+      message: >-
+        Added Legions: the skull abominations that drop legion skulls and bones
+        when defeated. They've replaced hivelords on lavaland.
+    - type: Add
+      message: >-
+        Shaft miners were added as a role separate from salvage specialists!
+        They still have the same access, but shaft miners take their equipment
+        from lavaland and work on its surface, while salvage specialists gear up
+        on the station and explore space. They are already available on most
+        stations.
+    - type: Add
+      message: >-
+        Added 3 types of watcher wings as materials for crafting some of the
+        blade crusher upgrades.
+    - type: Add
+      message: >-
+        Added weapon selectors for Shaft miners and Salvage specialist. Shaft
+        miners can select crushers and PKAs, while salvage specialist can only
+        select PKAs with pre-installed space upgrades.
+    - type: Add
+      message: >-
+        Added space PKA upgrades - they make PKA x1.5 stronger in depressurised
+        enviroments.
+    - type: Add
+      message: >-
+        Added 8 new crusher upgrades with special abilities and effects, that
+        are split 3 types: main, blade and handle upgrades. You can attach one
+        of each type to a single crusher.
+    - type: Add
+      message: >-
+        Added all types of proto-kinetic ranged weapons to the cargo techfab
+        after researching a technology.
+    - type: Tweak
+      message: >-
+        PKAs now don't use capacity system, and instead take individual slots.
+        All PKA types have 3 upgrade slots, shotgun has 2.
+    - type: Tweak
+      message: >-
+        Crusher weapons no longer have built-in kinetic marker, now you have to
+        craft and install an upgrade to get it.
+    - type: Tweak
+      message: >-
+        Kinetic machete and kinetic claws are now obtainable from a salvage
+        vendor or mining voucher Combat kit. They are no longer crushers, and
+        instead they are simple melee weapons without any gimmiks, but only for
+        now ;)
+    - type: Tweak
+      message: >-
+        Salvage specialist lockers are now separate from shaft miner lockers,
+        and have diffirent equipment for enviroments they work in.
+    - type: Tweak
+      message: >-
+        Mining Voucher kits were reworked, now there are 4 of them and each has
+        contents that evaluate to ~2000 mining points.
+    - type: Tweak
+      message: >-
+        Inserting or removing upgrades from weapons now can take a small amount
+        of time.
+    - type: Tweak
+      message: >-
+        PKA Damage upgrades now multiply damage by x1.25 instead of adding more
+        to bullets.
+    - type: Tweak
+      message: Lavaland ruins now have more useful loot in them and spawn closer.
+    - type: Fix
+      message: Fixed flashlight attached to PKAs not draining their battery.
+    - type: Fix
+      message: Fixed knives attached to PKAs not doing proper damage.
+    - type: Fix
+      message: >-
+        GPS UI now doesn't flicker every second, and long labels that are cut
+        off are now displayed fully when you hover over them.
+    - type: Remove
+      message: >-
+        Removed the ability to buy new PKAs and crusher weapons from the salvage
+        vendor, you should find or craft them instead.
+    - type: Remove
+      message: Removed PKA's Light upgrade. (just attach a flashlight)
+    - type: Remove
+      message: >-
+        Removed some small lavaland ruins (they didn't have any loot and were
+        too boring).
+    - type: Remove
+      message: >-
+        You no longer receive red messages when an ashstorm starts or stops,
+        just use your eyes and ears to see if it's going to storm soon. (This
+        will improve immersion, trust)
+  id: 2320
+  time: '2026-01-27T11:08:52.0000000+00:00'
+- author: John Shitcode
+  changes:
+    - type: Tweak
+      message: Made extracts produce less reagents. Goodbye 100 omnizine.
+    - type: Tweak
+      message: Made extracts produce enough mutation toxin for a single injection.
+    - type: Tweak
+      message: >-
+        All extract products are now unrecognizable and can be inhaled through
+        foam.
+    - type: Tweak
+      message: >-
+        Advanced mutation toxin cannot transform you into an undead, silicon or
+        any other special specie anymore.
+    - type: Tweak
+      message: >-
+        Certain cerulean extract reaction now produces pluoxium gas instead of
+        oxygenating nearby stuff.
+    - type: Tweak
+      message: And specific dark purple extract reaction now produces plasma gas.
+    - type: Tweak
+      message: >-
+        (for c*derbus) Moved all extracts to separate files. You should do that
+        too if you plan on adding more.
+    - type: Tweak
+      message: Xenovac tank can now be broken and escaped from.
+  id: 2321
+  time: '2026-01-27T11:45:43.0000000+00:00'
+- author: Aviu
+  changes:
+    - type: Fix
+      message: Fix mansus grasp not working on interact.
+  id: 2322
+  time: '2026-01-27T11:53:42.0000000+00:00'

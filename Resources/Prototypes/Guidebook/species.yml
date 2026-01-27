@@ -47,6 +47,7 @@
     # Corvax-Wega-Species-start
     - Demon
     # Corvax-Wega-Species-end
+    - Shadowkin
 
 - type: guideEntry
   id: Arachnid
@@ -133,3 +134,8 @@
   id: Plasmaman
   name: species-name-plasmaman
   text: "/ServerInfo/Guidebook/Mobs/Plasmaman.xml"
+
+- type: guideEntry
+  id: Shadowkin
+  name: species-name-shadowkin
+  text: "/ServerInfo/Guidebook/Mobs/Shadowkin.xml"

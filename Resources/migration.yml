@@ -147,35 +147,6 @@
 # WallSolid: Window
 # Table: null
 
-# Corvax-Goob
-DresserCaptainFilled: CaptainDrobe
-ClothingNeckMantleHOSShoulder: ClothingNeckMantleHOS
-LauncherSyringe: SyringePistol
-MiniSyringe: null
-SingularityGrenade: SupermatterGrenade
-BenchChapelMiddle: BenchPewMiddle
-BenchChapelLeft: BenchPewLeft
-BenchChapelRight: BenchPewRight
-SofaMiddle: BenchSofaMiddle
-SofaLeft: BenchSofaLeft
-SofaRight: BenchSofaRight
-SofaCorner: BenchSofaCorner
-CorpSofaMiddle: BenchSofaCorpMiddle
-CorpSofaLeft: BenchSofaCorpLeft
-CorpSofaRight: BenchSofaCorpRight
-CorpSofaCorner: BenchSofaCorpCorner
-BenchComfyMiddle: BenchSteelMiddle
-BenchComfyLeft: BenchSteelLeft
-BenchComfyRight: BenchSteelRight
-BenchRedComfyMiddle: BenchSteelWhiteMiddle
-BenchRedComfyLeft: BenchSteelWhiteLeft
-BenchRedComfyRight: BenchSteelWhiteRight
-BenchBlueComfyMiddle: BenchSteelWhiteMiddle
-BenchBlueComfyLeft: BenchSteelWhiteLeft
-BenchBlueComfyRight: BenchSteelWhiteRight
-ScalpelCool: ScalpelAdvanced
-MirrorModern: Mirror
-
 # Goobstation - Submarine from DeltaV
 AirlockBoxerGlassLocked: AirlockServiceGlassLocked
 AirlockClownGlassLocked: AirlockServiceGlassLocked
@@ -198,26 +169,24 @@ AirlockZookeeperGlassLocked: AirlockServiceGlassLocked
 AirlockZookeeperLocked: AirlockServiceLocked
 AlwaysPoweredLightPostSmallRed: null
 AsteroidAltRock: AsteroidRock
-# CorvaxGoob-FurnitureFix-Start
-# BenchParkBambooMiddle: null
-# BenchParkLeft: null
-# BenchParkMiddle: null
-# BenchParkRight: null
-# BenchPewLeft: null
-# BenchPewMiddle: null
-# BenchPewRight: null
-# BenchSofaCorpLeft: null
-# BenchSofaCorpMiddle: null
-# BenchSofaCorpRight: null
-# BenchSofaLeft: null
-# BenchSofaRight: null
-# BenchSteelLeft: null
-# BenchSteelMiddle: null
-# BenchSteelRight: null
-# BenchSteelWhiteLeft: null
-# BenchSteelWhiteMiddle: null
-# BenchSteelWhiteRight: null
-# CorvaxGoob-FurnitureFix-End
+BenchParkBambooMiddle: null
+BenchParkLeft: null
+BenchParkMiddle: null
+BenchParkRight: null
+BenchPewLeft: null
+BenchPewMiddle: null
+BenchPewRight: null
+BenchSofaCorpLeft: null
+BenchSofaCorpMiddle: null
+BenchSofaCorpRight: null
+BenchSofaLeft: null
+BenchSofaRight: null
+BenchSteelLeft: null
+BenchSteelMiddle: null
+BenchSteelRight: null
+BenchSteelWhiteLeft: null
+BenchSteelWhiteMiddle: null
+BenchSteelWhiteRight: null
 BoardGameSpawner: null
 BoxColoredLighttube: BoxLighttube
 BoxEncryptionKeyPrisoner: BoxEncryptionKeyPassenger
@@ -442,7 +411,7 @@ MountainRock: AsteroidRock
 MountainRockMining: AsteroidRockMining
 
 # 2023-08-08
-# WindowTintedDirectional: WindowFrostedDirectional CorvaxGoob
+WindowTintedDirectional: WindowFrostedDirectional
 
 # 2023-08-10
 SyringeSpaceacillin: null
@@ -568,8 +537,8 @@ ActionVehicleHorn: null
 #CrateFunSyndicateSegway: null Goobstation - Re-add vehicles
 MobTaxiBot: null
 # MobSupplyBot: null
-#SpawnVehicleMotobike: null Corvax Goobstation - Re-add vehicles
-#SpawnVehicleATV: null Corvax Goobstation - Re-add vehicles
+SpawnVehicleMotobike: null
+SpawnVehicleATV: null
 #SpawnVehicleSecway: null Goobstation - Re-add vehicles
 #SpawnVehicleJanicart: null Goobstation - Re-add vehicles
 #VehicleJanicart: null Goobstation - Re-add vehicles
@@ -642,9 +611,8 @@ RPED: null
 TraversalDistorterMachineCircuitboard: null
 MachineTraversalDistorter: null
 # These are technically not equivalent, but it probably makes more sense to replace any existing SCAF stuff with SOME kind of armor, instead of just deleting it outright.
-# Commented by CorvaxGoob
-# ClothingHeadHelmetScaf: ClothingHeadHelmetBasic
-# ClothingOuterArmorScaf: ClothingOuterArmorBasic
+ClothingHeadHelmetScaf: ClothingHeadHelmetBasic
+ClothingOuterArmorScaf: ClothingOuterArmorBasic
 
 # 2024-03-31
 ClothingNeckFlowerWreath: ClothingHeadHatFlowerWreath
@@ -901,7 +869,7 @@ LightTree06: LightTree
 
 # 2024-12-22 # Lavaland Change: Migrations
 VendingMachineRestockSalvageEquipment: null
-# ComputerSalvageExpedition: ComputerShuttleMiningLavaland // <Vortex>
+ComputerSalvageExpedition: ComputerShuttleMiningLavaland
 SalvageExpeditionsComputerCircuitboard: LavalandShuttleConsoleCircuitboard
 
 # 2025-01-06
@@ -1040,11 +1008,6 @@ SuitStorageBasic: SuitStorageEVA
 # 2025-05-18
 ClothingNeckCloakMiner: null
 
-# 2025-08-11 CorvaxGoob
-PlushieSamantha: null
-PlushieJvne: null
-PlushieFern: null
-
 # 2025-05-22
 MatterBinStockPart: MicroManipulatorStockPart
 CapacitorStockPart: MicroManipulatorStockPart
@@ -1089,24 +1052,11 @@ BarSignSpacebucksAlignTile: BarSignSpacebucks
 BarSignMaltroachAlignTile: BarSignMaltroach
 BarSignWhiskeyEchoesAlignTile: BarSignWhiskeyEchoes
 
-# CorvaxGoob : LRP Bullshit
-FishBoyFisher: null
-ImmovableRodSkibidi: null
-
 # 2025-06-21
 ClothingNeckHeadphones: ClothingMultipleHeadphones
-
-#2025-10-09 CorvaxGoob
-PlushieNigel: null
-PlushieBrizby: null
-PlushieBaldzby: null
-PlushieMnwaar: null
-PlushieBoggle: null
-PlushieLehmin: null
 
 # 2025-10-09
 FoodDonutJellySlugcat: FoodDonutJellyScurret
 
-# Reverted by CorvaxGoob-GhostBar
-# # 2026-01-04
-# GhostBarSpawner: null
+# 2026-01-04
+GhostBarSpawner: null
