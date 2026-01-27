@@ -1,8 +1,8 @@
 ent-DiseaseBehaviorCancer = Рак
-    .desc = Наносит генетический урон с течением времени.
-ent-DiseaseBehaviorPoison = Яд
-    .desc = Наносит ядовитый урон с течением времени.
-ent-DiseaseBehaviorBlunt = Разрушение тканей
-    .desc = Наносит дробящий урон с течением времени.
-ent-DiseaseBehaviorGunemia = Гунемия
-    .desc = Заставляет кашлять «пулями». Механизм неизвестен.
+    .desc = Периодически наносит генетический урон.
+ent-DiseaseBehaviorPoison = Отравление
+    .desc = Периодически наносит урон ядом.
+ent-DiseaseBehaviorBlunt = Деградация тканей
+    .desc = Периодически наносит урон ушибами.
+ent-DiseaseBehaviorGunemia = Пулемия
+    .desc = Заставляет вас кашлять пулями. Механизм болезни неизвестен.

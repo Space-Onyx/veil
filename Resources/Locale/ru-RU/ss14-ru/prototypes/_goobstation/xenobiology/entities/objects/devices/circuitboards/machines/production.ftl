@@ -1,3 +1,2 @@
-ent-SlimeGrinderMachineCircuitboard = измельчитель слаймов
-    .desc = Печатная плата, предназначенная для измельчитея слаймов.
-    .suffix = Машинная плата
+ent-SlimeGrinderMachineCircuitboard = измельчитель слаймов (машинная плата)
+    .desc = Печатная плата для измельчителя слаймов.

@@ -1,2 +1,3 @@
-ent-LockerScienceFilledXenobiology = шкаф учёного
-    .desc = Стандартное хранилище Nanotrasen.
+ent-LockerScienceFilledXenobiology = { ent-LockerScientist }
+    .suffix = Заполненный, Ксенобиология
+    .desc = { ent-LockerScientist.desc }
