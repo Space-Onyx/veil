@@ -93,7 +93,7 @@ public abstract class SharedRoofSystem : EntitySystem
 
     public void SetRoof(Entity<MapGridComponent?, RoofComponent?> grid, Vector2i index, bool value)
     {
-        if (!Resolve(grid, ref grid.Comp1, ref grid.Comp2, false))
+        if (!Resolve(grid, ref grid.Comp1, ref grid.Comp2, true)) // <Vortex-Roof-Tweak>
             return;
 
         var chunkOrigin = SharedMapSystem.GetChunkIndices(index, RoofComponent.ChunkSize);
