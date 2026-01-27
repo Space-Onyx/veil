@@ -7,5 +7,3 @@ ent-ClothingEyesHudChronoUnremoveable = { ent-ClothingEyesHudChrono }
     .desc = { ent-ClothingEyesHudChrono.desc }
 ent-ClothingEyesHudDiagnosticMedical = меддиагностический визор
     .desc = Отображение информации, объединяющее медицинские и диагностические данные.
-ent-ClothingEyesHudViro = вирусологический визор
-    .desc = Улучшенный медицинский визор, позволяющий сканировать на наличие болезней.

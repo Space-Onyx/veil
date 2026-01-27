@@ -35,7 +35,6 @@ job-name-highcommander = Офицер Синдиката
 
 job-name-hecu = агент HECU
 job-name-governmentman = G-Man
-job-name-radiohost = радиоведущий
 
 # Misc
 
