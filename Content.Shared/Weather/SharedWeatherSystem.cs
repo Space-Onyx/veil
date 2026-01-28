@@ -109,12 +109,8 @@ public abstract class SharedWeatherSystem : EntitySystem
         if (tileRef.Tile.IsEmpty)
             return true;
 
-        // <Vortex-Roof-Tweak>
-        if (Resolve(uid, ref roofComp, false))
-        {
-            return !_roof.IsRooved((uid, grid, roofComp), tileRef.GridIndices);
-        }
-        // </Vortex-Roof-Tweak>
+        if (Resolve(uid, ref roofComp, false) && _roof.IsRooved((uid, grid, roofComp), tileRef.GridIndices))
+            return false;
 
         var tileDef = (ContentTileDefinition) _tileDefManager[tileRef.Tile.TypeId];
 
