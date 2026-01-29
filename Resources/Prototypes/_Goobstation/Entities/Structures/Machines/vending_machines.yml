@@ -185,7 +185,7 @@
     offState: off
     brokenState: broken
     normalState: normal-unshaded
-    priceMultiplier: 0
+    priceMultiplier: 1
   - type: Advertise
     pack: MailDrobeAds
   - type: Sprite

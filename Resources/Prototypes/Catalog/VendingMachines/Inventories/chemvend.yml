@@ -5,7 +5,7 @@
 # SPDX-FileCopyrightText: 2023 freeman2651 <104049107+freeman2651@users.noreply.github.com>
 # SPDX-FileCopyrightText: 2024 Tonk-GCR <ryantrujillo82@gmail.com>
 # SPDX-FileCopyrightText: 2024 wafehling <wafehling@users.noreply.github.com>
-# SPDX-FileCopyrightText: 2025 Aiden <28298836+Aidenkrz@users.noreply.github.com>
+# SPDX-FileCopyrightText: 2025 Aiden <30298836+Aidenkrz@users.noreply.github.com>
 # SPDX-FileCopyrightText: 2025 SX_7 <sn1.test.preria.2002@gmail.com>
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
@@ -41,6 +41,33 @@
     ChemistryBottleLead: 2
   emaggedInventory: # Goobsation
     VestineChemistryVial: 1
+  prices:
+    Jug: 18
+    JugAluminium: 30
+    JugCarbon: 30
+    JugChlorine: 30
+    JugCopper: 30
+    JugEthanol: 30
+    JugFluorine: 30
+    JugHydrogen: 30
+    JugIodine: 30
+    JugIron: 30
+    JugLithium: 30
+    JugMercury: 30
+    JugNitrogen: 30
+    JugOxygen: 30
+    JugPhosphorus: 30
+    JugPotassium: 30
+    JugRadium: 30
+    JugSilicon: 30
+    JugSodium: 30
+    JugSugar: 30
+    JugSulfur: 30
+    DrinkLithiumFlask: 20
+    StrangePill: 6
+    ChemistryBottleToxin: 30
+    ChemistryBottleLead: 30
+    VestineChemistryVial: 50
 
 - type: vendingMachineInventory
   id: ChemVendInventorySyndicate
@@ -75,4 +102,33 @@
     ChemistryBottleMuteToxin: 3
     ChemistryBottleLead: 2
     ChemistryBottleToxin: 1
-
+  prices:
+    Jug: 0
+    JugAluminium: 0
+    JugCarbon: 0
+    JugChlorine: 0
+    JugCopper: 0
+    JugEthanol: 0
+    JugFluorine: 0
+    JugHydrogen: 0
+    JugIodine: 0
+    JugIron: 0
+    JugLithium: 0
+    JugMercury: 0
+    JugNitrogen: 0
+    JugOxygen: 0
+    JugPhosphorus: 0
+    JugPotassium: 0
+    JugRadium: 0
+    JugSilicon: 0
+    JugSodium: 0
+    JugSugar: 0
+    JugSulfur: 0
+    JugWeldingFuel: 0
+    PlasmaChemistryVial: 0
+    DrinkLithiumFlask: 0
+    StrangePill: 0
+    ChemistryBottlePax: 0
+    ChemistryBottleMuteToxin: 0
+    ChemistryBottleLead: 0
+    ChemistryBottleToxin: 0

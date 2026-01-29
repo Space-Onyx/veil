@@ -74,3 +74,15 @@
     ClothingOuterWinterMiner: 2
   emaggedInventory:
     PKAUpgradeDamage: 1
+  prices:
+    ClothingUniformJumpsuitSalvageSpecialist: 10
+    ClothingUniformJumpsuitShaftMiner: 10
+    ClothingShoesBootsSalvage: 10
+    ClothingHandsGlovesColorBlack: 10
+    ClothingBackpackSalvage: 10
+    ClothingBackpackSatchelSalvage: 11
+    ClothingBackpackDuffelSalvage: 10
+    ClothingBackpackMessengerSalvage: 10
+    ClothingHeadsetMining: 5
+    ClothingOuterWinterMiner: 14
+    PKAUpgradeDamage: 230

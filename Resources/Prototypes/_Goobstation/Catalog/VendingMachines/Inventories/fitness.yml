@@ -18,3 +18,12 @@
     DrinkFitnessShakerBlack: 2
     DrinkFitnessShakerRed: 2
     DrinkFitnessShakerBlue: 2
+  prices:
+    FoodSnackProteinbar: 14
+    FoodCondimentPacketProtein: 10
+    DrinkMilkCartonMini: 9
+    DrinkMilkCartonMiniChocolate: 10
+    DrinkWaterBottleFull: 7
+    DrinkFitnessShakerBlack: 15
+    DrinkFitnessShakerRed: 15
+    DrinkFitnessShakerBlue: 15

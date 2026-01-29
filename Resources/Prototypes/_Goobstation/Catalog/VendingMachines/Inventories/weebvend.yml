@@ -15,3 +15,9 @@
     FoodSnackPokeysticks: 3
     FoodSnackChocobanana: 3
     FoodSnackDango: 3
+  prices:
+    FoodSnackRedalertnuts: 20
+    FoodSnackRicecake: 20
+    FoodSnackPokeysticks: 20
+    FoodSnackChocobanana: 20
+    FoodSnackDango: 20

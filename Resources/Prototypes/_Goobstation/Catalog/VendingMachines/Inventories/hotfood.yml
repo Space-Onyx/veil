@@ -15,3 +15,9 @@
     FoodSnackAncientFries: 1
     FoodSnackAncientHotdog: 1
     FoodSnackAncientTaco: 1
+  prices:
+    FoodSnackAncientBurger: 12
+    FoodSnackAncientPizza: 9
+    FoodSnackAncientFries: 10
+    FoodSnackAncientHotdog: 10
+    FoodSnackAncientTaco: 11

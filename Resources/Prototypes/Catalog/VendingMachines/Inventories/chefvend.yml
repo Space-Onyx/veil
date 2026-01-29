@@ -113,3 +113,29 @@
   emaggedInventory: # Goobstation
     WeaponCroissant: 3
     WeaponBaguette: 2
+  prices:
+    ReagentContainerFlour: 15
+    ReagentContainerCornmeal: 15
+    ReagentContainerSugar: 15
+    ReagentContainerRice: 15
+    FoodCondimentPacketSalt: 3
+    FoodCondimentBottleEnzyme: 15
+    FoodCondimentBottleHotsauce: 13
+    FoodCondimentBottleKetchup: 10
+    FoodCondimentBottleBBQ: 14
+    FoodCondimentBottleVinegar: 14
+    ReagentContainerOliveoil: 17
+    ReagentContainerMayo: 10
+    VariantCubeBox: 30
+    FoodContainerEgg: 10
+    DrinkMilkCarton: 7
+    DrinkSoyMilkCarton: 7
+    FoodButter: 10
+    FoodCheese: 13
+    FoodMeat: 15
+    EggBoxBroken: 0
+    FoodBoxDonkpocket: 50
+    FoodFrozenSandwich: 19
+    FoodFrozenSandwichStrawberry: 20
+    WeaponCroissant: 14
+    WeaponBaguette: 14

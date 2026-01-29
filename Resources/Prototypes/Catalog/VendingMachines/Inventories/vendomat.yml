@@ -32,3 +32,15 @@
     LeftArmBorg: 1
   emaggedInventory: # goob
     ClothingMaskGasSyndicate: 1
+  prices:
+    RemoteSignaller: 30
+    Igniter: 17
+    Wirecutter: 32
+    Screwdriver: 40
+    CableApcStack: 40
+    FlashlightLantern: 90
+    PowerCellSmallPrinted: 55
+    MicroManipulatorStockPart: 20
+    ProximitySensor: 25
+    LeftArmBorg: 30
+    ClothingMaskGasSyndicate: 99

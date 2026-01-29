@@ -66,3 +66,30 @@
   emaggedInventory: # Goobstation
     CombatKnife: 1
     ThrowingKnife: 1
+  prices:
+    ButchCleaver: 30
+    KitchenKnife: 24
+    RollingPin: 12
+    Spoon: 5
+    Fork: 5
+    PairedChopsticks: 3
+    FoodBowlBig: 10
+    FoodPlate: 7
+    FoodPlateSmall: 6
+    FoodPlateTin: 7
+    FoodPlateMuffinTin: 6
+    FoodKebabSkewer: 10
+    DrinkGlass: 6
+    Beaker: 8
+    LargeBeaker: 10
+    Pitcher: 12
+    DrinkMug: 5
+    DrinkMugBlack: 5
+    DrinkMugBlue: 5
+    DrinkMugGreen: 5
+    DrinkMugHeart: 5
+    DrinkMugMetal: 5
+    DrinkMugMoebius: 5
+    DrinkMugOne: 5
+    DrinkMugRainbow: 5
+    DrinkMugRed: 5

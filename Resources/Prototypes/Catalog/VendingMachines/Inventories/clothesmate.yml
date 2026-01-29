@@ -207,3 +207,8 @@
   # DO NOT ADD MORE, USE UNIFORM DYING
   emaggedInventory: #Goobstation
     ClothingOuterCoatSyndieCapArmored: 1
+  prices:
+    ADTClothingUnderwearBottomBoxersWhite: 12
+    ADTClothingUnderwearBottomPantiesWhite: 12
+    ADTClothingUnderwearBottomPantiesComfyWhite: 15
+    ADTClothingUnderwearTopBraComfyWhite: 15

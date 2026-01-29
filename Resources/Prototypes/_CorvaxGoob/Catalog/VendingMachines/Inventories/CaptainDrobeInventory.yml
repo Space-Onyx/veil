@@ -49,3 +49,51 @@
     PaperCaptainsThoughts: 5
   contrabandInventory:
     ClothingNeckCloakSyndicateAdmiral: 1
+  prices:
+    ClothingHeadsetAltCommand: 0
+    ClothingHeadHatCaptain: 19
+    ClothingHeadHatCapcap: 20
+    ClothingHeadCaptainHat: 20
+    ClothingEyesGlassesSunglasses: 16
+    ClothingEyesGlassesCommand: 20
+    ClothingNeckCloakCap: 21
+    ClothingNeckCloakCapFormal: 24
+    ClothingNeckCaptainWide: 22
+    ClothingNeckMantleCap: 20
+    ClothingOuterWinterCap: 20
+    ClothingOuterArmorCaptainCarapace: 0
+    ClothingOuterCoatCaptain: 27
+    ClothingUniformJumpsuitCaptain: 20
+    ClothingUniformJumpskirtCaptain: 20
+    ClothingUniformJumpsuitCapFormal: 27
+    ClothingUniformJumpskirtCapFormalDress: 27
+    ClothingHandsGlovesCaptain: 49
+   # White
+    ClothingHeadHatBeretCaptainWhite: 20
+    ClothingHeadHatCapcapWhite: 20
+    ClothingNeckCloakRoyalCaptain: 26
+    ClothingNeckWhiteMantleCaptain: 21
+    ClothingUniformJumpskirtWhiteCaptain: 20
+    ClothingUniformJumpsuitWhiteCaptain: 20
+    ClothingHandsGlovesCaptainWhite: 49
+    ClothingBeltWhiteSheath: 34
+   # Sheriff
+    ClothingHeadHatBeretSheriff: 20
+    ClothingHeadHatCapcapSheriff: 20
+    ClothingUniformJumpsuitSheriff: 22
+    ClothingHandsGlovesSheriff: 49
+    ClothingBeltSheriffSheath: 34
+   # Other
+    ClothingEyesGlassesGarGiga: 22
+    ClothingUniformJumpsuitCommandCaptain: 20
+    ClothingBackpackCaptain: 10
+    ClothingBackpackDuffelCaptain: 12
+    ClothingBackpackSatchelCaptain: 10
+   # Stuff
+    MedalCase: 0
+    FlippoEngravedLighter: 0
+    ToyFigurineCaptain: 0
+    RubberStampCaptain: 0
+    PaperCaptainsThoughts: 0
+  # Contraban
+    ClothingNeckCloakSyndicateAdmiral: 500

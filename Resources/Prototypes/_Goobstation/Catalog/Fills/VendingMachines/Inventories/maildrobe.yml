@@ -20,3 +20,16 @@
     MailBag: 2
     WeaponMailLake: 1 # Frontier
     BoxMailCapsulePrimed: 2 # Frontier
+  prices:
+    ClothingBackpackMessengerMailman: 10
+    ClothingUniformMailCarrier: 10
+    ClothingUniformSkirtMailCarrier: 10
+    ClothingHeadMailCarrier: 10
+    ClothingHeadsetCargo: 8
+    ClothingOuterWinterCoatMail: 10
+    ClothingShoesColorBrown: 10
+    ClothingEyesGlasses: 12
+    ClothingHandsGlovesColorWhite: 8
+    MailBag: 0
+    WeaponMailLake: 0
+    BoxMailCapsulePrimed: 0
