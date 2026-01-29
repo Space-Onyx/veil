@@ -53,22 +53,3 @@
     FoodBurgerRobot: 1
   emaggedInventory: # goob
     JawsOfLife: 1
-  prices:
-    CableApcStack: 40
-    SciFlash: 5
-    ProximitySensor: 25
-    ClothingEyesHudDiagnostic: 15
-    ClothingEyesEyepatchHudDiag: 15
-    RemoteSignaller: 30
-    Igniter: 15
-    HandheldHealthAnalyzer: 0
-    Scalpel: 10
-    SawElectric: 12
-    Bonesetter: 12
-    MedicalStitches: 8
-    NitrousOxideTankFilled: 15
-    ClothingMaskBreathMedical: 0
-    ClothingHeadHatWeldingMaskFlame: 17
-    Welder: 35
-    Screwdriver: 39
-    Crowbar: 20

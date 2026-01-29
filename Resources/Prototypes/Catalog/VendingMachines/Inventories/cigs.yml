@@ -46,22 +46,3 @@
   emaggedInventory:
     CigPackSyndicate: 1 #Goob station
     CybersunFlippo: 1 # Goob
-  prices:
-    CigPackGreen: 5
-    CigPackRed: 5
-    CigPackBlue: 5
-    CigPackBlack: 5
-    CigPackMixed: 5
-    CigarCase: 7
-    SmokingPipeFilledTobacco: 7
-    Vape: 6
-    Matchbox: 2
-    PackPaperRollingFilters: 10
-    CheapLighter: 3
-    Lighter: 5
-    FlippoLighter: 9
-    GroundTobacco: 4
-    CigarGold: 45
-    Igniter: 8
-    CigPackSyndicate: 10
-    CybersunFlippo: 15

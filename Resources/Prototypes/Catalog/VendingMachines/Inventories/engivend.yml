@@ -108,7 +108,6 @@
     CrowbarYellow: 8
     Multitool: 4
     NetworkConfigurator: 5
-    Floodlight: 1 # Corvax-Goob-Floodlight
     PowerCellMedium: 5
     ClothingHandsGlovesColorYellow: 12 # GoobStation: was 6, IPCs need insuls more than usual
     BoxInflatable: 2
@@ -118,18 +117,3 @@
     DrinkBeerCan: 3
   emaggedInventory: #goob
     ToolboxSyndicateFilled: 1
-  prices:
-    ClothingEyesGlassesMeson: 30
-    ClothingEyesHudDiagnostic: 15
-    ClothingHeadHatWelding: 12
-    CrowbarYellow: 21
-    Multitool: 34
-    NetworkConfigurator: 29
-    Floodlight: 49
-    PowerCellMedium: 90
-    ClothingHandsGlovesColorYellow: 45
-    BoxInflatable: 28
-    ClothingHeadHatCone: 25
-    CowToolboxFilled: 40
-    DrinkBeerCan: 5
-    ToolboxSyndicateFilled: 0
