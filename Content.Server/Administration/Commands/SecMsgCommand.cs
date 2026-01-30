@@ -30,19 +30,14 @@ public sealed class SecMsgCommand : LocalizedCommands
 
         if (args.Length == 2)
         {
-            var options = new[] { "All" }.Concat(_playerManager.Sessions.Select(s => s.Name));
-            return CompletionResult.FromHintOptions(options, Loc.GetString("secmsg-command-arg-target"));
+            var options = PopupTypeOptions.Concat(new[] { "All" }).Concat(_playerManager.Sessions.Select(s => s.Name));
+            return CompletionResult.FromHintOptions(options, Loc.GetString("secmsg-command-arg-target-or-type"));
         }
 
-        if (args.Length == 3)
-        {
-            return CompletionResult.FromHintOptions(PopupTypeOptions, Loc.GetString("secmsg-command-arg-popup-type"));
-        }
-
-        if (args.Length > 3)
+        if (args.Length >= 3)
         {
             var options = _playerManager.Sessions.Select(s => s.Name);
-            return CompletionResult.FromHintOptions(options, Loc.GetString("secmsg-command-arg-target-n", ("target", args.Length - 3)));
+            return CompletionResult.FromHintOptions(options, Loc.GetString("secmsg-command-arg-target-n", ("target", args.Length - 2)));
         }
 
         return CompletionResult.Empty;
@@ -63,22 +58,29 @@ public sealed class SecMsgCommand : LocalizedCommands
             shell.WriteLine(Loc.GetString("secmsg-command-error-empty-message"));
             return;
         }
-
         var popupType = PopupType.Large;
-        if (args.Length >= 3)
+        var targetStartIndex = 2;
+        var isFirstArgPopupType = Enum.TryParse<PopupType>(args[1], true, out var parsedType);
+
+        if (isFirstArgPopupType)
         {
-            if (!Enum.TryParse<PopupType>(args[2], true, out popupType))
-            {
-                shell.WriteError(Loc.GetString("secmsg-command-error-invalid-popup-type", ("type", args[2])));
-                return;
-            }
+            popupType = parsedType;
+            targetStartIndex = 2;
+        }
+        else
+        {
+            targetStartIndex = 1;
         }
 
         var targets = new List<ICommonSession>();
 
-        if (args[1].Equals("All", StringComparison.OrdinalIgnoreCase))
+        var firstArgIsAll = isFirstArgPopupType
+            ? args.Length > 2 && args[2].Equals("All", StringComparison.OrdinalIgnoreCase)
+            : args[1].Equals("All", StringComparison.OrdinalIgnoreCase);
+
+        if (firstArgIsAll)
         {
-            if (args.Length > 3)
+            if (args.Length > targetStartIndex + 1)
             {
                 shell.WriteLine(Loc.GetString("secmsg-command-error-all-with-extra"));
                 return;
@@ -93,7 +95,7 @@ public sealed class SecMsgCommand : LocalizedCommands
                 return;
             }
 
-            for (var i = 3; i < args.Length; i++)
+            for (var i = targetStartIndex; i < args.Length; i++)
             {
                 var username = args[i];
                 if (!_playerManager.TryGetSessionByUsername(username, out var session))
@@ -121,7 +123,11 @@ public sealed class SecMsgCommand : LocalizedCommands
             }
         }
 
-        var targetNames = args[1].Equals("All", StringComparison.OrdinalIgnoreCase)
+        var firstTargetArg = firstArgIsAll
+            ? (isFirstArgPopupType ? args[2] : args[1])
+            : (isFirstArgPopupType ? args[2] : args[1]);
+
+        var targetNames = firstTargetArg.Equals("All", StringComparison.OrdinalIgnoreCase)
             ? "all players"
             : string.Join(", ", targets.Select(t => t.Name));
 

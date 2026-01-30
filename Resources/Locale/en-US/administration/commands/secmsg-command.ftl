@@ -1,12 +1,11 @@
 secmsg-command-arg-message = message
 secmsg-command-arg-target = target (All or cKey)
 secmsg-command-arg-target-n = target { $target } (cKey)
-secmsg-command-arg-popup-type = popup type (Small, Medium, Large, SmallCaution, MediumCaution, LargeCaution)
-secmsg-command-error-args = Invalid number of arguments. Usage: secmsg "message" All or secmsg "message" cKey1 cKey2 ... (up to 20 players)
+secmsg-command-arg-target-or-type = popup type or target (Small, Medium, Large, SmallCaution, MediumCaution, LargeCaution, All, cKey)
+secmsg-command-error-args = Invalid number of arguments. Usage: secmsg "message" [popup-type] All or secmsg "message" [popup-type] cKey1 cKey2 ... (up to 20 players)
 secmsg-command-error-empty-message = Message cannot be empty.
 secmsg-command-error-too-many-targets = Too many targets. Maximum 20.
 secmsg-command-error-player-not-found = Player { $username } not found.
 secmsg-command-error-no-valid-targets = No valid targets.
 secmsg-command-error-all-with-extra = Cannot specify additional targets when using All.
-secmsg-command-error-invalid-popup-type = Invalid popup type: { $type }. Valid types: Small, Medium, Large, SmallCaution, MediumCaution, LargeCaution
 secmsg-command-success = Message sent to { $count } players.

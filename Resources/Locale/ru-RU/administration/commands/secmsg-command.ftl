@@ -1,12 +1,11 @@
 secmsg-command-arg-message = сообщение
 secmsg-command-arg-target = цель (All или cKey)
 secmsg-command-arg-target-n = цель { $target } (cKey)
-secmsg-command-arg-popup-type = тип всплывающего окна (Small, Medium, Large, SmallCaution, MediumCaution, LargeCaution)
+secmsg-command-arg-target-or-type = тип всплывающего окна или цель (Small, Medium, Large, SmallCaution, MediumCaution, LargeCaution, All, cKey)
 secmsg-command-error-args = Недопустимое число аргументов. Использование: secmsg "сообщение" [тип] All или secmsg "сообщение" [тип] cKey1 cKey2 ... (до 20 игроков)
 secmsg-command-error-empty-message = Сообщение не может быть пустым.
 secmsg-command-error-too-many-targets = Слишком много целей. Максимум 20.
 secmsg-command-error-player-not-found = Игрок { $username } не найден.
 secmsg-command-error-no-valid-targets = Нет допустимых целей.
 secmsg-command-error-all-with-extra = Нельзя указывать дополнительные цели при использовании All.
-secmsg-command-error-invalid-popup-type = Неверный тип всплывающего окна: { $type }. Допустимые типы: Small, Medium, Large, SmallCaution, MediumCaution, LargeCaution
 secmsg-command-success = Сообщение отправлено { $count } игрокам.
