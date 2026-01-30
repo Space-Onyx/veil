@@ -43,10 +43,12 @@
             Paramedic: [ 2, 2 ]
             Surgeon: [ 1, 1 ]
             MedicalIntern: [ 4, 4 ]
+            Virologist: [ 2, 2 ]
             Psychologist: [ 1, 1 ]
             #science
             ResearchDirector: [ 1, 1 ]
-            Scientist: [ 4, 4 ]
+            Scientist: [ 3, 3 ]
+            Roboticist: [ 2, 2 ]
             ResearchAssistant: [ 4, 4 ]
             #security
             HeadOfSecurity: [ 1, 1 ]
