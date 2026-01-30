@@ -63,6 +63,8 @@
 
 using Content.Shared.Light.Components;
 using Content.Shared.Light.EntitySystems;
+using Content.Shared._Vortex.Weather.Components;
+using Content.Shared._Vortex.Weather.EntitySystems;
 using Content.Shared.Maps;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
@@ -104,13 +106,34 @@ public abstract class SharedWeatherSystem : EntitySystem
         component.NextUpdate += args.PausedTime; // DeltaV
     }
 
-    public bool CanWeatherAffect(EntityUid uid, MapGridComponent grid, TileRef tileRef, RoofComponent? roofComp = null)
+    public bool CanWeatherAffect(EntityUid uid, MapGridComponent grid, TileRef tileRef, RoofComponent? roofComp = null, TileWeatherComponent? tileWeatherComp = null)
     {
         if (tileRef.Tile.IsEmpty)
             return true;
 
         if (Resolve(uid, ref roofComp, false) && _roof.IsRooved((uid, grid, roofComp), tileRef.GridIndices))
             return false;
+
+        // <Vortex Weather Tweak>
+        if (Resolve(uid, ref tileWeatherComp, false))
+        {
+            var chunkOrigin = SharedMapSystem.GetChunkIndices(tileRef.GridIndices, TileWeatherComponent.ChunkSize);
+
+            var chunkRelative = SharedMapSystem.GetChunkRelative(tileRef.GridIndices, TileWeatherComponent.ChunkSize);
+            var bitFlag = (ulong) 1 << (chunkRelative.X + chunkRelative.Y * TileWeatherComponent.ChunkSize);
+            if (tileWeatherComp.EnableData.TryGetValue(chunkOrigin, out var enableData))
+            {
+                if ((enableData & bitFlag) == bitFlag)
+                    return true;
+            }
+
+            if (tileWeatherComp.Data.TryGetValue(chunkOrigin, out var chunkData))
+            {
+                if ((chunkData & bitFlag) == bitFlag)
+                    return false;
+            }
+        }
+        // </Vortex Weather Tweak>
 
         var tileDef = (ContentTileDefinition) _tileDefManager[tileRef.Tile.TypeId];
 
