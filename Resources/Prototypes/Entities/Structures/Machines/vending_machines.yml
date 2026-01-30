@@ -580,7 +580,8 @@
     brokenState: broken
     normalState: normal-unshaded
     denyState: deny-unshaded
-    priceMultiplier: 0
+    priceMultiplier: 1
+    useStaticPrice: true
   - type: DatasetVocalizer
     dataset: ClothesMateAds
   - type: SpeakOnUIClosed
@@ -1535,7 +1536,8 @@
     ejectState: eject-unshaded
     denyState: deny-unshaded
     screenState: screen
-    priceMultiplier: 0
+    priceMultiplier: 1
+    useStaticPrice: true
   - type: DatasetVocalizer
     dataset: AutoDrobeAds
   - type: SpeakOnUIClosed
