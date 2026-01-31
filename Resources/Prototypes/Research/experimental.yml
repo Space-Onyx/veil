@@ -357,4 +357,4 @@
   - ClothingBeltChemBagXenobiologyHolding
   position: 4,2
   technologyPrerequisites:
-  - Xenobiology
+    - XenoBiology
