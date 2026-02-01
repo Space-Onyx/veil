@@ -36,6 +36,8 @@
   maxHeight: 1.4
   maxWidth: 1.1
   minWidth: 0.90
+  defaultHeightCm: 170
+  defaultWeightKg: 57
   category: Unusual
   description: "/ServerInfo/ADT/SpeciesDescriptions/Unfinished.xml"
   pros:

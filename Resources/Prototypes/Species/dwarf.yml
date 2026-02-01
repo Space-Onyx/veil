@@ -19,10 +19,10 @@
   baseScale: "1, 0.81"
   minHeight: 0.9
   MaxHeight: 1.15
-  maxWidth: 1.1
+  maxWidth: 1.15
   minWidth: 0.95
   defaultHeightCm: 155
-  defaultWeightKg: 75
+  defaultWeightKg: 70
   description: "/ServerInfo/ADT/SpeciesDescriptions/Unfinished.xml"
   pros:
   - Этанол лечит небольшое количество механического урона.

@@ -16,6 +16,16 @@
   dollPrototype: MobGingerbreadDummy
   skinColoration: HumanToned
   defaultSkinTone: "#9a7c5a"
+  minHeight: 0.86
+  maxHeight: 2
+  maxWidth: 1.15
+  minWidth: 0.90
+  defaultHeightCm: 175
+  defaultWeightKg: 65
+  minHeightCm: 140
+  maxHeightCm: 220
+  minWeightKg: 40
+  maxWeightKg: 150
 
 - type: speciesBaseSprites
   id: MobGingerbreadSprites
