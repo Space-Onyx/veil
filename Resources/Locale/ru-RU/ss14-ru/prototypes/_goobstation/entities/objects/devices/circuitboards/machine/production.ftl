@@ -22,3 +22,6 @@ ent-PlumbingPumpCircuitboard = жидкостный насос (машинная
 ent-TelecomTransmitterCircuitboard = телекоммуникационный передатчик (машинная плата)
     .desc = { ent-BaseMachineCircuitboard.desc }
     .suffix = { ent-BaseMachineCircuitboard.suffix }
+ent-EnergyChemDispenserMachineCircuitboard = энерго раздатчик химикатов (машинная плата)
+    .desc = { ent-BaseMachineCircuitboard.desc }
+    .suffix = { ent-BaseMachineCircuitboard.suffix }

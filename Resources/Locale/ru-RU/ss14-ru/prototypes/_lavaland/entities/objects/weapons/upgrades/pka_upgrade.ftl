@@ -1,0 +1,14 @@
+ent-BasePKAUpgrade = улучшение ПКУ
+    .desc = Модкит для протокинетического ускорителя.
+ent-PKAUpgradeDamage = улучшение ПКУ (урон)
+    .desc = { ent-BasePKAUpgrade.desc }
+ent-PKAUpgradeRange = улучшение ПКУ (дальность)
+    .desc = { ent-BasePKAUpgrade.desc }
+ent-PKAUpgradeFireRate = улучшение ПКУ (скорострельность)
+    .desc = { ent-BasePKAUpgrade.desc }
+ent-PKAUpgradeLight = улучшение ПКУ (свет)
+    .desc = { ent-BasePKAUpgrade.desc }
+ent-PKAUpgradePressure = улучшение ПКУ (давление)
+    .desc = { ent-BaseSyndicateContraband.desc }
+ent-PKAUpgradeSpace = улучшение ПКУ (космос)
+    .desc = Специализированная модификация для работы в вакууме и условиях низкого давления, одновременно повышающая эффективность выстрелов.

@@ -6,13 +6,13 @@
   suffix: keeps tiles, no despawn
   components:
   - type: TailedEntity
-    amount: 65
-    speed: 13
+    amount: 60
+    speed: 14
     spacing: 1
     prototype: SpaceWhaleSegment
   - type: MovementSpeedModifier
-    baseSprintSpeed: 11
-    baseWalkSpeed: 11
+    baseSprintSpeed: 12
+    baseWalkSpeed: 12
   - type: RadarBlip
     scale: 3
     shape: hexagon
@@ -21,7 +21,7 @@
     gravityState: true # wtf lol?
   - type: WarpPoint
     follow: true
-    location: space leviathan
+    location: "Пустотный левиафан"
   - type: HTN
     rootTask:
       task: DragonCarpCompound
@@ -42,7 +42,7 @@
         - FlyingMobLayer
   - type: MeleeWeapon
     altDisarm: false
-    attackRate: 0.3
+    attackRate: 0.6
     angle: 0
     animation: WeaponArcBite
     soundHit:
@@ -79,12 +79,12 @@
   - type: MobThresholds
     thresholds:
       0: Alive
-      4000: Dead # todo maybe add some good loot in the future to make space salv go whale hunting
+      8000: Dead # todo maybe add some good loot in the future to make space salv go whale hunting
   - type: Destructible
     thresholds:
     - trigger:
         !type:DamageTrigger
-        damage: 4000
+        damage: 8000
       behaviors:
       - !type:GibBehavior
 #        gibContents:
