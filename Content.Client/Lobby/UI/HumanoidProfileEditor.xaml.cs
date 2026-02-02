@@ -728,49 +728,6 @@ namespace Content.Client.Lobby.UI
             ReloadPreview();
             IsDirty = false;
 
-            #region CDWidth
-
-            CDWidth.OnTextChanged += args =>
-            {
-                if (Profile is null || !int.TryParse(args.Text, out var kg))
-                    return;
-
-                var prototype = _prototypeManager.Index<SpeciesPrototype>(Profile.Species);
-                kg = Math.Clamp(kg, prototype.MinWeightKg, prototype.MaxWeightKg);
-                var width = kg / (65f * prototype.BaseScale.X);
-                width = Math.Clamp(width, prototype.MinWidth, prototype.MaxWidth);
-
-                var sliderPercent = (width - prototype.MinWidth) / (prototype.MaxWidth - prototype.MinWidth);
-                WidthSlider.Value = sliderPercent;
-
-                SetProfileWidth(width);
-            };
-
-            WidthReset.OnPressed += _ =>
-            {
-                if (Profile is null)
-                    return;
-                var prototype = _prototypeManager.Index<SpeciesPrototype>(Profile.Species);
-                var defaultWeightKg = prototype.DefaultWeightKg;
-                var defaultWidth = defaultWeightKg / (65f * prototype.BaseScale.X);
-                defaultWidth = Math.Clamp(defaultWidth, prototype.MinWidth, prototype.MaxWidth);
-                SetProfileWidth(defaultWidth);
-                UpdateWidthControls();
-            };
-
-            WidthSlider.OnValueChanged += _ =>
-            {
-                if (Profile is null)
-                    return;
-                var prototype = _prototypeManager.Index<SpeciesPrototype>(Profile.Species);
-                var width = MathHelper.Lerp(prototype.MinWidth, prototype.MaxWidth, WidthSlider.Value);
-                var kg = Math.Clamp((int)(width * 65f * prototype.BaseScale.X), prototype.MinWeightKg, prototype.MaxWeightKg);
-                CDWidth.Text = kg.ToString(CultureInfo.InvariantCulture);
-                SetProfileWidth(width);
-            };
-
-            #endregion CDWidth
-
             #region CDHeight
 
             CDHeight.OnTextChanged += args =>
