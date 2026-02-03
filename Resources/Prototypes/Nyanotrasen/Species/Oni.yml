@@ -35,9 +35,9 @@
   defaultHeightCm: 185
   defaultWeightKg: 70
   minHeightCm: 160
-  maxHeightCm: 250
+  maxHeightCm: 215
   minWeightKg: 45
-  maxWeightKg: 120
+  maxWeightKg: 100
 
 - type: markingPoints
   id: MobOniMarkingLimits
