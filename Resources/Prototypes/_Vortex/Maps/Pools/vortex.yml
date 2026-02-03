@@ -2,17 +2,13 @@
   id: VortexMapPool
   maps:
   # Highpop 50+
-  - CorvaxAstra
-  - CorvaxBox
-  - CorvaxGlacier
+  - VortexBox
   - VortexKerberos
   - VortexGate
   - VortexOrigin
 
   # Midpop 25–50
-  - CorvaxAwesome
   - CorvaxBagel
-  - CorvaxMascara
   - CorvaxPaper
   - VortexKettle
 
@@ -22,6 +18,5 @@
   - CorvaxPacked
   - VortexSilly
   - CorvaxTushkan
-  - VortexAtlas
   - CorvaxCluster
   - VortexBeta
