@@ -68,11 +68,14 @@ public sealed class EftposSystem : EntitySystem
             return;
         }
 
+        // Close any existing UI for other players before initiating a new transaction
+        CloseExistingUi(uid, component);
+
         // Set pending payment and open UI for confirmation
         component.PendingPayerAccountId = bankCard.AccountId;
 
-        // Get payer name from user's ID card
-        component.PendingPayerName = GetPayerName(args.User);
+        // Get payer name from bank account first, fallback to ID card
+        component.PendingPayerName = GetPayerName(args.User, bankCard);
 
         // Get PIN from bank card or account
         if (!_bankCardSystem.TryGetAccount(bankCard.AccountId!.Value, out var account))
@@ -195,6 +198,9 @@ public sealed class EftposSystem : EntitySystem
 
         ClearPending(component); // Clear any pending on lock/unlock
 
+        // Close any existing UI for other players before opening for the new user
+        CloseExistingUi(uid, component);
+
         EntityUid? ownerEntity = null;
         if (activeHandId != null && _sharedHandsSystem.TryGetHeldItem((args.Actor, hands), activeHandId, out var ent))
             ownerEntity = ent;
@@ -202,18 +208,25 @@ public sealed class EftposSystem : EntitySystem
             GetOwner(ownerEntity ?? EntityUid.Invalid, component.BankAccountId), false, string.Empty);
     }
 
-    private string GetPayerName(EntityUid user)
+    private void CloseExistingUi(EntityUid uid, EftposComponent component)
     {
-        // Try to get ID card from inventory
-        if (_inventory.TryGetSlotEntity(user, "id", out var idEntity) &&
-            idEntity.HasValue &&
-            TryComp(idEntity.Value, out IdCardComponent? idCard) &&
-            idCard?.FullName != null)
+        // Close any existing UI sessions for this EFTPOS device
+        _ui.CloseUis(uid);
+    }
+
+    private string GetPayerName(EntityUid user, BankCardComponent? bankCard = null)
+    {
+        // Try to get bank card from hands first
+        if (bankCard != null && bankCard.AccountId.HasValue)
         {
-            return idCard.FullName!;
+            if (_bankCardSystem.TryGetAccount(bankCard.AccountId.Value, out var account) &&
+                !string.IsNullOrWhiteSpace(account.Name))
+            {
+                return account.Name;
+            }
         }
 
-        return "Неизвестный";
+        return "????";
     }
 
     private string GetOwner(EntityUid uid, int? bankAccountId)
