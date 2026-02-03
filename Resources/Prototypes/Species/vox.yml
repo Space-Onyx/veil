@@ -31,13 +31,18 @@
   naming: First
   sexes:
   - Unsexed
+  # <Vortex>
   baseScale: "0.87, 0.87"
   minHeight: 0.80
-  maxHeight: 1.2
-  maxWidth: 1.2
+  maxHeight: 2
+  maxWidth: 2
   minWidth: 0.90
   defaultHeightCm: 160
   defaultWeightKg: 60
+  minHeightCm: 140
+  maxHeightCm: 180
+  minWeightKg: 40
+  maxWeightKg: 75
   category: Unusual
   description: "/ServerInfo/ADT/SpeciesDescriptions/Unfinished.xml"
   special:
@@ -46,6 +51,7 @@
   - Максимальный рост выше человеческого.
   cons:
   - Получают урон при вдыхании кислорода.
+  # </Vortex>
 
 - type: speciesBaseSprites
   id: MobVoxSprites

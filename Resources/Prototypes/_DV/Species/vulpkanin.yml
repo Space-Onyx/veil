@@ -28,12 +28,24 @@
   femaleFirstNames: NamesVulpakinFemale
   lastNames: NamesVulpakinLast
   category: Unusual
+  # <Vortex>
+  minHeight: 0.86
+  maxHeight: 2
+  maxWidth: 2
+  minWidth: 0.90
+  defaultHeightCm: 175
+  defaultWeightKg: 65
+  minHeightCm: 140
+  maxHeightCm: 210
+  minWeightKg: 40
+  maxWeightKg: 100
   description: "/ServerInfo/ADT/SpeciesDescriptions/Unfinished.xml"
   pros:
   - Получает меньше механического урона.
   - Наносит больше урона голыми руками.
   cons:
   - Получают на 15% больше урона от огня.
+  # </Vortex>
 
 - type: speciesBaseSprites
   id: MobVulpkaninSprites

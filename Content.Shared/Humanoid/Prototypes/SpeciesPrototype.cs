@@ -201,7 +201,7 @@ public sealed partial class SpeciesPrototype : IPrototype
     /// The maximum height for this species
     /// </summary>
     [DataField("maxHeight")]
-    public float MaxHeight = 1.2f; // DeltaV - less trolling with the heights
+    public float MaxHeight = 2f; // DeltaV - less trolling with the heights
 
     /// <summary>
     /// The default height for this species
@@ -237,7 +237,7 @@ public sealed partial class SpeciesPrototype : IPrototype
     /// The maximum height in cm for this species
     /// </summary>
     [DataField("maxHeightCm")]
-    public int MaxHeightCm = 220;
+    public int MaxHeightCm = 210;
 
     /// <summary>
     /// The minimum weight in kg for this species
@@ -249,7 +249,7 @@ public sealed partial class SpeciesPrototype : IPrototype
     /// The maximum weight in kg for this species
     /// </summary>
     [DataField("maxWeightKg")]
-    public int MaxWeightKg = 150;
+    public int MaxWeightKg = 100;
 
     /// <summary>
     /// Whether to scale horizontally or not
@@ -273,7 +273,7 @@ public sealed partial class SpeciesPrototype : IPrototype
     /// The maximum width for this species
     /// </summary>
     [DataField("maxWidth")]
-    public float MaxWidth = 1.2f;
+    public float MaxWidth = 2f;
     // Vortex end
 }
 

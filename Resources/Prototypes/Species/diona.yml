@@ -31,11 +31,16 @@
   femaleFirstNames: NamesDionaFirst
   lastNames: NamesDionaLast
   naming: TheFirstofLast
+  # <Vortex>
   baseScale: "0.84, 0.85"
   minHeight: 0.90
-  maxHeight: 1.35
-  maxWidth: 1.3
+  maxHeight: 2
+  maxWidth: 2
   minWidth: 0.945
+  minHeightCm: 140
+  maxHeightCm: 205
+  minWeightKg: 40
+  maxWeightKg: 100
   category: Unusual
   description: "/ServerInfo/ADT/SpeciesDescriptions/Unfinished.xml"
   pros:
@@ -50,6 +55,7 @@
   - Получают на 20% больше урона от электричества.
   - Не могут сражаться голыми руками, но могут стрелять.
   - Не могут носить обувь.
+  # </Vortex>
 
 - type: speciesBaseSprites
   id: MobDionaSprites

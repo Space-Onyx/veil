@@ -13,6 +13,17 @@
   maxAge: 350
   oldAge: 251
   youngAge: 151
+  # <Vortex>
+  minHeight: 0.86
+  maxHeight: 2
+  maxWidth: 2
+  minWidth: 0.90
+  defaultHeightCm: 175
+  defaultWeightKg: 65
+  minHeightCm: 140
+  maxHeightCm: 210
+  minWeightKg: 40
+  maxWeightKg: 100
   category: Unusual
   description: "/ServerInfo/ADT/SpeciesDescriptions/Unfinished.xml"
   special:
@@ -26,6 +37,7 @@
   - Получают на 30% меньше урона от холода.
   - Получают на 15% меньше урона от огня.
   - Получают на 20% меньше урона от ядов.
+  # </Vortex>
 
 - type: speciesBaseSprites
   id: MobDemonSprites

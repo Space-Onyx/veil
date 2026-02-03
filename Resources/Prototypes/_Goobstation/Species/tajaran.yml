@@ -22,21 +22,23 @@
   maleFirstNames: NamesTajaranFirst
   femaleFirstNames: NamesTajaranFirst
   lastNames: NamesTajaranLast
-  # begin Goobstation: port EE height/width sliders
-  minHeight: 0.85
-  defaultHeight: 0.90
-  maxHeight: 1.15
-  minWidth: 0.85
-  defaultWidth: 0.90
-  maxWidth: 1.10
-  # end Goobstation: port EE height/width sliders
+  # <Vortex>
+  minHeight: 0.86
+  maxHeight: 2
+  maxWidth: 2
+  minWidth: 0.90
+  defaultHeightCm: 175
+  defaultWeightKg: 65
+  minHeightCm: 140
+  maxHeightCm: 200
+  minWeightKg: 40
+  maxWeightKg: 100
   description: "/ServerInfo/ADT/SpeciesDescriptions/Unfinished.xml"
   pros:
   - Получают меньше урона холодом.
-  special:
-  - Могут быть помещены в сумку.
   cons:
   - Получают больше урона огнём.
+# </Vortex>
 
 - type: markingPoints
   id: MobTajaranMarkingLimits

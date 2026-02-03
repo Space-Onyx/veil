@@ -422,7 +422,7 @@ namespace Content.Client.Lobby.UI
 
             CDWidth.OnTextChanged += args =>
             {
-                if (Profile is null || !float.TryParse(args.Text, out var kg))
+                if (Profile is null || !int.TryParse(args.Text, out var kg))
                     return;
 
                 var prototype = _prototypeManager.Index<SpeciesPrototype>(Profile.Species);
@@ -453,7 +453,7 @@ namespace Content.Client.Lobby.UI
                 if (Profile is null)
                     return;
                 var prototype = _prototypeManager.Index<SpeciesPrototype>(Profile.Species);
-                var kg = prototype.MinWeightKg + (int)(WidthSlider.Value * (prototype.MaxWeightKg - prototype.MinWeightKg));
+                var kg = MathHelper.Lerp(prototype.MinWeightKg, prototype.MaxWeightKg, WidthSlider.Value);
                 kg = Math.Clamp(kg, prototype.MinWeightKg, prototype.MaxWeightKg);
                 CDWidth.Text = kg.ToString(CultureInfo.InvariantCulture);
                 var width = kg / (65f * prototype.BaseScale.X);

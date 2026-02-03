@@ -24,15 +24,18 @@
   sexes:
     - Male
     - Female
-  # begin Goobstation: port EE height/width sliders
-  minHeight: 0.80
-  defaultHeight: 0.85
-  maxHeight: 1.15
-  minWidth: 0.77
-  defaultWidth: 0.85
-  maxWidth: 1.15
-  # end Goobstation: port EE height/width sliders
-
+  # <Vortex>
+  minHeight: 0.86
+  maxHeight: 2
+  maxWidth: 2
+  minWidth: 0.90
+  defaultHeightCm: 175
+  defaultWeightKg: 65
+  minHeightCm: 140
+  maxHeightCm: 200
+  minWeightKg: 40
+  maxWeightKg: 95
+  # </Vortex>
 - type: speciesBaseSprites
   id: MobShadowkinSprites
   sprites:

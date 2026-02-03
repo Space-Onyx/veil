@@ -30,13 +30,18 @@
   lastNames: NamesArachnidLast
   sexes:
   - Unsexed
+  # <Vortex>
   baseScale: "1.16, 1.16"
   minHeight: 0.80
-  maxHeight: 1.062
-  maxWidth: 1.1
+  maxHeight: 2
+  maxWidth: 2
   minWidth: 0.90
   defaultHeightCm: 185
   defaultWeightKg: 73
+  minHeightCm: 140
+  maxHeightCm: 220
+  minWeightKg: 40
+  maxWeightKg: 90
   description: "/ServerInfo/ADT/SpeciesDescriptions/Unfinished.xml"
   special:
   - Имеют возможность плести шёлк. Из шёлка можно создавать предметы - одежду, фурнитуру, стены. Для производства шёлка тратится голод.
@@ -50,6 +55,7 @@
   pros:
   - Наносимый урон голыми руками составляет 7 единиц, атаки совершаются на 50% быстрее.
   - Голодают и испытывают жажду медленнее.
+  # </Vortex>
 
 - type: speciesBaseSprites
   id: MobArachnidSprites

@@ -12,6 +12,16 @@
   femaleFirstNames: NamesChitinidFirstFemale
   naming: First
   # vortex start
+  minHeight: 0.86
+  maxHeight: 2
+  maxWidth: 2
+  minWidth: 0.90
+  defaultHeightCm: 175
+  defaultWeightKg: 65
+  minHeightCm: 140
+  maxHeightCm: 195
+  minWeightKg: 40
+  maxWeightKg: 90
   category: Unusual
   description: "/ServerInfo/ADT/SpeciesDescriptions/Unfinished.xml"
   pros:

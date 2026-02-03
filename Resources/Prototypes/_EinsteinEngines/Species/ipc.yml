@@ -25,6 +25,16 @@
   naming: FirstDashLast
   sexes:
   - Unsexed
+  # <Vortex>
+  maxHeight: 2
+  maxWidth: 2
+  minWidth: 0.90
+  defaultHeightCm: 175
+  defaultWeightKg: 65
+  minHeightCm: 140
+  maxHeightCm: 200
+  minWeightKg: 40
+  maxWeightKg: 80
   category: Special
   description: "/ServerInfo/ADT/SpeciesDescriptions/Unfinished.xml"
   pros:
@@ -37,7 +47,7 @@
   cons:
   - Отсутствует слот под гарнитуру.
   - По достижению 100 урона умирает.
-
+  # </Vortex>
 
 
 # The lack of a layer means that

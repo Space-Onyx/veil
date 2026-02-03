@@ -31,13 +31,18 @@
   maleFirstNames: NamesMothFirstMale
   femaleFirstNames: NamesMothFirstFemale
   maleLastNames: NamesMothLast
+  # <Vortex>
   baseScale: "0.87, 0.87"
   minHeight: 0.90
-  maxHeight: 1.4
-  maxWidth: 1.1
+  maxHeight: 2
+  maxWidth: 2
   minWidth: 0.90
   defaultHeightCm: 170
   defaultWeightKg: 57
+  minHeightCm: 140
+  maxHeightCm: 205
+  minWeightKg: 40
+  maxWeightKg: 95
   category: Unusual
   description: "/ServerInfo/ADT/SpeciesDescriptions/Unfinished.xml"
   pros:
@@ -49,6 +54,7 @@
   - Максимальный рост выше человеческого.
   cons:
   - Получают на 30% больше урона от огня.
+  # </Vortex>
 
 
 - type: speciesBaseSprites

@@ -11,6 +11,18 @@
   maleFirstNames: NamesFeroxiFirstMale
   femaleFirstNames: NamesFeroxiFirstFemale
   lastNames: NamesFeroxiLast
+  # <Vortex>
+  minHeight: 0.86
+  maxHeight: 2
+  maxWidth: 2
+  minWidth: 0.90
+  defaultHeightCm: 175
+  defaultWeightKg: 65
+  minHeightCm: 140
+  maxHeightCm: 200
+  minWeightKg: 40
+  maxWeightKg: 100
+  # </Vortex>
 
 - type: speciesBaseSprites
   id: MobFeroxiSprites
