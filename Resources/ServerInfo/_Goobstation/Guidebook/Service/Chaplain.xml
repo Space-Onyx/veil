@@ -31,6 +31,8 @@
     <GuideEntityEmbed Entity="AltarSpaceChristian"/>
     <GuideEntityEmbed Entity="AltarTechnology"/>
     <GuideEntityEmbed Entity="AltarToolbox"/>
+    <GuideEntityEmbed Entity="AltarDragon"/>
+    <GuideEntityEmbed Entity="AltarEmpire"/>
   </Box>
 
 Эти алтари можно построить, поместив соответствующее подношение на базовый алтарь:
