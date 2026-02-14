@@ -15,16 +15,16 @@ gun-upgrade-inserted-examine-type-attached = Имеет прикреплённо
 gun-upgrade-examine-type-upgrade = Это улучшение «{$name}».
 gun-upgrade-examine-type-can-use = Может использоваться как улучшение «{$name}».
 
-gun-upgrade-damage-name = [color=#ec9b2d][bold]урон[/bold][/color]
+gun-upgrade-damage-name = [color=#ec9b2d][bold]сила[/bold][/color]
 gun-upgrade-range-name = [color=#2decec][bold]дальность[/bold][/color]
 gun-upgrade-reload-name = [color=#bbf134][bold]скорострельность[/bold][/color]
-gun-upgrade-light-name = [color=#bbf134][bold]фонарь[/bold][/color]
+gun-upgrade-light-name = [color=#bbf134][bold]фонарик[/bold][/color]
 gun-upgrade-vampirism-name = [color=crimson][bold]вампиризм[/bold][/color]
-gun-upgrade-pressure-name = [color=orangered][bold]давление[/bold][/color]
-gun-upgrade-space-name = [color=#ff00bf][bold]пространство[/bold][/color]
+gun-upgrade-pressure-name = [color=orangered][bold]нагнетание[/bold][/color]
+gun-upgrade-space-name = [color=#ff00bf][bold]космос[/bold][/color]
 
-gun-upgrade-bayonet-name = [bold]штык[/bold]
-gun-upgrade-flashlight-name = [bold]фонарь[/bold]
+gun-upgrade-bayonet-name = [bold]штык-нож[/bold]
+gun-upgrade-flashlight-name = [bold]фонарик[/bold]
 
 gun-upgrade-crusher-kinetic-marker-name = [color=#4269eb][bold]кинетическая метка[/bold][/color]
 gun-upgrade-crusher-rude-buster-name = [color=#ae00ff][bold]грубый разрушитель[/bold][/color]
