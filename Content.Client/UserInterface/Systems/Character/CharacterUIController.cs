@@ -156,7 +156,7 @@ public sealed class CharacterUIController : UIController, IOnStateEntered<Gamepl
             return;
         }
 
-        var (entity, job, objectives, briefing, entityName, memories) = data; //<Vortex Economy>
+        var (entity, job, objectives, briefing, entityName, memories) = data; //<Onyx Economy>
 
         _window.SpriteView.SetEntity(entity);
 
@@ -166,7 +166,7 @@ public sealed class CharacterUIController : UIController, IOnStateEntered<Gamepl
         _window.SubText.Text = job;
         _window.Objectives.RemoveAllChildren();
         _window.ObjectivesLabel.Visible = objectives.Any();
-        _window.Memories.RemoveAllChildren(); //<Vortex Economy>
+        _window.Memories.RemoveAllChildren(); //<Onyx Economy>
 
         foreach (var (groupId, conditions) in objectives)
         {
@@ -207,7 +207,7 @@ public sealed class CharacterUIController : UIController, IOnStateEntered<Gamepl
             _window.Objectives.AddChild(objectiveControl);
         }
 
-        //<Vortex Economy>
+        //<Onyx Economy>
         foreach (var (memoryName, memoryValue) in memories)
         {
             var memoryControl = new BoxContainer()
@@ -225,7 +225,7 @@ public sealed class CharacterUIController : UIController, IOnStateEntered<Gamepl
             });
             _window.Memories.AddChild(memoryControl);
         }
-        //</Vortex Economy>
+        //</Onyx Economy>
 
         if (briefing != null)
         {

@@ -55,8 +55,8 @@
 
 # This is used by HE1S-G8 overcharged cartridge, idk where to put it
 - type: entity
-  id: EnergyVortex
-  name: energy vortex
+  id: EnergyOnyx
+  name: energy Onyx
   components:
   - type: Sprite
     sprite: Structures/Power/Generation/Tesla/energy_ball.rsi

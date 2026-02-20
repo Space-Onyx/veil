@@ -90,7 +90,7 @@ public sealed partial class FancyResearchConsoleItem : LayoutContainer
         box.SetSize = new Vector2(80 * scale, 80 * scale);
     }
 
-    // Vortex added
+    // Onyx added
     public void SetFiltered(bool filtered)
     {
         // Show/hide darkening overlay instead of changing colors
@@ -108,7 +108,7 @@ public sealed partial class FancyResearchConsoleItem : LayoutContainer
 
         UpdateColor();
     }
-    // Vortex end
+    // Onyx end
 }
 
 public sealed class DrawButton : Button

@@ -93,8 +93,8 @@ using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Content.Shared.Players;
 using Content.Shared.Preferences;
-using Content.Server.Voting.Managers; // <--> Vortex <-->
-using Content.Shared.Voting; // <--> Vortex <-->
+using Content.Server.Voting.Managers; // <--> Onyx <-->
+using Content.Shared.Voting; // <--> Onyx <-->
 using JetBrains.Annotations;
 using Prometheus;
 using Robust.Shared.Asynchronous;
@@ -120,7 +120,7 @@ namespace Content.Server.GameTicking
 {
     public sealed partial class GameTicker
     {
-        [Dependency] private readonly IVoteManager _voteManager = default!;// <--> Vortex - Automatic vote after restart if enabled <-->
+        [Dependency] private readonly IVoteManager _voteManager = default!;// <--> Onyx - Automatic vote after restart if enabled <-->
         [Dependency] private readonly DiscordWebhook _discord = default!;
         [Dependency] private readonly RoleSystem _role = default!;
         [Dependency] private readonly ITaskManager _taskManager = default!;
@@ -787,19 +787,19 @@ namespace Content.Server.GameTicking
             RandomizeLobbyBackground();
             ResettingCleanup();
 
-            // <--> Vortex - Automatic map vote after restart if enabled <-->
+            // <--> Onyx - Automatic map vote after restart if enabled <-->
             if (_cfg.GetCVar(CCVars.VoteMapAutoAfterRestart))
             {
                 _voteManager.CreateStandardVote(null, StandardVoteType.Map);
             }
-            // <--> Vortex end <-->
+            // <--> Onyx end <-->
 
-            // <--> Vortex - Automatic preset vote after restart if enabled <-->
+            // <--> Onyx - Automatic preset vote after restart if enabled <-->
             if (_cfg.GetCVar(CCVars.VotePresetAutoAfterRestart ))
             {
                 _voteManager.CreateStandardVote(null, StandardVoteType.Preset);
             }
-            // <--> Vortex end <-->
+            // <--> Onyx end <-->
 
             IncrementRoundNumber();
             SendRoundStartingDiscordMessage();

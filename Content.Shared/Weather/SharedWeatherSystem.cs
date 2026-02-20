@@ -63,8 +63,8 @@
 
 using Content.Shared.Light.Components;
 using Content.Shared.Light.EntitySystems;
-using Content.Shared._Vortex.Weather.Components;
-using Content.Shared._Vortex.Weather.EntitySystems;
+using Content.Shared._Onyx.Weather.Components;
+using Content.Shared._Onyx.Weather.EntitySystems;
 using Content.Shared.Maps;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
@@ -114,7 +114,7 @@ public abstract class SharedWeatherSystem : EntitySystem
         if (Resolve(uid, ref roofComp, false) && _roof.IsRooved((uid, grid, roofComp), tileRef.GridIndices))
             return false;
 
-        // <Vortex Weather Tweak>
+        // <Onyx Weather Tweak>
         if (Resolve(uid, ref tileWeatherComp, false))
         {
             var chunkOrigin = SharedMapSystem.GetChunkIndices(tileRef.GridIndices, TileWeatherComponent.ChunkSize);
@@ -133,7 +133,7 @@ public abstract class SharedWeatherSystem : EntitySystem
                     return false;
             }
         }
-        // </Vortex Weather Tweak>
+        // </Onyx Weather Tweak>
 
         var tileDef = (ContentTileDefinition) _tileDefManager[tileRef.Tile.TypeId];
 

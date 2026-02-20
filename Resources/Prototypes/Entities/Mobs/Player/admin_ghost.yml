@@ -157,7 +157,7 @@
     - SilentStorageUser
     - PreventAccessLogging
     - AllowBiomeLoading
-    - IgnoreBalanceChecks # <Vortex-Economy-Tweak>
+    - IgnoreBalanceChecks # <Onyx-Economy-Tweak>
   - type: Input
     context: "aghost"
   - type: Ghost

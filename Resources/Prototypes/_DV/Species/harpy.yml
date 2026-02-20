@@ -26,7 +26,7 @@
   markingLimits: MobHarpyMarkingLimits
   dollPrototype: MobHarpyDummy
   skinColoration: HumanToned
-  # <Vortex>
+  # <Onyx>
   minHeight: 0.86
   maxHeight: 2
   maxWidth: 2
@@ -37,7 +37,7 @@
   maxHeightCm: 200
   minWeightKg: 40
   maxWeightKg: 100
-  # </Vortex>
+  # </Onyx>
   category: Unusual
   description: "/ServerInfo/ADT/SpeciesDescriptions/Unfinished.xml"
   pros:

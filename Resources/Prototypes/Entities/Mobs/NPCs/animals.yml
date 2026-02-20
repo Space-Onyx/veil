@@ -2253,7 +2253,7 @@
     color: "#808080"
     activateSound: null
     deactivateSound: null
-  # - type: EggLayer <Vortex removed>
+  # - type: EggLayer <Onyx removed>
   #   eggSpawn:
   #   - id: SpawnMobMouse
   #   hungerUsage: 20

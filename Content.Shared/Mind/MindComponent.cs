@@ -86,7 +86,7 @@ public sealed partial class MindComponent : Component
     public NetUserId? OriginalOwnerUserId { get; set; }
     
     [DataField, AutoNetworkedField]
-    public HashSet<Memory> Memories = new(); //<Vortex Economy>
+    public HashSet<Memory> Memories = new(); //<Onyx Economy>
 
     /// <summary>
     ///     Add a memory to the mind.

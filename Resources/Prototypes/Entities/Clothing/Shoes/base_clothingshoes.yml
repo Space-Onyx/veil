@@ -31,10 +31,10 @@
   parent: Clothing
   id: ClothingShoesBase
   components:
-  # <Vortex>
+  # <Onyx>
   - type: SlotBlock
     slots: [socks]
-  # </Vortex>
+  # </Onyx>
   # Goobstation edit start
   - type: EmitSoundOnPickup
     sound:

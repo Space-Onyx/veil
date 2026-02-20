@@ -123,13 +123,13 @@ namespace Content.Shared.Preferences
         [DataField]
         public string FlavorText { get; set; } = string.Empty;
 
-        // <Vortex-OOCNotex>
+        // <Onyx-OOCNotex>
         /// <summary>
         /// Out-of-character notes that can appear for the character if <see cref="CCVars.OOCNotes"/> is enabled.
         /// </summary>
         [DataField]
         public string OOCNotes { get; set; } = string.Empty;
-        // </Vortex-OOCNotex>
+        // </Onyx-OOCNotex>
 
         /// <summary>
         /// Associated <see cref="SpeciesPrototype"/> for this profile.
@@ -199,7 +199,7 @@ namespace Content.Shared.Preferences
         public PreferenceUnavailableMode PreferenceUnavailable { get; private set; } =
             PreferenceUnavailableMode.SpawnAsOverflow;
 
-        // Vortex - Height & Weight
+        // Onyx - Height & Weight
         [DataField("cosmaticDriftCharacterHeight")]
         public float Height = 1f;
 
@@ -223,10 +223,10 @@ namespace Content.Shared.Preferences
             HashSet<ProtoId<AntagPrototype>> antagPreferences,
             HashSet<ProtoId<TraitPrototype>> traitPreferences,
             Dictionary<string, RoleLoadout> loadouts,
-            // Vortex added
+            // Onyx added
             float height,
             float width,
-            // Vortex end
+            // Onyx end
             // ADT Barks start
             BarkData bark
             // ADT Barks end
@@ -247,10 +247,10 @@ namespace Content.Shared.Preferences
             _antagPreferences = antagPreferences;
             _traitPreferences = traitPreferences;
             _loadouts = loadouts;
-            // Vortex added
+            // Onyx added
             Height = height;
             Width = width;
-            // Vortex end
+            // Onyx end
             // ADT Barks start
             Bark = bark;
             // ADT Barks end
@@ -274,7 +274,7 @@ namespace Content.Shared.Preferences
         public HumanoidCharacterProfile(HumanoidCharacterProfile other)
             : this(other.Name,
                 other.FlavorText,
-                other.OOCNotes, // <Vortex-OOCNotex>
+                other.OOCNotes, // <Onyx-OOCNotex>
                 other.Species,
                 other.Voice, // CorvaxGoob-TTS
                 other.Age,
@@ -287,8 +287,8 @@ namespace Content.Shared.Preferences
                 new HashSet<ProtoId<AntagPrototype>>(other.AntagPreferences),
                 new HashSet<ProtoId<TraitPrototype>>(other.TraitPreferences),
                 new Dictionary<string, RoleLoadout>(other.Loadouts),
-                other.Height, // Vortex - Height & Weight
-                other.Width, // Vortex - Height & Weight
+                other.Height, // Onyx - Height & Weight
+                other.Width, // Onyx - Height & Weight
                 // ADT Barks start
                 other.Bark
                 // ADT Barks end
@@ -344,14 +344,14 @@ namespace Content.Shared.Preferences
 
             var sex = Sex.Unsexed;
             var age = 18;
-            var height = 1f; // Vortex - Height & Weight
-            var width = 1f; // Vortex - Height & Weight
+            var height = 1f; // Onyx - Height & Weight
+            var width = 1f; // Onyx - Height & Weight
             if (prototypeManager.TryIndex<SpeciesPrototype>(species, out var speciesPrototype))
             {
                 sex = random.Pick(speciesPrototype.Sexes);
                 age = random.Next(speciesPrototype.MinAge, speciesPrototype.OldAge);
-                height = MathF.Round(random.NextFloat(speciesPrototype.MinHeight, speciesPrototype.MaxHeight), 2); // Vortex - Height & Weight
-                width = MathF.Round(random.NextFloat(speciesPrototype.MinWidth, speciesPrototype.MaxWidth), 2); // Vortex - Height & Weight
+                height = MathF.Round(random.NextFloat(speciesPrototype.MinHeight, speciesPrototype.MaxHeight), 2); // Onyx - Height & Weight
+                width = MathF.Round(random.NextFloat(speciesPrototype.MinWidth, speciesPrototype.MaxWidth), 2); // Onyx - Height & Weight
             }
 
             // CorvaxGoob-TTS-Start
@@ -407,12 +407,12 @@ namespace Content.Shared.Preferences
             return new(this) { FlavorText = flavorText };
         }
 
-        // <Vortex-OOCNotex>
+        // <Onyx-OOCNotex>
         public HumanoidCharacterProfile WithOOCNotes(string oocNotes)
         {
             return new(this) { OOCNotes = oocNotes };
         }
-        // </Vortex-OOCNotex>
+        // </Onyx-OOCNotex>
 
         public HumanoidCharacterProfile WithAge(int age)
         {
@@ -491,7 +491,7 @@ namespace Content.Shared.Preferences
             return new(this) { BarkVoice = barkVoice };
         }
         // Goob Station - Barks End*/
-        // Vortex added
+        // Onyx added
         public HumanoidCharacterProfile WithHeight(float height)
         {
             return new(this) { Height = height };
@@ -501,7 +501,7 @@ namespace Content.Shared.Preferences
         {
             return new(this) { Width = width };
         }
-        // Vortex end
+        // Onyx end
 
         public HumanoidCharacterProfile WithJobPriorities(IEnumerable<KeyValuePair<ProtoId<JobPrototype>, JobPriority>> jobPriorities)
         {
@@ -672,9 +672,9 @@ namespace Content.Shared.Preferences
             if (!_traitPreferences.SequenceEqual(other._traitPreferences)) return false;
             if (!Loadouts.SequenceEqual(other.Loadouts)) return false;
             if (FlavorText != other.FlavorText) return false;
-            if (OOCNotes != other.OOCNotes) return false; // <Vortex-OOCNotex>
-            if (Height != other.Height) return false; // Vortex - Height & Weight
-            if (Width != other.Width) return false; // Vortex - Height & Weight
+            if (OOCNotes != other.OOCNotes) return false; // <Onyx-OOCNotex>
+            if (Height != other.Height) return false; // Onyx - Height & Weight
+            if (Width != other.Width) return false; // Onyx - Height & Weight
             // ADT Barks start
             if (!Bark.MemberwiseEquals(other.Bark)) return false;
             // ADT Barks end
@@ -769,7 +769,7 @@ namespace Content.Shared.Preferences
                 flavortext = FormattedMessage.RemoveMarkupOrThrow(FlavorText);
             }
 
-            // <Vortex-OOCNotex>
+            // <Onyx-OOCNotex>
             string oocnotes;
             var maxOOCNotesLength = configManager.GetCVar(CCVars.MaxOOCNotesLength);
             if (OOCNotes.Length > maxOOCNotesLength)
@@ -780,9 +780,9 @@ namespace Content.Shared.Preferences
             {
                 oocnotes = FormattedMessage.RemoveMarkupOrThrow(OOCNotes);
             }
-            // </Vortex-OOCNotex>
+            // </Onyx-OOCNotex>
 
-            // Begin Vortex - Height & Weight
+            // Begin Onyx - Height & Weight
             var height = Height;
             if (speciesPrototype != null)
                 height = Math.Clamp(MathF.Round(Height, 2), speciesPrototype.MinHeight, speciesPrototype.MaxHeight);
@@ -790,7 +790,7 @@ namespace Content.Shared.Preferences
             var width = Width;
             if (speciesPrototype != null)
                 width = Math.Clamp(MathF.Round(Width, 2), speciesPrototype.MinWidth, speciesPrototype.MaxWidth);
-            // End Vortex - Height & Weight
+            // End Onyx - Height & Weight
 
             var appearance = HumanoidCharacterAppearance.EnsureValid(Appearance, Species, Sex, sponsorPrototypes);
 
@@ -966,7 +966,7 @@ namespace Content.Shared.Preferences
             hashCode.Add(_loadouts);
             hashCode.Add(Name);
             hashCode.Add(FlavorText);
-            hashCode.Add(OOCNotes); // <Vortex-OOCNotex>
+            hashCode.Add(OOCNotes); // <Onyx-OOCNotex>
             hashCode.Add(Species);
             // hashCode.Add(Height); // Goobstation: port EE height/width sliders // CorvaxGoob-Clearing
             // hashCode.Add(Width); // Goobstation: port EE height/width sliders // CorvaxGoob-Clearing
@@ -977,8 +977,8 @@ namespace Content.Shared.Preferences
             // hashCode.Add(BarkVoice); // Goob Station - Barks // CorvaxGoob-Revert : DB conflicts
             hashCode.Add((int) SpawnPriority);
             hashCode.Add((int) PreferenceUnavailable);
-            hashCode.Add(Height); // Vortex - Height & Weight
-            hashCode.Add(Width); // Vortex - Height & Weight
+            hashCode.Add(Height); // Onyx - Height & Weight
+            hashCode.Add(Width); // Onyx - Height & Weight
             return hashCode.ToHashCode();
         }
 

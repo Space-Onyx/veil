@@ -207,7 +207,7 @@
     - map: [ "jumpsuit" ]
     - map: [ "enum.HumanoidVisualLayers.LFoot" ]
     - map: [ "enum.HumanoidVisualLayers.RFoot" ]
-    - map: [ "socks" ] # Vortex
+    - map: [ "socks" ] # Onyx
     - map: [ "enum.HumanoidVisualLayers.LHand" ]
     - map: [ "enum.HumanoidVisualLayers.RHand" ]
     - map: [ "gloves" ]

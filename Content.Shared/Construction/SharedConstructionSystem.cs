@@ -19,7 +19,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using Content.Shared._Vortex.Construction;
+using Content.Shared._Onyx.Construction;
 using System.Linq;
 using Content.Shared.Construction.Components;
 using Robust.Shared.Map;
@@ -31,7 +31,7 @@ namespace Content.Shared.Construction
     public abstract class SharedConstructionSystem : EntitySystem
     {
         [Dependency] private readonly IMapManager _mapManager = default!;
-        [Dependency] protected readonly SharedMapSystem _map = default!; // Vortex added
+        [Dependency] protected readonly SharedMapSystem _map = default!; // Onyx added
         [Dependency] protected readonly IPrototypeManager PrototypeManager = default!;
         [Dependency] protected readonly SharedTransformSystem TransformSystem = default!;
         /// <summary>
@@ -44,10 +44,10 @@ namespace Content.Shared.Construction
 
             if (!_mapManager.TryFindGridAt(coords, out var gridUid, out var grid))
                 return null;
-            // Vortex edited
+            // Onyx edited
             var anchored = _map.GetAnchoredEntities((gridUid, grid), coords);
             var ignored = anchored.Where(e => !HasComp<ConstructionBlockerComponent>(e)).ToHashSet();
-            // Vortex end
+            // Onyx end
             return e => ignored.Contains(e);
         }
 

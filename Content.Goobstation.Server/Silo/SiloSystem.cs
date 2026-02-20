@@ -27,7 +27,7 @@ public sealed class SiloSystem : SharedSiloSystem
     {
         base.Initialize();
 
-        // SubscribeLocalEvent<BecomesStationComponent, MapInitEvent>(OnMapInit); // Vortex removed
+        // SubscribeLocalEvent<BecomesStationComponent, MapInitEvent>(OnMapInit); // Onyx removed
         SubscribeLocalEvent<SiloComponent, MaterialAmountChangedEvent>(OnMaterialAmountChanged);
         SubscribeLocalEvent<SiloComponent, ComponentStartup>(OnStartup);
         SubscribeLocalEvent<SiloComponent, ComponentShutdown>(OnShutdown);
@@ -64,7 +64,7 @@ public sealed class SiloSystem : SharedSiloSystem
                 }
             });
     }
-    // Vortex removed
+    // Onyx removed
     // private void OnMapInit(Entity<BecomesStationComponent> ent, ref MapInitEvent args)
     // {
     //     var siloQuery =
@@ -97,5 +97,5 @@ public sealed class SiloSystem : SharedSiloSystem
     //         DeviceLink.LinkDefaults(null, silo.Value, utilizer, silo.Value.Comp, sink);
     //     }
     // }
-    // Vortex end
+    // Onyx end
 }

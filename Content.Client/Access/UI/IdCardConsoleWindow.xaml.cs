@@ -129,7 +129,7 @@ namespace Content.Client.Access.UI
             {
                 button.OnPressed += _ => SubmitData();
             }
-            // <Vortex Economy>
+            // <Onyx Economy>
             CreateAccountButton.OnPressed += _ => _owner.CreateBankAccount();
             PinLineEdit.OnTextChanged += _ =>
             {
@@ -141,7 +141,7 @@ namespace Content.Client.Access.UI
                 if (int.TryParse(PinLineEdit.Text, out var pin))
                     _owner.SetBankPin(pin);
             };
-            // </Vortex Economy>
+            // </Onyx Economy>
         }
 
         private void ClearAllAccess()
@@ -251,7 +251,7 @@ namespace Content.Client.Access.UI
 
             JobPresetOptionButton.SelectId(jobIndex);
 
-            // <Vortex Economy>
+            // <Onyx Economy>
             BankingContainer.Visible = state.HasBankCard;
             PinContainer.Visible = state.HasBankCard;
             CreateAccountButton.Visible = !state.HasBankCard;
@@ -267,7 +267,7 @@ namespace Content.Client.Access.UI
                 PinLineEdit.Visible = !state.PinLocked;
                 PinSaveButton.Visible = !state.PinLocked;
             }
-            // </Vortex Economy>
+            // </Onyx Economy>
 
             _lastFullName = state.TargetIdFullName;
             _lastJobTitle = state.TargetIdJobTitle;

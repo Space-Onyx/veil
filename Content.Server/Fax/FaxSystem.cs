@@ -139,7 +139,7 @@ using Content.Shared.Paper;
 using Content.Shared.Power;
 using Content.Shared.Tools;
 using Content.Shared.UserInterface;
-using Content.Shared._Vortex.Paper;
+using Content.Shared._Onyx.Paper;
 using Robust.Server.GameObjects;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
@@ -149,13 +149,13 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server.Fax;
 
-// <Vortex>
+// <Onyx>
 /// <summary>
 /// Event raised when a fax machine receives a fax
 /// </summary>
 [ByRefEvent]
 public record struct FaxReceivedEvent(string? FromAddress);
-// </Vortex>
+// </Onyx>
 public sealed class FaxSystem : EntitySystem
 {
     [Dependency] private readonly IChatManager _chat = default!;
@@ -429,9 +429,9 @@ public sealed class FaxSystem : EntitySystem
                     args.Data.TryGetValue(FaxConstants.FaxPaperLabelData, out string? label);
                     args.Data.TryGetValue(FaxConstants.FaxPaperStampStateData, out string? stampState);
                     args.Data.TryGetValue(FaxConstants.FaxPaperStampedByData, out List<StampDisplayInfo>? stampedBy);
-                    //Vortex added
+                    //Onyx added
                     args.Data.TryGetValue(FaxConstants.FaxPaperSignedByData, out List<SignatureDisplayInfo>? signedBy);
-                    //Vortex end
+                    //Onyx end
                     args.Data.TryGetValue(FaxConstants.FaxPaperPrototypeData, out string? prototypeId);
                     args.Data.TryGetValue(FaxConstants.FaxPaperLockedData, out bool? locked);
 
@@ -730,12 +730,12 @@ public sealed class FaxSystem : EntitySystem
             payload[FaxConstants.FaxPaperStampedByData] = paper.StampedBy;
         }
 
-        //Vortex added
+        //Onyx added
         if (paper.SignedBy != null)
         {
             payload[FaxConstants.FaxPaperSignedByData] = paper.SignedBy;
         }
-        //Vortex end
+        //Onyx end
 
         _deviceNetworkSystem.QueuePacket(uid, component.DestinationFaxAddress, payload);
 
@@ -778,11 +778,11 @@ public sealed class FaxSystem : EntitySystem
         if (printout != null) // Goobstation
             component.PrintingQueue.Enqueue(printout);
 
-        // <Vortex>
+        // <Onyx>
         // Raise event for FaxAlertSystem
         var faxReceivedEvent = new FaxReceivedEvent(fromAddress);
         RaiseLocalEvent(uid, ref faxReceivedEvent);
-        // </Vortex>
+        // </Onyx>
     }
 
     private void SpawnPaperFromQueue(EntityUid uid, FaxMachineComponent? component = null)
@@ -809,13 +809,13 @@ public sealed class FaxSystem : EntitySystem
                 }
             }
 
-            //Vortex added
+            //Onyx added
             // Apply signatures
             foreach (var signature in printout.SignedBy)
             {
                 paper.SignedBy.Add(signature);
             }
-            //Vortex end
+            //Onyx end
 
             paper.EditingDisabled = printout.Locked;
         }

@@ -173,7 +173,7 @@
     - id: ClothingHandsKnuckleDustersQM # Goobstation - ROCK THAT MF!!
     - id: SalvageJobBoardComputerCircuitboard # Goobstation - This doesn't really have a use right now but it's there incase it ever gets use again
     - id: CargoMegaphone # goob - loudspeaker
-    # - id: SlotMachineHighRollerFlatPack # Vortex - NO gambling
+    # - id: SlotMachineHighRollerFlatPack # Onyx - NO gambling
     - id: ComputerFundingAllocationFlatpack #CorvaxGoob-QuarterMaster-finance
 
 - type: entity
@@ -301,10 +301,10 @@
     - id: ClothingEyesHudCommand
     - id: ServiceTechFabCircuitboard # Goobstation - Service Techfab
     - id: CommandMegaphone # goob - loudspeakers
-    - id: VORATMFlatpack # Vortex - Economy
-    - id: VORATMFlatpack # Vortex - Economy
-    - id: VOREftpos # Vortex - Economy
-    - id: VOREftpos # Vortex - Economy
+    - id: VORATMFlatpack # Onyx - Economy
+    - id: VORATMFlatpack # Onyx - Economy
+    - id: VOREftpos # Onyx - Economy
+    - id: VOREftpos # Onyx - Economy
 
 - type: entity
   id: LockerHeadOfPersonnelFilled

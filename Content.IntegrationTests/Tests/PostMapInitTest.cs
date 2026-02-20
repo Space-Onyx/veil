@@ -262,13 +262,13 @@ namespace Content.IntegrationTests.Tests
             "CorvaxSilly",
             "CorvaxCluster",
             // Corvax-Goob-Maps-end
-            // Vortex-Maps-Start
-            "VortexGate",
-            "VortexKerberos",
-            "VortexAtlas",
-            "VortexKettle",
-            "VortexOrigin",
-            // Vortex-Maps-End
+            // Onyx-Maps-Start
+            "OnyxGate",
+            "OnyxKerberos",
+            "OnyxAtlas",
+            "OnyxKettle",
+            "OnyxOrigin",
+            // Onyx-Maps-End
         };
         // Goobstation edit start, yeah i know, but this is easier and less load than loading protoman or something.
         private static readonly string[] GameMapsInCurrentPool = // plus dev

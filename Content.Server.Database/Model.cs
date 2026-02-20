@@ -402,7 +402,7 @@ namespace Content.Server.Database
         public int Slot { get; set; }
         [Column("char_name")] public string CharacterName { get; set; } = null!;
         public string FlavorText { get; set; } = null!;
-        public string OOCNotes { get; set; } = null!; // <Vortex-OOCNotex>
+        public string OOCNotes { get; set; } = null!; // <Onyx-OOCNotex>
         public int Age { get; set; }
         public string Sex { get; set; } = null!;
         public string Gender { get; set; } = null!;
@@ -431,7 +431,7 @@ namespace Content.Server.Database
         public int PreferenceId { get; set; }
         public Preference Preference { get; set; } = null!;
 
-        public VortexModel.VortexProfile? VortexProfile { get; set; } // Vortex - Height & Weight
+        public VortexModel.VortexProfile? VortexProfile { get; set; } // Onyx - Height & Weight
     }
 
     public class Job

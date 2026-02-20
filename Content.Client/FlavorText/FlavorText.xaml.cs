@@ -28,9 +28,9 @@ namespace Content.Client.FlavorText
             CFlavorTextInput.Placeholder = new Rope.Leaf(loc.GetString("flavor-text-placeholder"));
             CFlavorTextInput.OnTextChanged  += _ => FlavorTextChanged();
         }
-        // <Vortex-OOCNotex>
+        // <Onyx-OOCNotex>
         public TextEdit FlavorTextInput => CFlavorTextInput;
-        // </Vortex-OOCNotex-edited>
+        // </Onyx-OOCNotex-edited>
     
         public void FlavorTextChanged()
         {

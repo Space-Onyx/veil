@@ -41,7 +41,7 @@ public sealed class StationsCommand : ToolshedCommand
         _station ??= GetSys<StationSystem>();
 
         var set = _station.GetStationsSet();
-        // Vortex-PlayableCentComm - modified to allow multiple stations. START
+        // Onyx-PlayableCentComm - modified to allow multiple stations. START
         if (set.Count == 0)
         {
             ctx.ReportError(new OnlyOneStationsError());
@@ -62,7 +62,7 @@ public sealed class StationsCommand : ToolshedCommand
         ctx.ReportError(new OnlyOneStationsError());
         return default;
     }
-    // Vortex-PlayableCentComm - modified to allow multiple stations. END
+    // Onyx-PlayableCentComm - modified to allow multiple stations. END
 
     [CommandImplementation("getowningstation")]
     public IEnumerable<EntityUid?> GetOwningStation([PipedArgument] IEnumerable<EntityUid> input)

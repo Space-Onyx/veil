@@ -39,7 +39,7 @@
   setPreference: true
   weight: 100
   startingGear: CentcomGear
-  icon: "JobIconCentCommOfficial" # Vortex-PlayableCentComm
+  icon: "JobIconCentCommOfficial" # Onyx-PlayableCentComm
   supervisors: job-supervisors-centcom # Goobstation
   whitelisted: true
   canBeAntag: false
@@ -59,7 +59,7 @@
   # Goobstation
   - NanotrasenRepresentative
   - BlueshieldOfficer
-  # Vortex
+  # Onyx
   - CentralCommandWorker
   - CentralCommandCommand
   - CentralCommandDSO
@@ -88,10 +88,10 @@
     - HandheldFaxOfficial # NTRs fax is huge, do you expect me to use some POOR person fax?
     - BoxFolderCentComClipboard # Solely for holding and looking menacing.
     - DeterrentCaseFilled
-    - BoxSurvivalSlotsMedical # Vortex-PlayableCentComm
-    - EmergencyNitrogenTankFilled # Vortex-PlayableCentComm
+    - BoxSurvivalSlotsMedical # Onyx-PlayableCentComm
+    - EmergencyNitrogenTankFilled # Onyx-PlayableCentComm
   inhand:
-    - ExecutiveBriefcaseDebug # Vortex-PlayableCentComm
+    - ExecutiveBriefcaseDebug # Onyx-PlayableCentComm
 
 # Goobstation - End
 

@@ -28,7 +28,7 @@
   # Goobstation
   - NanotrasenRepresentative
   - BlueshieldOfficer
-  # Vortex
+  # Onyx
   - CentralCommandDSO
   - CentralCommandCommand
   special: # Goobstation
@@ -43,7 +43,7 @@
     mask: ClothingMaskGasERT
     neck: ExecutiveIDCard # Executive Access!
     eyes: ClothingEyesGlassesMedSec # Better glasses
-    ears: ClothingHeadsetAltCentComDSO # Vortex-PlayableCentCom
+    ears: ClothingHeadsetAltCentComDSO # Onyx-PlayableCentCom
     gloves: ClothingHandsGlovesCombat
     outerClothing: ClothingOuterHardsuitCBURN
     shoes: ClothingShoesBootsMagEmergencyResponseTeam # Goobstation

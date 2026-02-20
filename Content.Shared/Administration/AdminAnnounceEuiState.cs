@@ -16,17 +16,17 @@ namespace Content.Shared.Administration
 {
     public enum AdminAnnounceType
     {
-        AllStations, // Vortex-PlayableCentCom
-        SpecificStation, // Vortex-PlayableCentCom
-        SpecificMap, // Vortex-MapAnnounce
+        AllStations, // Onyx-PlayableCentCom
+        SpecificStation, // Onyx-PlayableCentCom
+        SpecificMap, // Onyx-MapAnnounce
         Server,
     }
 
     [Serializable, NetSerializable]
     public sealed class AdminAnnounceEuiState : EuiStateBase
     {
-        public Dictionary<NetEntity, string> Stations = new(); // Vortex-PlayableCentCom
-        public Dictionary<MapId, string> Maps = new(); // Vortex-MapAnnounce
+        public Dictionary<NetEntity, string> Stations = new(); // Onyx-PlayableCentCom
+        public Dictionary<MapId, string> Maps = new(); // Onyx-MapAnnounce
     }
 
     public static class AdminAnnounceEuiMsg
@@ -38,8 +38,8 @@ namespace Content.Shared.Administration
             public string Announcer = default!;
             public string Announcement = default!;
             public AdminAnnounceType AnnounceType;
-            public NetEntity? SelectedStation; // Vortex-PlayableCentCom
-            public MapId? SelectedMap; // Vortex-MapAnnounce
+            public NetEntity? SelectedStation; // Onyx-PlayableCentCom
+            public MapId? SelectedMap; // Onyx-MapAnnounce
             public string Voice = default!; // CorvaxGoob-TTS
             public string? ColorHex;
             public string? SoundPath;

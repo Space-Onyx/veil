@@ -118,11 +118,11 @@
     - Ore
     - Paper         # Moth food
   # </Goobstation>
-  # <!-- Vortex-Economy-Start-->
+  # <!-- Onyx-Economy-Start-->
   - type: Currency
     price:
       SpaceCash: 1
-  # <!-- Vortex-Economy-End-->
+  # <!-- Onyx-Economy-End-->
 
 - type: material
   id: Credit

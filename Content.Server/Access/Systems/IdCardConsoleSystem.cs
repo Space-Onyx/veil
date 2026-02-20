@@ -36,8 +36,8 @@ using Content.Shared.Database;
 using Content.Shared.Roles;
 using Content.Shared.StationRecords;
 using Content.Shared.Throwing;
-using Content.Server._Vortex.Economy;
-using Content.Shared._Vortex.Economy;
+using Content.Server._Onyx.Economy;
+using Content.Shared._Onyx.Economy;
 using Content.Shared.Popups;
 using JetBrains.Annotations;
 using Robust.Server.GameObjects;
@@ -61,18 +61,18 @@ public sealed class IdCardConsoleSystem : SharedIdCardConsoleSystem
     [Dependency] private readonly ThrowingSystem _throwing = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
     [Dependency] private readonly ChatSystem _chat = default!;
-    [Dependency] private readonly BankCardSystem _bankCard = default!; // <Vortex Economy>
-    [Dependency] private readonly SharedPopupSystem _popup = default!; // <Vortex Economy>
+    [Dependency] private readonly BankCardSystem _bankCard = default!; // <Onyx Economy>
+    [Dependency] private readonly SharedPopupSystem _popup = default!; // <Onyx Economy>
 
     public override void Initialize()
     {
         base.Initialize();
 
         SubscribeLocalEvent<IdCardConsoleComponent, WriteToTargetIdMessage>(OnWriteToTargetIdMessage);
-        // <Vortex Economy>
+        // <Onyx Economy>
         SubscribeLocalEvent<IdCardConsoleComponent, CreateBankAccountMessage>(OnCreateBankAccountMessage);
         SubscribeLocalEvent<IdCardConsoleComponent, SetBankPinMessage>(OnSetBankPinMessage);
-        // </Vortex Economy>
+        // </Onyx Economy>
 
         // one day, maybe bound user interfaces can be shared too.
         SubscribeLocalEvent<IdCardConsoleComponent, ComponentStartup>(UpdateUserInterface);
@@ -95,7 +95,7 @@ public sealed class IdCardConsoleSystem : SharedIdCardConsoleSystem
         UpdateUserInterface(uid, component, args);
     }
 
-    // <Vortex Economy>
+    // <Onyx Economy>
     private void OnCreateBankAccountMessage(EntityUid uid, IdCardConsoleComponent component, CreateBankAccountMessage args)
     {
         if (args.Actor is not { Valid: true } player)
@@ -149,7 +149,7 @@ public sealed class IdCardConsoleSystem : SharedIdCardConsoleSystem
 
         UpdateUserInterface(uid, component, args);
     }
-    // </Vortex Economy>
+    // </Onyx Economy>
 
     private void UpdateUserInterface(EntityUid uid, IdCardConsoleComponent component, EntityEventArgs args)
     {
@@ -179,12 +179,12 @@ public sealed class IdCardConsoleSystem : SharedIdCardConsoleSystem
                 string.Empty,
                 privilegedIdName,
                 string.Empty,
-                // <Vortex Economy>
+                // <Onyx Economy>
                 false,
                 null,
                 null,
                 true);
-                // </Vortex Economy>
+                // </Onyx Economy>
         }
         else
         {
@@ -199,12 +199,12 @@ public sealed class IdCardConsoleSystem : SharedIdCardConsoleSystem
                 jobProto = record.JobPrototype;
             }
 
-            // <Vortex Economy>
+            // <Onyx Economy>
             var hasBankCard = TryComp<BankCardComponent>(targetId, out var bankCard);
             var bankAccountId = bankCard?.AccountId;
             var bankPin = bankCard?.Pin;
             var pinLocked = bankCard?.PINLocked ?? true;
-            // </Vortex Economy>
+            // </Onyx Economy>
 
             newState = new IdCardConsoleBoundUserInterfaceState(
                 component.PrivilegedIdSlot.HasItem,
@@ -217,12 +217,12 @@ public sealed class IdCardConsoleSystem : SharedIdCardConsoleSystem
                 jobProto,
                 privilegedIdName,
                 Name(targetId),
-                // <Vortex Economy>
+                // <Onyx Economy>
                 hasBankCard,
                 bankAccountId,
                 bankPin,
                 pinLocked);
-                // </Vortex Economy>
+                // </Onyx Economy>
         }
 
         _userInterface.SetUiState(uid, IdCardConsoleUiKey.Key, newState);
@@ -249,13 +249,13 @@ public sealed class IdCardConsoleSystem : SharedIdCardConsoleSystem
         _idCard.TryChangeFullName(targetId, newFullName, player: player);
         _idCard.TryChangeJobTitle(targetId, newJobTitle, player: player);
 
-        // <Vortex Economy> Update bank account name if it exists
+        // <Onyx Economy> Update bank account name if it exists
         if (TryComp<BankCardComponent>(targetId, out var bankCard) && bankCard.AccountId.HasValue &&
             _bankCard.TryGetAccount(bankCard.AccountId.Value, out var account))
         {
             account.Name = newFullName;
         }
-        // </Vortex Economy>
+        // </Onyx Economy>
 
         if (_prototype.TryIndex<JobPrototype>(newJobProto, out var job)
             && _prototype.TryIndex(job.Icon, out var jobIcon))

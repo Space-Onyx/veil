@@ -28,7 +28,7 @@
   femaleFirstNames: NamesVulpakinFemale
   lastNames: NamesVulpakinLast
   category: Unusual
-  # <Vortex>
+  # <Onyx>
   minHeight: 0.86
   maxHeight: 2
   maxWidth: 2
@@ -45,7 +45,7 @@
   - Наносит больше урона голыми руками.
   cons:
   - Получают на 15% больше урона от огня.
-  # </Vortex>
+  # </Onyx>
 
 - type: speciesBaseSprites
   id: MobVulpkaninSprites

@@ -1135,10 +1135,10 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
         if (component.EnzymesPrototypes == null)
             return;
 
-        // < Vortex > added
+        // < Onyx > added
         if (!_cfg.GetCVar(CCVars.RadiationEnableMutations))
             return;
-        // < Vortex > end
+        // < Onyx > end
 
         if (_random.Prob(0.05f))
         {

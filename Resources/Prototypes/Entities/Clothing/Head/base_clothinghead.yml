@@ -218,10 +218,10 @@
   id: ClothingHeadEVAHelmetBase
   name: base space helmet
   components:
-  # <Vortex>
+  # <Onyx>
   - type: SlotBlock
     slots: [ears, eyes, mask]
-  # </Vortex>
+  # </Onyx>
   - type: BreathMask
   - type: Item
     size: Normal
@@ -261,10 +261,10 @@
   name: base hardsuit helmet
   categories: [ HideSpawnMenu ]
   components:
-  # <Vortex>
+  # <Onyx>
   - type: SlotBlock
     slots: [ears, eyes, mask]
-  # </Vortex>
+  # </Onyx>
   - type: BreathMask
   - type: Sprite
     state: icon # default state used by most inheritors
@@ -325,10 +325,10 @@
   name: base hardsuit helmet with light
   categories: [ HideSpawnMenu ]
   components:
-  # <Vortex>
+  # <Onyx>
   - type: SlotBlock
     slots: [ears, eyes, mask]
-  # </Vortex>
+  # </Onyx>
   - type: Sprite
     layers:
     - state: icon

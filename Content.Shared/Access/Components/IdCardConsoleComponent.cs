@@ -49,7 +49,7 @@ public sealed partial class IdCardConsoleComponent : Component
         }
     }
 
-    // <Vortex Economy>
+    // <Onyx Economy>
     [Serializable, NetSerializable]
     public sealed class CreateBankAccountMessage : BoundUserInterfaceMessage
     {
@@ -65,7 +65,7 @@ public sealed partial class IdCardConsoleComponent : Component
             Pin = pin;
         }
     }
-    // </Vortex Economy>
+    // </Onyx Economy>
 
     // Put this on shared so we just send the state once in PVS range rather than every time the UI updates.
 
@@ -122,12 +122,12 @@ public sealed partial class IdCardConsoleComponent : Component
         public readonly List<ProtoId<AccessLevelPrototype>>? TargetIdAccessList;
         public readonly List<ProtoId<AccessLevelPrototype>>? AllowedModifyAccessList;
         public readonly ProtoId<AccessLevelPrototype> TargetIdJobPrototype;
-        // <Vortex Economy>
+        // <Onyx Economy>
         public readonly bool HasBankCard;
         public readonly int? BankAccountId;
         public readonly int? BankPin;
         public readonly bool PinLocked;
-        // </Vortex Economy>
+        // </Onyx Economy>
 
         public IdCardConsoleBoundUserInterfaceState(bool isPrivilegedIdPresent,
             bool isPrivilegedIdAuthorized,
@@ -154,12 +154,12 @@ public sealed partial class IdCardConsoleComponent : Component
             TargetIdJobPrototype = targetIdJobPrototype;
             PrivilegedIdName = privilegedIdName;
             TargetIdName = targetIdName;
-            // <Vortex Economy>
+            // <Onyx Economy>
             HasBankCard = hasBankCard;
             BankAccountId = bankAccountId;
             BankPin = bankPin;
             PinLocked = pinLocked;
-            // </Vortex Economy>
+            // </Onyx Economy>
         }
     }
 

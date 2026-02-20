@@ -69,7 +69,7 @@ using System.Threading.Tasks;
 using Content.Goobstation.Common.Construction; // Goobstation
 using Content.Server.Construction.Components;
 using Content.Shared._CorvaxGoob.Skills;
-using Content.Shared._Vortex.Construction;
+using Content.Shared._Onyx.Construction;
 using Content.Shared.ActionBlocker;
 using Content.Shared.Construction;
 using Content.Shared.Construction.Prototypes;

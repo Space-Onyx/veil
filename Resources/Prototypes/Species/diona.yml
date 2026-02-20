@@ -31,7 +31,7 @@
   femaleFirstNames: NamesDionaFirst
   lastNames: NamesDionaLast
   naming: TheFirstofLast
-  # <Vortex>
+  # <Onyx>
   baseScale: "0.84, 0.85"
   minHeight: 0.90
   maxHeight: 2
@@ -55,7 +55,7 @@
   - Получают на 20% больше урона от электричества.
   - Не могут сражаться голыми руками, но могут стрелять.
   - Не могут носить обувь.
-  # </Vortex>
+  # </Onyx>
 
 - type: speciesBaseSprites
   id: MobDionaSprites

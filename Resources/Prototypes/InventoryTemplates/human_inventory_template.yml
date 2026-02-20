@@ -95,7 +95,7 @@
       slotGroup: MainHotbar
       stripTime: 3
       uiWindowPos: 0,3
-      strippingWindowPos: 0,6 # # Vortex-Tweak
+      strippingWindowPos: 0,6 # # Onyx-Tweak
       dependsOn: jumpsuit
       displayName: Pocket 1
       stripHidden: true
@@ -106,7 +106,7 @@
       slotGroup: MainHotbar
       stripTime: 3
       uiWindowPos: 2,3
-      strippingWindowPos: 1,6 # Vortex-Tweak
+      strippingWindowPos: 1,6 # Onyx-Tweak
       dependsOn: jumpsuit
       displayName: Pocket 2
       stripHidden: true
@@ -128,7 +128,7 @@
       slotGroup: SecondHotbar
       stripTime: 6
       uiWindowPos: 2,1
-      strippingWindowPos: 2,3 # Vortex-Tweak
+      strippingWindowPos: 2,3 # Onyx-Tweak
       dependsOn: jumpsuit
       displayName: ID
     - name: belt

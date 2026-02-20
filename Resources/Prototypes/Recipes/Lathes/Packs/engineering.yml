@@ -104,8 +104,8 @@
   - HolopadMachineCircuitboard
   - TeslaCoilCircuitboard
   - RadiationCollectorCircuitboard
-  - EngineeringTechFabCircuitboardRecipe # Vortex
-  - ServiceTechFabCircuitboardRecipe # Vortex
-  - CargoTechFabCircuitboardRecipe # Vortex
-  - ScienceTechFabCircuitboardRecipe # Vortex
-  - MedicalTechFabCircuitboardRecipe # Vortex
+  - EngineeringTechFabCircuitboardRecipe # Onyx
+  - ServiceTechFabCircuitboardRecipe # Onyx
+  - CargoTechFabCircuitboardRecipe # Onyx
+  - ScienceTechFabCircuitboardRecipe # Onyx
+  - MedicalTechFabCircuitboardRecipe # Onyx

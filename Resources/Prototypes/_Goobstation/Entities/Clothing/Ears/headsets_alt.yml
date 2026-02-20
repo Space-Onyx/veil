@@ -80,7 +80,7 @@
       key_slots:
       - EncryptionKeyCentCom
       - EncryptionKeyStationMaster
-      - EncryptionKeyDSO # Vortex-PlayableCentCom
+      - EncryptionKeyDSO # Onyx-PlayableCentCom
   - type: Sprite
     sprite: _Goobstation/Clothing/Ears/Headsets/deathsquad.rsi
   - type: Clothing

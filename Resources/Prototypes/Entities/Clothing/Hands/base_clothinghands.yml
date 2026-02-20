@@ -179,10 +179,10 @@
   abstract: true
   id: GoldRingBase
   components:
-  # <Vortex>
+  # <Onyx>
   - type: SlotBlock
     slots: [gloves]
-  # </Vortex>
+  # </Onyx>
   - type: StaticPrice
     price: 300
 
@@ -192,10 +192,10 @@
   name: silver ring
   description: Looks slightly less valuable than a gold one.
   components:
-  # <Vortex>
+  # <Onyx>
     - type: SlotBlock
       slots: [gloves]
-  # </Vortex>
+  # </Onyx>
     - type: PhysicalComposition
       materialComposition:
         Silver: 200 # 2 bars

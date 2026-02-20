@@ -26,89 +26,89 @@
   text: "/ServerInfo/Guidebook/ServerRules/DefaultRules.xml"
 
 - type: guideEntry
-  id: EntropyRules
+  id: OnyxRules
   name: guide-entry-rules-core
   ruleEntry: true
   priority: 10
-  text: "/ServerInfo/Guidebook/ServerRules/EntropyRules/DefaultRules.xml"
+  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/DefaultRules.xml"
   children:
-  - EntropyRule0
-  - EntropyRule1
-  - EntropyRule2
-  - EntropyRule3
-  - EntropyRule4
-  - EntropyRule5
-  - EntropyRule6
-  - EntropyRule7
-  - EntropyRule8
-  - EntropyRule9
-  - EntropyRule10
+  - OnyxRules0
+  - OnyxRules1
+  - OnyxRules2
+  - OnyxRules3
+  - OnyxRules4
+  - OnyxRules5
+  - OnyxRules6
+  - OnyxRules7
+  - OnyxRules8
+  - OnyxRules9
+  - OnyxRules10
 
 - type: guideEntry
-  id: EntropyRule0
+  id: OnyxRules0
   name: Не будь мудаком.
   ruleEntry: true
-  text: "/ServerInfo/Guidebook/ServerRules/EntropyRules/EntropyRule0.xml"
+  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRules0.xml"
 
 - type: guideEntry
-  id: EntropyRule1
+  id: OnyxRules1
   name: Гриферство
   ruleEntry: true
-  text: "/ServerInfo/Guidebook/ServerRules/EntropyRules/EntropyRule1.xml"
+  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRules1.xml"
 
 - type: guideEntry
-  id: EntropyRule2
+  id: OnyxRules2
   name: Убийство
   ruleEntry: true
-  text: "/ServerInfo/Guidebook/ServerRules/EntropyRules/EntropyRule2.xml"
+  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRules2.xml"
   
 - type: guideEntry
-  id: EntropyRule3
+  id: OnyxRules3
   name: Нарушение игровой атмосферы.
   ruleEntry: true
-  text: "/ServerInfo/Guidebook/ServerRules/EntropyRules/EntropyRule3.xml"
+  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRules3.xml"
   
 - type: guideEntry
-  id: EntropyRule4
+  id: OnyxRules4
   name: Логика персонажей
   ruleEntry: true
-  text: "/ServerInfo/Guidebook/ServerRules/EntropyRules/EntropyRule4.xml"
+  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRules4.xml"
  
 - type: guideEntry
-  id: EntropyRule5
+  id: OnyxRules5
   name: Ответственная игра за антагониста
   ruleEntry: true
-  text: "/ServerInfo/Guidebook/ServerRules/EntropyRules/EntropyRule5.xml"
+  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRules5.xml"
 
 - type: guideEntry
-  id: EntropyRule6
+  id: OnyxRules6
   name: Самоантагонизм
   ruleEntry: true
-  text: "/ServerInfo/Guidebook/ServerRules/EntropyRules/EntropyRule6.xml"
+  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRules6.xml"
 
 - type: guideEntry
-  id: EntropyRule7
+  id: OnyxRules7
   name: Валидхант
   ruleEntry: true
-  text: "/ServerInfo/Guidebook/ServerRules/EntropyRules/EntropyRule7.xml"
+  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRules7.xml"
 
 - type: guideEntry
-  id: EntropyRule8
+  id: OnyxRules8
   name: ERP
   ruleEntry: true
-  text: "/ServerInfo/Guidebook/ServerRules/EntropyRules/EntropyRule8.xml"
+  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRules8.xml"
 
 - type: guideEntry
-  id: EntropyRule9
+  id: OnyxRules9
   name: Нечестная игра
   ruleEntry: true
-  text: "/ServerInfo/Guidebook/ServerRules/EntropyRules/EntropyRule9.xml"
+  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRules9.xml"
 
 - type: guideEntry
-  id: EntropyRule10
+  id: OnyxRules10
   name: Обман администрации
   ruleEntry: true
-  text: "/ServerInfo/Guidebook/ServerRules/EntropyRules/EntropyRule10.xml"
+  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRules10.xml"
 
 
 - type: guideEntry

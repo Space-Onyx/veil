@@ -82,7 +82,7 @@ public sealed class ClientClothingSystem : ClothingSystem
         {"pocket1", "POCKET1"},
         {"pocket2", "POCKET2"},
         {"suitstorage", "SUITSTORAGE"},
-        {"ring", "RING"}, // <Vortex>
+        {"ring", "RING"}, // <Onyx>
         {"underweart", "UNDERWEART"}, // ADT-TWEAK
         {"underwearb", "UNDERWEARB"}, // ADT-TWEAK
     };

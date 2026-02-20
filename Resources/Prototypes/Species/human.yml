@@ -33,7 +33,7 @@
   markingLimits: MobHumanMarkingLimits
   dollPrototype: MobHumanDummy
   skinColoration: HumanToned
-  # <Vortex>
+  # <Onyx>
   minHeight: 0.86
   maxHeight: 2
   maxWidth: 2
@@ -47,7 +47,7 @@
   description: "/ServerInfo/ADT/SpeciesDescriptions/Unfinished.xml"
   special:
   - Самая распространенная раса. Минусо нет, плюсов тоже.
-  # </Vortex>
+  # </Onyx>
 
 # The lack of a layer means that
 # this person cannot have round-start anything

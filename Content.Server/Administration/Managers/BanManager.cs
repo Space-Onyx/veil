@@ -51,7 +51,7 @@ using CCVars = Content.Shared.CCVar.CCVars;
 
 namespace Content.Server.Administration.Managers;
 
-// Start Vortex - Ban Webhook
+// Start Onyx - Ban Webhook
 public sealed class BanIssuedEventArgs : EventArgs
 {
     public NetUserId? Target { get; init; }
@@ -66,7 +66,7 @@ public sealed class BanPardonedEventArgs : EventArgs
     public NetUserId? PardoningAdmin { get; init; }
     public DateTimeOffset Time { get; init; }
 }
-// End Vortex - Ban Webhook
+// End Onyx - Ban Webhook
 
 public sealed partial class BanManager : IBanManager, IPostInjectInit
 {
@@ -90,17 +90,17 @@ public sealed partial class BanManager : IBanManager, IPostInjectInit
     public const string PrefixAntag = "Antag:";
     public const string JobPrefix = "Job:";
     public const string AntagPrefix = "Antag:";
-    // Start Vortex - Ban Webhook
+    // Start Onyx - Ban Webhook
     private readonly HttpClient _httpClient = new();
     private string _serverName = string.Empty;
     private string _webhookUrl = string.Empty;
     private WebhookData? _webhookData;
-    private string _webhookName = "Vortex Bans";
+    private string _webhookName = "Onyx Bans";
     private string _webhookAvatarUrl = "https://cdn.discordapp.com/icons/1151571914213564418/d2c5167a0d6b9b5e60be12abfa423411.webp?size=1024";
     private List<IPAddress?> _ipWhitelist = [];
     public event EventHandler<BanIssuedEventArgs>? BanIssued;
     public event EventHandler<BanPardonedEventArgs>? BanPardoned;
-    // End Vortex - Ban Webhook
+    // End Onyx - Ban Webhook
 
     private readonly Dictionary<ICommonSession, List<ServerRoleBanDef>> _cachedRoleBans = new();
     // Cached ban exemption flags are used to handle
@@ -120,10 +120,10 @@ public sealed partial class BanManager : IBanManager, IPostInjectInit
         _userDbData.AddOnLoadPlayer(CachePlayerData);
         _userDbData.AddOnPlayerDisconnect(ClearPlayerData);
 
-        // Start Vortex - Ban Webhook
+        // Start Onyx - Ban Webhook
         _cfg.OnValueChanged(CCVars.DiscordBanWebhook, OnWebhookChanged, true);
         _cfg.OnValueChanged(CCVars.GameHostName, OnServerNameChanged, true);
-        // End Vortex - Ban Webhook
+        // End Onyx - Ban Webhook
     }
 
     private async Task CachePlayerData(ICommonSession player, CancellationToken cancel)
@@ -254,11 +254,11 @@ public sealed partial class BanManager : IBanManager, IPostInjectInit
         _sawmill.Info(logMessage);
         _chat.SendAdminAlert(logMessage);
 
-        // Start Vortex - Ban Webhook
+        // Start Onyx - Ban Webhook
         var ban = await _db.GetServerBanAsync(null, target, null, null);
         if (ban != null)
             SendWebhook(await GenerateBanPayload(ban, minutes));
-        // End Vortex - Ban Webhook
+        // End Onyx - Ban Webhook
 
         KickMatchingConnectedPlayers(banDef, "newly placed ban");
     }
@@ -342,7 +342,7 @@ public sealed partial class BanManager : IBanManager, IPostInjectInit
             return;
         }
 
-        // Start Vortex - Ban Webhook
+        // Start Onyx - Ban Webhook
         BanIssued?.Invoke(this, new BanIssuedEventArgs
         {
             Target = target,
@@ -350,7 +350,7 @@ public sealed partial class BanManager : IBanManager, IPostInjectInit
             Reason = reason,
             Time = timeOfBan
         });
-        // End Vortex - Ban Webhook
+        // End Onyx - Ban Webhook
 
         var length = expires == null ? Loc.GetString("cmd-roleban-inf") : Loc.GetString("cmd-roleban-until", ("expires", expires));
         _chat.SendAdminAlert(Loc.GetString("cmd-roleban-success", ("target", targetUsername ?? "null"), ("role", role), ("reason", reason), ("length", length)));
@@ -385,14 +385,14 @@ public sealed partial class BanManager : IBanManager, IPostInjectInit
 
         await _db.AddServerRoleUnbanAsync(new ServerRoleUnbanDef(banId, unbanningAdmin, DateTimeOffset.Now));
 
-        // Start Vortex - Ban Webhook
+        // Start Onyx - Ban Webhook
         BanPardoned?.Invoke(this, new BanPardonedEventArgs
         {
             Target = ban.UserId,
             PardoningAdmin = unbanningAdmin,
             Time = DateTimeOffset.Now
         });
-        // End Vortex - Ban Webhook
+        // End Onyx - Ban Webhook
 
         if (ban.UserId is { } player
             && _playerManager.TryGetSessionById(player, out var session)
@@ -432,7 +432,7 @@ public sealed partial class BanManager : IBanManager, IPostInjectInit
         _netManager.ServerSendMessage(bans, pSession.Channel);
     }
 
-    // Start Vortex - Ban Webhook
+    // Start Onyx - Ban Webhook
     public async void WebhookUpdateRoleBans(NetUserId? target, string? targetUsername, NetUserId? banningAdmin, (IPAddress, int)? addressRange, ImmutableTypedHwid? hwid, IReadOnlyCollection<string> roles, uint? minutes, NoteSeverity severity, string reason, DateTimeOffset timeOfBan)
     {
         _systems.TryGetEntitySystem(out GameTicker? ticker);
@@ -501,14 +501,14 @@ public sealed partial class BanManager : IBanManager, IPostInjectInit
 
         _ipWhitelist = ips;
     }
-    // End Vortex - Ban Webhook
+    // End Onyx - Ban Webhook
 
     public void PostInject()
     {
         _sawmill = _logManager.GetSawmill(SawmillId);
     }
 
-    // Start Vortex - Ban Webhook
+    // Start Onyx - Ban Webhook
     #region Webhook
     private async void SendWebhook(WebhookPayload payload)
     {
@@ -908,5 +908,5 @@ public sealed partial class BanManager : IBanManager, IPostInjectInit
 
     #endregion
 
-    // End Vortex - Ban Webhook
+    // End Onyx - Ban Webhook
 }

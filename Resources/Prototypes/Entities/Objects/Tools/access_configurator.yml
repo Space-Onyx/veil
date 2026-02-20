@@ -140,12 +140,12 @@
     - Chemistry
     - ChiefEngineer
     - ChiefMedicalOfficer
-    - CentralCommandChief # Vortex-PlayableCentCom
-    - CentralCommandOperator # Vortex-PlayableCentCom
-    - CentralCommandWorker # Vortex-PlayableCentCom
-    - CentralCommandOSO # Vortex-PlayableCentCom
-    - CentralCommandCommand # Vortex-PlayableCentCom
-    - CentralCommandDSO # Vortex-PlayableCentCom
+    - CentralCommandChief # Onyx-PlayableCentCom
+    - CentralCommandOperator # Onyx-PlayableCentCom
+    - CentralCommandWorker # Onyx-PlayableCentCom
+    - CentralCommandOSO # Onyx-PlayableCentCom
+    - CentralCommandCommand # Onyx-PlayableCentCom
+    - CentralCommandDSO # Onyx-PlayableCentCom
     - Command
     - Cryogenics
     - EmergencyShuttleRepealAll

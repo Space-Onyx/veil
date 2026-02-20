@@ -28,7 +28,7 @@ using Robust.Client.UserInterface.XAML;
 using Robust.Shared.Input;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
-using static Robust.Client.Input.Keyboard; // Vortex added
+using static Robust.Client.Input.Keyboard; // Onyx added
 
 namespace Content.Goobstation.Client.Research.UI;
 
@@ -89,11 +89,11 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
 
     private string? _lastSelectedTechId;
     private DateTime _lastSelectTime;
-    // Vortex added
+    // Onyx added
     private string _searchText = "";
     private List<(TechnologyPrototype tech, ResearchAvailability availability)> _matchingTechnologies = new();
     private int _currentMatchIndex = -1;
-    // Vortex end
+    // Onyx end
 
     // UI Elements (resolved at runtime to avoid dependency on source generator)
     private readonly Control _staticSprite;
@@ -101,7 +101,7 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
     private readonly Control _dragContainer;
     private readonly Button _recenterButton;
     private readonly RichTextLabel _researchAmountLabel;
-    private readonly LineEdit _recipeSearchLineEdit; // Vortex added
+    private readonly LineEdit _recipeSearchLineEdit; // Onyx added
     private readonly BoxContainer _disciplineTabsContainer;
     private readonly BoxContainer _disciplineProgressContainer;
     private readonly BoxContainer _infoContainer;
@@ -120,7 +120,7 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
         _dragContainer = this.FindControl<Control>("DragContainer");
         _recenterButton = this.FindControl<Button>("RecenterButton");
         _researchAmountLabel = this.FindControl<RichTextLabel>("ResearchAmountLabel");
-        _recipeSearchLineEdit = this.FindControl<LineEdit>("RecipeSearchLineEdit"); // Vortex added
+        _recipeSearchLineEdit = this.FindControl<LineEdit>("RecipeSearchLineEdit"); // Onyx added
         _disciplineTabsContainer = this.FindControl<BoxContainer>("DisciplineTabsContainer");
         _disciplineProgressContainer = this.FindControl<BoxContainer>("DisciplineProgressContainer");
         _infoContainer = this.FindControl<BoxContainer>("InfoContainer");
@@ -140,10 +140,10 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
         _dragContainer.OnKeyBindDown += OnKeybindDown;
         _dragContainer.OnKeyBindUp += OnKeybindUp;
         _recenterButton.OnPressed += _ => Recenter();
-        // Vortex added
+        // Onyx added
         _recipeSearchLineEdit.OnTextChanged += OnSearchTextChanged;
         _recipeSearchLineEdit.OnTextEntered += OnSearchTextEntered;
-        // Vortex end
+        // Onyx end
 
         UpdatePanels(List);
         Recenter();
@@ -216,12 +216,12 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
                 Text = Loc.GetString(discipline.Name),
                 ToggleMode = true,
                 MinWidth = 0,
-                MinHeight = 46, // Vortex edited
+                MinHeight = 46, // Onyx edited
                 HorizontalExpand = true,
                 SizeFlagsStretchRatio = 1,
                 Margin = new Thickness(2)
             };
-            // Vortex edited
+            // Onyx edited
 
             // Wrap tab button in StripeBack like crew monitoring station name
             var stripeBack = new StripeBack
@@ -235,7 +235,7 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
             var panelContainer = new PanelContainer();
             panelContainer.AddChild(tabButton);
             stripeBack.AddChild(panelContainer);
-            // Vortex end
+            // Onyx end
             // Create progress control (ICON: PERCENT), left-aligned
             var percentLabel = new Label
             {
@@ -274,7 +274,7 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
             _disciplineControls[disciplineId] = (tabButton, progressBox);
 
             // Add to UI
-            _disciplineTabsContainer.AddChild(stripeBack); // Vortex edited
+            _disciplineTabsContainer.AddChild(stripeBack); // Onyx edited
             _disciplineProgressContainer.AddChild(progressBox);
             
             // Set up tab selection
@@ -320,13 +320,13 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
             {
                 tab.StyleClasses.Add("tab-active");
             }
-            // Vortex added
+            // Onyx added
             // Disable tab if no technologies in this discipline match the search
             var hasMatchingTechs = !string.IsNullOrEmpty(_searchText) &&
                                    _technologiesByDiscipline.TryGetValue(disciplineId, out var disciplineTechs) &&
                                    disciplineTechs.Any(tech => MatchesSearchFilter(tech));
             tab.Disabled = !string.IsNullOrEmpty(_searchText) && !hasMatchingTechs;
-            // Vortex end
+            // Onyx end
         }
         
         // Clear existing tech items
@@ -346,11 +346,11 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
 
                 var techItem = new FancyResearchConsoleItem(techProto, _sprite, availability);
                 techItem.SelectAction += (p, a) => SelectTech(p, a);
-                // Vortex edited
+                // Onyx edited
                 // Apply search filtering
                 var isFiltered = !string.IsNullOrEmpty(_searchText) && !MatchesSearchFilter(techProto);
                 techItem.SetFiltered(isFiltered);
-                // Vortex end
+                // Onyx end
                 // Position the technology in the research tree
                 var pos = techProto.Position * 150 * _zoom;
                 LayoutContainer.SetPosition(techItem, _position + pos);
@@ -435,7 +435,7 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
     protected override DragMode GetDragModeFor(Vector2 relativeMousePos)
         => _draggin ? DragMode.None : base.GetDragModeFor(relativeMousePos);
     #endregion
-    // Vortex added
+    // Onyx added
     private void OnSearchTextChanged(LineEdit.LineEditEventArgs args)
     {
         _searchText = args.Text.ToLowerInvariant();
@@ -515,7 +515,7 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
 
         return false;
     }
-    // Vortex end
+    // Onyx end
 
     /// <summary>
     /// Selects a tech prototype and opens info panel
@@ -572,10 +572,10 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
     public override void Close()
     {
         base.Close();
-        // Vortex added
+        // Onyx added
         _recipeSearchLineEdit.OnTextChanged -= OnSearchTextChanged;
         _recipeSearchLineEdit.OnTextEntered -= OnSearchTextEntered;
-        // Vortex end
+        // Onyx end
 
         foreach (var item in _techItems)
         {

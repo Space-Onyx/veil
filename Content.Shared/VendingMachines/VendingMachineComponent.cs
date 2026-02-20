@@ -205,7 +205,7 @@ namespace Content.Shared.VendingMachines
         public bool LoopDenyAnimation = true;
         #endregion
 
-        //<Vortex Economy>
+        //<Onyx Economy>
         [DataField, ViewVariables(VVAccess.ReadWrite)]
         public double PriceMultiplier = 1;
 
@@ -219,11 +219,11 @@ namespace Content.Shared.VendingMachines
 
         [DataField]
         public SoundSpecifier SoundInsertCurrency =
-            new SoundPathSpecifier("/Audio/_Vortex/Machines/polaroid2.ogg");
+            new SoundPathSpecifier("/Audio/_Onyx/Machines/polaroid2.ogg");
 
         [DataField]
         public SoundSpecifier SoundWithdrawCurrency =
-            new SoundPathSpecifier("/Audio/_Vortex/Machines/polaroid1.ogg");
+            new SoundPathSpecifier("/Audio/_Onyx/Machines/polaroid1.ogg");
 
         [ViewVariables]
         public int Credits;
@@ -242,7 +242,7 @@ namespace Content.Shared.VendingMachines
         [DataField, AutoNetworkedField]
         public Color UiButtonDisabledColor = Color.FromHex("#3f3f3fff");
 
-        // <Vortex Economy>-End
+        // <Onyx Economy>-End
     }
 
     [Serializable, NetSerializable]
@@ -254,17 +254,17 @@ namespace Content.Shared.VendingMachines
         public string ID;
         [ViewVariables(VVAccess.ReadWrite)]
         public uint Amount;
-        //<Vortex Economy>
+        //<Onyx Economy>
         [ViewVariables(VVAccess.ReadWrite)]
         public int Price;
-        //</Vortex Economy>
+        //</Onyx Economy>
 
-        public VendingMachineInventoryEntry(InventoryType type, string id, uint amount, int price) //<Vortex Economy>
+        public VendingMachineInventoryEntry(InventoryType type, string id, uint amount, int price) //<Onyx Economy>
         {
             Type = type;
             ID = id;
             Amount = amount;
-            Price = price; //<Vortex Economy>
+            Price = price; //<Onyx Economy>
         }
     }
 

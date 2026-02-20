@@ -89,10 +89,10 @@
   parent: UnsensoredClothingUniformBase
   id: ClothingUniformBase
   components:
-  # <Vortex>
+  # <Onyx>
   - type: SlotBlock
     slots: [underweart, underwearb]
-  # </Vortex>
+  # </Onyx>
   - type: SuitSensor
   - type: DeviceNetwork
     deviceNetId: Wireless
@@ -114,10 +114,10 @@
   - type: Clothing
     slots: [innerclothing]
     femaleMask: UniformTop
-  # <Vortex>
+  # <Onyx>
   - type: SlotBlock
     slots: [underweart]
-  # </Vortex>
+  # </Onyx>
   - type: Tag
     tags:
     - Skirt

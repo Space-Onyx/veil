@@ -97,7 +97,7 @@
     - type: Transform
 
 - type: entity
-  id: StandardGameCentcommStation # Vortex-PlayableCentComm
+  id: StandardGameCentcommStation # Onyx-PlayableCentComm
   parent:
   - BaseStation
   - BaseStationNews

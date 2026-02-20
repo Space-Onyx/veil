@@ -167,10 +167,10 @@
   # Goobstation edit end
   - type: Sprite
     state: icon
-  # <Vortex>
+  # <Onyx>
   - type: SlotBlock
     slots: [innerclothing, underweart, underwearb]
-  # </Vortex>
+  # </Onyx>
 
 - type: entity
   abstract: true
@@ -277,10 +277,10 @@
   id: ClothingOuterHardsuitBase
   name: base hardsuit
   components:
-  # <Vortex>
+  # <Onyx>
   - type: SlotBlock
     slots: [innerclothing, feet, underweart, underwearb]
-  # </Vortex>
+  # </Onyx>
   - type: PressureProtection
     highPressureMultiplier: 0.3
     lowPressureMultiplier: 1000

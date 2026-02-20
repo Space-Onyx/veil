@@ -288,7 +288,7 @@ public sealed partial class StationJobsSystem
                 done: ;
             }
         }
-        // Vortex-PriorityTweak start
+        // Onyx-PriorityTweak start
         // Fallback: assign High priority jobs to remaining players if possible
         if (profiles.Count > 0)
         {
@@ -337,7 +337,7 @@ public sealed partial class StationJobsSystem
                 }
                 nextPlayer:;
             }
-        }// Vortex-PriorityTweak end
+        }// Onyx-PriorityTweak end
 
         endFunc:
         return assigned;

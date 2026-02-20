@@ -102,8 +102,8 @@ using Robust.Shared.Timing;
 using Robust.Shared.Prototypes;
 using Content.Server.Shuttles.Components;
 using Robust.Shared.Physics;
-using Content.Server.Station.Systems; // Vortex-PlayableCentComm
-using Content.Server._Vortex.Station.Components; // Vortex-PlayableCentComm
+using Content.Server.Station.Systems; // Onyx-PlayableCentComm
+using Content.Server._Onyx.Station.Components; // Onyx-PlayableCentComm
 
 namespace Content.Server.Storage.EntitySystems;
 
@@ -118,7 +118,7 @@ public sealed class BluespaceLockerSystem : EntitySystem
     [Dependency] private readonly SharedDoAfterSystem _doAfterSystem = default!;
     [Dependency] private readonly SharedTransformSystem _transformSystem = default!;
     [Dependency] private readonly ExplosionSystem _explosionSystem = default!;
-    [Dependency] private readonly StationSystem _stationSystem = default!; // Vortex-PlayableCentComm
+    [Dependency] private readonly StationSystem _stationSystem = default!; // Onyx-PlayableCentComm
 
     public override void Initialize()
     {
@@ -281,7 +281,7 @@ public sealed class BluespaceLockerSystem : EntitySystem
                 return false;
         }
 
-        // Vortex-PlayableCentComm start
+        // Onyx-PlayableCentComm start
         // Check if locker station blocks cross-station linking
         if (!TryComp<TransformComponent>(locker, out var lockerXform)) return false;
         if (!TryComp<TransformComponent>(link, out var linkXform)) return false;
@@ -289,7 +289,7 @@ public sealed class BluespaceLockerSystem : EntitySystem
         var linkStation = _stationSystem.GetOwningStation(link, linkXform);
         if (lockerStation != null && HasComp<StationBluespaceLockerBlockComponent>(lockerStation.Value) && lockerStation != linkStation)
             return false;
-        // Vortex-PlayableCentComm end
+        // Onyx-PlayableCentComm end
 
         return true;
     }

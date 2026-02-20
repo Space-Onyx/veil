@@ -12,20 +12,20 @@ namespace Content.Shared.VendingMachines
     public sealed class VendingMachineInterfaceState : BoundUserInterfaceState
     {
         public List<VendingMachineInventoryEntry> Inventory;
-        //<Vortex Economy>
+        //<Onyx Economy>
         public double PriceMultiplier;
         public int Credits;
-        //</Vortex Economy>
-        public VendingMachineInterfaceState(List<VendingMachineInventoryEntry> inventory, double priceMultiplier, int credits) //<Vortex Economy>
+        //</Onyx Economy>
+        public VendingMachineInterfaceState(List<VendingMachineInventoryEntry> inventory, double priceMultiplier, int credits) //<Onyx Economy>
         {
             Inventory = inventory;
-            //<Vortex Economy>
+            //<Onyx Economy>
             PriceMultiplier = priceMultiplier;
             Credits = credits;
-            //</Vortex Economy>
+            //</Onyx Economy>
         }
     }
-    //<Vortex Economy>
+    //<Onyx Economy>
     [Serializable, NetSerializable]
     public sealed class VendingMachineWithdrawMessage : BoundUserInterfaceMessage
     {
@@ -43,7 +43,7 @@ namespace Content.Shared.VendingMachines
         }
     }
 
-    //</Vortex Economy>
+    //</Onyx Economy>
 
     [Serializable, NetSerializable]
     public sealed class VendingMachineEjectMessage : BoundUserInterfaceMessage

@@ -50,7 +50,7 @@ public sealed class CharacterInfoSystem : EntitySystem
     private void OnCharacterInfoEvent(CharacterInfoEvent msg, EntitySessionEventArgs args)
     {
         var entity = GetEntity(msg.NetEntity);
-        var data = new CharacterData(entity, msg.JobTitle, msg.Objectives, msg.Briefing, Name(entity), msg.Memory); //<Vortex Economy>
+        var data = new CharacterData(entity, msg.JobTitle, msg.Objectives, msg.Briefing, Name(entity), msg.Memory); //<Onyx Economy>
 
         OnCharacterUpdate?.Invoke(data);
     }
@@ -67,8 +67,8 @@ public sealed class CharacterInfoSystem : EntitySystem
         string Job,
         Dictionary<string, List<ObjectiveInfo>> Objectives,
         string? Briefing,
-        string EntityName, //<Vortex Economy>
-        Dictionary<string, string> Memory //</Vortex Economy>
+        string EntityName, //<Onyx Economy>
+        Dictionary<string, string> Memory //</Onyx Economy>
     );
 
     /// <summary>

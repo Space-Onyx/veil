@@ -38,7 +38,7 @@ using Content.Shared.Popups;
 using Content.Shared.RCD.Components;
 using Content.Shared.Tag;
 using Content.Shared.Tiles;
-using Content.Shared._Vortex.Construction;
+using Content.Shared._Onyx.Construction;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;

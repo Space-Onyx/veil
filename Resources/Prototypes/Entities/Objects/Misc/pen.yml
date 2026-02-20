@@ -171,7 +171,7 @@
     state: luxury_pen
   - type: Item
     heldPrefix: luxury_pen
-  - type: SignTool # Vortex - Sign color
+  - type: SignTool # Onyx - Sign color
     signColor: "#F7AB31FF"
 
 - type: entity
@@ -186,7 +186,7 @@
     - WriteIgnoreStamps
     - Pickaxe
     - Pen
-    - SignEdit # Vortex - Advanced pens can edit signs
+    - SignEdit # Onyx - Advanced pens can edit signs
   - type: MeleeWeapon
     wideAnimationRotation: -45
     damage:
@@ -227,7 +227,7 @@
     state: pen_centcom
   - type: Item
     heldPrefix: pen_centcom
-  - type: SignTool # Vortex - Sign colors
+  - type: SignTool # Onyx - Sign colors
     signColor: "#33BA3CFF"
 
 - type: entity
@@ -239,13 +239,13 @@
   components:
   - type: Sprite
     state: pen_cap
-  - type: SignTool # Vortex - Sign color
+  - type: SignTool # Onyx - Sign color
     signColor: "#319CF7FF"
   - type: Tag
     tags:
     - Write
     - Pen
-    - SignEdit # Vortex - Captain's pen can edit signs
+    - SignEdit # Onyx - Captain's pen can edit signs
 
 - type: entity
   name: hop's fountain pen
@@ -256,13 +256,13 @@
   components:
   - type: Sprite
     state: pen_hop
-  - type: SignTool # Vortex - Sign color
+  - type: SignTool # Onyx - Sign color
     signColor: "#7CCCEDFF"
   - type: Tag
     tags:
     - Write
     - Pen
-    - SignEdit # Vortex - HOP's pen can edit signs
+    - SignEdit # Onyx - HOP's pen can edit signs
 
 - type: entity
   name: wizard's magical pen
@@ -277,5 +277,5 @@
     - WriteIgnoreStamps
     - Write
     - Pen
-  - type: SignTool # Vortex - Sign color
+  - type: SignTool # Onyx - Sign color
     signColor: "#912CF0FF"

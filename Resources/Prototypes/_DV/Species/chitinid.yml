@@ -11,7 +11,7 @@
   maleFirstNames: NamesChitinidFirstMale
   femaleFirstNames: NamesChitinidFirstFemale
   naming: First
-  # vortex start
+  # Onyx start
   minHeight: 0.86
   maxHeight: 2
   maxWidth: 2
@@ -41,7 +41,7 @@
   - Метаболизм на 33% быстрее, из-за чего они быстрее голодают.
   - Более уязвимы к холоду.
   - Кровь — насекомых.
-  # vortex end
+  # Onyx end
 
 - type: speciesBaseSprites
   id: MobChitinidSprites

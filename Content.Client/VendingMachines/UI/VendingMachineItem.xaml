@@ -6,7 +6,7 @@ SPDX-FileCopyrightText: 2025 Aiden <28298836+Aidenkrz@users.noreply.github.com>
 SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 
-<!-- Vortex-Economy-Start-->
+<!-- Onyx-Economy-Start-->
 <BoxContainer xmlns="https://spacestation14.io"
     Orientation="Horizontal"
     HorizontalExpand="True"
@@ -37,4 +37,4 @@ SPDX-License-Identifier: AGPL-3.0-or-later
         Margin="0 0 4 0"
         HorizontalAlignment="Right" />
 </BoxContainer>
-<!-- Vortex-Economy-End-->
+<!-- Onyx-Economy-End-->

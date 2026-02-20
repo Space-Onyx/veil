@@ -42,7 +42,7 @@ public enum SlotFlags
     RING = 1 << 16,
     UNDERWEART = 1 << 17, // ADT
     UNDERWEARB = 1 << 18, // ADT
-    SOCKS = 1 << 19, // <Vortex>
+    SOCKS = 1 << 19, // <Onyx>
     All = ~NONE,
 
     WITHOUT_POCKET = All & ~POCKET

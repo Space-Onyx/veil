@@ -87,7 +87,7 @@ using Robust.Shared.Player;
 using Robust.Shared.Audio.Systems;
 using static Content.Shared.Paper.PaperComponent;
 using Robust.Shared.Prototypes;
-using Content.Shared._Vortex.Paper;
+using Content.Shared._Onyx.Paper;
 
 namespace Content.Shared.Paper;
 
@@ -165,7 +165,7 @@ public sealed class PaperSystem : EntitySystem
                 );
             }
 
-            // Vortex added
+            // Onyx added
             // Show signatures if any
             if (entity.Comp.SignedBy.Count > 0)
             {
@@ -177,9 +177,9 @@ public sealed class PaperSystem : EntitySystem
                         ("signs", commaSeparatedSigns))
                 );
             }
-            // Vortex end
+            // Onyx end
 
-            // Vortex edited
+            // Onyx edited
             if (entity.Comp.StampedBy.Count > 0)
             {
                 var stamps = new List<string>();
@@ -195,7 +195,7 @@ public sealed class PaperSystem : EntitySystem
                         }
                     }
 
-                    if (!isSignature) // Vortex edited
+                    if (!isSignature) // Onyx edited
                     {
                         stamps.Add(Loc.GetString(stamp.StampedName));
                     }
@@ -214,13 +214,13 @@ public sealed class PaperSystem : EntitySystem
             }
         }
     }
-    // Vortex end
+    // Onyx end
 
     private void OnInteractUsing(Entity<PaperComponent> entity, ref InteractUsingEvent args)
     {
         // only allow editing if there are no stamps or when using a cyberpen
         var editable = entity.Comp.StampedBy.Count == 0 || _tagSystem.HasTag(args.Used, WriteIgnoreStampsTag);
-        //Vortex added
+        //Onyx added
         // Allow editing if using a pen with SignEdit tag, even if signed, but only if there are no non-signature stamps
         var signEditable = false;
         if (_tagSystem.HasTag(args.Used, "SignEdit"))
@@ -246,7 +246,7 @@ public sealed class PaperSystem : EntitySystem
             }
             signEditable = !hasNonSignatureStamps;
         }
-        //Vortex end
+        //Onyx end
         if (_tagSystem.HasTag(args.Used, WriteTag))
         {
             if (editable || signEditable)
@@ -355,9 +355,9 @@ public sealed class PaperSystem : EntitySystem
     /// </summary>
     public bool TryStamp(Entity<PaperComponent> entity, StampDisplayInfo stampInfo, string spriteStampState)
     {
-        //Vortex added
+        //Onyx added
         return TryAddStampInfo(entity, stampInfo, spriteStampState, allowDuplicate: false);
-        //Vortex end
+        //Onyx end
     }
 
     /// <summary>
@@ -407,7 +407,7 @@ public sealed class PaperSystem : EntitySystem
         _uiSystem.SetUiState(entity.Owner, PaperUiKey.Key, new PaperBoundUserInterfaceState(entity.Comp.Content, entity.Comp.StampedBy, entity.Comp.SignedBy, entity.Comp.Mode));
     }
 
-    //Vortex added
+    //Onyx added
     public bool TryAddStampInfo(Entity<PaperComponent> entity, StampDisplayInfo stampInfo, string? spriteStampState, bool allowDuplicate)
     {
         if (!allowDuplicate && entity.Comp.StampedBy.Contains(stampInfo))
@@ -424,7 +424,7 @@ public sealed class PaperSystem : EntitySystem
 
         return true;
     }
-    //Vortex end
+    //Onyx end
 }
 
 /// <summary>

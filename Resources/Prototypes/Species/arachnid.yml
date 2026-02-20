@@ -30,7 +30,7 @@
   lastNames: NamesArachnidLast
   sexes:
   - Unsexed
-  # <Vortex>
+  # <Onyx>
   baseScale: "1.16, 1.16"
   minHeight: 0.80
   maxHeight: 2
@@ -55,7 +55,7 @@
   pros:
   - Наносимый урон голыми руками составляет 7 единиц, атаки совершаются на 50% быстрее.
   - Голодают и испытывают жажду медленнее.
-  # </Vortex>
+  # </Onyx>
 
 - type: speciesBaseSprites
   id: MobArachnidSprites

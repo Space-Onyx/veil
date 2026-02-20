@@ -180,10 +180,10 @@ namespace Content.Server.Database
                 .Include(p => p.Profiles).ThenInclude(h => h.Jobs)
                 .Include(p => p.Profiles).ThenInclude(h => h.Antags)
                 .Include(p => p.Profiles).ThenInclude(h => h.Traits)
-                // add Vortex - Height & Weight
+                // add Onyx - Height & Weight
                 .Include(p => p.Profiles)
                     .ThenInclude(h => h.VortexProfile)
-                // end Vortex - Height & Weights
+                // end Onyx - Height & Weights
                 .Include(p => p.Profiles)
                     .ThenInclude(h => h.Loadouts)
                     .ThenInclude(l => l.Groups)
@@ -404,7 +404,7 @@ namespace Content.Server.Database
             return new HumanoidCharacterProfile(
                 profile.CharacterName,
                 profile.FlavorText,
-                profile.OOCNotes, // <Vortex-OOCNotex>
+                profile.OOCNotes, // <Onyx-OOCNotex>
                 profile.Species,
                 voice, // CorvaxGoob-TTS
                 profile.Age,
@@ -426,8 +426,8 @@ namespace Content.Server.Database
                 antags.ToHashSet(),
                 traits.ToHashSet(),
                 loadouts,
-                profile.VortexProfile?.Height ?? 1.0f, // Vortex - Height & Weight
-                profile.VortexProfile?.Width ?? 1.0f, // Vortex - Height & Weight
+                profile.VortexProfile?.Height ?? 1.0f, // Onyx - Height & Weight
+                profile.VortexProfile?.Width ?? 1.0f, // Onyx - Height & Weight
                 // ADT Barks start
                 new BarkData(profile.BarkProto, profile.BarkPitch, profile.LowBarkVar, profile.HighBarkVar)
                 // ADT Barks end
@@ -447,7 +447,7 @@ namespace Content.Server.Database
 
             profile.CharacterName = humanoid.Name;
             profile.FlavorText = humanoid.FlavorText;
-            profile.OOCNotes = humanoid.OOCNotes; // <Vortex-OOCNotex>
+            profile.OOCNotes = humanoid.OOCNotes; // <Onyx-OOCNotex>
             profile.Species = humanoid.Species;
             profile.Voice = humanoid.Voice; // CorvaxGoob-TTS
             profile.Age = humanoid.Age;

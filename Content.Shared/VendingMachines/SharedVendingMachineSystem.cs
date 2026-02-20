@@ -113,7 +113,7 @@ public abstract partial class SharedVendingMachineSystem : EntitySystem
         if (!Resolve(uid, ref component))
             return new();
 
-        return GetAllInventory(uid, component).Where(inventoryEntry => inventoryEntry.Amount > 0).ToList(); //<Vortex Economy>
+        return GetAllInventory(uid, component).Where(inventoryEntry => inventoryEntry.Amount > 0).ToList(); //<Onyx Economy>
     }
 
     private void AddInventoryFromPrototype(EntityUid uid, Dictionary<string, uint>? entries,
@@ -144,7 +144,7 @@ public abstract partial class SharedVendingMachineSystem : EntitySystem
 
         foreach (var (id, amount) in entries)
         {
-            if (PrototypeManager.TryIndex<EntityPrototype>(id, out var proto)) //<Vortex Economy>
+            if (PrototypeManager.TryIndex<EntityPrototype>(id, out var proto)) //<Onyx Economy>
             {
                 var restock = amount;
                 var chanceOfMissingStock = 1 - restockQuality;
@@ -163,22 +163,22 @@ public abstract partial class SharedVendingMachineSystem : EntitySystem
                     // all the items just to restock one empty slot without
                     // losing the rest of the restock.
 
-                //<Vortex Economy>
+                //<Onyx Economy>
                     entry.Amount = Math.Min(entry.Amount + amount, 3 * amount);
                 else
                 {
                     var price = packPrototype.Prices.TryGetValue(id, out var p) ? p : GetEntryPrice(proto, component);
                     inventory.Add(id, new VendingMachineInventoryEntry(type, id, amount, price));
                 }
-                //</Vortex Economy>
+                //</Onyx Economy>
             }
         }
     }
 
-    //<Vortex Economy>
+    //<Onyx Economy>
     protected virtual int GetEntryPrice(EntityPrototype proto, VendingMachineComponent component)
     {
         return 5;
     }
-    //</Vortex Economy>
+    //</Onyx Economy>
 }

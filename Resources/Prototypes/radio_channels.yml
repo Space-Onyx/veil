@@ -62,7 +62,7 @@
   name: chat-radio-centcom
   keycode: 'ц' # CorvaxGoob-Loc
   frequency: 1337
-  color: "#1e7926" # Vortex-PlayableCentCom
+  color: "#1e7926" # Onyx-PlayableCentCom
   longRange: true
 
 - type: radioChannel

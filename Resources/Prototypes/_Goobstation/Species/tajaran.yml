@@ -22,7 +22,7 @@
   maleFirstNames: NamesTajaranFirst
   femaleFirstNames: NamesTajaranFirst
   lastNames: NamesTajaranLast
-  # <Vortex>
+  # <Onyx>
   minHeight: 0.86
   maxHeight: 2
   maxWidth: 2
@@ -38,7 +38,7 @@
   - Получают меньше урона холодом.
   cons:
   - Получают больше урона огнём.
-# </Vortex>
+# </Onyx>
 
 - type: markingPoints
   id: MobTajaranMarkingLimits

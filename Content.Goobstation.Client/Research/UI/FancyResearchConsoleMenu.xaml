@@ -46,9 +46,9 @@ SPDX-License-Identifier: AGPL-3.0-or-later
                       MinHeight="40"
                       Margin="10 0 10 5">
             <RichTextLabel Name="ResearchAmountLabel" HorizontalExpand="True"/>
-            <LineEdit Name="RecipeSearchLineEdit" PlaceHolder="{Loc 'research-console-recipe-search-placeholder'}" MinWidth="200" Margin="0 0 10 0"/> <!-- Vortex added -->
+            <LineEdit Name="RecipeSearchLineEdit" PlaceHolder="{Loc 'research-console-recipe-search-placeholder'}" MinWidth="200" Margin="0 0 10 0"/> <!-- Onyx added -->
             <Control MinWidth="10" />
-            <Button Name="ServerButton" Text="{Loc 'research-console-menu-server-selection-button'}" MinHeight="35" /> <!-- Vortex edited -->
+            <Button Name="ServerButton" Text="{Loc 'research-console-menu-server-selection-button'}" MinHeight="35" /> <!-- Onyx edited -->
         </BoxContainer>
         
         

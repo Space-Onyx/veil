@@ -211,7 +211,7 @@ public sealed class PricingSystem : EntitySystem
     /// Returns the estimated price for an entity prototype.
     /// If isVending is true, returns ONLY vendingPrice from StaticPriceComponent (if set), else 10. Ignores all other calculations.
     /// </summary>
-    //<Vortex Economy>
+    //<Onyx Economy>
     public double GetEstimatedPrice(EntityPrototype prototype, bool isVending = false)
     {
         if (isVending)
@@ -219,7 +219,7 @@ public sealed class PricingSystem : EntitySystem
             return 5;
         }
         var ev = new EstimatedPriceCalculationEvent(prototype);
-    //</Vortex Economy>
+    //</Onyx Economy>
         RaiseLocalEvent(ref ev);
         if (ev.Handled)
             return ev.Price;
@@ -446,7 +446,7 @@ public record struct PriceCalculationEvent()
 /// Raised broadcast for an entity prototype to determine its estimated price.
 /// </summary>
 [ByRefEvent]
-public record struct EstimatedPriceCalculationEvent(EntityPrototype Prototype) //<Vortex Economy>
+public record struct EstimatedPriceCalculationEvent(EntityPrototype Prototype) //<Onyx Economy>
 {
     /// <summary>
     /// The total price of the entity.

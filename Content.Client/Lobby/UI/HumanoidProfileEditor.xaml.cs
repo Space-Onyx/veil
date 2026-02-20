@@ -197,7 +197,7 @@ using Robust.Shared.Physics.Systems;
 using Robust.Shared.Utility;
 using Direction = Robust.Shared.Maths.Direction;
 using Content.Client._CorvaxGoob.TTS;
-using Content.Client._Vortex.Description;
+using Content.Client._Onyx.Description;
 using Content.Client.OOCNotes;
 using Content.Shared._CorvaxGoob; // CorvaxGoob-TTS
 using System.Globalization;
@@ -224,7 +224,7 @@ namespace Content.Client.Lobby.UI
         // CCvar.
         private int _maxNameLength;
         private bool _allowFlavorText;
-        private bool _allowOOCNotes; // <Vortex-OOCNotex>
+        private bool _allowOOCNotes; // <Onyx-OOCNotex>
 
         private DescriptionTab? _descriptionTab;
 
@@ -310,7 +310,7 @@ namespace Content.Client.Lobby.UI
 
             _maxNameLength = _cfgManager.GetCVar(CCVars.MaxNameLength);
             _allowFlavorText = _cfgManager.GetCVar(CCVars.FlavorText);
-            _allowOOCNotes = _cfgManager.GetCVar(CCVars.OOCNotes); // <Vortex-OOCNotex>
+            _allowOOCNotes = _cfgManager.GetCVar(CCVars.OOCNotes); // <Onyx-OOCNotex>
 
             ImportButton.OnPressed += args =>
             {
@@ -417,8 +417,8 @@ namespace Content.Client.Lobby.UI
                 OnSkinColorOnValueChanged();
             };
 
-            // added Vortex - Height & Weight
-            #region Vortex Width
+            // added Onyx - Height & Weight
+            #region Onyx Width
 
             CDWidth.OnTextChanged += args =>
             {
@@ -460,8 +460,8 @@ namespace Content.Client.Lobby.UI
                 SetProfileWidth(width);
             };
 
-            #endregion Vortex Width
-            // end Vortex - Height & Weight
+            #endregion Onyx Width
+            // end Onyx - Height & Weight
 
             // ADT Species Window start
             NewSpeciesButton.OnToggled += args =>
@@ -696,7 +696,7 @@ namespace Content.Client.Lobby.UI
 
             #endregion Markings
 
-            RefreshDescription(); // <Vortex-OOCNotex>
+            RefreshDescription(); // <Onyx-OOCNotex>
 
             RefreshVoiceTab(); // CorvaxGoob-TTS
 
@@ -776,7 +776,7 @@ namespace Content.Client.Lobby.UI
         /// <summary>
         /// Refreshes the description editor status.
         /// </summary>
-        /// // <Vortex-OOCNotex>
+        /// // <Onyx-OOCNotex>
         public void RefreshDescription()
         {
             if (_allowFlavorText || _allowOOCNotes)
@@ -790,7 +790,7 @@ namespace Content.Client.Lobby.UI
 
                 _descriptionTab = new DescriptionTab();
                 TabContainer.AddChild(_descriptionTab);
-                TabContainer.SetTabTitle(TabContainer.ChildCount - 1, Loc.GetString("humanoid-profile-editor-flavortext-tab"));
+                TabContainer.SetTabTitle(TabContainer.ChildCount - 1, Loc.GetString("humanoid-profile-editor-FlavorText-tab"));
                 _descriptionTab.OnFlavorTextChanged += OnFlavorTextChange;
                 _descriptionTab.OnOOCNotesChanged += OnOOCNotesChange;
                 _descriptionTab.SetFlavorTextVisible(_allowFlavorText);
@@ -808,7 +808,7 @@ namespace Content.Client.Lobby.UI
                 _descriptionTab = null;
             }
         }
-        // </Vortex-OOCNotex-edited>
+        // </Onyx-OOCNotex-edited>
 
         //CorvaxGoob-TTS-Start
         #region Voice
@@ -1181,7 +1181,7 @@ namespace Content.Client.Lobby.UI
 
             UpdateNameEdit();
             UpdateFlavorTextEdit();
-            UpdateOOCNotesEdit(); // <Vortex-OOCNotex>
+            UpdateOOCNotesEdit(); // <Onyx-OOCNotex>
             UpdateSexControls();
             UpdateGenderControls();
             UpdateSkinColor();
@@ -1506,7 +1506,7 @@ namespace Content.Client.Lobby.UI
             SetDirty();
         }
 
-        // <Vortex-OOCNotex>
+        // <Onyx-OOCNotex>
         private void OnOOCNotesChange(string content)
         {
             if (Profile is null)
@@ -1515,7 +1515,7 @@ namespace Content.Client.Lobby.UI
             Profile = Profile.WithOOCNotes(content);
             SetDirty();
         }
-        // </Vortex-OOCNotex>
+        // </Onyx-OOCNotex>
 
         private void OnMarkingChange(MarkingSet markings)
         {
@@ -1784,7 +1784,7 @@ namespace Content.Client.Lobby.UI
             NameEdit.Text = Profile?.Name ?? "";
         }
 
-        // <Vortex-OOCNotex>
+        // <Onyx-OOCNotex>
         private void UpdateFlavorTextEdit()
         {
             _descriptionTab?.UpdateFlavorText(Profile?.FlavorText ?? "");
@@ -1794,7 +1794,7 @@ namespace Content.Client.Lobby.UI
         {
             _descriptionTab?.UpdateOOCNotes(Profile?.OOCNotes ?? "");
         }
-        // </Vortex-OOCNotex-edited>
+        // </Onyx-OOCNotex-edited>
 
         private void UpdateAgeEdit()
         {

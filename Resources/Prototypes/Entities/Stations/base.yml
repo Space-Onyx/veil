@@ -189,7 +189,7 @@
   abstract: true
   components:
     - type: StationCentcomm
-      gameMap: "CorvaxCentComm" # Vortex-PlayableCentComm
+      gameMap: "OnyxCentComm" # Onyx-PlayableCentComm
 
 - type: entity
   id: BaseStationEvacuation

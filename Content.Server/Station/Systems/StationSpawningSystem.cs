@@ -233,7 +233,7 @@ public sealed class StationSpawningSystem : SharedStationSpawningSystem
             _humanoidSystem.LoadProfile(entity.Value, profile);
             _metaSystem.SetEntityName(entity.Value, profile.Name);
 
-            // <Vortex-OOCNotex>
+            // <Onyx-OOCNotex>
             var content = string.Empty; 
             if (profile.FlavorText != "" && _configurationManager.GetCVar(CCVars.FlavorText))
             {
@@ -251,7 +251,7 @@ public sealed class StationSpawningSystem : SharedStationSpawningSystem
             {
                 AddComp<DetailExaminableComponent>(entity.Value).Content = content;
             }
-            // </Vortex-OOCNotex-edited>
+            // </Onyx-OOCNotex-edited>
         }
 
         if (loadout != null)

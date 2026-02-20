@@ -21,7 +21,7 @@
   femaleFirstNames: AbductorNames
   lastNames: AbductorLastNames
   # CorvaxGoob-Species-End
-  # <Vortex>
+  # <Onyx>
   minHeight: 0.86
   maxHeight: 2
   maxWidth: 2
@@ -32,7 +32,7 @@
   maxHeightCm: 200
   minWeightKg: 40
   maxWeightKg: 90
-  # </Vortex>
+  # </Onyx>
 
 - type: speciesBaseSprites
   id: MobAbductorSprites

@@ -1,0 +1,63 @@
+using System.Collections.Generic;
+using Robust.Shared.Audio;
+using Robust.Shared.GameObjects;
+using Robust.Shared.Maths;
+
+namespace Content.Server._Onyx.Elevator;
+
+[RegisterComponent]
+public sealed partial class ElevatorComponent : Component
+{
+    [DataField]
+    public string ElevatorId = string.Empty;
+
+    [DataField]
+    public string CurrentFloor = "IntermediateFloor";
+
+    [DataField]
+    public List<string> Floors = new();
+
+    [DataField]
+    public string IntermediateFloorId = "IntermediateFloor";
+
+    [DataField]
+    public TimeSpan SendDelay = TimeSpan.FromSeconds(1);
+
+    [DataField]
+    public TimeSpan IntermediateDelay = TimeSpan.FromSeconds(6);
+
+    [DataField]
+    public TimeSpan DoorCloseDelay = TimeSpan.FromSeconds(0.3);
+
+    [DataField]
+    public SoundSpecifier StartSound = new SoundPathSpecifier("/Audio/_Onyx/Machines/Elevator/ElevatorClose.ogg");
+
+    [DataField]
+    public SoundSpecifier TravelSound = new SoundPathSpecifier("/Audio/_Onyx/Machines/Elevator/Moving.ogg");
+
+    [DataField]
+    public SoundSpecifier ArrivalSound = new SoundPathSpecifier("/Audio/_Onyx/Machines/Elevator/Beep-elevator.ogg");
+
+    [DataField]
+    public SoundSpecifier AlarmSound = new SoundPathSpecifier("/Audio/_Onyx/Effects/announcement.ogg");
+
+    [DataField]
+    public float DoorBlockCheckRange = 0.59f;
+
+    [DataField]
+    public int MaxEntitiesToTeleport = 60;
+
+    [DataField]
+    public bool TransferGases = false;
+
+    [DataField]
+    public bool ClearGases = true;
+
+    [DataField]
+    public bool KillEntitiesInTargetArea = false;
+
+    [DataField]
+    public bool ForceStandardAtmosphere = false;
+
+    public bool IsMoving = false;
+}

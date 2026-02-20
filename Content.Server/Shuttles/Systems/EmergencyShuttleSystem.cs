@@ -104,13 +104,13 @@ using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
-using Robust.Shared.Map; // Vortex-PlayableCentComm
+using Robust.Shared.Map; // Onyx-PlayableCentComm
 using Content.Shared.DeviceNetwork.Components;
 using Content.Server._CorvaxGoob.Announcer;
 using Robust.Shared.Audio;
-using Content.Server.GameTicking; // Vortex-PlayableCentComm
-using Content.Server.Maps; // Vortex-PlayableCentComm
-using Robust.Shared.EntitySerialization; // Vortex-PlayableCentComm
+using Content.Server.GameTicking; // Onyx-PlayableCentComm
+using Content.Server.Maps; // Onyx-PlayableCentComm
+using Robust.Shared.EntitySerialization; // Onyx-PlayableCentComm
 
 namespace Content.Server.Shuttles.Systems;
 
@@ -144,9 +144,9 @@ public sealed partial class EmergencyShuttleSystem : EntitySystem
     [Dependency] private readonly TransformSystem _transformSystem = default!;
     [Dependency] private readonly UserInterfaceSystem _uiSystem = default!;
     [Dependency] private readonly ExplosionSystem _explosion = default!; // Goob edit
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!; // Vortex-PlayableCentComm
-    [Dependency] private readonly IMapManager _mapManager = default!; // Vortex-PlayableCentComm
-    [Dependency] private readonly GameTicker _gameTicker = default!; // Vortex-PlayableCentComm
+    [Dependency] private readonly IPrototypeManager _prototypeManager = default!; // Onyx-PlayableCentComm
+    [Dependency] private readonly IMapManager _mapManager = default!; // Onyx-PlayableCentComm
+    [Dependency] private readonly GameTicker _gameTicker = default!; // Onyx-PlayableCentComm
 
     private const float ShuttleSpawnBuffer = 1f;
 
@@ -608,7 +608,7 @@ public sealed partial class EmergencyShuttleSystem : EntitySystem
             return;
         }
 
-        // Vortex-PlayableCentComm edit start
+        // Onyx-PlayableCentComm edit start
         // Check for existing centcomms and just point to that
         var centcommQuery = AllEntityQuery<StationCentcommComponent>();
         while (centcommQuery.MoveNext(out var otherComp))
@@ -666,7 +666,7 @@ public sealed partial class EmergencyShuttleSystem : EntitySystem
         _shuttle.TryAddFTLDestination(mapId, true, out _);
         Log.Info($"Created centcomm from GameMap {component.GameMap} for station {ToPrettyString(station)}");
     }
-    // Vortex-PlayableCentComm end
+    // Onyx-PlayableCentComm end
     public HashSet<EntityUid> GetCentcommMaps()
     {
         var query = AllEntityQuery<StationCentcommComponent>();

@@ -107,7 +107,7 @@ namespace Content.Client.Access.UI
                 newAccessList,
                 newJobPrototype));
         }
-        // <Vortex Economy>
+        // <Onyx Economy>
         public void CreateBankAccount()
         {
             SendMessage(new CreateBankAccountMessage());
@@ -117,6 +117,6 @@ namespace Content.Client.Access.UI
         {
             SendMessage(new SetBankPinMessage(pin));
         }
-        // </Vortex Economy>
+        // </Onyx Economy>
     }
 }

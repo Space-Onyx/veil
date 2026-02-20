@@ -59,7 +59,7 @@
 
 using Content.Server.GameTicking;
 using Content.Server.Spawners.Components;
-using Content.Server._Vortex.Station.Components; // Vortex-ForceCryoSpawn
+using Content.Server._Onyx.Station.Components; // Onyx-ForceCryoSpawn
 using Content.Server.Station.Systems;
 using Content.Shared.Preferences;
 using Robust.Server.Containers;
@@ -89,7 +89,7 @@ public sealed class ContainerSpawnPointSystem : EntitySystem
         if (args.SpawnResult != null)
             return;
 
-        // Vortex-ForceCryoSpawn start
+        // Onyx-ForceCryoSpawn start
         // Check if station forces cryo spawn
         var forceCryo = false;
         if (args.Station != null && TryComp<ForceCryoSpawnComponent>(args.Station.Value, out var forceComp))
@@ -99,11 +99,11 @@ public sealed class ContainerSpawnPointSystem : EntitySystem
             else if (_gameTicker.RunLevel != GameRunLevel.InRound && forceComp.ForceRoundStartCryo)
                 forceCryo = true;
         }
-        // Vortex-ForceCryoSpawn end
+        // Onyx-ForceCryoSpawn end
 
         // If it's just a spawn pref check if it's for cryo (silly).
         if (!forceCryo && args.HumanoidCharacterProfile?.SpawnPriority != SpawnPriorityPreference.Cryosleep &&
-            (!_proto.TryIndex(args.Job, out var jobProto) || jobProto.JobEntity == null)) // Vortex-ForceCryoSpawn edited
+            (!_proto.TryIndex(args.Job, out var jobProto) || jobProto.JobEntity == null)) // Onyx-ForceCryoSpawn edited
         {
             return;
         }

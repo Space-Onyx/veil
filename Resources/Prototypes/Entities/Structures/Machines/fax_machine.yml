@@ -181,10 +181,10 @@
     name: "Central Command"
     notifyAdmins: true
     receiveAllStationGoals: true # CorvaxGoob-StationGoal
-  # <Vortex>
+  # <Onyx>
   - type: FaxAlert
     alertChannel: CentCom
-  # </Vortex>
+  # </Onyx>
 
 - type: entity
   parent: FaxMachineBase
@@ -216,12 +216,12 @@
       receiveStationGoal: true # CorvaxGoob-StationGoal
     - type: StealTarget
       stealGroup: FaxMachineCaptain
-    # <Vortex>
+    # <Onyx>
     - type: FaxAlert
       alertChannel: Command
-    # </Vortex>
+    # </Onyx>
 
-  # <Vortex>
+  # <Onyx>
 - type: entity
   parent: FaxMachineBase
   id: FaxMachineBridge
@@ -234,4 +234,4 @@
       stealGroup: FaxMachineCaptain
     - type: FaxAlert
       alertChannel: Command
-# </Vortex>
+# </Onyx>

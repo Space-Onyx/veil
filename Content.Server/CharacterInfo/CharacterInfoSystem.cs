@@ -50,7 +50,7 @@ public sealed class CharacterInfoSystem : EntitySystem
 
         var objectives = new Dictionary<string, List<ObjectiveInfo>>();
         var jobTitle = Loc.GetString("character-info-no-profession");
-        var memories = new Dictionary<string, string>(); //<Vortex Economy>
+        var memories = new Dictionary<string, string>(); //<Onyx Economy>
         string? briefing = null;
         if (_minds.TryGetMind(entity, out var mindId, out var mind))
         {
@@ -75,15 +75,15 @@ public sealed class CharacterInfoSystem : EntitySystem
             briefing = _roles.MindGetBriefing(mindId);
 
             var netEntity = EntityManager.GetNetEntity(entity);
-            //<Vortex Economy> || Get memories
+            //<Onyx Economy> || Get memories
             foreach (var memory in mind.Memories)
             {
                 if (memory.EntityId == null || memory.EntityId == netEntity)
                     memories[memory.Name] = memory.Value;
             }
-            //</Vortex Economy>
+            //</Onyx Economy>
         }
 
-        RaiseNetworkEvent(new CharacterInfoEvent(GetNetEntity(entity), jobTitle, objectives, briefing, memories), args.SenderSession); //<Vortex Economy>
+        RaiseNetworkEvent(new CharacterInfoEvent(GetNetEntity(entity), jobTitle, objectives, briefing, memories), args.SenderSession); //<Onyx Economy>
     }
 }

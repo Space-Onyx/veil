@@ -100,7 +100,7 @@
 
 using System.Linq;
 using System.Numerics;
-using Content.Client.Administration.UI.CustomControls; // Vortex-LateJoinGui-Update
+using Content.Client.Administration.UI.CustomControls; // Onyx-LateJoinGui-Update
 using Content.Client.CrewManifest;
 using Content.Client.GameTicking.Managers;
 using Content.Client.Lobby;
@@ -111,7 +111,7 @@ using Content.Shared.Preferences;
 using Content.Shared.Roles;
 using Robust.Client.Console;
 using Robust.Client.GameObjects;
-using Robust.Client.Graphics; // Vortex-LateJoinGui-Update
+using Robust.Client.Graphics; // Onyx-LateJoinGui-Update
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.CustomControls;
@@ -142,20 +142,20 @@ namespace Content.Client.LateJoin
         private readonly Dictionary<NetEntity, Dictionary<string, List<JobButton>>> _jobButtons = new();
         private readonly Dictionary<NetEntity, Dictionary<string, BoxContainer>> _jobCategories = new();
 
-        // Vortex-LateJoinGui-Update start
+        // Onyx-LateJoinGui-Update start
         private NetEntity? _selectedStation;
         private Button? _selectedStationButton;
         private ScrollContainer _stationListScroll = default!;
         private ScrollContainer _jobListScroll = default!;
         private BoxContainer _stationList = default!;
         private BoxContainer _jobList = default!;
-        // Vortex-LateJoinGui-Update end
+        // Onyx-LateJoinGui-Update end
 
         private readonly Control _base;
 
         public LateJoinGui()
         {
-            MinSize = SetSize = new Vector2(820, 560); // Vortex-LateJoinGui-Update edited
+            MinSize = SetSize = new Vector2(820, 560); // Onyx-LateJoinGui-Update edited
             IoCManager.InjectDependencies(this);
             _sprites = _entitySystem.GetEntitySystem<SpriteSystem>();
             _crewManifest = _entitySystem.GetEntitySystem<CrewManifestSystem>();
@@ -165,10 +165,10 @@ namespace Content.Client.LateJoin
             Title = Loc.GetString("late-join-gui-title");
 
             _base = new BoxContainer()
-            {   // Vortex-LateJoinGui-Update start
+            {   // Onyx-LateJoinGui-Update start
                 Orientation = LayoutOrientation.Horizontal,
                 HorizontalExpand = true,
-                // Vortex-LateJoinGui-Update end
+                // Onyx-LateJoinGui-Update end
             };
 
             Contents.AddChild(_base);
@@ -192,9 +192,9 @@ namespace Content.Client.LateJoin
             _base.RemoveAllChildren();
             _jobButtons.Clear();
             _jobCategories.Clear();
-            _selectedStation = null; // Vortex-LateJoinGui-Update
+            _selectedStation = null; // Onyx-LateJoinGui-Update
 
-            // Vortex-LateJoinGui-Update start
+            // Onyx-LateJoinGui-Update start
             if (!_gameTicker.DisallowedLateJoin && _gameTicker.StationNames.Count == 0)
             {
                 _sawmill.Warning("No stations exist, nothing to display in late-join GUI");
@@ -410,7 +410,7 @@ namespace Content.Client.LateJoin
                 _jobList.AddChild(category);
             }
         }
-        // Vortex-LateJoinGui-Update end
+        // Onyx-LateJoinGui-Update end
 
         private void JobsAvailableUpdated(IReadOnlyDictionary<NetEntity, Dictionary<ProtoId<JobPrototype>, int?>> updatedJobs)
         {
@@ -437,14 +437,14 @@ namespace Content.Client.LateJoin
                         }
                     }
                 }
-                // Vortex-LateJoinGui-Update start
+                // Onyx-LateJoinGui-Update start
 
                 // If the selected station was updated, refresh the job list
                 if (_selectedStation == stationEntries.Key)
                 {
                     UpdateJobList();
                 }
-                // Vortex-LateJoinGui-Update end
+                // Onyx-LateJoinGui-Update end
             }
         }
 

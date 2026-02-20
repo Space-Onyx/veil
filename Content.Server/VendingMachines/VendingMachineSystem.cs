@@ -82,8 +82,8 @@ using Content.Shared.Cargo;
 using Content.Server.Stack;
 using Content.Shared.GameTicking;
 using Content.Server.Store.Components;
-using Content.Server._Vortex.Economy;
-using Content.Shared._Vortex.Economy;
+using Content.Server._Onyx.Economy;
+using Content.Shared._Onyx.Economy;
 using Content.Shared.Access.Components;
 using Content.Shared.Access.Systems;
 using Content.Shared.Actions;
@@ -127,12 +127,12 @@ namespace Content.Server.VendingMachines
         [Dependency] private readonly IGameTiming _timing = default!;
         [Dependency] private readonly GameTicker _gameTicker = default!;
         [Dependency] private readonly SpeakOnUIClosedSystem _speakOnUIClosed = default!;
-        //<Vortex Economy>
+        //<Onyx Economy>
         [Dependency] private readonly BankCardSystem _bankCard = default!;
         [Dependency] private readonly TagSystem _tag = default!;
         [Dependency] private readonly StackSystem _stackSystem = default!;
         [Dependency] private readonly UserInterfaceSystem _userInterfaceSystem = default!;
-        //</Vortex Economy>
+        //</Onyx Economy>
         [Dependency] private readonly SharedPointLightSystem _light = default!;
         [Dependency] private readonly EmagSystem _emag = default!;
         [Dependency] private readonly IConfigurationManager _cfg = default!;
@@ -145,7 +145,7 @@ namespace Content.Server.VendingMachines
 
             SubscribeLocalEvent<VendingMachineComponent, PowerChangedEvent>(OnPowerChanged);
             SubscribeLocalEvent<VendingMachineComponent, BreakageEventArgs>(OnBreak);
-            SubscribeLocalEvent<VendingMachineComponent, DamageChangedEvent>(OnDamage); //<Vortex Economy>
+            SubscribeLocalEvent<VendingMachineComponent, DamageChangedEvent>(OnDamage); //<Onyx Economy>
             SubscribeLocalEvent<VendingMachineComponent, PriceCalculationEvent>(OnVendingPrice);
             SubscribeLocalEvent<VendingMachineComponent, EmpPulseEvent>(OnEmpPulse);
 
@@ -161,10 +161,10 @@ namespace Content.Server.VendingMachines
 
             SubscribeLocalEvent<VendingMachineComponent, RestockDoAfterEvent>(OnDoAfter);
 
-            //<Vortex Economy>
+            //<Onyx Economy>
             SubscribeLocalEvent<VendingMachineComponent, InteractUsingEvent>(OnInteractUsing);
             SubscribeLocalEvent<VendingMachineComponent, VendingMachineWithdrawMessage>(OnWithdrawMessage);
-            //</Vortex Economy>
+            //</Onyx Economy>
 
             SubscribeLocalEvent<VendingMachineRestockComponent, PriceCalculationEvent>(OnPriceCalculation);
         }
@@ -187,7 +187,7 @@ namespace Content.Server.VendingMachines
             args.Price += price;
         }
 
-        // <Vortex Economy>
+        // <Onyx Economy>
         protected override int GetEntryPrice(EntityPrototype proto, VendingMachineComponent component)
         {
             if (component.UseStaticPrice && proto.Components.TryGetValue(EntityManager.ComponentFactory.GetComponentName<StaticPriceComponent>(), out var staticProto))
@@ -197,7 +197,7 @@ namespace Content.Server.VendingMachines
             }
             return 5;
         }
-        // </Vortex Economy>
+        // </Onyx Economy>
 
         protected override void OnMapInit(EntityUid uid, VendingMachineComponent component, MapInitEvent args)
         {
@@ -218,7 +218,7 @@ namespace Content.Server.VendingMachines
         private void UpdateVendingMachineInterfaceState(EntityUid uid, VendingMachineComponent component)
         {
             var state = new VendingMachineInterfaceState(GetAllInventory(uid, component), component.PriceMultiplier,
-                component.Credits); //<Vortex Economy>
+                component.Credits); //<Onyx Economy>
 
             _userInterfaceSystem.SetUiState(uid, VendingMachineUiKey.Key, state);
         }
@@ -245,7 +245,7 @@ namespace Content.Server.VendingMachines
             TryUpdateVisualState(uid, vendComponent);
         }
 
-        private void OnDamage(EntityUid uid, VendingMachineComponent component, DamageChangedEvent args) //<Vortex Economy>
+        private void OnDamage(EntityUid uid, VendingMachineComponent component, DamageChangedEvent args) //<Onyx Economy>
         {
             if (component.Broken || component.DispenseOnHitCoolingDown ||
                 component.DispenseOnHitChance == null || args.DamageDelta == null)
@@ -297,7 +297,7 @@ namespace Content.Server.VendingMachines
             args.Handled = true;
         }
 
-        //<Vortex Economy>
+        //<Onyx Economy>
         private void OnInteractUsing(EntityUid uid, VendingMachineComponent component, InteractUsingEvent args)
         {
             if (args.Handled)
@@ -345,7 +345,7 @@ namespace Content.Server.VendingMachines
             AuthorizedVend(uid, entity, args.Entry.Type, args.Entry.ID, component, args.Count);
         }
 
-        //</Vortex Economy>
+        //</Onyx Economy>
 
         /// <summary>
         /// Sets the <see cref="VendingMachineComponent.CanShoot"/> property of the vending machine.
@@ -400,7 +400,7 @@ namespace Content.Server.VendingMachines
             if (_accessReader.IsAllowed(sender, uid, accessReader))
                 return true;
 
-            Popup.PopupEntity(Loc.GetString("vending-machine-component-try-eject-access-denied"), uid, sender); //<Vortex Economy>
+            Popup.PopupEntity(Loc.GetString("vending-machine-component-try-eject-access-denied"), uid, sender); //<Onyx Economy>
             Deny(uid, vendComponent);
             return false;
         }
@@ -428,10 +428,10 @@ namespace Content.Server.VendingMachines
 
             if (entry == null)
             {
-                //<Vortex Economy>
+                //<Onyx Economy>
                 if (sender.HasValue)
                     Popup.PopupEntity(Loc.GetString("vending-machine-component-try-eject-invalid-item"), uid, sender.Value);
-                //</Vortex Economy>
+                //</Onyx Economy>
 
                 Deny(uid, vendComponent);
                 return;
@@ -439,10 +439,10 @@ namespace Content.Server.VendingMachines
 
             if (entry.Amount <= 0)
             {
-                //<Vortex Economy>
+                //<Onyx Economy>
                 if (sender.HasValue)
                     Popup.PopupEntity(Loc.GetString("vending-machine-component-try-eject-out-of-stock"), uid, sender.Value);
-                //</Vortex Economy>
+                //</Onyx Economy>
 
                 Deny(uid, vendComponent);
                 return;
@@ -451,7 +451,7 @@ namespace Content.Server.VendingMachines
             if (string.IsNullOrEmpty(entry.ID))
                 return;
 
-            //<Vortex Economy>
+            //<Onyx Economy>
             var price = GetPrice(entry, vendComponent, count);
             if (price > 0 && !vendComponent.AllForFree && sender.HasValue && !_tag.HasTag(sender.Value, "IgnoreBalanceChecks"))
             {
@@ -505,7 +505,7 @@ namespace Content.Server.VendingMachines
                 }
             }
             vendComponent.NextItemCount = count;
-            //</Vortex Economy>
+            //</Onyx Economy>
 
             // Start Ejecting, and prevent users from ordering while anim playing
             vendComponent.Ejecting = true;

@@ -25,7 +25,7 @@
   naming: FirstDashLast
   sexes:
   - Unsexed
-  # <Vortex>
+  # <Onyx>
   maxHeight: 2
   maxWidth: 2
   minWidth: 0.90
@@ -47,7 +47,7 @@
   cons:
   - Отсутствует слот под гарнитуру.
   - По достижению 100 урона умирает.
-  # </Vortex>
+  # </Onyx>
 
 
 # The lack of a layer means that

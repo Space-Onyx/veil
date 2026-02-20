@@ -24,7 +24,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using Content.Client._Vortex.VendingMachines.UI;
+using Content.Client._Onyx.VendingMachines.UI;
 using Content.Client.UserInterface.Controls;
 using Content.Shared.VendingMachines;
 using Robust.Client.UserInterface;
@@ -36,7 +36,7 @@ namespace Content.Client.VendingMachines
     public sealed class VendingMachineBoundUserInterface : BoundUserInterface
     {
         [ViewVariables]
-        private FancyVendingMachineMenu? _menu; // <Vortex Tweak> - Новая панель
+        private FancyVendingMachineMenu? _menu; // <Onyx Tweak> - Новая панель
 
         [ViewVariables]
         private List<VendingMachineInventoryEntry> _cachedInventory = new();
@@ -49,18 +49,18 @@ namespace Content.Client.VendingMachines
         {
             base.Open();
 
-            _menu = new();  // <Vortex Tweak> - Новая панель
-            var component = EntMan.GetComponent<VendingMachineComponent>(Owner); // <Vortex Economy>
-            var system = EntMan.System<VendingMachineSystem>(); // <Vortex Economy>
-            _cachedInventory = system.GetAllInventory(Owner, component); // <Vortex Economy>
+            _menu = new();  // <Onyx Tweak> - Новая панель
+            var component = EntMan.GetComponent<VendingMachineComponent>(Owner); // <Onyx Economy>
+            var system = EntMan.System<VendingMachineSystem>(); // <Onyx Economy>
+            _cachedInventory = system.GetAllInventory(Owner, component); // <Onyx Economy>
             _menu.Title = EntMan.GetComponent<MetaDataComponent>(Owner).EntityName;
 
-            // <Vortex Tweak start>
+            // <Onyx Tweak start>
             _menu.OnClose += Close;
             _menu.OnItemSelected += OnItemSelected;
             _menu.OnWithdraw += () => SendMessage(new VendingMachineWithdrawMessage());
             _menu.Populate(Owner, _cachedInventory, component.PriceMultiplier, component.Credits);
-            // <Vortex Tweak end>
+            // <Onyx Tweak end>
 
             _menu.OpenCentered();
         }
@@ -68,10 +68,10 @@ namespace Content.Client.VendingMachines
         public void Refresh()
         {
             var system = EntMan.System<VendingMachineSystem>();
-            var component = EntMan.GetComponent<VendingMachineComponent>(Owner); //<Vortex Economy>
+            var component = EntMan.GetComponent<VendingMachineComponent>(Owner); //<Onyx Economy>
             _cachedInventory = system.GetAllInventory(Owner);
 
-            _menu?.Populate(Owner, _cachedInventory, component.PriceMultiplier, component.Credits); //<Vortex Economy>-Tweak
+            _menu?.Populate(Owner, _cachedInventory, component.PriceMultiplier, component.Credits); //<Onyx Economy>-Tweak
         }
 
 
@@ -87,7 +87,7 @@ namespace Content.Client.VendingMachines
 
             _cachedInventory = system.GetAllInventory(Owner);
 
-            _menu?.Populate(Owner, _cachedInventory, newState.PriceMultiplier, newState.Credits); //<Vortex Economy>-Tweak
+            _menu?.Populate(Owner, _cachedInventory, newState.PriceMultiplier, newState.Credits); //<Onyx Economy>-Tweak
         }
 
         private void OnItemSelected(VendingMachineInventoryEntry entry)
@@ -133,7 +133,7 @@ namespace Content.Client.VendingMachines
             if (_menu == null)
                 return;
 
-            _menu.OnItemSelected -= OnItemSelected;    // <Vortex eject count>
+            _menu.OnItemSelected -= OnItemSelected;    // <Onyx eject count>
             _menu.OnClose -= Close;
             _menu.Dispose();
         }

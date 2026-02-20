@@ -26,17 +26,17 @@ namespace Content.Client.Administration.UI
             _window.OnClose += () => SendMessage(new CloseEuiMessage());
             _window.AnnounceButton.OnPressed += AnnounceButtonOnOnPressed;
         }
-        // Vortex-PlayableCentCom-Start
+        // Onyx-PlayableCentCom-Start
         public override void HandleState(EuiStateBase state)
         {
             base.HandleState(state);
             if (state is AdminAnnounceEuiState announceState)
             {
                 _window.SetStations(announceState.Stations);
-                _window.SetMaps(announceState.Maps); // Vortex-MapAnnounce
+                _window.SetMaps(announceState.Maps); // Onyx-MapAnnounce
             }
         }
-        // Vortex-PlayableCentCom-End
+        // Onyx-PlayableCentCom-End
 
         private void AnnounceButtonOnOnPressed(BaseButton.ButtonEventArgs obj)
         {
@@ -46,30 +46,30 @@ namespace Content.Client.Administration.UI
             if (_window.VoiceButton.ItemCount > 0)
                 voice = (string) (_window.VoiceButton.GetItemMetadata(_window.VoiceButton.SelectedId) ?? voice);
             // CorvaxGoob-TTS-End
-            // Vortex-PlayableCentCom-Start
+            // Onyx-PlayableCentCom-Start
             NetEntity? selectedStation = null;
             if (_window.StationSelector.Visible && _window.StationSelector.ItemCount > 0 && _window.StationSelector.SelectedId >= 0)
             {
                 selectedStation = (NetEntity?) _window.StationSelector.GetItemMetadata(_window.StationSelector.SelectedId);
             }
-            // Vortex-PlayableCentCom-End
-            // Vortex-MapAnnounce-Start
+            // Onyx-PlayableCentCom-End
+            // Onyx-MapAnnounce-Start
             MapId? selectedMap = null;
             if (_window.MapSelector.Visible && _window.MapSelector.ItemCount > 0 && _window.MapSelector.SelectedId >= 0)
             {
                 selectedMap = (MapId?) _window.MapSelector.GetItemMetadata(_window.MapSelector.SelectedId);
             }
-            // Vortex-MapAnnounce-End
+            // Onyx-MapAnnounce-End
 
             SendMessage(new AdminAnnounceEuiMsg.DoAnnounce
             {
                 Announcement = Rope.Collapse(_window.Announcement.TextRope),
                 Announcer =  _window.Announcer.Text,
-                // Vortex-PlayableCentCom-Edit-Start
+                // Onyx-PlayableCentCom-Edit-Start
                 AnnounceType =  (AdminAnnounceType) (_window.AnnounceMethod.SelectedMetadata ?? AdminAnnounceType.AllStations),
                 SelectedStation = selectedStation,
-                // Vortex-PlayableCentCom-Edit-End
-                SelectedMap = selectedMap, // Vortex-MapAnnounce
+                // Onyx-PlayableCentCom-Edit-End
+                SelectedMap = selectedMap, // Onyx-MapAnnounce
                 Voice = voice, // CorvaxGoob-TTS
                 CloseAfter = !_window.KeepWindowOpen.Pressed,
                 ColorHex = _window.ColorInput.Text,

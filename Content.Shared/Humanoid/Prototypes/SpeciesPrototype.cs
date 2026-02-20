@@ -190,7 +190,7 @@ public sealed partial class SpeciesPrototype : IPrototype
     public System.Numerics.Vector2 BaseScale = new(1f, 1f);
     // End DV - CD Character Records shouldn't nuke species heights
 
-    // Vortex added
+    // Onyx added
     /// <summary>
     /// The minimum height for this species
     /// </summary>
@@ -274,7 +274,7 @@ public sealed partial class SpeciesPrototype : IPrototype
     /// </summary>
     [DataField("maxWidth")]
     public float MaxWidth = 2f;
-    // Vortex end
+    // Onyx end
 }
 
 public enum SpeciesNaming : byte

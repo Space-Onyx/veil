@@ -45,23 +45,23 @@ namespace Content.Client.Administration.UI
             IoCManager.InjectDependencies(this);
 
             Announcement.Placeholder = new Rope.Leaf(_localization.GetString("admin-announce-announcement-placeholder"));
-            // Vortex-PlayableCentCom-Edit-Start
+            // Onyx-PlayableCentCom-Edit-Start
             Announcer.Text = _localization.GetString("admin-announce-announcer-default");
             SoundInput.Text = "/Audio/_CorvaxGoob/Announcements/centcomm.ogg"; // Default to announce sound
             AnnounceMethod.AddItem(_localization.GetString("admin-announce-type-all-stations"));
             AnnounceMethod.SetItemMetadata(0, AdminAnnounceType.AllStations);
             AnnounceMethod.AddItem(_localization.GetString("admin-announce-type-specific-station"));
             AnnounceMethod.SetItemMetadata(1, AdminAnnounceType.SpecificStation);
-            AnnounceMethod.AddItem(_localization.GetString("admin-announce-type-specific-map")); // Vortex-MapAnnounce
-            AnnounceMethod.SetItemMetadata(2, AdminAnnounceType.SpecificMap); // Vortex-MapAnnounce
+            AnnounceMethod.AddItem(_localization.GetString("admin-announce-type-specific-map")); // Onyx-MapAnnounce
+            AnnounceMethod.SetItemMetadata(2, AdminAnnounceType.SpecificMap); // Onyx-MapAnnounce
             AnnounceMethod.AddItem(_localization.GetString("admin-announce-type-server"));
             AnnounceMethod.SetItemMetadata(3, AdminAnnounceType.Server);
             AnnounceMethod.OnItemSelected += AnnounceMethodOnOnItemSelected;
 
             StationSelector.OnItemSelected += args => StationSelector.SelectId(args.Id);
-            MapSelector.OnItemSelected += args => MapSelector.SelectId(args.Id); // Vortex-MapAnnounce
+            MapSelector.OnItemSelected += args => MapSelector.SelectId(args.Id); // Onyx-MapAnnounce
             Announcement.OnKeyBindUp += AnnouncementOnOnTextChanged;
-            // Vortex-PlayableCentCom-Edit-End
+            // Onyx-PlayableCentCom-Edit-End
 
             // CorvaxGoob-TTS-Start
             if (_cfgManager.GetCVar(CCCVars.TTSEnabled))
@@ -105,12 +105,12 @@ namespace Content.Client.Administration.UI
         private void AnnounceMethodOnOnItemSelected(OptionButton.ItemSelectedEventArgs args)
         {
             AnnounceMethod.SelectId(args.Id);
-            // Vortex-PlayableCentCom-Edit-Start
+            // Onyx-PlayableCentCom-Edit-Start
             var type = (AdminAnnounceType?)args.Button.SelectedMetadata ?? AdminAnnounceType.AllStations;
-            Announcer.Editable = type == AdminAnnounceType.AllStations || type == AdminAnnounceType.SpecificStation || type == AdminAnnounceType.SpecificMap; // Vortex-MapAnnounce
+            Announcer.Editable = type == AdminAnnounceType.AllStations || type == AdminAnnounceType.SpecificStation || type == AdminAnnounceType.SpecificMap; // Onyx-MapAnnounce
             StationSelector.Visible = type == AdminAnnounceType.SpecificStation;
-            MapSelector.Visible = type == AdminAnnounceType.SpecificMap; // Vortex-MapAnnounce
-            TTSContainer.Visible = _cfgManager.GetCVar(CCCVars.TTSEnabled) && (type == AdminAnnounceType.AllStations || type == AdminAnnounceType.SpecificStation || type == AdminAnnounceType.SpecificMap); // Vortex-MapAnnounce
+            MapSelector.Visible = type == AdminAnnounceType.SpecificMap; // Onyx-MapAnnounce
+            TTSContainer.Visible = _cfgManager.GetCVar(CCCVars.TTSEnabled) && (type == AdminAnnounceType.AllStations || type == AdminAnnounceType.SpecificStation || type == AdminAnnounceType.SpecificMap); // Onyx-MapAnnounce
         }
 
         public void SetStations(Dictionary<NetEntity, string> stations)
@@ -124,7 +124,7 @@ namespace Content.Client.Administration.UI
             // No default selection
         }
 
-        // Vortex-MapAnnounce-Start
+        // Onyx-MapAnnounce-Start
         public void SetMaps(Dictionary<MapId, string> maps)
         {
             MapSelector.Clear();
@@ -135,8 +135,8 @@ namespace Content.Client.Administration.UI
             }
             // No default selection
         }
-        // Vortex-MapAnnounce-End
-        // Vortex-PlayableCentCom-Edit-End
+        // Onyx-MapAnnounce-End
+        // Onyx-PlayableCentCom-Edit-End
 
         private void OnSoundInputTextChanged(LineEdit.LineEditEventArgs args)
         {

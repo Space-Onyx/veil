@@ -16,7 +16,7 @@ using Robust.Server.Audio;
 using Robust.Shared.Player;
 using System.Text.RegularExpressions;
 using System.Linq;
-using Content.Shared._Vortex.Paper;
+using Content.Shared._Onyx.Paper;
 
 namespace Content.Server._DV.Paper;
 
@@ -25,9 +25,9 @@ public sealed class SignatureSystem : EntitySystem
     [Dependency] private readonly AudioSystem _audio = default!;
     [Dependency] private readonly IdCardSystem _idCard = default!;
     [Dependency] private readonly PaperSystem _paper = default!;
-    //Vortex added
+    //Onyx added
     [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
-    //Vortex end
+    //Onyx end
     [Dependency] private readonly PopupSystem _popup = default!;
     [Dependency] private readonly TagSystem _tags = default!;
 
@@ -80,7 +80,7 @@ public sealed class SignatureSystem : EntitySystem
 
         var signatureName = DetermineEntitySignature(signer);
 
-        //Vortex added
+        //Onyx added
         // Parse controls from paper content
         var content = comp.Content ?? string.Empty;
         var repeatLimit = ParseIntTag(content, "sign_repeat_limit") ?? 1;
@@ -138,7 +138,7 @@ public sealed class SignatureSystem : EntitySystem
 
         if (_paper.TryAddStampInfo(paper, stampInfo, spriteState, allowDuplicate))
         {
-            // Vortex added
+            // Onyx added
             // Set StampState for signed documents to ensure consistency
             if (string.IsNullOrEmpty(comp.StampState))
             {
@@ -147,7 +147,7 @@ public sealed class SignatureSystem : EntitySystem
                     _appearance.SetData(paper, PaperComponent.PaperVisuals.Stamp, SignatureStampState, appearance);
                 Dirty(paper);
             }
-            // Vortex end
+            // Onyx end
 
             // Show popups and play a paper writing sound
             if (!HasComp<DevilComponent>(signer)) // Goobstation - Don't display popups for devils, it covers the others.
@@ -181,7 +181,7 @@ public sealed class SignatureSystem : EntitySystem
         }
     }
 
-    //Vortex added
+    //Onyx added
     private static int? ParseIntTag(string content, string tag)
     {
         // Matches <tag=number> or [tag=number]
@@ -198,7 +198,7 @@ public sealed class SignatureSystem : EntitySystem
     {
         return Regex.IsMatch(content, "(<\\s*sign\\s*=\\s*\\d+\\s*>)|(\\[\\s*sign\\s*=\\s*\\d+\\s*\\])");
     }
-    //Vortex end
+    //Onyx end
 
     private string DetermineEntitySignature(EntityUid uid)
     {

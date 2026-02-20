@@ -6,7 +6,7 @@ RU:
 Принятие условий настоящей Лицензии означает заключение обязательного, неисключительного и безвозмездного соглашения между вами и Лицензиаром.
 
 2. Область защиты
-Настоящая Лицензия распространяется исключительно на всё содержимое любых каталогов с наименованием _Vortex, включая, но не ограничиваясь:
+Настоящая Лицензия распространяется исключительно на всё содержимое любых каталогов с наименованием _Onyx, включая, но не ограничиваясь:
 исходным и объектным кодом;
 скриптами, логикой и системами;
 внутренними инструментами и модулями;
@@ -15,39 +15,39 @@ RU:
 Все иные части Проекта могут регулироваться отдельными лицензиями при наличии прямого указания.
 
 3. Права собственности
-Все права, право собственности и иные законные интересы в отношении материалов _Vortex сохраняются за Лицензиаром.
+Все права, право собственности и иные законные интересы в отношении материалов _Onyx сохраняются за Лицензиаром.
 Ни одно положение настоящей Лицензии не может толковаться как передача прав собственности или прав интеллектуальной собственности.
 
 4. Разрешённое использование
 Вам разрешается:
-просматривать и изучать исходный код _Vortex исключительно в личных, некоммерческих и ознакомительных целях;
+просматривать и изучать исходный код _Onyx исключительно в личных, некоммерческих и ознакомительных целях;
 компилировать и запускать Проект локально исключительно в составе данного Проекта.
 
 5. Ограничения
 Без предварительного прямого разрешения Лицензиара вам прямо запрещается:
-копировать, извлекать, повторно использовать или обособлять любую часть материалов _Vortex;
-использовать материалы _Vortex в любых иных проектах, билдах, форках, модификациях или репозиториях;
-публиковать, распространять, сублицензировать либо иным образом предоставлять материалы _Vortex третьим лицам;
-размещать публичные или частные серверы, использующие материалы _Vortex, вне рамок данного Проекта;
-создавать производные произведения на основе материалов _Vortex;
-использовать материалы _Vortex в коммерческих целях любого рода;
+копировать, извлекать, повторно использовать или обособлять любую часть материалов _Onyx;
+использовать материалы _Onyx в любых иных проектах, билдах, форках, модификациях или репозиториях;
+публиковать, распространять, сублицензировать либо иным образом предоставлять материалы _Onyx третьим лицам;
+размещать публичные или частные серверы, использующие материалы _Onyx, вне рамок данного Проекта;
+создавать производные произведения на основе материалов _Onyx;
+использовать материалы _Onyx в коммерческих целях любого рода;
 удалять, изменять или скрывать уведомления об авторских правах или ином правовом статусе.
-Любая попытка обхода ограничений, сокрытия либо искажения происхождения материалов _Vortex считается существенным нарушением настоящей Лицензии.
+Любая попытка обхода ограничений, сокрытия либо искажения происхождения материалов _Onyx считается существенным нарушением настоящей Лицензии.
 
 6. Модификации и контрибьюты
-Любые модификации материалов _Vortex, независимо от их объёма или формы, не подлежат распространению или публикации.
+Любые модификации материалов _Onyx, независимо от их объёма или формы, не подлежат распространению или публикации.
 Лицензиар не несёт обязательств по принятию, объединению или признанию любых таких модификаций.
 
 7. Прекращение действия
 Настоящая Лицензия действует до момента её прекращения.
 Ваши права по настоящей Лицензии прекращаются автоматически и немедленно при любом нарушении её условий.
-После прекращения действия Лицензии вы обязаны прекратить любое использование материалов _Vortex и уничтожить все имеющиеся у вас копии.
+После прекращения действия Лицензии вы обязаны прекратить любое использование материалов _Onyx и уничтожить все имеющиеся у вас копии.
 
 8. Отказ от гарантий
-МАТЕРИАЛЫ _VORTEX ПРЕДОСТАВЛЯЮТСЯ «КАК ЕСТЬ», БЕЗ КАКИХ-ЛИБО ГАРАНТИЙ, ЯВНЫХ ИЛИ ПОДРАЗУМЕВАЕМЫХ.
+МАТЕРИАЛЫ _Onyx ПРЕДОСТАВЛЯЮТСЯ «КАК ЕСТЬ», БЕЗ КАКИХ-ЛИБО ГАРАНТИЙ, ЯВНЫХ ИЛИ ПОДРАЗУМЕВАЕМЫХ.
 
 9. Ограничение ответственности
-НИ ПРИ КАКИХ ОБСТОЯТЕЛЬСТВАХ ЛИЦЕНЗИАР НЕ НЕСЁТ ОТВЕТСТВЕННОСТИ ЗА ЛЮБОЙ УЩЕРБ, ВОЗНИКШИЙ В РЕЗУЛЬТАТЕ ИСПОЛЬЗОВАНИЯ ИЛИ НЕВОЗМОЖНОСТИ ИСПОЛЬЗОВАНИЯ МАТЕРИАЛОВ _VORTEX.
+НИ ПРИ КАКИХ ОБСТОЯТЕЛЬСТВАХ ЛИЦЕНЗИАР НЕ НЕСЁТ ОТВЕТСТВЕННОСТИ ЗА ЛЮБОЙ УЩЕРБ, ВОЗНИКШИЙ В РЕЗУЛЬТАТЕ ИСПОЛЬЗОВАНИЯ ИЛИ НЕВОЗМОЖНОСТИ ИСПОЛЬЗОВАНИЯ МАТЕРИАЛОВ _Onyx.
 
 ENG:
 1. Acceptance of License
@@ -57,7 +57,7 @@ Violation of this License grants the Licensor the right to apply legal, technica
 Acceptance of this License constitutes a binding, non-exclusive, royalty-free agreement between you and the Licensor.
 
 2. Scope of Protection
-This License applies exclusively to all contents of any directory named _Vortex, including but not limited to:
+This License applies exclusively to all contents of any directory named _Onyx, including but not limited to:
 source code and object code;
 scripts, logic, and systems;
 internal tools and modules;
@@ -66,36 +66,36 @@ any derivatives, adaptations, or modifications thereof.
 All other parts of the Project may be governed by separate licenses, if explicitly stated.
 
 3. Ownership
-All rights, title, and interest in and to the _Vortex materials are retained by the Licensor.
+All rights, title, and interest in and to the _Onyx materials are retained by the Licensor.
 Nothing in this License shall be interpreted as a transfer of ownership or intellectual property rights.
 
 4. Permitted Use
 You are permitted to:
-view and study the _Vortex source code solely for personal, non-commercial, informational purposes;
+view and study the _Onyx source code solely for personal, non-commercial, informational purposes;
 compile and run the Project locally only as part of this Project.
 
 5. Restrictions
 You are expressly prohibited from, without prior explicit permission of the Licensor:
-Copying, extracting, reusing, or isolating any part of the _Vortex materials.
-Using _Vortex materials in any other project, build, fork, mod, or repository.
-Publishing, distributing, sublicensing, or otherwise making _Vortex materials available to third parties.
-Hosting public or private servers that rely on _Vortex materials outside of this Project.
-Creating derivative works based on _Vortex materials.
-Using _Vortex materials for commercial purposes of any kind.
+Copying, extracting, reusing, or isolating any part of the _Onyx materials.
+Using _Onyx materials in any other project, build, fork, mod, or repository.
+Publishing, distributing, sublicensing, or otherwise making _Onyx materials available to third parties.
+Hosting public or private servers that rely on _Onyx materials outside of this Project.
+Creating derivative works based on _Onyx materials.
+Using _Onyx materials for commercial purposes of any kind.
 Removing or altering copyright or proprietary notices.
-Any attempt to bypass, obscure, or misrepresent the origin of _Vortex materials constitutes a material breach of this License.
+Any attempt to bypass, obscure, or misrepresent the origin of _Onyx materials constitutes a material breach of this License.
 
 6. Modifications and Contributions
-Any modifications to _Vortex materials, regardless of scope or form, must not be distributed or published.
+Any modifications to _Onyx materials, regardless of scope or form, must not be distributed or published.
 The Licensor is under no obligation to accept, merge, or acknowledge any such modifications.
 
 7. Termination
 This License is effective until terminated.
 Your rights under this License terminate automatically and immediately upon any violation of its terms.
-Upon termination, you must cease all use of _Vortex materials and destroy all copies in your possession.
+Upon termination, you must cease all use of _Onyx materials and destroy all copies in your possession.
 
 8. Disclaimer of Warranty
-THE _VORTEX MATERIALS ARE PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED.
+THE _Onyx MATERIALS ARE PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED.
 
 9. Limitation of Liability
-IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY DAMAGES ARISING FROM THE USE OR INABILITY TO USE THE _VORTEX MATERIALS.
+IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY DAMAGES ARISING FROM THE USE OR INABILITY TO USE THE _Onyx MATERIALS.

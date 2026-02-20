@@ -116,7 +116,7 @@ namespace Content.Client.HealthAnalyzer.UI
 
         // Shitmed Change Start
         private readonly WoundSystem _wound;
-        private readonly IConfigurationManager _cfg; // Vortex
+        private readonly IConfigurationManager _cfg; // Onyx
         public event Action<TargetBodyPart?, EntityUid>? OnBodyPartSelected;
         public event Action<HealthAnalyzerMode, EntityUid>? OnModeChanged;
         private EntityUid _spriteViewEntity;
@@ -137,7 +137,7 @@ namespace Content.Client.HealthAnalyzer.UI
             _spriteSystem = _entityManager.System<SpriteSystem>();
             _prototypes = dependencies.Resolve<IPrototypeManager>();
             _cache = dependencies.Resolve<IResourceCache>();
-            _cfg = dependencies.Resolve<IConfigurationManager>(); // Vortex
+            _cfg = dependencies.Resolve<IConfigurationManager>(); // Onyx
             // Shitmed Change Start
             _wound = _entityManager.System<WoundSystem>();
             _bodyPartControls = new Dictionary<TargetBodyPart, TextureButton>
@@ -165,7 +165,7 @@ namespace Content.Client.HealthAnalyzer.UI
             OrgansButton.OnPressed += _ => SetMode(HealthAnalyzerMode.Organs);
             ChemicalsButton.OnPressed += _ => SetMode(HealthAnalyzerMode.Chemicals);
 
-            OrgansButton.Visible = _cfg.GetCVar(SurgeryCVars.OrganDamageEnabled);// Vortex - disable Organs button if organ damage is disabled
+            OrgansButton.Visible = _cfg.GetCVar(SurgeryCVars.OrganDamageEnabled);// Onyx - disable Organs button if organ damage is disabled
             // Shitmed Change End
         }
 
@@ -183,7 +183,7 @@ namespace Content.Client.HealthAnalyzer.UI
             if (_target == null)
                 return;
 
-            // Vortex - disable Organs button if organ damage is disabledd
+            // Onyx - disable Organs button if organ damage is disabledd
             if (mode == HealthAnalyzerMode.Organs && !_cfg.GetCVar(SurgeryCVars.OrganDamageEnabled))
                 return;
 

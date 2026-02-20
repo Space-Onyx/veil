@@ -126,7 +126,7 @@ namespace Content.Client.VendingMachines.UI
 
         private readonly Dictionary<EntProtoId, EntityUid> _dummies = [];
         public event Action<GUIBoundKeyEventArgs, ListData>? OnItemSelected;
-        public Action<VendingMachineWithdrawMessage>? OnWithdraw; //<Vortex Economy>
+        public Action<VendingMachineWithdrawMessage>? OnWithdraw; //<Onyx Economy>
         //  vending eject count start
         public event Action<VendingMachineInventoryEntry, VendingMachineItem>? OnItemCountSelected;
         public double PriceMultiplier = 1;
@@ -175,7 +175,7 @@ namespace Content.Client.VendingMachines.UI
             if (data is not VendorItemsListData { ItemProtoID: var protoID, ItemText: var text, Entry: var entry })
                 return;
 
-            //<Vortex Economy>
+            //<Onyx Economy>
             // vending eject count start
             var item = new VendingMachineItem(protoID, text);
             if (entry.Amount <= 0)
@@ -197,7 +197,7 @@ namespace Content.Client.VendingMachines.UI
             item.Count.OnItemSelected += args => item.Count.Select(args.Id);
             item.BuyButton.OnPressed += _ => OnItemCountSelected?.Invoke(entry, item);
             //  vending eject count end
-            //</Vortex Economy>
+            //</Onyx Economy>
 
             button.AddChild(item);
 
@@ -210,7 +210,7 @@ namespace Content.Client.VendingMachines.UI
         /// </summary>
         public void Populate(List<VendingMachineInventoryEntry> inventory, double priceMultiplier, int credits)
         {
-            //<Vortex Economy>
+            //<Onyx Economy>
             CreditsLabel.Text = Loc.GetString("vending-ui-credits-amount", ("credits", credits));
             WithdrawButton.Disabled = credits == 0;
             WithdrawButton.OnPressed += _ =>
@@ -220,8 +220,8 @@ namespace Content.Client.VendingMachines.UI
 
                 OnWithdraw?.Invoke(new VendingMachineWithdrawMessage());
             };
-            //var vendComp = _entityManager.GetComponent<VendingMachineComponent>(entityUid); //<Vortex Economy>
-            //</Vortex Economy>
+            //var vendComp = _entityManager.GetComponent<VendingMachineComponent>(entityUid); //<Onyx Economy>
+            //</Onyx Economy>
 
             if (inventory.Count == 0 && VendingContents.Visible)
             {
@@ -256,10 +256,10 @@ namespace Content.Client.VendingMachines.UI
                     continue;
                 }
 
-                //<Vortex Economy>
+                //<Onyx Economy>
                 var price = (int)(entry.Price * priceMultiplier);
                 PriceMultiplier = priceMultiplier;
-                //<Vortex Economy>
+                //<Onyx Economy>
 
                 if (!_dummies.TryGetValue(entry.ID, out var dummy))
                 {

@@ -33,7 +33,7 @@
   maleFirstNames: NamesReptilianMale
   femaleFirstNames: NamesReptilianFemale
   naming: FirstDashFirst
-  # <Vortex>
+  # <Onyx>
   baseScale: "1.1, 1.1"
   minHeight: 0.85
   maxHeight: 2
@@ -54,7 +54,7 @@
   - Имеют акцент, добавляющий шипящие "ccc", а также "щщщ".
   cons:
   - Получают урон ядами от шоколада.
-  # </Vortex>
+  # </Onyx>
 
 - type: speciesBaseSprites
   id: MobReptilianSprites

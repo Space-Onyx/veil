@@ -1,8 +1,8 @@
 using System.Numerics;
 using Content.Server.Decals;
 using Content.Server.Spawners.Components;
-using Content.Server.Station.Systems; // Vortex-PlayableCentComm
-using Content.Shared._Vortex.Station.Components; // Vortex-PlayableCentComm
+using Content.Server.Station.Systems; // Onyx-PlayableCentComm
+using Content.Shared._Onyx.Station.Components; // Onyx-PlayableCentComm
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Prototypes;
@@ -17,7 +17,7 @@ public sealed class RandomDecalSpawnerSystem : EntitySystem
     [Dependency] private readonly IPrototypeManager _prototypes = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
     [Dependency] private readonly ITileDefinitionManager _tileDefs = default!;
-    [Dependency] private readonly StationSystem _station = default!; // Vortex-PlayableCentComm
+    [Dependency] private readonly StationSystem _station = default!; // Onyx-PlayableCentComm
 
     public override void Initialize()
     {
@@ -28,11 +28,11 @@ public sealed class RandomDecalSpawnerSystem : EntitySystem
 
     private void OnMapInit(EntityUid uid, RandomDecalSpawnerComponent component, MapInitEvent args)
     {
-        // Vortex-PlayableCentComm start
+        // Onyx-PlayableCentComm start
         var station = _station.GetOwningStation(uid);
         if (station != null && HasComp<NoGarbageDecalSpawningComponent>(station))
             return;
-        // Vortex-PlayableCentComm end
+        // Onyx-PlayableCentComm end
 
         TrySpawn(uid);
         if (component.DeleteSpawnerAfterSpawn)

@@ -17,7 +17,7 @@ using Content.Server.Administration.Managers;
 using Content.Server.Chat.Managers;
 using Content.Server.Chat.Systems;
 using Content.Server.EUI;
-using Content.Server.Station.Systems; // Vortex-PlayableCentCom
+using Content.Server.Station.Systems; // Onyx-PlayableCentCom
 using Content.Shared.Administration;
 using Content.Shared.Chat;
 using Content.Shared.Eui;
@@ -34,9 +34,9 @@ namespace Content.Server.Administration.UI
     {
         [Dependency] private readonly IAdminManager _adminManager = default!;
         [Dependency] private readonly IChatManager _chatManager = default!;
-        [Dependency] private readonly IEntityManager _entityManager = default!; // Vortex-MapAnnounce
-        [Dependency] private readonly IMapManager _mapManager = default!; // Vortex-MapAnnounce
-        private StationSystem _stationSystem = default!; // Vortex-PlayableCentCom
+        [Dependency] private readonly IEntityManager _entityManager = default!; // Onyx-MapAnnounce
+        [Dependency] private readonly IMapManager _mapManager = default!; // Onyx-MapAnnounce
+        private StationSystem _stationSystem = default!; // Onyx-PlayableCentCom
         private readonly TTSSystem _tts; // CorvaxGoob-TTS
         private readonly ChatSystem _chatSystem;
         [Dependency] private readonly IResourceManager _resourceManager = default!;
@@ -46,7 +46,7 @@ namespace Content.Server.Administration.UI
             IoCManager.InjectDependencies(this);
             _chatSystem = IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<ChatSystem>();
             _tts = IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<TTSSystem>()!; // CorvaxGoob-TTS
-            _stationSystem = IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<StationSystem>(); // Vortex-PlayableCentCom
+            _stationSystem = IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<StationSystem>(); // Onyx-PlayableCentCom
         }
 
         public override void Opened()
@@ -56,20 +56,20 @@ namespace Content.Server.Administration.UI
 
         public override EuiStateBase GetNewState()
         {
-            // Vortex-PlayableCentCom-Edit-Start
+            // Onyx-PlayableCentCom-Edit-Start
             var state = new AdminAnnounceEuiState();
             foreach (var (name, netEntity) in _stationSystem.GetStationNames())
             {
                 state.Stations[netEntity] = name;
             }
-            // Vortex-MapAnnounce-Start
+            // Onyx-MapAnnounce-Start
             foreach (var mapId in _mapManager.GetAllMapIds())
             {
                 state.Maps[mapId] = $"Map {mapId}";
             }
-            // Vortex-MapAnnounce-End
+            // Onyx-MapAnnounce-End
             return state;
-            // Vortex-PlayableCentCom-Edit-End
+            // Onyx-PlayableCentCom-Edit-End
         }
 
         public override void HandleMessage(EuiMessageBase msg)
@@ -90,7 +90,7 @@ namespace Content.Server.Administration.UI
                     {
                         try { color = Color.FromHex(doAnnounce.ColorHex); } catch { color = Color.Gold; }
                     }
-                    var sound = new SoundPathSpecifier("/Audio/_CorvaxGoob/Announcements/announce.ogg"); // Vortex-PlayableCentCom-Edit
+                    var sound = new SoundPathSpecifier("/Audio/_CorvaxGoob/Announcements/announce.ogg"); // Onyx-PlayableCentCom-Edit
                     if (!string.IsNullOrWhiteSpace(doAnnounce.SoundPath))
                         sound = new SoundPathSpecifier(doAnnounce.SoundPath.Trim());
 
@@ -99,7 +99,7 @@ namespace Content.Server.Administration.UI
                         case AdminAnnounceType.Server:
                             _chatManager.DispatchServerAnnouncement(doAnnounce.Announcement);
                             break;
-                        // Vortex-PlayableCentCom-Start
+                        // Onyx-PlayableCentCom-Start
                         case AdminAnnounceType.AllStations:
                             _chatSystem.DispatchGlobalAnnouncement(doAnnounce.Announcement, doAnnounce.Announcer, true, sound, color);
                             _tts.SendTTSAdminAnnouncement(doAnnounce.Announcement, doAnnounce.Voice); // CorvaxGoob-TTS
@@ -113,7 +113,7 @@ namespace Content.Server.Administration.UI
                                 _tts.SendTTSAdminAnnouncement(doAnnounce.Announcement, doAnnounce.Voice); // CorvaxGoob-TTS
                             }
                             break;
-                        case AdminAnnounceType.SpecificMap: // Vortex-MapAnnounce
+                        case AdminAnnounceType.SpecificMap: // Onyx-MapAnnounce
                             if (doAnnounce.SelectedMap.HasValue)
                             {
                                 var filter = Filter.Empty().AddWhereAttachedEntity(entity => _entityManager.GetComponent<TransformComponent>(entity).MapID == doAnnounce.SelectedMap.Value);
@@ -122,7 +122,7 @@ namespace Content.Server.Administration.UI
                             }
                             break;
                     }
-                    // Vortex-PlayableCentCom-End
+                    // Onyx-PlayableCentCom-End
 
                     StateDirty();
 

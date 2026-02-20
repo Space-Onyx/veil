@@ -182,13 +182,13 @@ public sealed partial class NavMapSystem : SharedNavMapSystem
 
     private void OnNavMapBeaconMapInit(EntityUid uid, NavMapBeaconComponent component, MapInitEvent args)
     {
-        // <Vortex Fix>
+        // <Onyx Fix>
         if (component.DefaultText != null && component.Text == null)
         {
             component.Text = Loc.GetString(component.DefaultText);
             Dirty(uid, component);
         }
-        // <Vortex Fix>
+        // <Onyx Fix>
 
         UpdateNavMapBeaconData(uid, component);
     }

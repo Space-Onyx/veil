@@ -86,7 +86,7 @@ using Robust.Shared.Audio;
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype;
-using Content.Shared._Vortex.Paper;
+using Content.Shared._Onyx.Paper;
 
 namespace Content.Shared.Fax.Components;
 
@@ -255,10 +255,10 @@ public sealed partial class FaxPrintout
     [DataField("stampedBy")]
     public List<StampDisplayInfo> StampedBy { get; private set; } = new();
 
-    //Vortex added
+    //Onyx added
     [DataField("signedBy")]
     public List<SignatureDisplayInfo> SignedBy { get; private set; } = new();
-    //Vortex end
+    //Onyx end
 
     [DataField]
     public bool Locked { get; private set; }
@@ -269,7 +269,7 @@ public sealed partial class FaxPrintout
     private FaxPrintout()
     {
     }
-    public FaxPrintout(string content, string name, string? label = null, string? prototypeId = null, string? stampState = null, List<StampDisplayInfo>? stampedBy = null, List<SignatureDisplayInfo>? signedBy = null, bool locked = false, EntityUid? entityUid = null) // CorvaxGoob-PhotoCamera | Vortex-Signatures
+    public FaxPrintout(string content, string name, string? label = null, string? prototypeId = null, string? stampState = null, List<StampDisplayInfo>? stampedBy = null, List<SignatureDisplayInfo>? signedBy = null, bool locked = false, EntityUid? entityUid = null) // CorvaxGoob-PhotoCamera | Onyx-Signatures
     {
         Content = content;
         Name = name;
@@ -277,9 +277,9 @@ public sealed partial class FaxPrintout
         PrototypeId = prototypeId ?? "";
         StampState = stampState;
         StampedBy = stampedBy ?? new List<StampDisplayInfo>();
-        //Vortex added
+        //Onyx added
         SignedBy = signedBy ?? new List<SignatureDisplayInfo>();
-        //Vortex end
+        //Onyx end
         Locked = locked;
         EntityUid = entityUid; // CorvaxGoob-PhotoCamera
     }

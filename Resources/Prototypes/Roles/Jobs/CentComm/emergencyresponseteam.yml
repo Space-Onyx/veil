@@ -133,7 +133,7 @@
   # Goobstation
   - NanotrasenRepresentative
   - BlueshieldOfficer
-  # Vortex
+  # Onyx
   - CentralCommandDSO
   - CentralCommandCommand
   special: # Goobstation
@@ -152,7 +152,7 @@
     gloves: ClothingHandsGlovesCombat
     outerClothing: ClothingOuterArmourDurathread # Durathread armor is cooler.
     id: ERTLeaderPDA
-    ears: ClothingHeadsetAltCentComDSO # Vortex-PlayableCentCom
+    ears: ClothingHeadsetAltCentComDSO # Onyx-PlayableCentCom
     belt: ClothingBeltAssaultFilled # Goobstation
     pocket1: WeaponPulsePistol # Literally described as "Favored sidearm of NT ERT operatives". Is never used anywhere else.
     pocket2: FlashlightSeclite
@@ -177,7 +177,7 @@
     gloves: ClothingHandsGlovesCombat
     outerClothing: ClothingOuterHardsuitERTLeader
     id: ERTLeaderPDA
-    ears: ClothingHeadsetAltCentComDSO # Vortex-PlayableCentCom
+    ears: ClothingHeadsetAltCentComDSO # Onyx-PlayableCentCom
     belt: ClothingBeltAssaultFilled # Goobstation
     pocket1: WeaponPulsePistol # Literally described as "Favored sidearm of NT ERT operatives". Is never used anywhere else.
     pocket2: FlashlightSeclite
@@ -216,7 +216,7 @@
   # Goobstation
   - NanotrasenRepresentative
   - BlueshieldOfficer
-  # Vortex
+  # Onyx
   - CentralCommandDSO
   - CentralCommandCommand
   special:
@@ -240,7 +240,7 @@
     gloves: ClothingHandsGlovesCombat
     outerClothing: ClothingOuterArmourDurathread # Durathread armor is cooler.
     id: ERTChaplainPDA
-    ears: ClothingHeadsetAltCentComDSO # Vortex-PlayableCentCom
+    ears: ClothingHeadsetAltCentComDSO # Onyx-PlayableCentCom
     belt: ClothingBeltStorageWaistbag
     pocket1: WeaponPulsePistol # Literally described as "Favored sidearm of NT ERT operatives".
     pocket2: DrinkWaterBottleFull
@@ -272,7 +272,7 @@
     gloves: ClothingHandsGlovesCombat
     outerClothing: ClothingOuterHardsuitERTChaplain
     id: ERTChaplainPDA
-    ears: ClothingHeadsetAltCentComDSO # Vortex-PlayableCentCom
+    ears: ClothingHeadsetAltCentComDSO # Onyx-PlayableCentCom
     belt: ClothingBeltStorageWaistbag
     pocket1: Flare
     pocket2: DrinkWaterBottleFull
@@ -321,7 +321,7 @@
   # Goobstation
   - NanotrasenRepresentative
   - BlueshieldOfficer
-  # Vortex
+  # Onyx
   - CentralCommandDSO
   - CentralCommandCommand
   special: # Goobstation
@@ -340,7 +340,7 @@
     gloves: ClothingHandsGlovesCombat
     outerClothing: ClothingOuterArmourDurathread # Durathread armor is cooler.
     id: ERTEngineerPDA
-    ears: ClothingHeadsetAltCentComDSO # Vortex-PlayableCentCom
+    ears: ClothingHeadsetAltCentComDSO # Onyx-PlayableCentCom
     belt: ClothingBeltChiefEngineerFilled
     pocket1: WeaponPulsePistol # Literally described as "Favored sidearm of NT ERT operatives".
     pocket2: GasAnalyzer
@@ -369,7 +369,7 @@
     gloves: ClothingHandsGlovesCombat
     outerClothing: ClothingOuterHardsuitERTEngineer
     id: ERTEngineerPDA
-    ears: ClothingHeadsetAltCentComDSO # Vortex-PlayableCentCom
+    ears: ClothingHeadsetAltCentComDSO # Onyx-PlayableCentCom
     belt: ClothingBeltChiefEngineerFilled
     pocket1: Flare
     pocket2: GasAnalyzer
@@ -412,7 +412,7 @@
   # Goobstation
   - NanotrasenRepresentative
   - BlueshieldOfficer
-  # Vortex
+  # Onyx
   - CentralCommandDSO
   - CentralCommandCommand
   special: # Goobstation
@@ -431,7 +431,7 @@
     gloves: ClothingHandsGlovesCombat
     outerClothing: ClothingOuterArmourDurathread # Durathread armor is cooler.
     id: ERTSecurityPDA
-    ears: ClothingHeadsetAltCentComDSO # Vortex-PlayableCentCom
+    ears: ClothingHeadsetAltCentComDSO # Onyx-PlayableCentCom
     belt: ClothingBeltAssaultFilled # Goobstation
     pocket1: WeaponPulsePistol # Literally described as "Favored sidearm of NT ERT operatives".
     pocket2: FlashlightSeclite
@@ -456,7 +456,7 @@
     gloves: ClothingHandsGlovesCombat
     outerClothing: ClothingOuterHardsuitERTSecurity
     id: ERTSecurityPDA
-    ears: ClothingHeadsetAltCentComDSO # Vortex-PlayableCentCom
+    ears: ClothingHeadsetAltCentComDSO # Onyx-PlayableCentCom
     belt: ClothingBeltAssaultFilled # Goobstation
     pocket1: WeaponPulsePistol # Death to Crew aligned Ballistics
     pocket2: FlashlightSeclite
@@ -482,7 +482,7 @@
 #    gloves: ClothingHandsGlovesCombat
 #    outerClothing: ClothingOuterHardsuitERTSecurity
 #    id: ERTSecurityPDA
-#    ears: ClothingHeadsetAltCentComDSO # Vortex-PlayableCentCom
+#    ears: ClothingHeadsetAltCentComDSO # Onyx-PlayableCentCom
 #    belt: ClothingBeltSecurityFilled
 #    pocket1: MagazineRifle
 #    pocket2: MagazineRifle
@@ -522,7 +522,7 @@
   # Goobstation
   - NanotrasenRepresentative
   - BlueshieldOfficer
-  # Vortex
+  # Onyx
   - CentralCommandDSO
   - CentralCommandCommand
   special: # Goobstation
@@ -541,7 +541,7 @@
     gloves: ClothingHandsGlovesNitrile
     outerClothing: ClothingOuterArmourDurathread # Durathread armor is cooler.
     id: ERTMedicPDA
-    ears: ClothingHeadsetAltCentComDSO # Vortex-PlayableCentCom
+    ears: ClothingHeadsetAltCentComDSO # Onyx-PlayableCentCom
     belt: ClothingBeltSecurityWebbingFilledMedical # Fancier
     pocket1: Flare
     pocket2: WeaponPulsePistol # Literally described as "Favored sidearm of NT ERT operatives".
@@ -570,7 +570,7 @@
     gloves: ClothingHandsGlovesNitrile
     outerClothing: ClothingOuterHardsuitERTMedical
     id: ERTMedicPDA
-    ears: ClothingHeadsetAltCentComDSO # Vortex-PlayableCentCom
+    ears: ClothingHeadsetAltCentComDSO # Onyx-PlayableCentCom
     belt: ClothingBeltSecurityWebbingFilledMedical # Fancier
     pocket1: WeaponPulsePistol # Literally described as "Favored sidearm of NT ERT operatives".
   storage:
@@ -611,7 +611,7 @@
   # Goobstation
   - NanotrasenRepresentative
   - BlueshieldOfficer
-  # Vortex
+  # Onyx
   - CentralCommandDSO
   - CentralCommandCommand
   special: # Goobstation
@@ -629,7 +629,7 @@
     gloves: ClothingHandsGlovesColorPurple
     outerClothing: ClothingOuterArmourDurathread # Durathread armor is cooler.
     id: ERTJanitorPDA
-    ears: ClothingHeadsetAltCentComDSO # Vortex-PlayableCentCom
+    ears: ClothingHeadsetAltCentComDSO # Onyx-PlayableCentCom
     belt: ClothingBeltJanitorFilled
     pocket1: WeaponPulsePistol # Literally described as "Favored sidearm of NT ERT operatives".
   storage:
@@ -652,7 +652,7 @@
     gloves: ClothingHandsGlovesColorPurple
     outerClothing: ClothingOuterHardsuitERTJanitor
     id: ERTJanitorPDA
-    ears: ClothingHeadsetAltCentComDSO # Vortex-PlayableCentCom
+    ears: ClothingHeadsetAltCentComDSO # Onyx-PlayableCentCom
     belt: ClothingBeltJanitorFilled
     pocket1: WeaponPulsePistol # Literally described as "Favored sidearm of NT ERT operatives".
   storage:

@@ -1,5 +1,5 @@
 using Content.Shared.Damage;
-using Content.Shared._Vortex.Weather.Components;
+using Content.Shared._Onyx.Weather.Components;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Weather;
@@ -71,7 +71,7 @@ public sealed partial class WeatherEffectsSystem : EntitySystem
             // if not in space, check for being indoors
             if (xform.GridUid is {} gridUid && _gridQuery.TryComp(gridUid, out var grid))
             {
-                // <Vortex Weather Tweak>
+                // <Onyx Weather Tweak>
                 var tile = _map.GetTileRef((gridUid, grid), xform.Coordinates);
                 if (TryComp(gridUid, out TileWeatherComponent? tileWeatherComp))
                 {
@@ -83,7 +83,7 @@ public sealed partial class WeatherEffectsSystem : EntitySystem
                     if (!_weather.CanWeatherAffect(gridUid, grid, tile))
                         continue;
                 }
-                // </Vortex Weather Tweak>
+                // </Onyx Weather Tweak>
             }
 
             if (_whitelist.IsBlacklistFailOrNull(weather.DamageBlacklist, uid))

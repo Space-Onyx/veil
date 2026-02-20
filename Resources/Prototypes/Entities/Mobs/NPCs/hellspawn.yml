@@ -78,7 +78,7 @@
   id: MobHellspawn
   description: An unstoppable force of carnage.
   components:
-  # <Vortex remove>
+  # <Onyx remove>
   # - type: GhostRole
   #   allowMovement: true
   #   makeSentient: true

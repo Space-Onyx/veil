@@ -194,10 +194,10 @@ uplink-m7s-mag-name = Side-mounted SMG Magazine (5x23mm)
 uplink-m7s-mag-desc = A 48 round 5x23mm rifle magazine. Compatible with M7S.
 
 uplink-cartridge-G8-demolishing-name = G8 demolishing cartridge
-uplink-cartridge-G8-demolishing-desc = This cartridge shots "The Spear of Ares" bullet, demolishing whole lines of walls, dealing massive stamina damage to people and overcharging energy vortexes. Used by HE1S-G8.
+uplink-cartridge-G8-demolishing-desc = This cartridge shots "The Spear of Ares" bullet, demolishing whole lines of walls, dealing massive stamina damage to people and overcharging energy Onyxes. Used by HE1S-G8.
 
 uplink-cartridge-G8-hypercharged-name = G8 hypercharged cartridge
-uplink-cartridge-G8-hypercharged-desc = This cartridge shots "The Bolt of Zeus" bullet, shocking everyone on its way and creating an energy vortex at its destination point, that creates a massive explosion on overcharge. Used by HE1S-G8.
+uplink-cartridge-G8-hypercharged-desc = This cartridge shots "The Bolt of Zeus" bullet, shocking everyone on its way and creating an energy Onyx at its destination point, that creates a massive explosion on overcharge. Used by HE1S-G8.
 
 uplink-high-caliber-shotgun-box-name = 8 Gauge shell box
 uplink-high-caliber-shotgun-box-desc = 16 shells of 8 Gauge shells, for the combat shotgun.

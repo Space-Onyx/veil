@@ -152,7 +152,7 @@ public sealed class LobbyUIController : UIController, IOnStateEntered<LobbyState
 
         _configurationManager.OnValueChanged(CCVars.FlavorText, args =>
         {
-            _profileEditor?.RefreshDescription(); // <Vortex-OOCNotex>
+            _profileEditor?.RefreshDescription(); // <Onyx-OOCNotex>
         });
 
         _configurationManager.OnValueChanged(CCVars.GameRoleTimers, _ => RefreshProfileEditor());

@@ -31,7 +31,7 @@
   maleFirstNames: NamesMothFirstMale
   femaleFirstNames: NamesMothFirstFemale
   maleLastNames: NamesMothLast
-  # <Vortex>
+  # <Onyx>
   baseScale: "0.87, 0.87"
   minHeight: 0.90
   maxHeight: 2
@@ -54,7 +54,7 @@
   - Максимальный рост выше человеческого.
   cons:
   - Получают на 30% больше урона от огня.
-  # </Vortex>
+  # </Onyx>
 
 
 - type: speciesBaseSprites

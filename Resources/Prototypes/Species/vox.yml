@@ -31,7 +31,7 @@
   naming: First
   sexes:
   - Unsexed
-  # <Vortex>
+  # <Onyx>
   baseScale: "0.87, 0.87"
   minHeight: 0.80
   maxHeight: 2
@@ -51,7 +51,7 @@
   - Максимальный рост выше человеческого.
   cons:
   - Получают урон при вдыхании кислорода.
-  # </Vortex>
+  # </Onyx>
 
 - type: speciesBaseSprites
   id: MobVoxSprites

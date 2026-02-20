@@ -13,7 +13,7 @@
   maxAge: 350
   oldAge: 251
   youngAge: 151
-  # <Vortex>
+  # <Onyx>
   minHeight: 0.86
   maxHeight: 2
   maxWidth: 2
@@ -37,7 +37,7 @@
   - Получают на 30% меньше урона от холода.
   - Получают на 15% меньше урона от огня.
   - Получают на 20% меньше урона от ядов.
-  # </Vortex>
+  # </Onyx>
 
 - type: speciesBaseSprites
   id: MobDemonSprites

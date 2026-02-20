@@ -1,5 +1,5 @@
 using Content.Shared.Inventory.Events;
-using Content._Vortex.Shared.Inventory;
+using Content._Onyx.Shared.Inventory;
 using Content.Shared.Popups;
 
 namespace Content.Shared.Inventory;
@@ -25,16 +25,16 @@ public sealed partial class SlotBlockSystem : EntitySystem
         if (args.Args.Cancelled || (args.Args.SlotFlags & ent.Comp.Slots) == 0)
             return;
 
-        // <Vortex>
+        // <Onyx>
         if (HasComp<StopBlockBypassComponent>(args.Args.Equipee))
             return;
-        // </Vortex>
+        // </Onyx>
 
-        // <Vortex>
+        // <Onyx>
         var message = Loc.GetString("slot-block-component-blocked", ("item", ent));
         args.Args.Reason = message;
         _popup.PopupClient(message, args.Args.Equipee, args.Args.Equipee);
-        // </Vortex edited> 
+        // </Onyx edited> 
         args.Args.Cancel();
     }
 
@@ -43,16 +43,16 @@ public sealed partial class SlotBlockSystem : EntitySystem
         if (args.Args.Cancelled || (args.Args.SlotFlags & ent.Comp.Slots) == 0)
             return;
             
-        // <Vortex>
+        // <Onyx>
         if (HasComp<StopBlockBypassComponent>(args.Args.Unequipee))
             return;
-        // </Vortex>
+        // </Onyx>
 
-        // <Vortex>
+        // <Onyx>
         var message = Loc.GetString("slot-block-component-blocked", ("item", ent));
         args.Args.Reason = message;
         _popup.PopupClient(message, args.Args.Unequipee, args.Args.Unequipee);
-        // </Vortex edited>
+        // </Onyx edited>
         args.Args.Cancel();
     }
 }

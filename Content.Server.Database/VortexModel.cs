@@ -11,7 +11,7 @@ namespace Content.Server.Database;
 public static class VortexModel
 {
     /// <summary>
-    /// Stores Vortex Character data separately from the main Profile. This is done to work around a bug
+    /// Stores Onyx Character data separately from the main Profile. This is done to work around a bug
     /// in EFCore migrations.
     /// <p />
     /// There is no way of forcing a dependent table to exist in EFCore (according to MS).

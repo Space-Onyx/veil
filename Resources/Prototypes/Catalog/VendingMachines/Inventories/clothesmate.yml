@@ -167,7 +167,7 @@
     ClothingNeckPonchoSmallBlack: 3 # Monolith
     ClothingNeckPonchoSmallWhite: 3 # Monolith
     # DO NOT ADD MORE, USE UNIFORM DYING
-    # <Vortex>
+    # <Onyx>
     ADTClothingUnderwearSocksNormal: 5
     ADTClothingUnderwearSocksHigh: 5
     ADTClothingUnderwearSocksStockingsWhite: 5
@@ -188,7 +188,7 @@
     ADTClothingUniformSwimPurple: 3
     ADTClothingUniformSwimRed: 3
     ADTClothingUniformSwimsuitWinth: 3 
-    # </Vortex>
+    # </Onyx>
   contrabandInventory:
     ClothingMaskNeckGaiter: 2
     ClothingUniformJumpsuitTacticool: 2 # +1 Goobstation
@@ -202,8 +202,8 @@
     ClothingBackpackSatchelSmugglerUnanchored: 1
     ClothingHeadHatSolidHeadband: 2
     ClothingNeckFellForItAward: 1 # Goobstation
-    ADTClothingUnderwearSocksSyndieRed: 1 # <Vortex>
-    ADTClothingUnderwearSocksThighSyndieRed: 1 # <Vortex>
+    ADTClothingUnderwearSocksSyndieRed: 1 # <Onyx>
+    ADTClothingUnderwearSocksThighSyndieRed: 1 # <Onyx>
   # DO NOT ADD MORE, USE UNIFORM DYING
   emaggedInventory: #Goobstation
     ClothingOuterCoatSyndieCapArmored: 1

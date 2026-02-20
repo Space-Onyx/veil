@@ -87,7 +87,7 @@
 using Robust.Shared.Audio;
 using Robust.Shared.GameStates;
 using Robust.Shared.Serialization;
-using Content.Shared._Vortex.Paper;
+using Content.Shared._Onyx.Paper;
 
 namespace Content.Shared.Paper;
 

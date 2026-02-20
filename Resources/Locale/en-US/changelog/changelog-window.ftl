@@ -25,7 +25,7 @@ changelog-button-new-entries = Changelog (new!)
 changelog-tab-title-Changelog = Wizden
 changelog-tab-title-Admin = Admin
 changelog-tab-title-Maps = Maps
-changelog-tab-title-Vortex = Vortex
+changelog-tab-title-Onyx = Onyx
 
 cmd-changelog-desc = Opens the changelog.
 cmd-changelog-help = Usage: changelog
