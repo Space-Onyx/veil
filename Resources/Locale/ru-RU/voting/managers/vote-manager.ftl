@@ -28,3 +28,11 @@ ui-vote-votekick-success = Голосование за кик { $target } про
 ui-vote-votekick-failure = Голосование за кик { $target } провалилось. Причина кика: { $reason }
 ui-vote-votekick-not-enough-eligible = Недостаточное количество подходящих голосующих онлайн для начала голосования: { $voters }/{ $requirement }
 ui-vote-votekick-server-cancelled = Голосование за кик { $target } отменено сервером.
+
+# SMES Debug Vote
+vote-smes-debug-title = Дебаг СМЭСов
+vote-smes-debug-initiator = Сервер
+vote-smes-debug-yes = Да
+vote-smes-debug-no = Нет
+vote-smes-debug-success = Голосование за дебаг СМЭСов прошло успешно! Бесконечная батарея применена ко всем станциям.
+vote-smes-debug-failed = Голосование за дебаг СМЭСов провалилось.

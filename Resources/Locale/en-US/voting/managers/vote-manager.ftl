@@ -49,3 +49,11 @@ ui-vote-votekick-success = Votekick for { $target } succeeded. Votekick reason: 
 ui-vote-votekick-failure = Votekick for { $target } failed. Votekick reason: { $reason }
 ui-vote-votekick-not-enough-eligible = Not enough eligible voters online to start a votekick: { $voters }/{ $requirement }
 ui-vote-votekick-server-cancelled = Votekick for { $target } was cancelled by the server.
+
+# SMES Debug Vote
+vote-smes-debug-title = SMES Debug
+vote-smes-debug-initiator = The server
+vote-smes-debug-yes = Yes
+vote-smes-debug-no = No
+vote-smes-debug-success = SMES debug vote passed! Infinite battery applied to all stations.
+vote-smes-debug-failed = SMES debug vote failed.
