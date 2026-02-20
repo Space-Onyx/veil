@@ -120322,12 +120322,12 @@ entities:
   - uid: 16175
     components:
     - type: MetaData
-      name: печать пассажира
+      name: печать ассистента
     - type: Transform
       pos: 56.40398,80.0686
       parent: 1
     - type: Stamp
-      stampedName: Пассажир
+      stampedName: Ассистент
 - proto: SalvageMagnet
   entities:
   - uid: 233

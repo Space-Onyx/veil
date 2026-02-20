@@ -40,11 +40,11 @@ highlights-chaplain = Священник, Святоша
 highlights-chef = Шеф, Повар, Кухня
 highlights-clown = Клоун, Клуня, Хонк
 highlights-janitor = Уборщик
-highlights-passenger = Пассажир, Грейтайд
+highlights-passenger = Ассистент, Грейтайд
 highlights-lawyer = АВД, Адвокат
 highlights-librarian = Библиотекарь, Библиотека
 highlights-mime = Мим
-highlights-assistant = Пассажир, Грейтайд, Ассистент
+highlights-assistant = Ассистент, Грейтайд, Ассистент
 highlights-service-worker = Сервисный работник
 # Wildcards
 highlights-boxer = Боксер
