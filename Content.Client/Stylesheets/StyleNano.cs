@@ -180,6 +180,7 @@ namespace Content.Client.Stylesheets
                     "/Fonts/NotoSans/NotoSansSymbols2-Regular.ttf",
                     "/Fonts/NotoSans/NotoSansSC-Regular.ttf",
                     "/Fonts/NotoSans/NotoSansSymbols-Bold.ttf",
+                    "/Fonts/NotoEmoji.ttf",
                 },
                 size
             );
@@ -195,6 +196,7 @@ namespace Content.Client.Stylesheets
                     $"/Fonts/NotoSans/NotoSansSymbols-Regular.ttf",
                     "/Fonts/NotoSans/NotoSansSymbols2-Regular.ttf",
                     "/Fonts/NotoSans/NotoSansSC-Regular.ttf",
+                    "/Fonts/NotoEmoji.ttf",
                 },
                 size
             );
