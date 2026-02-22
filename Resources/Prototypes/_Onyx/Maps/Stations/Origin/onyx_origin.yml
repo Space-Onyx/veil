@@ -1,6 +1,6 @@
 - type: gameMap
   id: OnyxOrigin
-  mapName: 'NT14 Исход'
+  mapName: 'NT14 Исток'
   mapPath: /Maps/_Onyx/Stations/Origin/onyx_origin.yml
   minPlayers: 50
   maxPlayers: 85
@@ -9,7 +9,7 @@
       stationProto: StandardNanotrasenStation
       components:
         - type: StationNameSetup
-          mapNameTemplate: '{0} Исход {1}'
+          mapNameTemplate: '{0} Исток {1}'
           nameGenerator:
             !type:NanotrasenNameGenerator
             prefixCreator: '14'
