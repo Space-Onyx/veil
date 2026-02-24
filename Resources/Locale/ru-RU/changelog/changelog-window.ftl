@@ -12,6 +12,6 @@ changelog-button-new-entries = Обновления (!)
 changelog-tab-title-Changelog = Список изменений
 changelog-tab-title-Admin = Админское
 changelog-tab-title-Maps = Maps
-changelog-tab-title-Onyx = Вортекс
+changelog-tab-title-Onyx = Оникс
 cmd-changelog-desc = Открывает историю изменений.
 cmd-changelog-help = Использование: changelog

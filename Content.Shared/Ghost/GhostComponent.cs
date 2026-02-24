@@ -111,11 +111,7 @@ public sealed partial class GhostComponent : Component
 
     [DataField]
     public bool CanTakeGhostRoles = true;
-    // Goobstation end
-
-    // CorvaxGoob-GhostBar
-    [DataField]
-    public bool CanEnterGhostBar = true;
+    // Goobstation end;
 }
 
 public sealed partial class ToggleFoVActionEvent : InstantActionEvent { }

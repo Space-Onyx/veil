@@ -29,6 +29,7 @@ using Robust.Shared.Timing;
 using Robust.Shared.Localization;
 using Robust.Shared.GameObjects;
 using Content.Shared.UserInterface;
+using Content.Shared.Station.Components;
 
 namespace Content.Server._Onyx.Communications
 {

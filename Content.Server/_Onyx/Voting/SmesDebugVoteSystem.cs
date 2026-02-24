@@ -3,7 +3,7 @@ using Content.Server.Administration.Logs;
 using Content.Server.GameTicking.Events;
 using Content.Server.Power.Components;
 using Content.Server.Power.EntitySystems;
-using Content.Server.Station.Components;
+using Content.Shared.Station.Components;
 using Content.Server.Voting.Managers;
 using Content.Shared.CCVar;
 using Content.Shared.Database;

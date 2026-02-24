@@ -1,2 +1,2 @@
 tiles-xeno-bluespace = блюспейс
-tiles-xeno-sepia = сипея
+tiles-xeno-sepia = сепия

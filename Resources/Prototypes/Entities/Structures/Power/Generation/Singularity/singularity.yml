@@ -142,9 +142,8 @@
     falloffPower: 2.529822
     intensity: 3645
   - type: RadiationSource
-    slope: 0.2 # its emit really far away
-    intensity: 2 # CorvaxGoob Radiation Overhaul Revert
-    #intensity: 6 # Goobstation - Radiation Overhaul
+    #intensity: 6 # Goobstation - Radiation Overhaul CorvaxGoob Radiation Overhaul Revert
+    intensity: 2  # CorvaxGoob Radiation Overhaul Revert
   - type: PointLight
     enabled: true
     radius: 10

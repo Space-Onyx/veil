@@ -1,5 +1,5 @@
 using Content.Server.Ghost.Components;
-using Content.Server.Warps;
+using Content.Shared.Warps;
 using Content.Server.Popups;
 using Content.Shared.Ghost;
 using Content.Shared.Interaction;

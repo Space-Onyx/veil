@@ -413,8 +413,8 @@
       path: /Audio/_Goobstation/Voice/Vox/vox_deathgasp.ogg
     Gulp: # Goob
       path: /Audio/_Goobstation/Voice/gulpexotic.ogg
-    Surprised: # Goob
-      path: /Audio/_Goobstation/Voice/surprised.ogg
+    # Surprised: # Goob Commented by CorvaxGoob
+      # path: /Audio/_Goobstation/Voice/surprised.ogg
     Click: #imp
       collection: VoxClick
     Chitter: #imp
@@ -831,6 +831,8 @@
   params:
     variation: 0.05
   sounds:
+    Scream:
+      collection: XenoborgScream
     Laugh:
       collection: XenoborgLaugh
     Beep:

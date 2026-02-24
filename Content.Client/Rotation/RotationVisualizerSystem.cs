@@ -33,7 +33,7 @@ public sealed class RotationVisualizerSystem : SharedRotationVisualsSystem
             return;
 
         if (!_appearance.TryGetData<RotationState>(uid, RotationVisuals.RotationState, out var state, args.Component))
-            return;
+            state = RotationState.Vertical;
 
         // For entities with no FOV (ghosts, AI eyes, etc.), update immediately without animation
         // to prevent desync where they see entities as lying down when they are standing

@@ -21,7 +21,7 @@ public sealed class EntitySpawnVariationPassSystem : VariationPassSystem<EntityS
             return;
         // Onyx-PlayableCentComm end
 
-        var totalTiles = Stations.GetTileCount(args.Station);
+        var totalTiles = Stations.GetTileCount(args.Station.AsNullable());
 
         var dirtyMod = Random.NextGaussian(ent.Comp.TilesPerEntityAverage, ent.Comp.TilesPerEntityStdDev);
         var trashTiles = Math.Max((int) (totalTiles * (1 / dirtyMod)), 0);

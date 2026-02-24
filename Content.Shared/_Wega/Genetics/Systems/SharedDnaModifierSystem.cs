@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Content.Shared.Humanoid.Markings;
 using Robust.Shared.Random;
+using System.Numerics;
 
 namespace Content.Shared.Genetics.Systems;
 
@@ -123,7 +124,7 @@ public abstract partial class SharedDnaModifierSystem : EntitySystem
 
     public Color ConvertSkinToneToColor(string[] skinTone)
     {
-        Color defaultColor = Color.FromHsv(new Robust.Shared.Maths.Vector4(0.07f, 0.2f, 1f, 1f));
+        Color defaultColor = Color.FromHsv(new Vector4(0.07f, 0.2f, 1f, 1f));
         if (skinTone == null || skinTone.Length != 3)
             return defaultColor;
 
@@ -152,7 +153,7 @@ public abstract partial class SharedDnaModifierSystem : EntitySystem
                 value = 1f - 0.8f * (toneValue - 20) / 80f;
             }
 
-            return Color.FromHsv(new Robust.Shared.Maths.Vector4(
+            return Color.FromHsv(new Vector4(
                 hue / 360f,
                 saturation,
                 value,

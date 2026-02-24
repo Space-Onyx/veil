@@ -1,8 +1,12 @@
-ent-LockerShaftMiner = снаряжение шахтера
-    .desc = Содержит оборудование, полезное для исследования планет.
+ent-LockerSalvageSpecialistFilledHardsuit = { ent-LockerSalvageSpecialist }
+    .suffix = Заполненный, Скафандр
+    .desc = { ent-LockerSalvageSpecialist.desc }
+ent-LockerSalvageSpecialistFilled = { ent-LockerSalvageSpecialist }
+    .suffix = Заполненный
+    .desc = { ent-LockerSalvageSpecialist.desc }
 ent-LockerShaftMinerFilledHardsuit = { ent-LockerShaftMiner }
+    .suffix = Заполненный, Скафандр
     .desc = { ent-LockerShaftMiner.desc }
-    .suffix = заполнен, скафандр
 ent-LockerShaftMinerFilled = { ent-LockerShaftMiner }
+    .suffix = Заполненный
     .desc = { ent-LockerShaftMiner.desc }
-    .suffix = заполнен

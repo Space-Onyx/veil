@@ -27,7 +27,7 @@ public sealed class PuddleMessVariationPassSystem : VariationPassSystem<PuddleMe
             return;
         // Onyx-PlayableCentComm end
 
-        var totalTiles = Stations.GetTileCount(args.Station);
+        var totalTiles = Stations.GetTileCount(args.Station.AsNullable());
 
         if (!_proto.TryIndex(ent.Comp.RandomPuddleSolutionFill, out var proto))
             return;
