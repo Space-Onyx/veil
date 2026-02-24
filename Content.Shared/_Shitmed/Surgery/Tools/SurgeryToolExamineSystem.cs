@@ -56,9 +56,23 @@ public sealed class SurgeryToolExamineSystem : EntitySystem
         var ev = new SurgeryToolExaminedEvent(msg);
         RaiseLocalEvent(ent, ref ev);
 
-        _examine.AddDetailedExamineVerb(args, ent.Comp, ev.Message,
-            Loc.GetString("surgery-tool-examinable-verb-text"), "/Textures/Objects/Specific/Medical/Surgery/scalpel.rsi/scalpel.png",
-            Loc.GetString("surgery-tool-examinable-verb-message"));
+
+        // <Onyx Icon fix>
+        var user = args.User;
+        var target = args.Target;
+        var message = ev.Message;
+
+        var verb = new ExamineVerb()
+        {
+            Act = () => _examine.SendExamineTooltip(user, target, message, false, false),
+            Text = Loc.GetString("surgery-tool-examinable-verb-text"),
+            Message = Loc.GetString("surgery-tool-examinable-verb-message"),
+            Category = VerbCategory.Examine,
+            Icon = new SpriteSpecifier.Rsi(new("/Textures/Objects/Specific/Medical/Surgery/scalpel.rsi"), "scalpel"),
+        };
+
+        args.Verbs.Add(verb);
+        // </Onyx Icon fix>
     }
 
     public void OnExamined(EntityUid uid, ISurgeryToolComponent comp, ref SurgeryToolExaminedEvent args)
