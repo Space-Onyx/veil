@@ -193,7 +193,7 @@
     - id: ClothingUniformOveralls
     - id: ClothingHeadHatTrucker
       prob: 0.1
-    - id: ADTPlantAnalyzer # ADT-Tweak
+    - id: PlantAnalyzer # Onyx tweak
       prob: 1.0
 
 - type: entity

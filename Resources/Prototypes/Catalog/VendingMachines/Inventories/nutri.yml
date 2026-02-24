@@ -43,10 +43,10 @@
     Bucket: 3
     BoxMouthSwab: 1
     BoxAgrichem: 1
-    # ADT tweak Start
-    ADTPlantAnalyzer: 1
+    # Onyx Tweak Start
+    PlantAnalyzer: 1
     ADTBotanicalSeedDNADisk: 10
-    # ADT tweak End
+    # Onyx Tweak End
   contrabandInventory:
     ChemistryBottleUnstableMutagen: 1
     Chainsaw: 1 #Goob

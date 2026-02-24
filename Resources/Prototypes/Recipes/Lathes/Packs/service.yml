@@ -22,9 +22,9 @@
   recipes:
   #ADT-Tweak-Start
   - Mousetrap
-  - ADTPlantAnalyzer
   - ADTBotanicalSeedDNADisk
   #ADT-Tweak-End
+  - PlantAnalyzer # Onyx Tweak
   - Bucket
   - Ashtray
   - DrinkMug
