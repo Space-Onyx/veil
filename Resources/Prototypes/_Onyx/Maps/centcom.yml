@@ -9,7 +9,10 @@
       stationProto: StandardGameCentcommStation
       components:
         - type: StationNameSetup
-          mapNameTemplate: 'Центральное командование'
+          mapNameTemplate: '{prefix}-{number} ЦентКом'
+          nameGenerator:
+            !type:NanotrasenNameGenerator
+            prefix: 'АСН'
         - type: StationJobs
           availableJobs:
             CentralCommandChief: [ 1, 1 ]

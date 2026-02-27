@@ -1,6 +1,6 @@
 - type: gameMap
   id: OnyxKerberos
-  mapName: 'NTTG Керберос'
+  mapName: 'ИСН Керберос TG'
   mapPath: /Maps/_Onyx/Stations/Kerberos/onyx_kerberos.yml
   maxRandomOffset: 0
   randomRotation: false
@@ -10,9 +10,10 @@
       stationProto: StandardNanotrasenStation
       components:
         - type: StationNameSetup
-          mapNameTemplate: '{0} Керберос {1}'
+          mapNameTemplate: '{prefix}-{number} Керберос {prefixCreator} {1}'
           nameGenerator:
             !type:NanotrasenNameGenerator
+            prefix: 'ИСН'
             prefixCreator: 'TG'
         - type: StationEmergencyShuttle
           emergencyShuttlePath: /Maps/_CorvaxGoob/Stations/Delta/Shuttles/corvax_emergency_delta.yml
@@ -24,7 +25,8 @@
             NanotrasenRepresentative: [ 1, 1 ]
             # cargo
             Quartermaster: [ 1, 1 ]
-            SalvageSpecialist: [ 3, 4 ]
+            SalvageSpecialist: [ 3, 3 ]
+            ShaftMiner: [ 2, 2 ]
             CargoTechnician: [ 4, 4 ]
             # engineering
             ChiefEngineer: [ 1, 1 ]

@@ -1,6 +1,6 @@
 - type: gameMap
   id: OnyxAtlas
-  mapName: NTR4 Атлас
+  mapName: 'ИСН Атлас R4'
   mapPath: /Maps/_Onyx/Stations/Atlas/onyx_atlas.yml
   minPlayers: 0
   maxPlayers: 20
@@ -9,9 +9,10 @@
       stationProto: StandardNanotrasenStation
       components: 
         - type: StationNameSetup
-          mapNameTemplate: '{0} Атлас {1}'
+          mapNameTemplate: '{prefix}-{number} Атлас {prefixCreator} {1}'
           nameGenerator:
             !type:NanotrasenNameGenerator
+            prefix: 'ИСН'
             prefixCreator: 'R4'
         - type: StationJobs
           availableJobs:

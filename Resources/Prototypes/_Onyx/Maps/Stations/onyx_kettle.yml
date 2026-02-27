@@ -1,6 +1,6 @@
 - type: gameMap
   id: OnyxKettle
-  mapName: 'NT14 Кеттл'
+  mapName: 'ИСН Кеттл S14'
   mapPath: /Maps/_Onyx/Stations/Kettle/onyx_kettle.yml
   minPlayers: 35
   stations:
@@ -8,9 +8,10 @@
       stationProto: StandardNanotrasenStation
       components:
         - type: StationNameSetup
-          mapNameTemplate: '{0} Кеттл {1}'
+          mapNameTemplate: '{prefix}-{number} Кеттл {prefixCreator} {1}'
           nameGenerator:
             !type:NanotrasenNameGenerator
+            prefix: 'ИСН'
             prefixCreator: '14'
         - type: StationEmergencyShuttle
           emergencyShuttlePath: /Maps/Shuttles/emergency_courser.yml
@@ -22,7 +23,8 @@
             NanotrasenRepresentative: [ 1, 1 ]
             # cargo
             Quartermaster: [ 1, 1 ]
-            SalvageSpecialist: [ 6, 6 ]
+            SalvageSpecialist: [ 4, 4 ]
+            ShaftMiner: [ 2, 2 ]
             CargoTechnician: [ 3, 3 ]
             #engineering
             ChiefEngineer: [ 1, 1 ]

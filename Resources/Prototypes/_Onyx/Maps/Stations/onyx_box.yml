@@ -1,6 +1,6 @@
 - type: gameMap
   id: OnyxBox
-  mapName: 'NTTG Бокс'
+  mapName: 'ИСН Бокс TG'
   mapPath: /Maps/_Onyx/Stations/Box/onyx_box.yml
   maxRandomOffset: 0
   randomRotation: false
@@ -10,9 +10,10 @@
       stationProto: StandardNanotrasenStation
       components:
         - type: StationNameSetup
-          mapNameTemplate: '{0} Бокс {1}'
+          mapNameTemplate: '{prefix}-{number} Бокс {prefixCreator} {1}'
           nameGenerator:
             !type:NanotrasenNameGenerator
+            prefix: 'ИСН'
             prefixCreator: 'TG'
         - type: StationEmergencyShuttle
           emergencyShuttlePath: /Maps/_CorvaxGoob/Stations/Box/Shuttles/corvax_emergency_box.yml
@@ -24,7 +25,8 @@
             NanotrasenRepresentative: [ 1, 1 ]
             # cargo
             Quartermaster: [ 1, 1 ]
-            SalvageSpecialist: [ 3, 3 ]
+            SalvageSpecialist: [ 2, 2 ]
+            ShaftMiner: [ 2, 2 ]
             CargoTechnician: [ 5, 6 ]
             # engineering
             ChiefEngineer: [ 1, 1 ]

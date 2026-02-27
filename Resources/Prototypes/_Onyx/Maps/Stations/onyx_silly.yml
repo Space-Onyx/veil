@@ -1,6 +1,6 @@
 - type: gameMap
   id: OnyxSilly
-  mapName: 'NTABK Силли'
+  mapName: 'ИСН Силли ABK'
   mapPath: /Maps/_Onyx/Stations/Silly/onyx_silly.yml
   maxRandomOffset: 0
   randomRotation: false
@@ -11,9 +11,10 @@
       stationProto: StandardNanotrasenStation
       components:
         - type: StationNameSetup
-          mapNameTemplate: '{0} Силли {1}'
+          mapNameTemplate: '{prefix}-{number} Силли {prefixCreator} {1}'
           nameGenerator:
             !type:NanotrasenNameGenerator
+            prefix: 'ИСН'
             prefixCreator: 'ABK'
         - type: StationEmergencyShuttle
           emergencyShuttlePath: /Maps/_CorvaxGoob/Stations/Silly/Shuttles/corvax_emergency_silly.yml
@@ -25,7 +26,8 @@
             NanotrasenRepresentative: [ 1, 1 ]
             # cargo
             Quartermaster: [ 1, 1 ]
-            SalvageSpecialist: [ 3, 3 ]
+            SalvageSpecialist: [ 2, 2 ]
+            ShaftMiner: [ 1, 1 ]
             CargoTechnician: [ 3, 3 ]
             # engineering
             ChiefEngineer: [ 1, 1 ]

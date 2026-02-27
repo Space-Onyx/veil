@@ -1,6 +1,6 @@
 - type: gameMap
   id: OnyxOrigin
-  mapName: 'NT14 Исток'
+  mapName: 'ИСН Исток S14'
   mapPath: /Maps/_Onyx/Stations/Origin/onyx_origin.yml
   minPlayers: 50
   maxPlayers: 85
@@ -9,10 +9,11 @@
       stationProto: StandardNanotrasenStation
       components:
         - type: StationNameSetup
-          mapNameTemplate: '{0} Исток {1}'
+          mapNameTemplate: '{prefix}-{number} Исток {prefixCreator} {1}'
           nameGenerator:
             !type:NanotrasenNameGenerator
-            prefixCreator: '14'
+            prefix: 'ИСН'
+            prefixCreator: 'S14'
         - type: StationEmergencyShuttle
           emergencyShuttlePath: /Maps/Shuttles/emergency_courser.yml
         - type: StationJobs
@@ -23,7 +24,8 @@
             NanotrasenRepresentative: [ 1, 1 ]
             # cargo
             Quartermaster: [ 1, 1 ]
-            SalvageSpecialist: [ 8, 8 ]
+            SalvageSpecialist: [ 5, 5 ]
+            ShaftMiner: [ 3, 3 ]
             CargoTechnician: [ 5, 5 ]
             #engineering
             ChiefEngineer: [ 1, 1 ]
