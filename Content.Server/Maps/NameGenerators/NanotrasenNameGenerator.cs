@@ -18,16 +18,28 @@ public sealed partial class NanotrasenNameGenerator : StationNameGenerator
     /// <summary>
     ///     Where the map comes from. Should be a two or three letter code, for example "VG" for Packedstation.
     /// </summary>
-    [DataField("prefixCreator")] public string PrefixCreator = default!;
-
-    private string Prefix => "NT";
-    private string[] SuffixCodes => new []{ "LV", "NX", "EV", "QT", "PR" };
+    // <Onyx-edited>
+    [DataField("prefixCreator")] public string PrefixCreator = "";
+    [DataField("prefix")] public string Prefix = "NT";
+    [DataField("suffix")] public string[] SuffixCodes = new[] { "LV", "NS", "EV", "PR", "RX" };
 
     public override string FormatName(string input)
     {
         var random = IoCManager.Resolve<IRobustRandom>();
 
-        // No way in hell am I writing custom format code just to add nice names. You can live with {0}
-        return string.Format(input, $"{Prefix}{PrefixCreator}", $"{random.Pick(SuffixCodes)}-{random.Next(0, 999):D3}");
+        var number = random.Next(1, 1000);
+        var suffixCode = random.Pick(SuffixCodes);
+        var suffixNumber = random.Next(0, 1000);
+        var suffix = $"{suffixCode}-{suffixNumber:D3}";
+        var fullPrefix = $"{Prefix}{PrefixCreator}";
+
+        return input
+            .Replace("{prefix}", Prefix)
+            .Replace("{prefixCreator}", PrefixCreator)
+            .Replace("{suffix}", suffix)
+            .Replace("{number}", number.ToString("D3"))
+            .Replace("{0}", fullPrefix)
+            .Replace("{1}", suffix);
+    // </Onyx-edited>
     }
 }
