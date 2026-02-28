@@ -263,8 +263,8 @@
   materials:
     Steel: 1200
     Plastic: 150
-    Silver: 500
-    Diamond: 300
+    Silver: 350
+    Diamond: 150
 
 - type: latheRecipe
   id: MechEquipmentHonkerBananaMortar

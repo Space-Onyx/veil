@@ -27,11 +27,11 @@ using Content.Shared.Examine;
 using Content.Shared.Popups;
 using Content.Shared.Trigger.Components;
 using Content.Shared.Trigger.Components.Effects;
+using Content.Shared.Trigger.Systems;
 using Content.Shared.Verbs;
 using Content.Shared.Wires;
 using Robust.Server.GameObjects;
 using Robust.Shared.Audio.Systems;
-using Content.Shared.Trigger.Systems;
 
 namespace Content.Server.Defusable.Systems;
 

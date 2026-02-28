@@ -514,7 +514,7 @@
   - type: Sprinter # Goobstation
   - type: MindControllable # Goobstation
   - type: VisibleContraband # Goobstation
-  - type: SpeechBarks
+  - type: SpeechBarks # Onyx
   - type: MomentumSteering # Goobstation - No steer
 
 - type: entity

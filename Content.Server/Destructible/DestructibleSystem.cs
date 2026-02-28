@@ -43,13 +43,13 @@ using Content.Shared.Damage;
 using Content.Shared.Database;
 using Content.Shared.Destructible;
 using Content.Shared.Humanoid;
+using Content.Shared.Trigger.Systems;
 using Content.Goobstation.Maths.FixedPoint;
 using JetBrains.Annotations;
 using Robust.Server.Audio;
 using Robust.Shared.Containers;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
-using Content.Shared.Trigger.Systems;
 
 namespace Content.Server.Destructible
 {

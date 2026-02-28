@@ -30,6 +30,7 @@
     - id: FoodSnackLollypopBase # Change this to effect what lollypop it spawns.
     sound:
       path: /Audio/Effects/unwrap.ogg
+  - type: SolutionContainerManager # CorvaxGoob-fix удалите если они всёже починят...
 
 - type: entity
   parent: [FoodBase, FoodInjectableBase]

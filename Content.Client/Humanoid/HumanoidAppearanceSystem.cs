@@ -72,7 +72,6 @@ public sealed class HumanoidAppearanceSystem : SharedHumanoidAppearanceSystem
         var humanoidAppearance = entity.Comp1;
         var sprite = entity.Comp2;
 
-        // Применяем масштаб по ширине и высоте
         var speciesPrototype = _prototypeManager.Index<SpeciesPrototype>(humanoidAppearance.Species);
         var height = Math.Clamp(MathF.Round(humanoidAppearance.Height, 2), speciesPrototype.MinHeight, speciesPrototype.MaxHeight);
         var width = Math.Clamp(MathF.Round(humanoidAppearance.Width, 2), speciesPrototype.MinWidth, speciesPrototype.MaxWidth);

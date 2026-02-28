@@ -164,6 +164,9 @@
     layers:
     - state: icon
       map: ["base"]
+  - type: Tag # CorvaxGoob 
+    tags: 
+    - SeismicCharge
   - type: TriggerOnActivate
   - type: TriggerOnSignal
   - type: TriggerOnStuck

@@ -52,6 +52,7 @@ public sealed partial class GhostGui : UIWidget
     public void Hide()
     {
         TargetWindow.Close();
+
         Visible = false;
     }
 

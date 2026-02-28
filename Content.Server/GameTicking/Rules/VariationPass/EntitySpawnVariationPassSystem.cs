@@ -4,7 +4,6 @@
 // SPDX-License-Identifier: MIT
 
 using Content.Server.GameTicking.Rules.VariationPass.Components;
-using Content.Shared._Onyx.Station.Components; // Onyx-PlayableCentComm
 using Content.Shared.Storage;
 using Robust.Shared.Random;
 
@@ -15,12 +14,6 @@ public sealed class EntitySpawnVariationPassSystem : VariationPassSystem<EntityS
 {
     protected override void ApplyVariation(Entity<EntitySpawnVariationPassComponent> ent, ref StationVariationPassEvent args)
     {
-        // Onyx-PlayableCentComm start
-        // Check if station has NoGarbageDecalSpawningComponent
-        if (HasComp<NoGarbageDecalSpawningComponent>(args.Station))
-            return;
-        // Onyx-PlayableCentComm end
-
         var totalTiles = Stations.GetTileCount(args.Station.AsNullable());
 
         var dirtyMod = Random.NextGaussian(ent.Comp.TilesPerEntityAverage, ent.Comp.TilesPerEntityStdDev);

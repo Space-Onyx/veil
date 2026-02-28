@@ -85,11 +85,7 @@ public sealed class TeachALessonConditionSystem : EntitySystem
 
     private void OnMobStateChanged(Entity<TeachALessonTargetComponent> ent, ref MobStateChangedEvent args)
     {
-       // Goob - fix teach a lesson
-        if (!TryComp<MindComponent>(ent.Owner, out var targetMind))
-            return;
-        if (args.NewMobState != MobState.Dead && targetMind.OwnedEntity != null)
-        // Goob end
+        if (args.NewMobState != MobState.Dead)
             return;
 
         TriggerObjective(ent.Comp);
