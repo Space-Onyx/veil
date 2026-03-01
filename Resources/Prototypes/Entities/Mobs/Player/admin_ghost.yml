@@ -274,7 +274,7 @@
     allowedVerbs: []
   - type: ExplosionResistance
     damageCoefficient: 0
-  - type: StopBlockBypass
+  - type: StopBlockBypass # Onyx-SlotBlock
 
 - type: entity
   abstract: true

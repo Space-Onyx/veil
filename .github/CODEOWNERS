@@ -9,6 +9,8 @@
 
 # Textures
 /Resources/Textures @RedTerrorDark
+/Resources/Prototypes/Maps/** @Emisse @ArtisticRoomba
+/Resources/Maps/** @Emisse @ArtisticRoomba
 
 # Map files
 /Resources/Prototypes/_CorvaxGoob/Entities/Stations @kvant8
