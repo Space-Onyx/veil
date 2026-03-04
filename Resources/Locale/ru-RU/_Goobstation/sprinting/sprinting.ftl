@@ -1,4 +1,4 @@
-ui-options-function-sprint = Ускорение
+ui-options-function-sprint = Бег
 sprint-disabled = Вы не можете ускориться!
 no-sprint-while-restrained = Вы не можете бежать пока связаны!
 no-sprint-while-lying = Вы не можете бежать лёжа на земле. Встаньте!
