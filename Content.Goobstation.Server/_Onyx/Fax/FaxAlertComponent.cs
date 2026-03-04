@@ -1,7 +1,7 @@
 using Content.Shared.Radio;
 using Robust.Shared.Prototypes;
 
-namespace Content.Goobstation.Server.Fax
+namespace Content.Goobstation.Server._Onyx.Fax
 {
     [RegisterComponent]
     public sealed partial class FaxAlertComponent : Component

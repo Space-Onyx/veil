@@ -4,7 +4,7 @@ using Content.Shared.Fax.Components;
 using Content.Shared.Radio;
 using Robust.Shared.Prototypes;
 
-namespace Content.Goobstation.Server.Fax
+namespace Content.Goobstation.Server._Onyx.Fax
 {
     public sealed class FaxAlertSystem : EntitySystem
     {
@@ -20,19 +20,18 @@ namespace Content.Goobstation.Server.Fax
 
         private void OnFaxReceived(Entity<FaxMachineComponent> faxEntity, ref FaxReceivedEvent args)
         {
-            // Only send alert if this specific fax machine has a FaxAlertComponent
             if (!TryComp(faxEntity, out FaxAlertComponent? alertComponent))
                 return;
-            
+
             string senderName = args.FromAddress != null &&
                 faxEntity.Comp.KnownFaxes.TryGetValue(args.FromAddress, out var faxName)
                 ? faxName
                 : Loc.GetString("fax-machine-popup-source-unknown");
-            
+
             string alertMessage = Loc.GetString("fax-alert-message",
                 ("sender", senderName),
                 ("receiver", faxEntity.Comp.FaxName));
-            
+
             _radioSystem.SendRadioMessage(
                 faxEntity,
                 alertMessage,
