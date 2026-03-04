@@ -1,0 +1,87 @@
+- type: entity
+  abstract: true
+  parent: BaseAugment
+  id: BaseRunnerAugment
+  name: бегунок
+  description: Кибернетический имплант для ноги, повышающий скорость передвижения.
+  components:
+  - type: Sprite
+    sprite: _Shitmed/Objects/Augments/power.rsi
+    state: cell
+  - type: Item
+    size: Huge
+  - type: AugmentMovementSpeed
+    walkMultiplier: 1.04
+    sprintMultiplier: 1.04
+
+- type: entity
+  parent: BaseRunnerAugment
+  id: RunnerAugmentLeft
+  name: левый бегунок
+  description: Кибернетический имплант для левой ноги. Увеличивает скорость ходьбы и бега на 25%.
+  components:
+  - type: AugmentMovementSpeed
+    walkMultiplier: 1.25
+    sprintMultiplier: 1.25
+    augmentId: RunnerLeft
+  - type: Organ
+    slotId: legImplant
+  - type: AugmentExamine
+    color: "#974cf9"
+    examineText: augment-examine-runner
+    visible: true
+  - type: Tag
+    tags:
+    - LegAugment
+    - Augment
+
+- type: entity
+  parent: BaseRunnerAugment
+  id: RunnerAugmentRight
+  name: правый бегунок
+  description: Кибернетический имплант для правой ноги. Увеличивает скорость ходьбы и бега на 25%.
+  components:
+  - type: AugmentMovementSpeed
+    walkMultiplier: 1.25
+    sprintMultiplier: 1.25
+    augmentId: RunnerRight
+  - type: Organ
+    slotId: legImplant
+  - type: AugmentExamine
+    examineText: augment-examine-runner
+    visible: true
+  - type: Tag
+    tags:
+    - LegAugment
+    - Augment
+
+- type: entity
+  parent: BaseRunnerAugment
+  id: AdvancedRunnerAugmentLeft
+  name: улучшенный левый бегунок
+  description: Продвинутый кибернетический имплант. Увеличивает скорость ходьбы и бега на 8%.
+  components:
+  - type: Sprite
+    state: cell
+  - type: AugmentMovementSpeed
+    walkMultiplier: 1.50
+    sprintMultiplier: 1.50
+    augmentId: AdvancedRunnerLeft
+  - type: Organ
+    slotId: legImplant
+  - type: AugmentExamine
+    examineText: augment-examine-runner-advanced
+    visible: true
+
+- type: entity
+  parent: AdvancedRunnerAugmentLeft
+  id: AdvancedRunnerAugmentRight
+  name: улучшенный правый бегунок
+  description: Продвинутый кибернетический имплант. Увеличивает скорость ходьбы и бега на 8%.
+  components:
+  - type: AugmentMovementSpeed
+    walkMultiplier: 1.50
+    sprintMultiplier: 1.50
+    augmentId: AdvancedRunnerRight
+  - type: Organ
+    slotId: legImplant

@@ -284,6 +284,34 @@
     Gold: 1000
     Silver: 600
 
+# <Onyx Augments>
+- type: latheRecipe
+  id: RunnerAugmentLeft
+  result: RunnerAugmentLeft
+  categories:
+  - Robotics
+  completetime: 8
+  materials:
+    Steel: 1500
+    Glass: 500
+    Plastic: 800
+    Gold: 500
+    Silver: 300
+
+- type: latheRecipe
+  id: RunnerAugmentRight
+  result: RunnerAugmentRight
+  categories:
+  - Robotics
+  completetime: 8
+  materials:
+    Steel: 1500
+    Glass: 500
+    Plastic: 800
+    Gold: 500
+    Silver: 300
+# </Onyx Augments>
+
 - type: latheRecipe
   id: BasicCyberneticEyes
   result: BasicCyberneticEyes

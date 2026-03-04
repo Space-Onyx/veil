@@ -14,3 +14,11 @@
   - AugmentPaperworkPanelElectronics
   - AugmentStrengthCasing
   - AugmentStrengthElectronics
+
+# <Onyx Augments>
+- type: latheRecipePack
+  id: LegAugments
+  recipes:
+  - RunnerAugmentLeft
+  - RunnerAugmentRight
+# </Onyx Augments>

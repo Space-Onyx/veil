@@ -790,6 +790,28 @@
   id: SurgeryStepInsertAugmentArm
   name: Add arm augment
 
+# <Onyx Augments>
+- type: entity
+  parent: SurgeryStepInsertOrgan
+  id: SurgeryStepInsertAugmentLeg
+  name: Add leg augment
+  description: Insert a leg augmentation implant.
+  components:
+  - type: SurgeryStep
+    tool:
+    - type: Organ
+    duration: 6
+  - type: Sprite
+    sprite: _Shitmed/Objects/Specific/Medical/Surgery/manipulation.rsi
+    state: insertion
+  - type: SurgeryAddOrganStep
+  - type: SurgeryStepPainInflicter
+    amount: 90
+    painDuration: 60
+    painType: TraumaticPain
+    sleepModifier: 0
+# </Onyx Augments>
+
 # Lobotomy
 - type: entity
   parent: SurgeryStepBase

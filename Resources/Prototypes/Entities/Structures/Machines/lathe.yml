@@ -678,6 +678,7 @@
     - AdvancedCybernetics
     - PowerAugments
     - ToolAugments
+    - LegAugments # <Onyx Augments>1
     - PowerCells
   - type: EmagLatheRecipes # Goobstation
     emagStaticPacks:

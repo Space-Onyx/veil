@@ -1,0 +1,141 @@
+- type: entity
+  abstract: true
+  parent: BaseAugment
+  id: BaseOnyxAugment
+  description: Кибернетическая аугментация.
+  components:
+  - type: Item
+    size: Huge
+  - type: AugmentExamine
+    visible: true
+  - type: Tag
+    tags:
+    - Augment
+
+- type: entity
+  abstract: true
+  parent: BaseOnyxAugment
+  id: BaseOnyxLegAugment
+  description: Кибернетический имплант для ноги.
+  components:
+  - type: Sprite
+    sprite: _Shitmed/Objects/Augments/power.rsi
+    state: cell
+  - type: Organ
+    slotId: legImplant
+  - type: Tag
+    tags:
+    - LegAugment
+    - Augment
+
+- type: entity
+  abstract: true
+  parent: BaseOnyxAugment
+  id: BaseOnyxFootAugment
+  description: Кибернетический имплант для стопы.
+  components:
+  - type: Sprite
+    sprite: _Shitmed/Objects/Augments/power.rsi
+    state: cell
+  - type: Organ
+    slotId: footImplant
+  - type: Tag
+    tags:
+    - footAugment
+    - Augment
+
+- type: entity
+  abstract: true
+  parent: BaseOnyxAugment
+  id: BaseOnyxChestAugment
+  description: Кибернетический имплант для груди.
+  components:
+  - type: Sprite
+    sprite: _Shitmed/Objects/Augments/power.rsi
+    state: cell
+  - type: Organ
+    slotId: chestImplant
+  - type: Tag
+    tags:
+    - chestAugment
+    - Augment
+
+- type: entity
+  abstract: true
+  parent: BaseOnyxAugment
+  id: BaseOnyxHeadAugment
+  description: Кибернетический имплант для головы.
+  components:
+  - type: Sprite
+    sprite: _Shitmed/Objects/Augments/power.rsi
+    state: cell
+  - type: Organ
+    slotId: headImplant
+  - type: Tag
+    tags:
+    - headAugment
+    - Augment
+
+- type: entity
+  abstract: true
+  parent: BaseOnyxAugment
+  id: BaseOnyxEyeAugment
+  description: Кибернетический имплант для глаз.
+  components:
+  - type: Sprite
+    sprite: _Shitmed/Objects/Augments/power.rsi
+    state: cell
+  - type: Organ
+    slotId: eyeImplant
+  - type: Tag
+    tags:
+    - eyeAugment
+    - Augment
+
+- type: entity
+  abstract: true
+  parent: BaseOnyxAugment
+  id: BaseOnyxBrainAugment
+  description: Кибернетический имплант для мозга.
+  components:
+  - type: Sprite
+    sprite: _Shitmed/Objects/Augments/power.rsi
+    state: cell
+  - type: Organ
+    slotId: brainImplant
+  - type: Tag
+    tags:
+    - brainAugment
+    - Augment
+
+- type: entity
+  abstract: true
+  parent: BaseOnyxAugment
+  id: BaseOnyxArmAugment
+  description: Кибернетический имплант для руки.
+  components:
+  - type: Sprite
+    sprite: _Shitmed/Objects/Augments/power.rsi
+    state: cell
+  - type: Organ
+    slotId: armImplant
+  - type: Tag
+    tags:
+    - armAugment
+    - Augment
+
+- type: entity
+  abstract: true
+  parent: BaseOnyxAugment
+  id: BaseOnyxHandAugment
+  description: Кибернетический имплант для кисти.
+  components:
+  - type: Sprite
+    sprite: _Shitmed/Objects/Augments/power.rsi
+    state: cell
+  - type: Organ
+    slotId: handImplant
+  - type: Tag
+    tags:
+    - handAugment
+    - Augment
