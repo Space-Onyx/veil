@@ -28,6 +28,7 @@ public sealed class ATMSystem : SharedATMSystem
     [Dependency] private readonly ContainerSystem _container = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly GameTicker _gameTicker = default!;
+    private Dictionary<EntityUid, EntityUid> _authenticatedCard = new();
 
     public override void Initialize()
     {
@@ -35,6 +36,7 @@ public sealed class ATMSystem : SharedATMSystem
         SubscribeLocalEvent<ATMComponent, EntInsertedIntoContainerMessage>(OnCardInserted);
         SubscribeLocalEvent<ATMComponent, EntRemovedFromContainerMessage>(OnCardRemoved);
         SubscribeLocalEvent<ATMComponent, ATMRequestWithdrawMessage>(OnWithdrawRequest);
+        SubscribeLocalEvent<ATMComponent, ATMPinVerifyMessage>(OnPinVerify);
         SubscribeLocalEvent<ATMComponent, InteractUsingEvent>(OnInteractUsing);
         SubscribeLocalEvent<ATMComponent, ComponentStartup>(OnComponentStartup);
         SubscribeLocalEvent<ATMComponent, GotEmaggedEvent>(OnEmag);
@@ -47,7 +49,7 @@ public sealed class ATMSystem : SharedATMSystem
 
     private void OnComponentStartup(EntityUid uid, ATMComponent component, ComponentStartup args)
     {
-        UpdateUiState(uid, -1, false, Loc.GetString("atm-ui-insert-card"));
+        UpdateUiState(uid, ATMUiState.NoCard, string.Empty, 0);
     }
 
     private void OnInteractUsing(EntityUid uid, ATMComponent component, InteractUsingEvent args)
@@ -73,11 +75,19 @@ public sealed class ATMSystem : SharedATMSystem
             Del(args.Used);
             args.Handled = true;
             var newBalance = _bankCardSystem.GetBalance(bankCard.AccountId.Value);
-            UpdateUiState(uid, newBalance, true, Loc.GetString("atm-ui-select-withdraw-amount"));
-            _audioSystem.PlayPvs(component.SoundInsertCurrency, uid);
-            if (_bankCardSystem.TryGetAccount(bankCard.AccountId.Value, out var account))
+
+            if (_authenticatedCard.TryGetValue(uid, out var authCard) && authCard == component.CardSlot.Item.Value)
             {
-                account.AddTransaction(new TransactionRecord(
+                if (_bankCardSystem.TryGetAccount(bankCard.AccountId.Value, out var account))
+                {
+                    UpdateUiState(uid, ATMUiState.MainMenu, account.Name, newBalance);
+                }
+            }
+
+            _audioSystem.PlayPvs(component.SoundInsertCurrency, uid);
+            if (_bankCardSystem.TryGetAccount(bankCard.AccountId.Value, out var acc))
+            {
+                acc.AddTransaction(new TransactionRecord(
                     TransactionRecord.TransactionType.Deposit,
                     $"Пополнение через банкомат",
                     amount,
@@ -96,15 +106,27 @@ public sealed class ATMSystem : SharedATMSystem
             return;
         }
 
-        UpdateUiState(uid, _bankCardSystem.GetBalance(bankCard.AccountId.Value), true, Loc.GetString("atm-ui-select-withdraw-amount"));
+        if (HasComp<EmaggedComponent>(uid))
+        {
+            _authenticatedCard[uid] = args.Entity;
+            var balance = _bankCardSystem.GetBalance(bankCard.AccountId.Value);
+            if (_bankCardSystem.TryGetAccount(bankCard.AccountId.Value, out var account))
+            {
+                UpdateUiState(uid, ATMUiState.MainMenu, account.Name, balance);
+            }
+            return;
+        }
+
+        UpdateUiState(uid, ATMUiState.PinEntry, string.Empty, 0);
     }
 
     private void OnCardRemoved(EntityUid uid, ATMComponent component, EntRemovedFromContainerMessage args)
     {
-        UpdateUiState(uid, -1, false, Loc.GetString("atm-ui-insert-card"));
+        _authenticatedCard.Remove(uid);
+        UpdateUiState(uid, ATMUiState.NoCard, string.Empty, 0);
     }
 
-    private void OnWithdrawRequest(EntityUid uid, ATMComponent component, ATMRequestWithdrawMessage args)
+    private void OnPinVerify(EntityUid uid, ATMComponent component, ATMPinVerifyMessage args)
     {
         if (!TryComp<BankCardComponent>(component.CardSlot.Item, out var bankCard) || !bankCard.AccountId.HasValue)
         {
@@ -121,38 +143,61 @@ public sealed class ATMSystem : SharedATMSystem
             return;
         }
 
-        if (!_bankCardSystem.TryChangeBalance(account.AccountId, -args.Amount))
+        _authenticatedCard[uid] = component.CardSlot.Item.Value;
+        var balance = _bankCardSystem.GetBalance(bankCard.AccountId.Value);
+        UpdateUiState(uid, ATMUiState.MainMenu, account.Name, balance);
+        _audioSystem.PlayPvs(component.SoundApply, uid);
+    }
+
+    private void OnWithdrawRequest(EntityUid uid, ATMComponent component, ATMRequestWithdrawMessage args)
+    {
+        if (!TryComp<BankCardComponent>(component.CardSlot.Item, out var bankCard) || !bankCard.AccountId.HasValue ||
+            !_authenticatedCard.TryGetValue(uid, out var authCard) || authCard != component.CardSlot.Item.Value)
+        {
+            _authenticatedCard.Remove(uid);
+            UpdateUiState(uid, ATMUiState.PinEntry, string.Empty, 0);
+            return;
+        }
+
+        if (!_bankCardSystem.TryChangeBalance(bankCard.AccountId.Value, -args.Amount))
         {
             _popupSystem.PopupEntity(Loc.GetString("atm-not-enough-cash"), uid);
             _audioSystem.PlayPvs(component.SoundDeny, uid);
             return;
         }
-        account.AddTransaction(new TransactionRecord(
-            TransactionRecord.TransactionType.Withdraw,
-            $"Снятие через банкомат",
-            -args.Amount,
-            Robust.Shared.Maths.Color.Red,
-            DateTime.MinValue.Add(_timing.CurTime.Subtract(_gameTicker.RoundStartTimeSpan))
-        ));
+
+        if (_bankCardSystem.TryGetAccount(bankCard.AccountId.Value, out var account))
+        {
+            account.AddTransaction(new TransactionRecord(
+                TransactionRecord.TransactionType.Withdraw,
+                $"Снятие через банкомат",
+                -args.Amount,
+                Robust.Shared.Maths.Color.Red,
+                DateTime.MinValue.Add(_timing.CurTime.Subtract(_gameTicker.RoundStartTimeSpan))
+            ));
+        }
+
         var transform = Transform(uid);
         var forward = transform.LocalRotation.ToWorldVec();
         var offset = forward * 0.7f;
         var spawnCoords = transform.Coordinates.Offset(offset);
         _stackSystem.Spawn(args.Amount, _prototypeManager.Index<StackPrototype>(component.CreditStackPrototype), spawnCoords);
         _audioSystem.PlayPvs(component.SoundWithdrawCurrency, uid);
-        UpdateUiState(uid, _bankCardSystem.GetBalance(account.AccountId), true, Loc.GetString("atm-ui-select-withdraw-amount"));
+
+        // Update UI with new balance
+        var newBalance = _bankCardSystem.GetBalance(bankCard.AccountId.Value);
+        UpdateUiState(uid, ATMUiState.MainMenu, account?.Name ?? string.Empty, newBalance);
     }
 
-    private void UpdateUiState(EntityUid uid, int balance, bool hasCard, string infoMessage)
+    private void UpdateUiState(EntityUid uid, ATMUiState state, string ownerName, int balance)
     {
-        var state = new ATMBuiState
+        var stateObj = new ATMBuiState
         {
-            AccountBalance = balance,
-            HasCard = hasCard,
-            InfoMessage = infoMessage
+            CurrentState = state,
+            OwnerName = ownerName,
+            AccountBalance = balance
         };
 
-
-        _ui.SetUiState(uid, ATMUiKey.Key, state);
+        _ui.SetUiState(uid, ATMUiKey.Key, stateObj);
     }
 }

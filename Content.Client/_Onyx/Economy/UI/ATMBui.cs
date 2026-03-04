@@ -2,7 +2,6 @@
 
 namespace Content.Client._Onyx.Economy.UI;
 
-
 [UsedImplicitly]
 public sealed class ATMBui : BoundUserInterface
 {
@@ -18,6 +17,7 @@ public sealed class ATMBui : BoundUserInterface
         base.Open();
         _window.OnClose += Close;
         _window.OnWithdrawAttempt += SendMessage;
+        _window.OnPinVerifyAttempt += SendMessage;
 
         if (State != null)
         {
@@ -25,7 +25,6 @@ public sealed class ATMBui : BoundUserInterface
         }
 
         _window.OpenCentered();
-
     }
 
     protected override void UpdateState(BoundUserInterfaceState state)

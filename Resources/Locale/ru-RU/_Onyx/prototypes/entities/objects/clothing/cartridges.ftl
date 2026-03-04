@@ -1,2 +1,2 @@
-ent-VORWalletCartridge = картридж НаноБанк
-    .desc = Программа виртуального кошелька НаноБанк.
+ent-VORWalletCartridge = картридж NanoBank
+    .desc = Программа виртуального кошелька NanoBank.

@@ -35,7 +35,7 @@ bank-program-ui-transfer-error-amount = [color=red]Error: Invalid transfer amoun
 bank-program-ui-transfer-error-nomoney = [color=red]Error: Not enough funds to transfer.[/color]
 
 # ATM
-atm-ui-balance = Balance: { $balance }
+bank-program-ui-balance = Balance: { $balance }
 
 # Transaction History
 bank-program-ui-refresh-tooltip = Refresh

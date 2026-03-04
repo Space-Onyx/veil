@@ -1,5 +1,10 @@
 bank-program-ui-no-account = [color=red]Аккаунт не привязан.[/color]
-bank-program-name = НаноБанк
+bank-program-name = NanoBank
+
+# Balance display (used by PDA Bank App)
+bank-program-ui-balance = { $balance } $
+bank-program-ui-balance-label = Баланс: 
+bank-program-ui-account-label = Аккаунт: 
 bank-program-ui-link-account = Привязать аккаунт
 bank-program-ui-account-number = Номер аккаунта
 bank-program-ui-link-confirm = Привязать

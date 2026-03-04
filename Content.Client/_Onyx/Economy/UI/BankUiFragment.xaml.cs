@@ -368,11 +368,9 @@ public sealed partial class BankUiFragment : BoxContainer
 
         if (accountLinked)
         {
-            LinkedAccountNumberLabel.Text = Loc.GetString("bank-program-ui-account-number-text",
-                ("account", state.AccountId!.Value));
-            LinkedAccountNameLabel.Text = Loc.GetString("bank-program-ui-account-owner-text",
-                ("owner", state.OwnerName));
-            LinkedAccountBalanceLabel.Text = Loc.GetString("atm-ui-balance", ("balance", state.Balance));
+            LinkedAccountNumberLabel.Text = $"[color=white]{state.AccountId!.Value}[/color]";
+            LinkedAccountNameLabel.Text = state.OwnerName;
+            LinkedAccountBalanceLabel.Text = $"{state.Balance} $";
             UpdateAccountLinkUi();
             return;
         }
