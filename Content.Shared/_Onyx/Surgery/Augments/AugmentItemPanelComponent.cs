@@ -2,7 +2,7 @@ using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 
-namespace Content.Shared._Onyx.Augments;
+namespace Content.Shared._Onyx.Surgery.Augments;
 
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class AugmentItemPanelComponent : Component

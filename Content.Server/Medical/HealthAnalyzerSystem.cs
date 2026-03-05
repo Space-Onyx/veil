@@ -535,6 +535,9 @@ public sealed class HealthAnalyzerSystem : EntitySystem
 
         foreach (var (organId, organComp) in _bodySystem.GetBodyOrgans(target))
         {
+            if (organComp.HiddenFromAnalyzer) // Onyx-Surgery
+                continue;
+
             organs.Add(GetNetEntity(organId), new OrganTraumaData(organComp.OrganIntegrity,
                 organComp.IntegrityCap,
                 organComp.OrganSeverity,

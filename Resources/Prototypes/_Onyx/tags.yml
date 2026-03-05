@@ -23,6 +23,9 @@
   id: headAugment
 
 - type: Tag
+  id: neckAugment
+
+- type: Tag
   id: eyeAugment
 
 - type: Tag

@@ -52,6 +52,8 @@ using Robust.Shared.Network;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 using Content.Shared.Body.Organ;
+using Content.Shared.Tag;
+using Content.Shared._Onyx.Surgery.Conditions;
 
 namespace Content.Shared._Shitmed.Medical.Surgery;
 
@@ -79,6 +81,7 @@ public abstract partial class SharedSurgerySystem : EntitySystem
     [Dependency] private readonly PainSystem _pain = default!;
     [Dependency] private readonly SharedUserInterfaceSystem _ui = default!;
     [Dependency] protected readonly StatusEffectsSystem Status = default!;
+    [Dependency] private readonly TagSystem _tag = default!;
 
     private EntityQuery<BodyComponent> _bodyQuery;
     private EntityQuery<StackComponent> _stackQuery;
@@ -117,6 +120,7 @@ public abstract partial class SharedSurgerySystem : EntitySystem
         SubscribeLocalEvent<SurgeryPartRemovedConditionComponent, SurgeryValidEvent>(OnPartRemovedConditionValid);
         SubscribeLocalEvent<SurgeryBodyConditionComponent, SurgeryValidEvent>(OnBodyConditionValid);
         SubscribeLocalEvent<SurgeryOrganSlotConditionComponent, SurgeryValidEvent>(OnOrganSlotConditionValid);
+        SubscribeLocalEvent<SurgeryOrganTagConditionComponent, SurgeryValidEvent>(OnOrganTagConditionValid); // <Onyx-Surgery>
         SubscribeLocalEvent<SurgeryPartPresentConditionComponent, SurgeryValidEvent>(OnPartPresentConditionValid);
         SubscribeLocalEvent<SurgeryTraumaPresentConditionComponent, SurgeryValidEvent>(OnTraumaPresentConditionValid);
         SubscribeLocalEvent<SurgeryBleedsPresentConditionComponent, SurgeryValidEvent>(OnBleedsPresentConditionValid);
@@ -342,7 +346,9 @@ public abstract partial class SharedSurgerySystem : EntitySystem
                 // End of DeltaV Additions
             }
             else if (!ent.Comp.Inverse)
+            {
                 args.Cancelled = true;
+            }
         }
     }
 
@@ -356,6 +362,42 @@ public abstract partial class SharedSurgerySystem : EntitySystem
     {
         args.Cancelled |= _body.CanInsertOrgan(args.Part, ent.Comp.OrganSlot) ^ !ent.Comp.Inverse;
     }
+    // <Onyx-Surgery>
+    private void OnOrganTagConditionValid(Entity<SurgeryOrganTagConditionComponent> ent, ref SurgeryValidEvent args)
+    {
+        if (!TryComp<BodyPartComponent>(args.Part, out var partComp)
+            || partComp.Body != args.Body)
+        {
+            args.Cancelled = true;
+            return;
+        }
+
+        var found = false;
+        var hasReattached = false;
+        foreach (var organ in _body.GetPartOrgans(args.Part, partComp))
+        {
+            if (_tag.HasTag(organ.Id, ent.Comp.Tag))
+            {
+                found = true;
+                hasReattached = HasComp<OrganReattachedComponent>(organ.Id);
+                break;
+            }
+        }
+
+        if (found)
+        {
+            if (ent.Comp.Inverse
+                && (!ent.Comp.Reattaching
+                    || ent.Comp.Reattaching && !hasReattached))
+                args.Cancelled = true;
+        }
+        else
+        {
+            if (!ent.Comp.Inverse)
+                args.Cancelled = true;
+        }
+    }
+    // </Onyx-Surgery>
 
     private void OnPartRemovedConditionValid(Entity<SurgeryPartRemovedConditionComponent> ent, ref SurgeryValidEvent args)
     {

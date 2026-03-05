@@ -1,6 +1,6 @@
 using Robust.Shared.Containers;
 
-namespace Content.Shared._Onyx.Augments;
+namespace Content.Shared._Onyx.Surgery.Augments;
 
 public abstract class SharedAugmentItemPanelSystem : EntitySystem
 {

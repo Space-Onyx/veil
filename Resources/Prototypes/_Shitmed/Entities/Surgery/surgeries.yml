@@ -1056,12 +1056,10 @@
     parts: [ Head ]
 
 # <Onyx Augments>
-
 - type: entity
   parent: SurgeryOpenCavityBase
   id: SurgeryOpenLegAugmentLeft
   name: Open Left Leg Cavity
-  description: Creates an implant cavity in the left leg for augments.
   components:
   - type: Surgery
     requirement: SurgeryOpenIncision
@@ -1079,7 +1077,6 @@
   parent: SurgeryOpenCavityBase
   id: SurgeryOpenLegAugmentRight
   name: Open Right Leg Cavity
-  description: Creates an implant cavity in the right leg for augments.
   components:
   - type: Surgery
     requirement: SurgeryOpenIncision
@@ -1097,7 +1094,6 @@
   parent: SurgeryInstallAugmentBase
   id: SurgeryInsertRunnerAugmentLeft
   name: Insert Left Runner Augment
-  description: Implants a speed-enhancing augment into the left leg.
   components:
   - type: Surgery
     requirement: SurgeryOpenIncision
@@ -1119,7 +1115,6 @@
   parent: SurgeryInstallAugmentBase
   id: SurgeryInsertRunnerAugmentRight
   name: Insert Right Runner Augment
-  description: Implants a speed-enhancing augment into the right leg.
   components:
   - type: Surgery
     requirement: SurgeryOpenIncision
@@ -1141,7 +1136,6 @@
   parent: SurgeryRemoveAugmentBase
   id: SurgeryRemoveRunnerAugmentLeft
   name: Remove Left Runner Augment
-  description: Removes a runner augment from the left leg.
   components:
   - type: Surgery
     requirement: SurgeryOpenIncision
@@ -1156,7 +1150,6 @@
   parent: SurgeryRemoveAugmentBase
   id: SurgeryRemoveRunnerAugmentRight
   name: Remove Right Runner Augment
-  description: Removes a runner augment from the right leg.
   components:
   - type: Surgery
     requirement: SurgeryOpenIncision
@@ -1166,4 +1159,102 @@
   - type: SurgeryOrganCondition
     organ:
     - type: AugmentMovementSpeed
+
+- type: entity
+  parent: SurgeryOpenCavityBase
+  id: SurgeryOpenHeadAugment
+  name: Open Head Cavity
+  components:
+  - type: Surgery
+    requirement: SurgeryOpenIncision
+    steps:
+    - SurgeryStepSawBones
+    - SurgeryStepOpenOrganSlot
+  - type: SurgeryPartCondition
+    parts: [ Head ]
+  - type: SurgeryOrganSlotCondition
+    organSlot: headImplant
+    inverse: true
+
+- type: entity
+  parent: SurgeryOpenCavityBase
+  id: SurgeryOpenNeckAugment
+  name: Open Neck Cavity
+  components:
+  - type: Surgery
+    requirement: SurgeryOpenIncision
+    steps:
+    - SurgeryStepSawBones
+    - SurgeryStepOpenOrganSlot
+  - type: SurgeryPartCondition
+    parts: [ Head ]
+  - type: SurgeryOrganSlotCondition
+    organSlot: neckImplant
+    inverse: true
+
+- type: entity
+  id: SurgeryInsertHeadAugment
+  name: Insert Head Augment
+  components:
+  - type: Surgery
+    requirement: SurgeryOpenHeadAugment
+    steps:
+    - SurgeryStepInsertAugmentHead
+    - SurgeryStepSealOrganWound
+  - type: SurgeryPartCondition
+    parts: [ Head ]
+  - type: SurgeryOrganSlotCondition
+    organSlot: headImplant
+  - type: SurgeryOrganTagCondition
+    tag: headAugment
+    inverse: true
+    reattaching: true
+
+- type: entity
+  id: SurgeryInsertNeckAugment
+  name: Insert Neck Augment
+  components:
+  - type: Surgery
+    requirement: SurgeryOpenNeckAugment
+    steps:
+    - SurgeryStepInsertAugmentNeck
+    - SurgeryStepSealOrganWound
+  - type: SurgeryPartCondition
+    parts: [ Head ]
+  - type: SurgeryOrganSlotCondition
+    organSlot: neckImplant
+  - type: SurgeryOrganTagCondition
+    tag: neckAugment
+    inverse: true
+    reattaching: true
+
+- type: entity
+  parent: SurgeryRemoveAugmentBase
+  id: SurgeryRemoveHeadAugment
+  name: Remove Head Augment
+  components:
+  - type: Surgery
+    requirement: SurgeryOpenIncision
+  - type: SurgeryPartCondition
+    parts: [ Head ]
+  - type: SurgeryOrganTagCondition
+    tag: headAugment
+  - type: SurgeryOrganCondition
+    organ:
+    - type: Organ
+
+- type: entity
+  parent: SurgeryRemoveAugmentBase
+  id: SurgeryRemoveNeckAugment
+  name: Remove Neck Augment
+  components:
+  - type: Surgery
+    requirement: SurgeryOpenIncision
+  - type: SurgeryPartCondition
+    parts: [ Head ]
+  - type: SurgeryOrganTagCondition
+    tag: neckAugment
+  - type: SurgeryOrganCondition
+    organ:
+    - type: Organ
 # </Onyx Augments>

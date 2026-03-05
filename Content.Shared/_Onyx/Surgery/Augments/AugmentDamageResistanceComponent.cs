@@ -1,7 +1,7 @@
 using Content.Shared.Damage;
 using Robust.Shared.GameStates;
 
-namespace Content.Shared._Onyx.Augments;
+namespace Content.Shared._Onyx.Surgery.Augments;
 
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class AugmentDamageResistanceComponent : Component

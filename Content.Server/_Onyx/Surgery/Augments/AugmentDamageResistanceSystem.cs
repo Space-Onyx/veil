@@ -1,4 +1,4 @@
-using Content.Shared._Onyx.Augments;
+using Content.Shared._Onyx.Surgery.Augments;
 using Content.Shared.Body.Events;
 using Content.Shared.Body.Organ;
 using Content.Shared.Damage;
@@ -6,7 +6,7 @@ using Content.Shared.Damage.Prototypes;
 using Content.Goobstation.Shared.Augments;
 using Robust.Shared.Prototypes;
 
-namespace Content.Server._Onyx.Augments;
+namespace Content.Server._Onyx.Surgery.Augments;
 
 public sealed class AugmentDamageResistanceSystem : EntitySystem
 {

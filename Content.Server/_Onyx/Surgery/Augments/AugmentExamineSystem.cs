@@ -1,10 +1,10 @@
-using Content.Shared._Onyx.Augments;
+using Content.Shared._Onyx.Surgery.Augments;
 using Content.Shared.Body.Part;
 using Content.Shared.HealthExaminable;
 using Content.Goobstation.Shared.Augments;
 using Content.Server.Body.Systems;
 
-namespace Content.Server._Onyx.Augments;
+namespace Content.Server._Onyx.Surgery.Augments;
 
 public sealed class AugmentExamineSystem : EntitySystem
 {

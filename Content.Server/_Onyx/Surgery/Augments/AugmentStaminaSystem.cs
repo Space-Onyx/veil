@@ -1,10 +1,10 @@
-using Content.Shared._Onyx.Augments;
+using Content.Shared._Onyx.Surgery.Augments;
 using Content.Shared.Body.Events;
 using Content.Shared.Body.Organ;
 using Content.Shared.Damage.Components;
 using Content.Goobstation.Shared.Augments;
 
-namespace Content.Server._Onyx.Augments;
+namespace Content.Server._Onyx.Surgery.Augments;
 
 public sealed class AugmentStaminaSystem : EntitySystem
 {

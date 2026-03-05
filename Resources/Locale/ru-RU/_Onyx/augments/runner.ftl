@@ -11,20 +11,8 @@ ent-AdvancedRunnerAugmentLeft = улучшенный левый бегунок
 ent-AdvancedRunnerAugmentRight = улучшенный правый бегунок
     .desc = { ent-AdvancedRunnerAugmentRight.desc }
 
-# Surgery Names
-ent-SurgeryOpenLegAugmentLeft = Открыть полость левой ноги
-ent-SurgeryOpenLegAugmentRight = Открыть полость правой ноги
-ent-SurgeryInsertRunnerAugmentLeft = Вживить левый бегунок
-ent-SurgeryInsertRunnerAugmentRight = Вживить правый бегунок
-ent-SurgeryRemoveRunnerAugmentLeft = Удалить левый бегунок
-ent-SurgeryRemoveRunnerAugmentRight = Удалить правый бегунок
-
-# Surgery Steps
-ent-SurgeryStepInsertAugmentLeg = Вставить ножной имплант
-
 # Augment Examine
 augment-examine-header = [bold]Аугментации:[/bold]
 augment-examine-entry = [color={$color}]  {$part}:[/color] {$text}
 augment-examine-runner = Бегунок (+25% скорости)
 augment-examine-runner-advanced = Улучшенный бегунок (+50% скорости)
-augment-examine-unknown-part = неизвестно

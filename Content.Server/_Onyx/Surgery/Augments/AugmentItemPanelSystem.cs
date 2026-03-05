@@ -1,5 +1,5 @@
 using System.Linq;
-using Content.Shared._Onyx.Augments;
+using Content.Shared._Onyx.Surgery.Augments;
 using Content.Shared.Actions;
 using Content.Shared.Body.Events;
 using Content.Shared.Body.Part;
@@ -10,7 +10,7 @@ using Content.Goobstation.Shared.Augments;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 
-namespace Content.Server._Onyx.Augments;
+namespace Content.Server._Onyx.Surgery.Augments;
 
 public sealed class AugmentItemPanelSystem : SharedAugmentItemPanelSystem
 {

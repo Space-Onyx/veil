@@ -1,9 +1,9 @@
-using Content.Shared._Onyx.Augments;
+using Content.Shared._Onyx.Surgery.Augments;
 using Content.Shared.Body.Events;
 using Content.Shared.Flash.Components;
 using Content.Shared.Overlays;
 
-namespace Content.Server._Onyx.Augments;
+namespace Content.Server._Onyx.Surgery.Augments;
 
 public sealed class AugmentVisionSystem : EntitySystem
 {

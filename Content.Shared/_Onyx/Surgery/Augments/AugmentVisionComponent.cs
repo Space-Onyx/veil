@@ -1,7 +1,7 @@
 using Robust.Shared.GameStates;
 using Robust.Shared.Serialization;
 
-namespace Content.Shared._Onyx.Augments;
+namespace Content.Shared._Onyx.Surgery.Augments;
 
 [Serializable, NetSerializable]
 public enum AugmentVisionType : byte
