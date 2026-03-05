@@ -16,6 +16,7 @@
       organs:
         brain: OrganAbductorBrain
         eyes: OrganAbductorEyes
+        tongue: OrganHumanTongue # Onyx-Surgery
     chest:
       part: ChestAbductor
       connections:

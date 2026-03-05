@@ -277,6 +277,15 @@
   name: tongue
   description: "A fleshy muscle mostly used for lying."
   components:
+  - type: Organ # Onyx-Surgery
+    slotId: tongue
+    intCap: 10
+    integrity: 10
+    integrityThresholds:
+      Normal: 10
+      Damaged: 5
+      Destroyed: 0
+  - type: Tongue # Onyx-Surgery
   - type: Sprite
     state: tongue
   - type: Tag # goob edit

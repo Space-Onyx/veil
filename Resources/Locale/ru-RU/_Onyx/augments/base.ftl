@@ -20,5 +20,6 @@ ent-SurgeryStepInsertAugmentNeck = Вставить аугмент в шею
 ent-SurgeryStepInsertAugmentLeg = Вставить ножной имплант
 
 # Augment Examine
-
+augment-examine-header = [bold]Аугментации:[/bold]
+augment-examine-entry = [color={$color}]  {$part}:[/color] {$text}
 augment-examine-unknown-part = неизвестно
