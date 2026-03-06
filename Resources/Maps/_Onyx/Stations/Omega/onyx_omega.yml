@@ -101239,7 +101239,7 @@ entities:
     - type: Transform
       pos: 17.5,54.5
       parent: 2
-- proto: VORATM
+- proto: ATM
   entities:
   - uid: 15011
     components:
@@ -101253,7 +101253,7 @@ entities:
       rot: 3.141592653589793 rad
       pos: 17.5,15.5
       parent: 2
-- proto: VORWallATM
+- proto: WallATM
   entities:
   - uid: 15007
     components:

@@ -53760,7 +53760,7 @@ entities:
     - type: Transform
       pos: 5.5,-0.5
       parent: 2
-- proto: VORATM
+- proto: ATM
   entities:
   - uid: 5993
     components:
@@ -53768,7 +53768,7 @@ entities:
       rot: 1.5707963267948966 rad
       pos: 17.5,-38.5
       parent: 2
-- proto: VORWallATM
+- proto: WallATM
   entities:
   - uid: 5994
     components:

@@ -93085,7 +93085,7 @@ entities:
     - type: Transform
       pos: 13.5,38.5
       parent: 2
-- proto: VORATMFlatpack
+- proto: ATMFlatpack
   entities:
   - uid: 5897
     components:
@@ -93094,7 +93094,7 @@ entities:
     - type: Physics
       canCollide: False
     - type: InsideEntityStorage
-- proto: VORWallATM
+- proto: WallATM
   entities:
   - uid: 13538
     components:

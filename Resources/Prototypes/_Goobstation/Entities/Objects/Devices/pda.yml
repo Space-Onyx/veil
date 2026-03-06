@@ -207,7 +207,7 @@
     - MedTekCartridge
     - AstroNavCartridge
     - NanoChatCartridge # DeltaV
-    - VORWalletCartridge # <Onyx Economy>
+    - WalletCartridge # <Onyx Economy>
 
 - type: entity
   parent: NavyCaptainPDA
@@ -282,7 +282,7 @@
     - NotekeeperCartridge
     - NanoTaskCartridge
     - NanoChatCartridge # DeltaV
-    - VORWalletCartridge # <Onyx Economy>
+    - WalletCartridge # <Onyx Economy>
 
 - type: entity
   parent: BaseMedicalPDA

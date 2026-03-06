@@ -1,5 +1,5 @@
 - type: entity
-  id: VORWallATM
+  id: WallATM
   name: Wallmount ATM
   description: For all your monetary needs!
   placement:
@@ -73,7 +73,7 @@
 
 - type: entity
   parent: BaseStructureDynamic
-  id: VORATM
+  id: ATM
   name: ATM
   description: For all your monetary needs!
   placement:
@@ -145,9 +145,9 @@
 
 - type: entity
   parent: BaseFlatpack
-  id: VORATMFlatpack
+  id: ATMFlatpack
   name: ATM flatpack
   description: A flatpack used for constructing a ATM
   components:
   - type: Flatpack
-    entity: VORATM
+    entity: ATM
