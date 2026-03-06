@@ -48,6 +48,7 @@ using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 using System.Linq;
 using Content.Shared._Shitmed.Surgery;
+using Content.Shared._Onyx.Surgery.Conditions;
 
 namespace Content.Shared._Shitmed.Medical.Surgery;
 
@@ -356,121 +357,307 @@ public abstract partial class SharedSurgerySystem
 
     private void OnAddOrganStep(Entity<SurgeryAddOrganStepComponent> ent, ref SurgeryStepEvent args)
     {
+        // <Onyx-Surgery-Edited>
         if (!_partQuery.TryComp(args.Part, out var partComp)
-            || partComp.Body != args.Body
-            || !TryComp(args.Surgery, out SurgeryOrganConditionComponent? organComp)
-            || organComp.Organ == null)
+            || partComp.Body != args.Body)
             return;
 
-        // Adding organs is generally done for a single one at a time, so we only need to check for the first.
-        var firstOrgan = organComp.Organ.Values.FirstOrDefault();
-        if (firstOrgan == default)
+        var hasOrganCondition = TryComp(args.Surgery, out SurgeryOrganConditionComponent? organComp)
+            && organComp.Organ != null;
+        var hasTagCondition = TryComp(args.Surgery, out SurgeryOrganTagConditionComponent? tagComp);
+
+        if (!hasOrganCondition && !hasTagCondition)
             return;
 
-        if (!HasComp(args.Tool, firstOrgan.Component.GetType())
-            || !TryComp<OrganComponent>(args.Tool, out var insertedOrgan)
+        if (hasOrganCondition)
+        {
+            var firstOrgan = organComp!.Organ!.Values.FirstOrDefault();
+            if (firstOrgan == default || !HasComp(args.Tool, firstOrgan.Component.GetType()))
+                return;
+        }
+
+        if (hasTagCondition)
+        {
+            if (!_tag.HasTag(args.Tool, tagComp!.Tag))
+                return;
+        }
+
+        if (!TryComp<OrganComponent>(args.Tool, out var insertedOrgan)
             || !_body.InsertOrgan(args.Part, args.Tool, insertedOrgan.SlotId, partComp, insertedOrgan))
             return;
-
+        // </Onyx-Surgery-Edited>
         EnsureComp<OrganReattachedComponent>(args.Tool);
 
         if (insertedOrgan.OriginalBody == args.Body)
             return;
 
         var ev = new SurgeryStepDamageChangeEvent(args.User, args.Body, args.Part, ent);
-            RaiseLocalEvent(ent, ref ev);
-            args.Complete = true;
+        // <Onyx-Surgery-Edited>
+        RaiseLocalEvent(ent, ref ev);
+        args.Complete = true;
+        // </Onyx-Surgery-Edited>
     }
 
     private void OnAddOrganCheck(Entity<SurgeryAddOrganStepComponent> ent, ref SurgeryStepCompleteCheckEvent args)
     {
-        if (!TryComp<SurgeryOrganConditionComponent>(args.Surgery, out var organComp)
-            || organComp.Organ is null
-            || !_partQuery.TryComp(args.Part, out var partComp)
+        // <Onyx-Surgery-Edited>
+        if (!_partQuery.TryComp(args.Part, out var partComp)
             || partComp.Body != args.Body)
             return;
 
-        // For now we naively assume that every entity will only have one of each organ type.
-        // that we do surgery on, but in the future we'll need to reference their prototype somehow
-        // to know if they need 2 hearts, 2 lungs, etc.
-        foreach (var reg in organComp.Organ.Values)
+        var hasOrganCondition = TryComp<SurgeryOrganConditionComponent>(args.Surgery, out var organComp)
+            && organComp.Organ is not null;
+        var hasTagCondition = TryComp<SurgeryOrganTagConditionComponent>(args.Surgery, out var tagComp);
+
+        if (!hasOrganCondition && !hasTagCondition)
+            return;
+        if (hasOrganCondition)
         {
-            if (!_body.TryGetBodyPartOrgans(args.Part, reg.Component.GetType(), out var _))
+            var organFound = false;
+            foreach (var reg in organComp!.Organ!.Values)
             {
-                args.Cancelled = true;
+                if (_body.TryGetBodyPartOrgans(args.Part, reg.Component.GetType(), out var organs)
+                    && organs.Count > 0)
+                {
+                    organFound = true;
+                    break;
+                }
             }
+            if (!organFound)
+                args.Cancelled = true;
         }
+
+        if (hasTagCondition && !args.Cancelled)
+        {
+            var tagFound = false;
+            foreach (var organ in _body.GetPartOrgans(args.Part, partComp))
+            {
+                if (_tag.HasTag(organ.Id, tagComp!.Tag))
+                {
+                    tagFound = true;
+                    break;
+                }
+            }
+            if (!tagFound)
+                args.Cancelled = true;
+        }
+        // </Onyx-Surgery-Edited>
     }
 
     private void OnAffixOrganStep(Entity<SurgeryAffixOrganStepComponent> ent, ref SurgeryStepEvent args)
     {
-        if (!TryComp(args.Surgery, out SurgeryOrganConditionComponent? removedOrganComp)
-            || removedOrganComp.Organ == null
-            || !removedOrganComp.Reattaching)
+        // <Onyx-Surgery-Edited>
+        var hasOrganCondition = TryComp(args.Surgery, out SurgeryOrganConditionComponent? organComp)
+            && organComp.Organ != null
+            && organComp.Reattaching;
+        var hasTagCondition = TryComp(args.Surgery, out SurgeryOrganTagConditionComponent? tagComp)
+            && tagComp.Reattaching;
+
+        if (!hasOrganCondition && !hasTagCondition)
             return;
 
-        foreach (var reg in removedOrganComp.Organ.Values)
+        if (hasTagCondition)
         {
-            _body.TryGetBodyPartOrgans(args.Part, reg.Component.GetType(), out var organs);
-            if (organs != null && organs.Count > 0)
-                RemComp<OrganReattachedComponent>(organs[0].Id);
-        }
+            if (!_partQuery.TryComp(args.Part, out var partComp))
+                return;
 
+            foreach (var (organId, _) in _body.GetPartOrgans(args.Part, partComp))
+            {
+                if (!_tag.HasTag(organId, tagComp!.Tag) || !HasComp<OrganReattachedComponent>(organId))
+                    continue;
+
+                if (hasOrganCondition && !MatchesOrganComponent(organId, organComp!))
+                    continue;
+
+                RemComp<OrganReattachedComponent>(organId);
+                break;
+            }
+        }
+        else
+        {
+            foreach (var reg in organComp!.Organ!.Values)
+            {
+                if (!_body.TryGetBodyPartOrgans(args.Part, reg.Component.GetType(), out var organs))
+                    continue;
+
+                foreach (var organ in organs)
+                {
+                    if (HasComp<OrganReattachedComponent>(organ.Id))
+                    {
+                        RemComp<OrganReattachedComponent>(organ.Id);
+                        break;
+                    }
+                }
+            }
+        }
+        // </Onyx-Surgery-Edited>
     }
 
     private void OnAffixOrganCheck(Entity<SurgeryAffixOrganStepComponent> ent, ref SurgeryStepCompleteCheckEvent args)
     {
-        if (!TryComp(args.Surgery, out SurgeryOrganConditionComponent? removedOrganComp)
-            || removedOrganComp.Organ == null
-            || !removedOrganComp.Reattaching)
+        // <Onyx-Surgery-Edited>
+        var hasOrganCondition = TryComp(args.Surgery, out SurgeryOrganConditionComponent? organComp)
+            && organComp.Organ != null
+            && organComp.Reattaching;
+        var hasTagCondition = TryComp(args.Surgery, out SurgeryOrganTagConditionComponent? tagComp)
+            && tagComp.Reattaching;
+
+        if (!hasOrganCondition && !hasTagCondition)
             return;
 
-        foreach (var reg in removedOrganComp.Organ.Values)
+        if (hasTagCondition)
         {
-            _body.TryGetBodyPartOrgans(args.Part, reg.Component.GetType(), out var organs);
-            if (organs != null
-                && organs.Count > 0
-                && organs.Any(organ => HasComp<OrganReattachedComponent>(organ.Id)))
-                args.Cancelled = true;
-        }
-    }
+            if (!_partQuery.TryComp(args.Part, out var partComp))
+                return;
 
-    private void OnRemoveOrganStep(Entity<SurgeryRemoveOrganStepComponent> ent, ref SurgeryStepEvent args)
-    {
-        if (!TryComp<SurgeryOrganConditionComponent>(args.Surgery, out var organComp)
-            || organComp.Organ == null)
-            return;
-
-        foreach (var reg in organComp.Organ.Values)
-        {
-            _body.TryGetBodyPartOrgans(args.Part, reg.Component.GetType(), out var organs);
-            if (organs != null && organs.Count > 0)
+            foreach (var (organId, _) in _body.GetPartOrgans(args.Part, partComp))
             {
-                if (_body.TryRemoveOrgan(organs[0].Id, organs[0].Organ))
-                    _hands.TryPickupAnyHand(args.User, organs[0].Id);
-                else
-                    _popup.PopupClient(Loc.GetString("surgery-popup-step-SurgeryStepRemoveOrgan-failed"), args.User, args.User);
-            }
-        }
-    }
+                if (!_tag.HasTag(organId, tagComp!.Tag) || !HasComp<OrganReattachedComponent>(organId))
+                    continue;
 
-    private void OnRemoveOrganCheck(Entity<SurgeryRemoveOrganStepComponent> ent, ref SurgeryStepCompleteCheckEvent args)
-    {
-        if (!TryComp<SurgeryOrganConditionComponent>(args.Surgery, out var organComp)
-            || organComp.Organ == null
-            || !_partQuery.TryComp(args.Part, out var partComp)
-            || partComp.Body != args.Body)
-            return;
+                if (hasOrganCondition && !MatchesOrganComponent(organId, organComp!))
+                    continue;
 
-        foreach (var reg in organComp.Organ.Values)
-        {
-            if (_body.TryGetBodyPartOrgans(args.Part, reg.Component.GetType(), out var organs)
-                && organs.Count > 0)
-            {
                 args.Cancelled = true;
                 return;
             }
         }
+        else
+        {
+            foreach (var reg in organComp!.Organ!.Values)
+            {
+                if (!_body.TryGetBodyPartOrgans(args.Part, reg.Component.GetType(), out var organs))
+                    continue;
+
+                foreach (var organ in organs)
+                {
+                    if (HasComp<OrganReattachedComponent>(organ.Id))
+                    {
+                        args.Cancelled = true;
+                        return;
+                    }
+                }
+            }
+        }
+        // </Onyx-Surgery-Edited>
+    }
+
+    private void OnRemoveOrganStep(Entity<SurgeryRemoveOrganStepComponent> ent, ref SurgeryStepEvent args)
+    {
+        // <Onyx-Surgery-Edited>
+        if (!_partQuery.TryComp(args.Part, out var partComp))
+            return;
+
+        var hasOrganCondition = TryComp<SurgeryOrganConditionComponent>(args.Surgery, out var organComp)
+            && organComp.Organ != null;
+        var hasTagCondition = TryComp<SurgeryOrganTagConditionComponent>(args.Surgery, out var tagComp);
+
+        if (!hasOrganCondition && !hasTagCondition)
+            return;
+
+        EntityUid? organToRemove = null;
+        OrganComponent? organToRemoveComp = null;
+
+        if (hasTagCondition && hasOrganCondition)
+        {
+            foreach (var (organId, organ) in _body.GetPartOrgans(args.Part, partComp))
+            {
+                if (!_tag.HasTag(organId, tagComp!.Tag))
+                    continue;
+
+                if (!MatchesOrganComponent(organId, organComp!))
+                    continue;
+
+                organToRemove = organId;
+                organToRemoveComp = organ;
+                break;
+            }
+        }
+        else if (hasTagCondition)
+        {
+            foreach (var (organId, organ) in _body.GetPartOrgans(args.Part, partComp))
+            {
+                if (_tag.HasTag(organId, tagComp!.Tag))
+                {
+                    organToRemove = organId;
+                    organToRemoveComp = organ;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            foreach (var reg in organComp!.Organ!.Values)
+            {
+                if (_body.TryGetBodyPartOrgans(args.Part, reg.Component.GetType(), out var organs)
+                    && organs.Count > 0)
+                {
+                    organToRemove = organs[0].Id;
+                    organToRemoveComp = organs[0].Organ;
+                    break;
+                }
+            }
+        }
+
+        if (organToRemove != null && organToRemoveComp != null)
+        {
+            if (_body.TryRemoveOrgan(organToRemove.Value, organToRemoveComp))
+                _hands.TryPickupAnyHand(args.User, organToRemove.Value);
+            else
+                _popup.PopupClient(Loc.GetString("surgery-popup-step-SurgeryStepRemoveOrgan-failed"), args.User, args.User);
+        }
+        // </Onyx-Surgery-Edited>
+    }
+
+    private void OnRemoveOrganCheck(Entity<SurgeryRemoveOrganStepComponent> ent, ref SurgeryStepCompleteCheckEvent args)
+    {
+        // <Onyx-Surgery-Edited>
+        if (!_partQuery.TryComp(args.Part, out var partComp)
+            || partComp.Body != args.Body)
+            return;
+
+        var hasOrganCondition = TryComp<SurgeryOrganConditionComponent>(args.Surgery, out var organComp)
+            && organComp.Organ != null;
+        var hasTagCondition = TryComp<SurgeryOrganTagConditionComponent>(args.Surgery, out var tagComp);
+
+        if (!hasOrganCondition && !hasTagCondition)
+            return;
+
+        if (hasTagCondition && hasOrganCondition)
+        {
+            foreach (var (organId, _) in _body.GetPartOrgans(args.Part, partComp))
+            {
+                if (_tag.HasTag(organId, tagComp!.Tag) && MatchesOrganComponent(organId, organComp!))
+                {
+                    args.Cancelled = true;
+                    return;
+                }
+            }
+        }
+        else if (hasTagCondition)
+        {
+            foreach (var (organId, _) in _body.GetPartOrgans(args.Part, partComp))
+            {
+                if (_tag.HasTag(organId, tagComp!.Tag))
+                {
+                    args.Cancelled = true;
+                    return;
+                }
+            }
+        }
+        else
+        {
+            foreach (var reg in organComp!.Organ!.Values)
+            {
+                if (_body.TryGetBodyPartOrgans(args.Part, reg.Component.GetType(), out var organs)
+                    && organs.Count > 0)
+                {
+                    args.Cancelled = true;
+                    return;
+                }
+            }
+        }
+        // </Onyx-Surgery-Edited>
     }
 
     // TODO: Refactor bodies to include ears as a prototype instead of doing whatever the hell this is.
@@ -1076,5 +1263,16 @@ public abstract partial class SharedSurgerySystem
     }
 
     private bool HasSurgeryComp(EntityUid tool, IComponent component) => GetSurgeryComp(tool, component) != null;
+    // <Onyx-Surgery>
+    private bool MatchesOrganComponent(EntityUid organId, SurgeryOrganConditionComponent organComp)
+    {
+        foreach (var reg in organComp.Organ!.Values)
+        {
+            if (HasComp(organId, reg.Component.GetType()))
+                return true;
+        }
+        return false;
+    }
+    // </Onyx-Surgery>
     #endregion
 }

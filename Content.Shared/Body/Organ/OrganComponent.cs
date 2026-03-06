@@ -147,4 +147,12 @@ public sealed partial class OrganComponent : Component, ISurgeryToolComponent //
     [DataField]
     public bool Removable = true;
     // Shitmed Change End
+
+    // <Onyx-Surgery>
+    /// <summary>
+    ///     If true, this organ will not be shown in the health analyzer's Organs tab.
+    /// </summary>
+    [DataField]
+    public bool HiddenFromAnalyzer;
+    // </Onyx-Surgery>
 }

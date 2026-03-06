@@ -261,7 +261,7 @@
       - NanoTaskCartridge
       - NewsReaderCartridge
       - NanoChatCartridge # DeltaV
-      - VORWalletCartridge # <Onyx Economy>
+      - WalletCartridge # <Onyx Economy>
     cartridgeSlot:
       priority: -1
       name: device-pda-slot-component-slot-name-cartridge
@@ -344,7 +344,7 @@
     - NewsReaderCartridge
     - WantedListCartridge
     - NanoChatCartridge # DeltaV
-    - VORWalletCartridge # <Onyx Economy>
+    - WalletCartridge # <Onyx Economy>
 
 - type: entity
   parent: BasePDA
@@ -360,7 +360,7 @@
       - NewsReaderCartridge
       - MedTekCartridge
       - NanoChatCartridge # DeltaV
-      - VORWalletCartridge # <Onyx Economy>
+      - WalletCartridge # <Onyx Economy>
 
 - type: entity
   parent: BasePDA
@@ -678,7 +678,7 @@
     - AstroNavCartridge
     - MailMetricsCartridge
     - NanoChatCartridge # DeltaV
-    - VORWalletCartridge # <Onyx Economy>
+    - WalletCartridge # <Onyx Economy>
 
 - type: entity
   parent: BasePDA
@@ -725,7 +725,7 @@
       - NewsReaderCartridge
       - AstroNavCartridge
       - NanoChatCartridge # DeltaV
-      - VORWalletCartridge # <Onyx Economy>
+      - WalletCartridge # <Onyx Economy>
 
 - type: entity
   parent: BasePDA
@@ -1077,7 +1077,7 @@
     - WantedListCartridge
     - LogProbeCartridge
     - NanoChatCartridge # DeltaV
-    - VORWalletCartridge # <Onyx Economy>
+    - WalletCartridge # <Onyx Economy>
 
 - type: entity
   parent: BaseSecurityPDA
@@ -1151,7 +1151,7 @@
       - LogProbeCartridge
       - AstroNavCartridge
       - NanoChatCartridge # DeltaV
-      - VORWalletCartridge # <Onyx Economy>
+      - WalletCartridge # <Onyx Economy>
 
 - type: entity
   parent: CentcomPDA
@@ -1180,7 +1180,7 @@
       - MedTekCartridge
       - AstroNavCartridge
       - NanoChatCartridge # DeltaV
-      - VORWalletCartridge # <Onyx Economy>
+      - WalletCartridge # <Onyx Economy>
   - type: Tag #  Ignore Chameleon tags
     tags:
     - DoorBumpOpener
@@ -1506,7 +1506,7 @@
     - WantedListCartridge
     - LogProbeCartridge
     - NanoChatCartridge # DeltaV
-    - VORWalletCartridge # <Onyx Economy>
+    - WalletCartridge # <Onyx Economy>
 
 - type: entity
   parent: BaseMedicalPDA
@@ -1536,7 +1536,7 @@
     - WantedListCartridge
     - MedTekCartridge
     - NanoChatCartridge # DeltaV
-    - VORWalletCartridge # <Onyx Economy>
+    - WalletCartridge # <Onyx Economy>
 
 - type: entity
   parent: ClownPDA
@@ -1683,7 +1683,7 @@
       - NanoTaskCartridge
       - MedTekCartridge
       - NanoChatCartridge # DeltaV
-      - VORWalletCartridge # <Onyx Economy>
+      - WalletCartridge # <Onyx Economy>
 
 - type: entity
   parent: BasePDA

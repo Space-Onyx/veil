@@ -23,6 +23,7 @@
       organs:
         brain: OrganHumanBrain
         eyes: OrganHumanEyes
+        tongue: OrganHumanTongue # Onyx-Surgery
     chest:
       part: ChestResomi
       connections:

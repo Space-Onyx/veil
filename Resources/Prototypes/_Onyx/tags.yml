@@ -6,3 +6,36 @@
 
 - type: Tag
   id: SpaceCash
+
+- type: Tag
+  id: Augment
+
+- type: Tag
+  id: LegAugment
+
+- type: Tag
+  id: footAugment
+
+- type: Tag
+  id: chestAugment
+
+- type: Tag
+  id: headAugment
+
+- type: Tag
+  id: neckAugment
+
+- type: Tag
+  id: eyeAugment
+
+- type: Tag
+  id: brainAugment
+
+- type: Tag
+  id: armAugment
+
+- type: Tag
+  id: handAugment
+
+- type: Tag
+  id: SlotBlock

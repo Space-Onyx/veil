@@ -28,6 +28,7 @@
       - chest
       organs:
         brain: OrganHumanBrain
+        tongue: OrganHumanTongue # Onyx-Surgery
     chest:
       part: ChestYowie
       connections:

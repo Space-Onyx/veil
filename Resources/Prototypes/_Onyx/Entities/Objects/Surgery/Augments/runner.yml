@@ -1,0 +1,87 @@
+- type: entity
+  abstract: true
+  parent: BaseAugment
+  id: BaseRunnerAugment
+  name: runner
+  description: A cybernetic leg implant. Increases walk and sprint speed by ~10%.
+  components:
+  - type: Sprite
+    sprite: _Shitmed/Objects/Augments/power.rsi
+    state: cell
+  - type: Item
+    size: Huge
+  - type: AugmentMovementSpeed
+    walkMultiplier: 1.04
+    sprintMultiplier: 1.04
+
+- type: entity
+  parent: BaseRunnerAugment
+  id: RunnerAugmentLeft
+  name: left runner augment
+  description: A cybernetic leg implant. Increases walk and sprint speed by ~10%.
+  components:
+  - type: AugmentMovementSpeed
+    walkMultiplier: 1.10
+    sprintMultiplier: 1.10
+    augmentId: RunnerLeft
+  - type: Organ
+    slotId: legImplant
+  - type: AugmentExamine
+    color: "#974cf9"
+    examineText: augment-examine-runner
+    visible: true
+  - type: Tag
+    tags:
+    - LegAugment
+    - Augment
+
+- type: entity
+  parent: BaseRunnerAugment
+  id: RunnerAugmentRight
+  name: right runner augment
+  description: A cybernetic leg implant. Increases walk and sprint speed by ~10%.
+  components:
+  - type: AugmentMovementSpeed
+    walkMultiplier: 1.10
+    sprintMultiplier: 1.10
+    augmentId: RunnerRight
+  - type: Organ
+    slotId: legImplant
+  - type: AugmentExamine
+    examineText: augment-examine-runner
+    visible: true
+  - type: Tag
+    tags:
+    - LegAugment
+    - Augment
+
+- type: entity
+  parent: BaseRunnerAugment
+  id: AdvancedRunnerAugmentLeft
+  name: advanced left runner augment
+  description: An advanced cybernetic leg implant. Increases walk and sprint speed by ~25%.
+  components:
+  - type: Sprite
+    state: cell
+  - type: AugmentMovementSpeed
+    walkMultiplier: 1.25
+    sprintMultiplier: 1.25
+    augmentId: AdvancedRunnerLeft
+  - type: Organ
+    slotId: legImplant
+  - type: AugmentExamine
+    examineText: augment-examine-runner-advanced
+    visible: true
+
+- type: entity
+  parent: AdvancedRunnerAugmentLeft
+  id: AdvancedRunnerAugmentRight
+  name: advanced right runner augment
+  description: An advanced cybernetic leg implant. Increases walk and sprint speed by ~25%.
+  components:
+  - type: AugmentMovementSpeed
+    walkMultiplier: 1.25
+    sprintMultiplier: 1.25
+    augmentId: AdvancedRunnerRight
+  - type: Organ
+    slotId: legImplant

@@ -194,6 +194,8 @@
         id: brain
       eyes:
         id: eyes
+      tongue: # Onyx-Surgery
+        id: tongue
   - type: Input
     context: "ghost"
   - type: Tag

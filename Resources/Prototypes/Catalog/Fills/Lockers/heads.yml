@@ -301,10 +301,10 @@
     - id: ClothingEyesHudCommand
     - id: ServiceTechFabCircuitboard # Goobstation - Service Techfab
     - id: CommandMegaphone # goob - loudspeakers
-    - id: VORATMFlatpack # Onyx - Economy
-    - id: VORATMFlatpack # Onyx - Economy
-    - id: VOREftpos # Onyx - Economy
-    - id: VOREftpos # Onyx - Economy
+    - id: ATMFlatpack # Onyx - Economy
+    - id: ATMFlatpack # Onyx - Economy
+    - id: Eftpos # Onyx - Economy
+    - id: Eftpos # Onyx - Economy
 
 - type: entity
   id: LockerHeadOfPersonnelFilled

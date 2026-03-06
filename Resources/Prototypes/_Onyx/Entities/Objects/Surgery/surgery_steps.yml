@@ -1,0 +1,76 @@
+- type: entity
+  parent: SurgeryStepInsertOrgan
+  id: SurgeryStepInsertAugmentLeg
+  name: Add leg augment
+  components:
+  - type: SurgeryStep
+    tool:
+    - type: Organ
+    duration: 6
+  - type: Sprite
+    sprite: _Shitmed/Objects/Specific/Medical/Surgery/manipulation.rsi
+    state: insertion
+  - type: SurgeryAddOrganStep
+  - type: SurgeryStepPainInflicter
+    amount: 90
+    painDuration: 60
+    painType: TraumaticPain
+    sleepModifier: 0
+
+- type: entity
+  parent: SurgeryStepInsertOrgan
+  id: SurgeryStepInsertAugmentHead
+  name: Add head augment
+  description: Insert a head augmentation implant.
+  components:
+  - type: SurgeryStep
+    tool:
+    - type: Organ
+    duration: 6
+  - type: Sprite
+    sprite: _Shitmed/Objects/Specific/Medical/Surgery/manipulation.rsi
+    state: insertion
+  - type: SurgeryAddOrganStep
+  - type: SurgeryStepPainInflicter
+    amount: 90
+    painDuration: 60
+    painType: TraumaticPain
+    sleepModifier: 0
+
+- type: entity
+  parent: SurgeryStepInsertOrgan
+  id: SurgeryStepInsertAugmentNeck
+  name: Add neck augment
+  components:
+  - type: SurgeryStep
+    tool:
+    - type: Organ
+    duration: 6
+  - type: Sprite
+    sprite: _Shitmed/Objects/Specific/Medical/Surgery/manipulation.rsi
+    state: insertion
+  - type: SurgeryAddOrganStep
+  - type: SurgeryStepPainInflicter
+    amount: 90
+    painDuration: 60
+    painType: TraumaticPain
+    sleepModifier: 0
+
+- type: entity
+  parent: SurgeryStepInsertOrgan
+  id: SurgeryStepInsertAugmentBrain
+  name: Add brain augment
+  components:
+  - type: SurgeryStep
+    tool:
+    - type: Organ
+    duration: 6
+  - type: Sprite
+    sprite: _Shitmed/Objects/Specific/Medical/Surgery/manipulation.rsi
+    state: insertion
+  - type: SurgeryAddOrganStep
+  - type: SurgeryStepPainInflicter
+    amount: 90
+    painDuration: 60
+    painType: TraumaticPain
+    sleepModifier: 0

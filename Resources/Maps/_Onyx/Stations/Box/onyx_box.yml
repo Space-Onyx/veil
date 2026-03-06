@@ -153968,7 +153968,7 @@ entities:
         22388:
         - - VinylPlayerPort
           - StationRadioRigPort
-- proto: VORATM
+- proto: ATM
   entities:
   - uid: 27641
     components:
@@ -153976,14 +153976,14 @@ entities:
       rot: 3.141592653589793 rad
       pos: 27.5,-30.5
       parent: 2
-- proto: VOREftpos
+- proto: Eftpos
   entities:
   - uid: 23544
     components:
     - type: Transform
       pos: 27.355015,2.7148871
       parent: 2
-- proto: VORWallATM
+- proto: WallATM
   entities:
   - uid: 23545
     components:

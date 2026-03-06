@@ -1,0 +1,21 @@
+- type: entity
+  parent: BaseAugment
+  id: AugmentNeuroInterface
+  name: neuro-interface
+  description: An implanted neuro-interface unit installed at the back of the head. Currently non-functional, but looks cool.
+  components:
+  - type: Sprite
+    sprite: _Shitmed/Objects/Augments/arm.rsi
+    state: base
+  - type: Item
+    size: Normal
+  - type: Organ
+    slotId: neckImplant
+  - type: AugmentExamine
+    color: "#00ffff"
+    examineText: augment-examine-neuro-interface
+    visible: true
+  - type: Tag
+    tags:
+    - Augment
+    - neckAugment

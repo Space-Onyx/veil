@@ -151209,7 +151209,7 @@ entities:
     - type: Transform
       pos: 17.5,-37.5
       parent: 2
-- proto: VORWallATM
+- proto: WallATM
   entities:
   - uid: 26949
     components:
