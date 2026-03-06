@@ -284,6 +284,88 @@
     Gold: 1000
     Silver: 600
 
+# <Onyx Augments>
+- type: latheRecipe
+  id: RunnerAugmentLeft
+  result: RunnerAugmentLeft
+  categories:
+  - Robotics
+  completetime: 8
+  materials:
+    Steel: 1500
+    Glass: 500
+    Plastic: 800
+    Gold: 500
+    Silver: 300
+
+- type: latheRecipe
+  id: RunnerAugmentRight
+  result: RunnerAugmentRight
+  categories:
+  - Robotics
+  completetime: 8
+  materials:
+    Steel: 1500
+    Glass: 500
+    Plastic: 800
+    Gold: 500
+    Silver: 300
+
+- type: latheRecipe
+  id: AdvancedRunnerAugmentLeft
+  result: AdvancedRunnerAugmentLeft
+  categories:
+  - Robotics
+  completetime: 12
+  materials:
+    Steel: 2000
+    Glass: 800
+    Plastic: 1000
+    Gold: 1000
+    Silver: 600
+    Plasma: 500
+
+- type: latheRecipe
+  id: AdvancedRunnerAugmentRight
+  result: AdvancedRunnerAugmentRight
+  categories:
+  - Robotics
+  completetime: 12
+  materials:
+    Steel: 2000
+    Glass: 800
+    Plastic: 1000
+    Gold: 1000
+    Silver: 600
+    Plasma: 500
+
+- type: latheRecipe
+  id: AugmentHoloPda
+  result: AugmentHoloPda
+  categories:
+  - Robotics
+  completetime: 15
+  materials:
+    Steel: 1000
+    Glass: 1500
+    Plastic: 1000
+    Gold: 1500
+    Silver: 500
+    Plasma: 500
+
+- type: latheRecipe
+  id: AugmentNeuroInterface
+  result: AugmentNeuroInterface
+  categories:
+  - Robotics
+  completetime: 8
+  materials:
+    Steel: 1000
+    Glass: 500
+    Plastic: 800
+    Gold: 500
+# </Onyx Augments>
+
 - type: latheRecipe
   id: BasicCyberneticEyes
   result: BasicCyberneticEyes

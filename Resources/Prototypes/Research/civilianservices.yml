@@ -344,6 +344,26 @@
   position: -3,4
   technologyPrerequisites:
     - BasicAugmentation
+# <Onyx Augments>
+- type: technology
+  id: AdvancedAugmentation
+  name: research-technology-advanced-augmentation
+  icon:
+    sprite: _Shitmed/Objects/Augments/power.rsi
+    state: cell
+  discipline: CivilianServices
+  tier: 3
+  cost: 15000
+  recipeUnlocks:
+    - AugmentHoloPda
+    - AugmentNeuroInterface
+    - AdvancedRunnerAugmentLeft
+    - AdvancedRunnerAugmentRight
+  position: -3,5
+  technologyPrerequisites:
+    - BasicAugmentation
+    - ImplantedTools
+# </Onyx Augments>
 - type: technology
   id: AdvancedCybernetics
   name: research-technology-advanced-cybernetics

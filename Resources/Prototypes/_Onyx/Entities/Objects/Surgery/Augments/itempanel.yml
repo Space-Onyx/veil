@@ -1,0 +1,39 @@
+- type: entity
+  parent: BaseAugmentAction
+  id: ActionAugmentToggleItemPanel
+  name: Toggle item panel
+  description: Deploy or retract the built-in item
+  components:
+  - type: InstantAction
+    event: !type:AugmentActionEvent
+
+- type: entity
+  abstract: true
+  parent: BaseArmAugment
+  id: BaseAugmentItemPanel
+  components:
+  - type: Sprite
+    sprite: _Shitmed/Objects/Augments/arm.rsi
+    state: base
+  - type: ItemToggle
+    activated: true
+    onUse: false
+    onActivate: false
+  - type: AugmentExamine
+    color: "#5bcefa"
+    examineText: augment-examine-item-panel
+    visible: true
+
+- type: entity
+  parent: BaseAugmentItemPanel
+  id: AugmentManitBladePanel
+  name: mantis blade panel augment
+  description: An arm implant containing a mantis blade. Compatible with both arms.
+  components:
+  - type: Sprite
+    state: engineering
+  - type: AugmentItemPanel
+    itemPrototype: MantisBlade
+    icon: { sprite: _Goobstation/Objects/Weapons/Melee/mantis_blade.rsi, state: icon }
+  - type: AugmentExamine
+    examineText: augment-examine-mantis-blade-panel

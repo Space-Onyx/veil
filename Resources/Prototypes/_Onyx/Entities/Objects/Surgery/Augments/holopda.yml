@@ -1,0 +1,71 @@
+- type: entity
+  parent: BaseAction
+  id: ActionAugmentHoloPda
+  name: Open HoloPDA
+  description: Open your implanted holographic PDA interface.
+  components:
+  - type: InstantAction
+    event: !type:AugmentHoloPdaOpenEvent
+    itemIconStyle: NoItem
+
+- type: entity
+  parent: BaseOnyxBrainAugment
+  id: AugmentHoloPda
+  name: HoloPDA augment
+  description: A cybernetic PDA unit implanted directly into the brain, providing holographic interface access.
+  components:
+  - type: AugmentHoloPda
+  - type: AugmentExamine
+    visible: false
+  - type: Pda
+    idSlot:
+      name: access-id-card-component-default
+      whitelist:
+        components:
+        - IdCard
+    paiSlot:
+      priority: -2
+      whitelist:
+        components:
+        - SlotBlock
+    penSlot:
+      priority: -3
+      whitelist:
+        tags:
+        - SlotBlock
+  - type: ContainerContainer
+    containers:
+      HoloPDA-id: !type:ContainerSlot {}
+      Cartridge-Slot: !type:ContainerSlot {}
+      program-container: !type:Container
+  - type: CartridgeLoader
+    uiKey: enum.PdaUiKey.Key
+    preinstalled:
+      - CrewManifestCartridge
+      - NotekeeperCartridge
+      - NanoTaskCartridge
+      - NewsReaderCartridge
+      - NanoChatCartridge
+      - WalletCartridge
+    cartridgeSlot:
+      priority: -1
+      name: device-pda-slot-component-slot-name-cartridge
+      ejectSound: /Audio/Machines/id_swipe.ogg
+      insertSound: /Audio/Machines/id_insert.ogg
+      whitelist:
+        components:
+        - Cartridge
+  - type: ActivatableUI
+    key: enum.PdaUiKey.Key
+    singleUser: true
+  - type: UserInterface
+    interfaces:
+      enum.PdaUiKey.Key:
+        type: PdaBoundUserInterface
+  - type: Organ
+    slotId: brainImplant
+    hiddenFromAnalyzer: true
+  - type: Tag
+    tags:
+    - Augment
+    - brainAugment

@@ -1,6 +1,6 @@
 - type: entity
   parent: BaseItem
-  id: VOREftpos
+  id: Eftpos
   name: EFTPOS
   description: Swipe your ID card to make purchases electronically.
   components:

@@ -10,6 +10,7 @@
       organs:
         brain: OrganPlasmamanBrain
         eyes: OrganPlasmamanEyes
+        tongue: OrganHumanTongue # Onyx-Surgery
     chest:
       part: ChestPlasmaman
       connections:

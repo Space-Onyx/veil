@@ -1,0 +1,141 @@
+- type: entity
+  abstract: true
+  parent: BaseAugment
+  id: BaseOnyxAugment
+  description: Augment
+  components:
+  - type: Item
+    size: Huge
+  - type: AugmentExamine
+    visible: true
+  - type: Tag
+    tags:
+    - Augment
+
+- type: entity
+  abstract: true
+  parent: BaseOnyxAugment
+  id: BaseOnyxLegAugment
+  description: Augment
+  components:
+  - type: Sprite
+    sprite: _Shitmed/Objects/Augments/power.rsi
+    state: cell
+  - type: Organ
+    slotId: legImplant
+  - type: Tag
+    tags:
+    - LegAugment
+    - Augment
+
+- type: entity
+  abstract: true
+  parent: BaseOnyxAugment
+  id: BaseOnyxFootAugment
+  description: Augment
+  components:
+  - type: Sprite
+    sprite: _Shitmed/Objects/Augments/power.rsi
+    state: cell
+  - type: Organ
+    slotId: footImplant
+  - type: Tag
+    tags:
+    - footAugment
+    - Augment
+
+- type: entity
+  abstract: true
+  parent: BaseOnyxAugment
+  id: BaseOnyxChestAugment
+  description: Augment
+  components:
+  - type: Sprite
+    sprite: _Shitmed/Objects/Augments/power.rsi
+    state: cell
+  - type: Organ
+    slotId: chestImplant
+  - type: Tag
+    tags:
+    - chestAugment
+    - Augment
+
+- type: entity
+  abstract: true
+  parent: BaseOnyxAugment
+  id: BaseOnyxHeadAugment
+  description: Augment
+  components:
+  - type: Sprite
+    sprite: _Shitmed/Objects/Augments/power.rsi
+    state: cell
+  - type: Organ
+    slotId: headImplant
+  - type: Tag
+    tags:
+    - headAugment
+    - Augment
+
+- type: entity
+  abstract: true
+  parent: BaseOnyxAugment
+  id: BaseOnyxEyeAugment
+  description: Augment
+  components:
+  - type: Sprite
+    sprite: _Shitmed/Objects/Augments/power.rsi
+    state: cell
+  - type: Organ
+    slotId: eyeImplant
+  - type: Tag
+    tags:
+    - eyeAugment
+    - Augment
+
+- type: entity
+  abstract: true
+  parent: BaseOnyxAugment
+  id: BaseOnyxBrainAugment
+  description: Augment
+  components:
+  - type: Sprite
+    sprite: _Shitmed/Objects/Augments/power.rsi
+    state: cell
+  - type: Organ
+    slotId: brainImplant
+  - type: Tag
+    tags:
+    - brainAugment
+    - Augment
+
+- type: entity
+  abstract: true
+  parent: BaseOnyxAugment
+  id: BaseOnyxArmAugment
+  description: Augment
+  components:
+  - type: Sprite
+    sprite: _Shitmed/Objects/Augments/power.rsi
+    state: cell
+  - type: Organ
+    slotId: armImplant
+  - type: Tag
+    tags:
+    - armAugment
+    - Augment
+
+- type: entity
+  abstract: true
+  parent: BaseOnyxAugment
+  id: BaseOnyxHandAugment
+  description: Augment
+  components:
+  - type: Sprite
+    sprite: _Shitmed/Objects/Augments/power.rsi
+    state: cell
+  - type: Organ
+    slotId: handImplant
+  - type: Tag
+    tags:
+    - handAugment
+    - Augment

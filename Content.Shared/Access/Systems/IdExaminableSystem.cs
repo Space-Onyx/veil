@@ -142,6 +142,24 @@ public sealed class IdExaminableSystem : EntitySystem
                 return GetNameAndJob(id);
             }
         }
+
+        // <Onyx-Surgery>
+        var ev = new GetAdditionalAccessEvent();
+        RaiseLocalEvent(uid, ref ev);
+        foreach (var ent in ev.Entities)
+        {
+            if (TryComp(ent, out PdaComponent? augPda) &&
+                TryComp<IdCardComponent>(augPda.ContainedId, out var augId))
+            {
+                return GetNameAndJob(augId);
+            }
+            if (TryComp<IdCardComponent>(ent, out augId))
+            {
+                return GetNameAndJob(augId);
+            }
+        }
+        // </Onyx-Surgery>
+
         return null;
     }
 

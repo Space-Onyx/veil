@@ -17,6 +17,8 @@
       part: HeadSlime
       connections:
       - chest
+      organs:
+        tongue: OrganHumanTongue # Onyx-Surgery
     chest:
       part: ChestSlime
       connections:

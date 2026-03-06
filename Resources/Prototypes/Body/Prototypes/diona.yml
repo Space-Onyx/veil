@@ -20,6 +20,7 @@
       - chest
       organs:
         brain: OrganDionaBrainNymph
+        tongue: OrganHumanTongue # Onyx-Surgery
     chest:
       part: ChestDiona
       connections:

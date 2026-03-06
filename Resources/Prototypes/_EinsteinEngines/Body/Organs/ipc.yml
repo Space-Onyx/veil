@@ -51,6 +51,8 @@
   - type: Sprite
     state: tongue
   - type: Organ
+    slotId: tongue # Onyx-Surgery
+  - type: Tongue # Onyx-Surgery
   - type: Tag
     tags:
     - Organ
