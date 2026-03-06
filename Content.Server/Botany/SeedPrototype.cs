@@ -39,6 +39,8 @@ using Content.Server.EntityEffects;
 
 using Content.Server.EntityEffects;
 
+using Content.Server.EntityEffects;
+
 namespace Content.Server.Botany;
 
 [Prototype("seed")] //ADT-Tweak
