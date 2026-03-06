@@ -1,15 +1,15 @@
 # Runner Augment Names
 ent-RunnerAugmentLeft = left runner augment
-    .desc = A cybernetic leg implant. Increases walk and sprint speed by 4%. Two runners work synergistically (total bonus ~8%).
+    .desc = A cybernetic leg implant. Increases walk and sprint speed by ~10%.
 
 ent-RunnerAugmentRight = right runner augment
-    .desc = A cybernetic leg implant. Increases walk and sprint speed by 4%. Two runners work synergistically (total bonus ~8%).
+    .desc = { ent-RunnerAugmentLeft.desc }
 
 ent-AdvancedRunnerAugmentLeft = advanced left runner augment
-    .desc = An advanced cybernetic leg implant. Increases walk and sprint speed by 8%.
+    .desc = An advanced cybernetic leg implant. Increases walk and sprint speed by ~25%.
 
 ent-AdvancedRunnerAugmentRight = advanced right runner augment
-    .desc = An advanced cybernetic leg implant. Increases walk and sprint speed by 8%.
+    .desc = { ent-AdvancedRunnerAugmentRight.desc }
 
 # Surgery Names
 ent-SurgeryOpenLegAugmentLeft = Open Left Leg Cavity

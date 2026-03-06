@@ -1,3 +1,4 @@
+using Content.Shared.Access.Components;
 using Content.Shared.Weapons.Melee.Events;
 using Content.Shared.Chat;
 using Content.Shared.ADT.SpeechBarks;
@@ -16,6 +17,7 @@ public sealed class AugmentRelaySystem : EntitySystem
         // <Onyx-Surgery>
         SubscribeLocalEvent<InstalledAugmentsComponent, TransformSpeakerNameEvent>(_augment.RelayEvent);
         SubscribeLocalEvent<InstalledAugmentsComponent, TransformSpeakerBarkEvent>(_augment.RelayEvent);
+        SubscribeLocalEvent<InstalledAugmentsComponent, GetAdditionalAccessEvent>(_augment.RelayEvent);
         // </Onyx-Surgery>
     }
 }

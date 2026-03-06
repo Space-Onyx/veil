@@ -2,7 +2,7 @@
   abstract: true
   parent: BaseAugment
   id: BaseOnyxAugment
-  description: Кибернетическая аугментация.
+  description: Augment
   components:
   - type: Item
     size: Huge
@@ -16,7 +16,7 @@
   abstract: true
   parent: BaseOnyxAugment
   id: BaseOnyxLegAugment
-  description: Кибернетический имплант для ноги.
+  description: Augment
   components:
   - type: Sprite
     sprite: _Shitmed/Objects/Augments/power.rsi
@@ -32,7 +32,7 @@
   abstract: true
   parent: BaseOnyxAugment
   id: BaseOnyxFootAugment
-  description: Кибернетический имплант для стопы.
+  description: Augment
   components:
   - type: Sprite
     sprite: _Shitmed/Objects/Augments/power.rsi
@@ -48,7 +48,7 @@
   abstract: true
   parent: BaseOnyxAugment
   id: BaseOnyxChestAugment
-  description: Кибернетический имплант для груди.
+  description: Augment
   components:
   - type: Sprite
     sprite: _Shitmed/Objects/Augments/power.rsi
@@ -64,7 +64,7 @@
   abstract: true
   parent: BaseOnyxAugment
   id: BaseOnyxHeadAugment
-  description: Кибернетический имплант для головы.
+  description: Augment
   components:
   - type: Sprite
     sprite: _Shitmed/Objects/Augments/power.rsi
@@ -80,7 +80,7 @@
   abstract: true
   parent: BaseOnyxAugment
   id: BaseOnyxEyeAugment
-  description: Кибернетический имплант для глаз.
+  description: Augment
   components:
   - type: Sprite
     sprite: _Shitmed/Objects/Augments/power.rsi
@@ -96,7 +96,7 @@
   abstract: true
   parent: BaseOnyxAugment
   id: BaseOnyxBrainAugment
-  description: Кибернетический имплант для мозга.
+  description: Augment
   components:
   - type: Sprite
     sprite: _Shitmed/Objects/Augments/power.rsi
@@ -112,7 +112,7 @@
   abstract: true
   parent: BaseOnyxAugment
   id: BaseOnyxArmAugment
-  description: Кибернетический имплант для руки.
+  description: Augment
   components:
   - type: Sprite
     sprite: _Shitmed/Objects/Augments/power.rsi
@@ -128,7 +128,7 @@
   abstract: true
   parent: BaseOnyxAugment
   id: BaseOnyxHandAugment
-  description: Кибернетический имплант для кисти.
+  description: Augment
   components:
   - type: Sprite
     sprite: _Shitmed/Objects/Augments/power.rsi

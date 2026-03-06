@@ -2,8 +2,8 @@
   abstract: true
   parent: BaseAugment
   id: BaseRunnerAugment
-  name: бегунок
-  description: Кибернетический имплант для ноги, повышающий скорость передвижения.
+  name: runner
+  description: A cybernetic leg implant. Increases walk and sprint speed by ~10%.
   components:
   - type: Sprite
     sprite: _Shitmed/Objects/Augments/power.rsi
@@ -17,12 +17,12 @@
 - type: entity
   parent: BaseRunnerAugment
   id: RunnerAugmentLeft
-  name: левый бегунок
-  description: Кибернетический имплант для левой ноги. Увеличивает скорость ходьбы и бега на 25%.
+  name: left runner augment
+  description: A cybernetic leg implant. Increases walk and sprint speed by ~10%.
   components:
   - type: AugmentMovementSpeed
-    walkMultiplier: 1.25
-    sprintMultiplier: 1.25
+    walkMultiplier: 1.10
+    sprintMultiplier: 1.10
     augmentId: RunnerLeft
   - type: Organ
     slotId: legImplant
@@ -38,12 +38,12 @@
 - type: entity
   parent: BaseRunnerAugment
   id: RunnerAugmentRight
-  name: правый бегунок
-  description: Кибернетический имплант для правой ноги. Увеличивает скорость ходьбы и бега на 25%.
+  name: right runner augment
+  description: A cybernetic leg implant. Increases walk and sprint speed by ~10%.
   components:
   - type: AugmentMovementSpeed
-    walkMultiplier: 1.25
-    sprintMultiplier: 1.25
+    walkMultiplier: 1.10
+    sprintMultiplier: 1.10
     augmentId: RunnerRight
   - type: Organ
     slotId: legImplant
@@ -58,14 +58,14 @@
 - type: entity
   parent: BaseRunnerAugment
   id: AdvancedRunnerAugmentLeft
-  name: улучшенный левый бегунок
-  description: Продвинутый кибернетический имплант. Увеличивает скорость ходьбы и бега на 8%.
+  name: advanced left runner augment
+  description: An advanced cybernetic leg implant. Increases walk and sprint speed by ~25%.
   components:
   - type: Sprite
     state: cell
   - type: AugmentMovementSpeed
-    walkMultiplier: 1.50
-    sprintMultiplier: 1.50
+    walkMultiplier: 1.25
+    sprintMultiplier: 1.25
     augmentId: AdvancedRunnerLeft
   - type: Organ
     slotId: legImplant
@@ -76,12 +76,12 @@
 - type: entity
   parent: AdvancedRunnerAugmentLeft
   id: AdvancedRunnerAugmentRight
-  name: улучшенный правый бегунок
-  description: Продвинутый кибернетический имплант. Увеличивает скорость ходьбы и бега на 8%.
+  name: advanced right runner augment
+  description: An advanced cybernetic leg implant. Increases walk and sprint speed by ~25%.
   components:
   - type: AugmentMovementSpeed
-    walkMultiplier: 1.50
-    sprintMultiplier: 1.50
+    walkMultiplier: 1.25
+    sprintMultiplier: 1.25
     augmentId: AdvancedRunnerRight
   - type: Organ
     slotId: legImplant
