@@ -126,8 +126,18 @@ public sealed class AutoSurgeonSystem : EntitySystem
             }
             else
             {
-                if (!TryComp<OrganComponent>(newPart, out var newOrganComp)
-                || !_body.CanInsertOrgan(parent, newOrganComp.SlotId))
+                // <Onyx-Surgery-Tweak>
+                if (!TryComp<OrganComponent>(newPart, out var newOrganComp))
+                {
+                    Del(newPart);
+                    _audio.Stop(ent.Comp.ActiveSound);
+                    return;
+                }
+
+                _body.TryCreateOrganSlot(parent, newOrganComp.SlotId, out _);
+
+                if (!_body.CanInsertOrgan(parent, newOrganComp.SlotId))
+                // </Onyx-Surgery-Tweak>
                 {
                     Del(newPart);
                     _audio.Stop(ent.Comp.ActiveSound);
@@ -336,8 +346,17 @@ public sealed class AutoSurgeonSystem : EntitySystem
                 }
                 else
                 {
-                    if (!TryComp<OrganComponent>(newPart, out var newOrganComp)
-                    || !_body.CanInsertOrgan(parent, newOrganComp.SlotId))
+                    // <Onyx-Surgery-Tweak>
+                    if (!TryComp<OrganComponent>(newPart, out var newOrganComp))
+                    {
+                        Del(newPart);
+                        continue;
+                    }
+
+                    _body.TryCreateOrganSlot(parent, newOrganComp.SlotId, out _);
+
+                    if (!_body.CanInsertOrgan(parent, newOrganComp.SlotId))
+                    // </Onyx-Surgery-Tweak>
                     {
                         Del(newPart);
                         continue;
