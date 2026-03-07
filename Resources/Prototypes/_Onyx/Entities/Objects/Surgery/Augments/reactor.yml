@@ -20,6 +20,7 @@
     state: incomplete_charger
   - type: Construction
     node: casing
+    defaultTarget: bioreactor
   - type: Tag
     tags: [ AugmentBioReactorCasing ]
 
@@ -55,6 +56,7 @@
     state: incomplete_charger
   - type: Construction
     node: casing
+    defaultTarget: rtg
   - type: Tag
     tags: [ AugmentRTGCasing ]
 
