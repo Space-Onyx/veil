@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Content.Server.Stack;
 using Content.Server.Store.Components;
@@ -44,7 +45,32 @@ public sealed class ATMSystem : SharedATMSystem
 
     private void OnEmag(EntityUid uid, ATMComponent component, ref GotEmaggedEvent args)
     {
+        component.EmaggedUntil = _timing.CurTime + TimeSpan.FromSeconds(component.EmagDuration);
         args.Handled = true;
+    }
+
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+
+        var now = _timing.CurTime;
+        var query = EntityQueryEnumerator<ATMComponent>();
+        while (query.MoveNext(out var uid, out var component))
+        {
+            if (component.EmaggedUntil is not { } until || until > now)
+                continue;
+
+            component.EmaggedUntil = null;
+            _authenticatedCard.Remove(uid);
+
+            if (HasComp<EmaggedComponent>(uid))
+                RemComp<EmaggedComponent>(uid);
+
+            if (component.CardSlot.Item.HasValue)
+                UpdateUiState(uid, ATMUiState.PinEntry, string.Empty, 0);
+            else
+                UpdateUiState(uid, ATMUiState.NoCard, string.Empty, 0);
+        }
     }
 
     private void OnComponentStartup(EntityUid uid, ATMComponent component, ComponentStartup args)
@@ -109,7 +135,7 @@ public sealed class ATMSystem : SharedATMSystem
             return;
         }
 
-        if (HasComp<EmaggedComponent>(uid))
+        if (IsEmagActive(component))
         {
             _authenticatedCard[uid] = args.Entity;
             var balance = _bankCardSystem.GetBalance(bankCard.AccountId.Value);
@@ -142,7 +168,7 @@ public sealed class ATMSystem : SharedATMSystem
         }
 
         if (!_bankCardSystem.TryGetAccount(bankCard.AccountId.Value, out var account) ||
-            ((bankCard.Pin ?? account.AccountPin) != args.Pin && !HasComp<EmaggedComponent>(uid)))
+            ((bankCard.Pin ?? account.AccountPin) != args.Pin && !IsEmagActive(component)))
         {
             _popupSystem.PopupEntity(Loc.GetString("atm-wrong-pin"), uid);
             _audioSystem.PlayPvs(component.SoundDeny, uid);
@@ -205,5 +231,10 @@ public sealed class ATMSystem : SharedATMSystem
         };
 
         _ui.SetUiState(uid, ATMUiKey.Key, stateObj);
+    }
+
+    private bool IsEmagActive(ATMComponent component)
+    {
+        return component.EmaggedUntil is { } until && until > _timing.CurTime;
     }
 }

@@ -1,4 +1,5 @@
-﻿using Content.Shared.Containers.ItemSlots;
+﻿using System;
+using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Stacks;
 using Robust.Shared.Audio;
 using Robust.Shared.Serialization;
@@ -30,8 +31,13 @@ public sealed partial class ATMComponent : Component
 
     [DataField("soundDeny")]
     public SoundSpecifier SoundDeny = new SoundPathSpecifier("/Audio/_Onyx/Machines/buzz-sigh.ogg");
-}
 
+    [DataField("emagDuration")]
+    public float EmagDuration = 30f;
+
+    [DataField]
+    public TimeSpan? EmaggedUntil;
+}
 
 [Serializable, NetSerializable]
 public enum ATMUiKey
