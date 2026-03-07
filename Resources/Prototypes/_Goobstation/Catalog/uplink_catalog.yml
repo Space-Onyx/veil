@@ -1226,6 +1226,18 @@
         tags:
           - NukeOpsUplink
 
+# <Onyx-Surgery>
+- type: listing
+  id: UplinkAutosurgeonVoiceModulator
+  name: uplink-autosurgeon-voice-modulator-name
+  description: uplink-autosurgeon-voice-modulator-desc
+  productEntity: AutosurgeonVoiceModulator
+  cost:
+    Telecrystal: 12
+  categories:
+  - UplinkImplants
+# </Onyx-Surgery>
+
 # Deception
 
 - type: listing

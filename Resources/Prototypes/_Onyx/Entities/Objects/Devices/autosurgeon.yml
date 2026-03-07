@@ -1,0 +1,9 @@
+- type: entity
+  parent: BaseAutosurgeonSyndicateSingle
+  id: AutosurgeonVoiceModulator
+  name: syndicate autosurgeon (voice modulator)
+  components:
+  - type: AutoSurgeon
+    targetBodyPart: Head
+    targetOrgan: headImplant
+    newPartProto: AugmentVoiceMask
