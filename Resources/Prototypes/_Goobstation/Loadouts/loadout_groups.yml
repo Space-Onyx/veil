@@ -907,7 +907,7 @@
   minLimit: 0
   loadouts:
   - ClothingNeckScarfStripedCentcom
-  - NanotrasenRepresentativeEnsemble
+  # - NanotrasenRepresentativeEnsemble # <Onyx-Commented>
 
 - type: loadoutGroup
   id: NanotrasenRepresentativeBackpack
@@ -1015,7 +1015,7 @@
   minLimit: 0
   loadouts:
   - BlueshieldOfficerOuterBlueshieldMantle
-  - BlueshieldOfficerEnsemble
+  # - BlueshieldOfficerEnsemble # <Onyx-Commented>
 
 - type: loadoutGroup
   id: BlueshieldOfficerMask
@@ -1300,7 +1300,7 @@
   minLimit: 0
   loadouts:
   - MinerCloak
-  - SalvageEspecialistEnsemble
+  # - SalvageEspecialistEnsemble # <Onyx-Commented>
 
 # Chemist
 

@@ -357,8 +357,8 @@
   - CaptainCloak
   - CaptainCloakFormal
   - CaptainMantle
-  - VeteranCaptainCloak # goob
-  - CaptainEnsemble # goob
+  # - VeteranCaptainCloak # goob # <Onyx-Commented>
+  # - CaptainEnsemble # goob # <Onyx-Commented>
 
 - type: loadoutGroup
   id: CaptainBackpack
@@ -404,7 +404,7 @@
   loadouts:
   - HoPCloak
   - HoPMantle
-  - HeadOfPersonnelEnsemble # goob
+  # - HeadOfPersonnelEnsemble # goob # <Onyx-Commented>
 
 - type: loadoutGroup
   id: HoPBackpack
@@ -914,7 +914,7 @@
   loadouts:
   - QuartermasterCloak
   - QuartermasterMantle
-  - QuartermasterEnsemble # goob
+  # - QuartermasterEnsemble # goob # <Onyx-Commented>
 
 - type: loadoutGroup
   id: QuartermasterOuterClothing
@@ -1023,7 +1023,7 @@
   loadouts:
   - ChiefEngineerCloak
   - ChiefEngineerMantle
-  - ChiefEngineerEnsemble # goob
+  # - ChiefEngineerEnsemble # goob # <Onyx-Commented>
 
 - type: loadoutGroup
   id: ChiefEngineerOuterClothing
@@ -1170,7 +1170,7 @@
   loadouts:
   - ResearchDirectorMantle
   - ResearchDirectorCloak
-  - ResearchDirectorEnsemble # goob
+  # - ResearchDirectorEnsemble # goob # <Onyx-Commented>
 
 - type: loadoutGroup
   id: ResearchDirectorJumpsuit
@@ -1319,7 +1319,7 @@
   - HeadofSecurityMantle
   - HeadofSecurityCloakExperimental # CorvaxGoob
   - Bodycam # Goobstation - Body cameras
-  - HeadOfSecurityEnsemble # goob
+  # - HeadOfSecurityEnsemble # goob # <Onyx-Commented>
 
 - type: loadoutGroup
   id: HeadofSecurityOuterClothing
@@ -1517,7 +1517,7 @@
   loadouts:
   - ChiefMedicalOfficerCloak
   - ChiefMedicalOfficerMantle
-  - ChiefMedicalOfficerEnsemble # goob
+  # - ChiefMedicalOfficerEnsemble # goob # <Onyx-Commented>
 
 - type: loadoutGroup
   id: ChiefMedicalOfficerShoes
