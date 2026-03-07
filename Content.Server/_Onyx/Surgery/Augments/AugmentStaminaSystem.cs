@@ -15,6 +15,8 @@ public sealed class AugmentStaminaSystem : EntitySystem
         SubscribeLocalEvent<AugmentStaminaComponent, OrganRemovedFromBodyEvent>(OnOrganRemovedFromBody);
         SubscribeLocalEvent<AugmentStaminaComponent, AugmentEmpDisabledEvent>(OnEmpDisabled);
         SubscribeLocalEvent<AugmentStaminaComponent, AugmentEmpRestoredEvent>(OnEmpRestored);
+        SubscribeLocalEvent<AugmentStaminaComponent, AugmentManuallyDisabledEvent>(OnManuallyDisabled);
+        SubscribeLocalEvent<AugmentStaminaComponent, AugmentManuallyRestoredEvent>(OnManuallyRestored);
     }
 
     private void OnOrganAddedToBody(EntityUid uid, AugmentStaminaComponent component, ref OrganAddedToBodyEvent args)
@@ -33,6 +35,16 @@ public sealed class AugmentStaminaSystem : EntitySystem
     }
 
     private void OnEmpRestored(EntityUid uid, AugmentStaminaComponent component, ref AugmentEmpRestoredEvent args)
+    {
+        RefreshStamina(args.Body);
+    }
+
+    private void OnManuallyDisabled(EntityUid uid, AugmentStaminaComponent component, ref AugmentManuallyDisabledEvent args)
+    {
+        RefreshStamina(args.Body);
+    }
+
+    private void OnManuallyRestored(EntityUid uid, AugmentStaminaComponent component, ref AugmentManuallyRestoredEvent args)
     {
         RefreshStamina(args.Body);
     }
@@ -58,6 +70,9 @@ public sealed class AugmentStaminaSystem : EntitySystem
                 continue;
 
             if (HasComp<AugmentEmpDisabledComponent>(augUid))
+                continue;
+
+            if (HasComp<AugmentNeuroManuallyDisabledComponent>(augUid))
                 continue;
 
             switch (aug.ModifierType)

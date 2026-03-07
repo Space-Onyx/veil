@@ -23,6 +23,8 @@ public sealed class AugmentVisionSystem : EntitySystem
         SubscribeLocalEvent<AugmentVisionComponent, OrganRemovedFromBodyEvent>(OnOrganRemovedFromBody);
         SubscribeLocalEvent<AugmentVisionComponent, AugmentEmpDisabledEvent>(OnEmpDisabled);
         SubscribeLocalEvent<AugmentVisionComponent, AugmentEmpRestoredEvent>(OnEmpRestored);
+        SubscribeLocalEvent<AugmentVisionComponent, AugmentManuallyDisabledEvent>(OnManuallyDisabled);
+        SubscribeLocalEvent<AugmentVisionComponent, AugmentManuallyRestoredEvent>(OnManuallyRestored);
         SubscribeLocalEvent<AugmentVisionComponent, AugmentLostPowerEvent>(OnLostPower);
         SubscribeLocalEvent<AugmentVisionComponent, AugmentGainedPowerEvent>(OnGainedPower);
         SubscribeLocalEvent<AugmentVisionComponent, GetAugmentsPowerDrawEvent>(OnGetPowerDraw);
@@ -37,6 +39,23 @@ public sealed class AugmentVisionSystem : EntitySystem
 
     private void OnEmpRestored(EntityUid uid, AugmentVisionComponent component, ref AugmentEmpRestoredEvent args)
     {
+        if (HasComp<AugmentNeuroManuallyDisabledComponent>(uid))
+            return;
+
+        if (!RequiresPower(uid, component) || HasAugmentPower(args.Body))
+            ApplyVision(args.Body, component, true);
+    }
+
+    private void OnManuallyDisabled(EntityUid uid, AugmentVisionComponent component, ref AugmentManuallyDisabledEvent args)
+    {
+        ApplyVision(args.Body, component, false);
+    }
+
+    private void OnManuallyRestored(EntityUid uid, AugmentVisionComponent component, ref AugmentManuallyRestoredEvent args)
+    {
+        if (HasComp<AugmentEmpDisabledComponent>(uid))
+            return;
+
         if (!RequiresPower(uid, component) || HasAugmentPower(args.Body))
             ApplyVision(args.Body, component, true);
     }
@@ -68,12 +87,18 @@ public sealed class AugmentVisionSystem : EntitySystem
         if (!RequiresPower(uid, component))
             return;
 
+        if (HasComp<AugmentEmpDisabledComponent>(uid) || HasComp<AugmentNeuroManuallyDisabledComponent>(uid))
+            return;
+
         ApplyVision(args.Body, component, true);
     }
 
     private void OnGetPowerDraw(EntityUid uid, AugmentVisionComponent component, ref GetAugmentsPowerDrawEvent args)
     {
         if (!RequiresPower(uid, component))
+            return;
+
+        if (HasComp<AugmentEmpDisabledComponent>(uid) || HasComp<AugmentNeuroManuallyDisabledComponent>(uid))
             return;
 
         var hasPassiveVision = false;

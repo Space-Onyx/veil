@@ -1,4 +1,3 @@
-using System.Linq;
 using Content.Shared._Onyx.Surgery.Augments;
 using Content.Shared.Actions;
 using Content.Shared.Body.Events;
@@ -48,6 +47,7 @@ public sealed class AugmentItemPanelSystem : EntitySystem
         SubscribeLocalEvent<AugmentItemPanelComponent, OrganRemovedFromBodyEvent>(OnOrganRemovedFromBody);
         SubscribeLocalEvent<AugmentItemPanelComponent, AugmentActionEvent>(OnToggleItem);
         SubscribeLocalEvent<AugmentItemPanelComponent, AugmentEmpDisabledEvent>(OnEmpDisabled);
+        SubscribeLocalEvent<AugmentItemPanelComponent, AugmentManuallyDisabledEvent>(OnManuallyDisabled);
         SubscribeLocalEvent<AugmentItemPanelComponent, AugmentLostPowerEvent>(OnLostPower);
     }
 
@@ -99,6 +99,12 @@ public sealed class AugmentItemPanelSystem : EntitySystem
             RetractItem(ent, args.Body);
     }
 
+    private void OnManuallyDisabled(Entity<AugmentItemPanelComponent> ent, ref AugmentManuallyDisabledEvent args)
+    {
+        if (ent.Comp.IsEquipped)
+            RetractItem(ent, args.Body);
+    }
+
     private void OnLostPower(Entity<AugmentItemPanelComponent> ent, ref AugmentLostPowerEvent args)
     {
         if (RequiresPower(ent) && ent.Comp.IsEquipped)
@@ -109,6 +115,12 @@ public sealed class AugmentItemPanelSystem : EntitySystem
     {
         if (_augment.GetBody(ent) is not {} body)
             return;
+
+        if (HasComp<AugmentNeuroManuallyDisabledComponent>(ent.Owner))
+        {
+            _popup.PopupEntity(Loc.GetString("augment-disabled-manually"), body, body, PopupType.SmallCaution);
+            return;
+        }
 
         if (HasComp<AugmentEmpDisabledComponent>(ent.Owner))
         {
@@ -150,21 +162,24 @@ public sealed class AugmentItemPanelSystem : EntitySystem
             return;
         }
 
-        if (!ent.Comp.SpawnedItem.HasValue || Terminating(ent.Comp.SpawnedItem.Value))
-        {
-            var item = Spawn(ent.Comp.ItemPrototype, Transform(ent).Coordinates);
-            ent.Comp.SpawnedItem = item;
-            EnsureComp<UnremoveableComponent>(item);
-        }
+        if (ent.Comp.SpawnedItem is { } oldItem && !Terminating(oldItem))
+            QueueDel(oldItem);
 
-        var spawnedItem = ent.Comp.SpawnedItem.Value;
+        var spawnedItem = Spawn(ent.Comp.ItemPrototype, Transform(body).Coordinates);
+        ent.Comp.SpawnedItem = spawnedItem;
 
         if (!_hands.TryPickup(body, spawnedItem, hand))
         {
+            if (!Terminating(spawnedItem))
+                QueueDel(spawnedItem);
+
+            ent.Comp.SpawnedItem = null;
+
             _popup.PopupEntity(Loc.GetString("augment-item-panel-cannot-equip"), body, body, PopupType.SmallCaution);
             return;
         }
 
+        EnsureComp<UnremoveableComponent>(spawnedItem);
         ApplyExtendHeldAnimation(ent.Comp, spawnedItem);
         if (ent.Comp.ExtendSound != null)
             _audio.PlayPvs(ent.Comp.ExtendSound, body);
@@ -184,16 +199,13 @@ public sealed class AugmentItemPanelSystem : EntitySystem
         }
 
         var item = ent.Comp.SpawnedItem.Value;
-
-        if (_hands.IsHolding(body, item, out _))
-        {
-            _hands.TryDrop(body, item);
-        }
-
-        Transform(item).Coordinates = Transform(ent).Coordinates;
         if (ent.Comp.RetractSound != null)
             _audio.PlayPvs(ent.Comp.RetractSound, body);
 
+        if (!Terminating(item))
+            QueueDel(item);
+
+        ent.Comp.SpawnedItem = null;
         ent.Comp.IsEquipped = false;
         _toggle.TryDeactivate(ent.Owner);
         StartActionCooldown(ent.Comp);
@@ -205,23 +217,22 @@ public sealed class AugmentItemPanelSystem : EntitySystem
     {
         var partUid = Transform(ent).ParentUid;
         if (!_partQuery.TryComp(partUid, out var part))
-            return handsComp.Hands.Keys.FirstOrDefault();
+            return null;
 
-        var location = part.Symmetry switch
+        var targetLocation = part.Symmetry switch
         {
-            BodyPartSymmetry.None => HandLocation.Middle,
             BodyPartSymmetry.Left => HandLocation.Left,
             BodyPartSymmetry.Right => HandLocation.Right,
             _ => HandLocation.Middle,
         };
 
-        foreach (var (hand, handLocation) in handsComp.Hands)
+        foreach (var (hand, handData) in handsComp.Hands)
         {
-            if (handLocation.Location == location)
+            if (handData.Location == targetLocation)
                 return hand;
         }
 
-        return handsComp.Hands.Keys.FirstOrDefault();
+        return null;
     }
 
     private bool RequiresPower(Entity<AugmentItemPanelComponent> ent)
@@ -286,3 +297,4 @@ public sealed class AugmentItemPanelSystem : EntitySystem
         _actions.StartUseDelay(action);
     }
 }
+

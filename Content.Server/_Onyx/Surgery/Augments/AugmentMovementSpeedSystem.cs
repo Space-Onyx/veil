@@ -23,6 +23,8 @@ public sealed class AugmentMovementSpeedSystem : EntitySystem
         SubscribeLocalEvent<InstalledAugmentsComponent, RefreshMovementSpeedModifiersEvent>(OnRefreshMovementSpeed);
         SubscribeLocalEvent<AugmentMovementSpeedComponent, AugmentEmpDisabledEvent>(OnEmpDisabled);
         SubscribeLocalEvent<AugmentMovementSpeedComponent, AugmentEmpRestoredEvent>(OnEmpRestored);
+        SubscribeLocalEvent<AugmentMovementSpeedComponent, AugmentManuallyDisabledEvent>(OnManuallyDisabled);
+        SubscribeLocalEvent<AugmentMovementSpeedComponent, AugmentManuallyRestoredEvent>(OnManuallyRestored);
         SubscribeLocalEvent<AugmentMovementSpeedComponent, AugmentLostPowerEvent>(OnLostPower);
         SubscribeLocalEvent<AugmentMovementSpeedComponent, AugmentGainedPowerEvent>(OnGainedPower);
         SubscribeLocalEvent<AugmentMovementSpeedComponent, GetAugmentsPowerDrawEvent>(OnGetPowerDraw);
@@ -50,6 +52,16 @@ public sealed class AugmentMovementSpeedSystem : EntitySystem
         _movementSpeed.RefreshMovementSpeedModifiers(args.Body);
     }
 
+    private void OnManuallyDisabled(EntityUid uid, AugmentMovementSpeedComponent component, ref AugmentManuallyDisabledEvent args)
+    {
+        _movementSpeed.RefreshMovementSpeedModifiers(args.Body);
+    }
+
+    private void OnManuallyRestored(EntityUid uid, AugmentMovementSpeedComponent component, ref AugmentManuallyRestoredEvent args)
+    {
+        _movementSpeed.RefreshMovementSpeedModifiers(args.Body);
+    }
+
     private void OnLostPower(EntityUid uid, AugmentMovementSpeedComponent component, ref AugmentLostPowerEvent args)
     {
         if (!RequiresPower(uid, component))
@@ -68,6 +80,9 @@ public sealed class AugmentMovementSpeedSystem : EntitySystem
 
     private void OnGetPowerDraw(EntityUid uid, AugmentMovementSpeedComponent component, ref GetAugmentsPowerDrawEvent args)
     {
+        if (HasComp<AugmentEmpDisabledComponent>(uid) || HasComp<AugmentNeuroManuallyDisabledComponent>(uid))
+            return;
+
         if (RequiresPower(uid, component))
             args.TotalDraw += component.PowerDraw;
     }
@@ -95,6 +110,9 @@ public sealed class AugmentMovementSpeedSystem : EntitySystem
                 continue;
 
             if (HasComp<AugmentEmpDisabledComponent>(augUid))
+                continue;
+
+            if (HasComp<AugmentNeuroManuallyDisabledComponent>(augUid))
                 continue;
 
             if (RequiresPower(augUid, augment) && !HasAugmentPower(body))

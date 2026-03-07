@@ -28,6 +28,9 @@ public sealed class AugmentDamageResistanceSystem : EntitySystem
             if (HasComp<AugmentEmpDisabledComponent>(augUid))
                 continue;
 
+            if (HasComp<AugmentNeuroManuallyDisabledComponent>(augUid))
+                continue;
+
             if (!_proto.TryIndex<DamageModifierSetPrototype>(resist.DamageModifierSetId, out var modifierSet))
                 continue;
 

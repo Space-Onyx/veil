@@ -39,6 +39,8 @@ public sealed class AugmentHoloPdaSystem : EntitySystem
         SubscribeLocalEvent<AugmentHoloPdaComponent, OrganAddedToBodyEvent>(OnOrganAdded);
         SubscribeLocalEvent<AugmentHoloPdaComponent, OrganRemovedFromBodyEvent>(OnOrganRemoved);
         SubscribeLocalEvent<AugmentHoloPdaComponent, AugmentHoloPdaOpenEvent>(OnOpenAction);
+        SubscribeLocalEvent<AugmentHoloPdaComponent, AugmentEmpDisabledEvent>(OnEmpDisabled);
+        SubscribeLocalEvent<AugmentHoloPdaComponent, AugmentManuallyDisabledEvent>(OnManuallyDisabled);
 
         SubscribeLocalEvent<AugmentHoloPdaComponent, AugmentHoloPdaEjectIdDoAfterEvent>(OnEjectIdDoAfter);
         SubscribeLocalEvent<AugmentHoloPdaComponent, AugmentHoloPdaEjectCartridgeDoAfterEvent>(OnEjectCartridgeDoAfter);
@@ -116,8 +118,30 @@ public sealed class AugmentHoloPdaSystem : EntitySystem
         if (!_ui.HasUi(ent.Owner, PdaUiKey.Key))
             return;
 
+        if (HasComp<AugmentEmpDisabledComponent>(ent.Owner))
+        {
+            _popup.PopupEntity(Loc.GetString("augment-emp-disabled"), args.Performer, args.Performer, PopupType.SmallCaution);
+            return;
+        }
+
+        if (HasComp<AugmentNeuroManuallyDisabledComponent>(ent.Owner))
+        {
+            _popup.PopupEntity(Loc.GetString("augment-disabled-manually"), args.Performer, args.Performer, PopupType.SmallCaution);
+            return;
+        }
+
         _ui.TryToggleUi(ent.Owner, PdaUiKey.Key, args.Performer);
         args.Handled = true;
+    }
+
+    private void OnEmpDisabled(Entity<AugmentHoloPdaComponent> ent, ref AugmentEmpDisabledEvent args)
+    {
+        _ui.CloseUi(ent.Owner, PdaUiKey.Key);
+    }
+
+    private void OnManuallyDisabled(Entity<AugmentHoloPdaComponent> ent, ref AugmentManuallyDisabledEvent args)
+    {
+        _ui.CloseUi(ent.Owner, PdaUiKey.Key);
     }
 
     #endregion

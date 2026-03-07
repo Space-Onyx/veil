@@ -37,6 +37,7 @@ public sealed class AugmentVoiceMaskSystem : EntitySystem
         SubscribeLocalEvent<AugmentVoiceMaskComponent, TransformSpeakerBarkEvent>(OnTransformSpeakerBark);
         SubscribeLocalEvent<AugmentVoiceMaskComponent, VoiceMaskSetNameEvent>(OnSetNameEvent);
         SubscribeLocalEvent<AugmentVoiceMaskComponent, AugmentEmpDisabledEvent>(OnEmpDisabled);
+        SubscribeLocalEvent<AugmentVoiceMaskComponent, AugmentManuallyDisabledEvent>(OnManuallyDisabled);
 
         Subs.BuiEvents<AugmentVoiceMaskComponent>(VoiceMaskUIKey.Key, subs =>
         {
@@ -70,12 +71,20 @@ public sealed class AugmentVoiceMaskSystem : EntitySystem
         _uiSystem.CloseUi(ent.Owner, VoiceMaskUIKey.Key);
     }
 
+    private void OnManuallyDisabled(Entity<AugmentVoiceMaskComponent> ent, ref AugmentManuallyDisabledEvent args)
+    {
+        _uiSystem.CloseUi(ent.Owner, VoiceMaskUIKey.Key);
+    }
+
     private void OnTransformSpeakerName(Entity<AugmentVoiceMaskComponent> ent, ref TransformSpeakerNameEvent args)
     {
         if (_augment.GetBody(ent) != args.Sender)
             return;
 
         if (HasComp<AugmentEmpDisabledComponent>(ent.Owner))
+            return;
+
+        if (HasComp<AugmentNeuroManuallyDisabledComponent>(ent.Owner))
             return;
 
         args.VoiceName = GetCurrentVoiceName(ent);
@@ -88,6 +97,9 @@ public sealed class AugmentVoiceMaskSystem : EntitySystem
             return;
 
         if (HasComp<AugmentEmpDisabledComponent>(ent.Owner))
+            return;
+
+        if (HasComp<AugmentNeuroManuallyDisabledComponent>(ent.Owner))
             return;
 
         if (_proto.TryIndex<BarkPrototype>(ent.Comp.BarkId, out var proto))
@@ -105,6 +117,12 @@ public sealed class AugmentVoiceMaskSystem : EntitySystem
         if (HasComp<AugmentEmpDisabledComponent>(ent.Owner))
         {
             _popup.PopupEntity(Loc.GetString("augment-emp-disabled"), args.Performer, args.Performer, PopupType.SmallCaution);
+            return;
+        }
+
+        if (HasComp<AugmentNeuroManuallyDisabledComponent>(ent.Owner))
+        {
+            _popup.PopupEntity(Loc.GetString("augment-disabled-manually"), args.Performer, args.Performer, PopupType.SmallCaution);
             return;
         }
 
