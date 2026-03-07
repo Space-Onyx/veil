@@ -1,0 +1,12 @@
+- type: construction
+  id: WallATM
+  graph: WallATM
+  startNode: start
+  targetNode: wall_atm
+  category: construction-category-utilities
+  placementMode: SnapgridCenter
+  objectType: Structure
+  canRotate: true
+  canBuildInImpassable: true
+  conditions:
+  - !type:WallmountCondition {}

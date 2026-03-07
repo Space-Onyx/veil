@@ -39,6 +39,7 @@
   - type: ContainerContainer
     containers:
       IdCardSlot: !type:ContainerSlot
+      board: !type:Container
   - type: Appearance
   - type: AmbientOnPowered
   - type: AmbientSound
@@ -69,6 +70,42 @@
       collection: Keyboard
   - type: LightningTarget
     priority: 1
+  - type: Construction
+    graph: WallATM
+    node: wall_atm
+
+- type: entity
+  parent: BaseWallmountMetallic
+  id: WallATMAssembly
+  name: wall ATM assembly
+  description: Unfinished wall ATM.
+  placement:
+    mode: SnapgridCenter
+    snap:
+    - Wallmount
+  components:
+  - type: WallMount
+    arc: 360
+  - type: Sprite
+    sprite: _Onyx/Structures/Machines/wall_atm.rsi
+    layers:
+    - map: [ "enum.ConstructionVisuals.Layer" ]
+      state: off
+      directional: true
+  - type: Appearance
+  - type: GenericVisualizer
+    visuals:
+      enum.ConstructionVisuals.Key:
+        enum.ConstructionVisuals.Layer:
+          assembly: { state: off }
+          wired: { state: on }
+          electronics: { state: icon }
+  - type: ContainerContainer
+    containers:
+      board: !type:Container
+  - type: Construction
+    graph: WallATM
+    node: assembly
 
 
 - type: entity
@@ -151,3 +188,12 @@
   components:
   - type: Flatpack
     entity: ATM
+
+- type: entity
+  parent: BaseElectronics
+  id: WallATMElectronics
+  name: wall ATM electronics
+  description: An encrypted electronics board for wall-mounted NanoBank ATMs.
+  components:
+  - type: Tag
+    tags: [ WallATMElectronics ]
