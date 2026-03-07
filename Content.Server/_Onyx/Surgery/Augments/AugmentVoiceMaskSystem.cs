@@ -15,9 +15,6 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._Onyx.Surgery.Augments;
 
-/// <summary>
-/// System for the voice mask augment that allows changing voice identity without wearing a mask.
-/// </summary>
 public sealed class AugmentVoiceMaskSystem : EntitySystem
 {
     [Dependency] private readonly IConfigurationManager _cfg = default!;
@@ -39,8 +36,8 @@ public sealed class AugmentVoiceMaskSystem : EntitySystem
         SubscribeLocalEvent<AugmentVoiceMaskComponent, TransformSpeakerNameEvent>(OnTransformSpeakerName);
         SubscribeLocalEvent<AugmentVoiceMaskComponent, TransformSpeakerBarkEvent>(OnTransformSpeakerBark);
         SubscribeLocalEvent<AugmentVoiceMaskComponent, VoiceMaskSetNameEvent>(OnSetNameEvent);
+        SubscribeLocalEvent<AugmentVoiceMaskComponent, AugmentEmpDisabledEvent>(OnEmpDisabled);
 
-        // BUI events
         Subs.BuiEvents<AugmentVoiceMaskComponent>(VoiceMaskUIKey.Key, subs =>
         {
             subs.Event<VoiceMaskChangeNameMessage>(OnChangeName);
@@ -54,7 +51,6 @@ public sealed class AugmentVoiceMaskSystem : EntitySystem
 
     private void OnOrganAddedToBody(Entity<AugmentVoiceMaskComponent> ent, ref OrganAddedToBodyEvent args)
     {
-        // Add action to open voice mask UI
         _actions.AddAction(args.Body, ref ent.Comp.ActionEntity, "ActionAugmentVoiceMask", ent);
     }
 
@@ -66,14 +62,20 @@ public sealed class AugmentVoiceMaskSystem : EntitySystem
             ent.Comp.ActionEntity = null;
         }
 
-        // Close UI if open
+        _uiSystem.CloseUi(ent.Owner, VoiceMaskUIKey.Key);
+    }
+
+    private void OnEmpDisabled(Entity<AugmentVoiceMaskComponent> ent, ref AugmentEmpDisabledEvent args)
+    {
         _uiSystem.CloseUi(ent.Owner, VoiceMaskUIKey.Key);
     }
 
     private void OnTransformSpeakerName(Entity<AugmentVoiceMaskComponent> ent, ref TransformSpeakerNameEvent args)
     {
-        // Only apply if this augment is installed in the sender's body
         if (_augment.GetBody(ent) != args.Sender)
+            return;
+
+        if (HasComp<AugmentEmpDisabledComponent>(ent.Owner))
             return;
 
         args.VoiceName = GetCurrentVoiceName(ent);
@@ -85,10 +87,12 @@ public sealed class AugmentVoiceMaskSystem : EntitySystem
         if (_augment.GetBody(ent) != args.Sender)
             return;
 
-        // Apply bark data from the augment
+        if (HasComp<AugmentEmpDisabledComponent>(ent.Owner))
+            return;
+
         if (_proto.TryIndex<BarkPrototype>(ent.Comp.BarkId, out var proto))
         {
-            args.Data.Pitch = Math.Clamp(ent.Comp.BarkPitch, 0.5f, 2.0f); // Default min/max pitch
+            args.Data.Pitch = Math.Clamp(ent.Comp.BarkPitch, 0.5f, 2.0f);
             args.Data.Sound = proto.Sound;
         }
     }
@@ -97,6 +101,12 @@ public sealed class AugmentVoiceMaskSystem : EntitySystem
     {
         if (_augment.GetBody(ent) != args.Performer)
             return;
+
+        if (HasComp<AugmentEmpDisabledComponent>(ent.Owner))
+        {
+            _popup.PopupEntity(Loc.GetString("augment-emp-disabled"), args.Performer, args.Performer, PopupType.SmallCaution);
+            return;
+        }
 
         if (!_uiSystem.HasUi(ent.Owner, VoiceMaskUIKey.Key))
             return;

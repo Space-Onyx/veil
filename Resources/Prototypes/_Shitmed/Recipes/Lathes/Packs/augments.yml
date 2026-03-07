@@ -19,18 +19,18 @@
 - type: latheRecipePack
   id: LegAugments
   recipes:
-  - RunnerAugmentLeft
-  - RunnerAugmentRight
+  - RunnerAugment
 
 - type: latheRecipePack
   id: AdvancedLegAugments
   recipes:
-  - AdvancedRunnerAugmentLeft
-  - AdvancedRunnerAugmentRight
+  - AdvancedRunnerAugment
 
 - type: latheRecipePack
   id: OnyxAugments
   recipes:
+  - AugmentBioReactorCasing
+  - AugmentRTGCasing
   - AugmentHoloPda
   - AugmentNeuroInterface
 # </Onyx Augments>

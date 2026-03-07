@@ -30,4 +30,10 @@ public sealed partial class AugmentMovementSpeedComponent : Component
 
     [DataField, AutoNetworkedField]
     public string? AugmentId;
+
+    [DataField, AutoNetworkedField]
+    public float PowerDraw;
+
+    [DataField, AutoNetworkedField]
+    public bool RequiresPower = true;
 }

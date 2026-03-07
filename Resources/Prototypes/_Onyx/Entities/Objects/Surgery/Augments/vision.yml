@@ -1,0 +1,62 @@
+- type: entity
+  parent: BaseOnyxBrainAugment
+  id: AugmentVisionChemical
+  name: Chemical visor augment
+  description: A cybernetic brain implant that allows the user to analyze chemical compositions of solutions.
+  components:
+  - type: AugmentVision
+    visionType: SolutionScanner
+    powerDraw: 0.5
+  - type: AugmentEmp
+  - type: AugmentExamine
+    visible: false
+
+- type: entity
+  parent: BaseOnyxBrainAugment
+  id: AugmentVisionNight
+  name: Night vision augment
+  description: A cybernetic brain implant that grants enhanced low-light vision capabilities.
+  components:
+  - type: AugmentVision
+    visionType: NightVision
+    powerDraw: 1.5
+    visionSettings:
+      NightVision:
+        flashDurationMultiplier: 2
+        drawOverlay: true
+        overlayOpacity: 0.5
+  - type: AugmentEmp
+  - type: AugmentExamine
+    visible: false
+
+- type: entity
+  parent: BaseOnyxBrainAugment
+  id: AugmentVisionThermal
+  name: Thermal vision augment
+  description: A cybernetic brain implant that allows the user to see heat signatures of living beings.
+  components:
+  - type: AugmentVision
+    visionType: ThermalVision
+    powerDraw: 2
+    visionSettings:
+      ThermalVision:
+        flashDurationMultiplier: 2
+        drawOverlay: true
+        overlayOpacity: 0.5
+        lightRadius: 2
+  - type: AugmentEmp
+  - type: AugmentExamine
+    visible: false
+
+- type: entity
+  parent: BaseOnyxBrainAugment
+  id: AugmentVisionDiagnostic
+  name: Diagnostic visor augment
+  description: A cybernetic brain implant that provides a diagnostic HUD overlay for analyzing machinery and equipment.
+  components:
+  - type: AugmentVision
+    visionType: DiagnosticHUD
+    powerDraw: 0.5
+  - type: AugmentEmp
+  - type: AugmentExamine
+    visible: false

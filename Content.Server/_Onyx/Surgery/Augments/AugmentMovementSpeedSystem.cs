@@ -1,8 +1,9 @@
 using Content.Shared._Onyx.Surgery.Augments;
 using Content.Shared.Body.Events;
-using Content.Shared.Body.Organ;
+using Content.Shared.Emp;
 using Content.Shared.Movement.Components;
 using Content.Shared.Movement.Systems;
+using Content.Shared.PowerCell;
 using Content.Goobstation.Shared.Augments;
 
 namespace Content.Server._Onyx.Surgery.Augments;
@@ -10,6 +11,8 @@ namespace Content.Server._Onyx.Surgery.Augments;
 public sealed class AugmentMovementSpeedSystem : EntitySystem
 {
     [Dependency] private readonly MovementSpeedModifierSystem _movementSpeed = default!;
+    [Dependency] private readonly SharedAugmentPowerCellSystem _augmentPower = default!;
+    [Dependency] private readonly SharedPowerCellSystem _powerCell = default!;
 
     public override void Initialize()
     {
@@ -18,38 +21,83 @@ public sealed class AugmentMovementSpeedSystem : EntitySystem
         SubscribeLocalEvent<AugmentMovementSpeedComponent, OrganAddedToBodyEvent>(OnOrganAddedToBody);
         SubscribeLocalEvent<AugmentMovementSpeedComponent, OrganRemovedFromBodyEvent>(OnOrganRemovedFromBody);
         SubscribeLocalEvent<InstalledAugmentsComponent, RefreshMovementSpeedModifiersEvent>(OnRefreshMovementSpeed);
+        SubscribeLocalEvent<AugmentMovementSpeedComponent, AugmentEmpDisabledEvent>(OnEmpDisabled);
+        SubscribeLocalEvent<AugmentMovementSpeedComponent, AugmentEmpRestoredEvent>(OnEmpRestored);
+        SubscribeLocalEvent<AugmentMovementSpeedComponent, AugmentLostPowerEvent>(OnLostPower);
+        SubscribeLocalEvent<AugmentMovementSpeedComponent, AugmentGainedPowerEvent>(OnGainedPower);
+        SubscribeLocalEvent<AugmentMovementSpeedComponent, GetAugmentsPowerDrawEvent>(OnGetPowerDraw);
     }
 
     private void OnOrganAddedToBody(EntityUid uid, AugmentMovementSpeedComponent component, ref OrganAddedToBodyEvent args)
     {
         _movementSpeed.RefreshMovementSpeedModifiers(args.Body);
+        UpdateBodyDrawRate(args.Body);
     }
 
     private void OnOrganRemovedFromBody(EntityUid uid, AugmentMovementSpeedComponent component, ref OrganRemovedFromBodyEvent args)
     {
         _movementSpeed.RefreshMovementSpeedModifiers(args.OldBody);
+        UpdateBodyDrawRate(args.OldBody);
+    }
+
+    private void OnEmpDisabled(EntityUid uid, AugmentMovementSpeedComponent component, ref AugmentEmpDisabledEvent args)
+    {
+        _movementSpeed.RefreshMovementSpeedModifiers(args.Body);
+    }
+
+    private void OnEmpRestored(EntityUid uid, AugmentMovementSpeedComponent component, ref AugmentEmpRestoredEvent args)
+    {
+        _movementSpeed.RefreshMovementSpeedModifiers(args.Body);
+    }
+
+    private void OnLostPower(EntityUid uid, AugmentMovementSpeedComponent component, ref AugmentLostPowerEvent args)
+    {
+        if (!RequiresPower(uid, component))
+            return;
+
+        _movementSpeed.RefreshMovementSpeedModifiers(args.Body);
+    }
+
+    private void OnGainedPower(EntityUid uid, AugmentMovementSpeedComponent component, ref AugmentGainedPowerEvent args)
+    {
+        if (!RequiresPower(uid, component))
+            return;
+
+        _movementSpeed.RefreshMovementSpeedModifiers(args.Body);
+    }
+
+    private void OnGetPowerDraw(EntityUid uid, AugmentMovementSpeedComponent component, ref GetAugmentsPowerDrawEvent args)
+    {
+        if (RequiresPower(uid, component))
+            args.TotalDraw += component.PowerDraw;
     }
 
     private void OnRefreshMovementSpeed(EntityUid uid, InstalledAugmentsComponent component, RefreshMovementSpeedModifiersEvent args)
     {
-        var (walkMult, sprintMult) = CalculateTotalSpeedModifier(uid);
+        var (walkMult, sprintMult) = CalculateTotalSpeedModifier(uid, component);
 
         if (walkMult != 1.0f || sprintMult != 1.0f)
         {
             args.ModifySpeed(walkMult, sprintMult);
         }
     }
-    private (float WalkMult, float SprintMult) CalculateTotalSpeedModifier(EntityUid body)
+    private (float WalkMult, float SprintMult) CalculateTotalSpeedModifier(EntityUid body, InstalledAugmentsComponent installed)
     {
         var totalWalkMult = 1.0f;
         var totalSprintMult = 1.0f;
         var totalWalkFlat = 0f;
         var totalSprintFlat = 0f;
 
-        var organQuery = EntityQueryEnumerator<OrganComponent, AugmentMovementSpeedComponent>();
-        while (organQuery.MoveNext(out _, out var organ, out var augment))
+        foreach (var netEnt in installed.InstalledAugments)
         {
-            if (organ.Body != body)
+            var augUid = GetEntity(netEnt);
+            if (!TryComp<AugmentMovementSpeedComponent>(augUid, out var augment))
+                continue;
+
+            if (HasComp<AugmentEmpDisabledComponent>(augUid))
+                continue;
+
+            if (RequiresPower(augUid, augment) && !HasAugmentPower(body))
                 continue;
 
             switch (augment.ModifierType)
@@ -76,5 +124,29 @@ public sealed class AugmentMovementSpeedSystem : EntitySystem
         }
 
         return (totalWalkMult, totalSprintMult);
+    }
+
+    private bool HasAugmentPower(EntityUid body)
+    {
+        if (_augmentPower.GetBodyAugment(body) is not { } slot)
+            return false;
+
+        if (!TryComp<PowerCellDrawComponent>(slot, out var draw))
+            return false;
+
+        return _powerCell.HasDrawCharge(slot, draw);
+    }
+
+    private bool RequiresPower(EntityUid uid, AugmentMovementSpeedComponent component)
+    {
+        return component.RequiresPower
+            && component.PowerDraw > 0f
+            && (!TryComp<AugmentPowerConfigComponent>(uid, out var globalConfig) || globalConfig.RequiresPower);
+    }
+
+    private void UpdateBodyDrawRate(EntityUid body)
+    {
+        if (_augmentPower.GetBodyAugment(body) is { } slot)
+            _augmentPower.UpdateDrawRate(slot.Owner);
     }
 }

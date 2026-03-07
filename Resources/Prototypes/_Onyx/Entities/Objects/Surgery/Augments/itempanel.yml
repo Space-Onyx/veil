@@ -16,9 +16,10 @@
     sprite: _Shitmed/Objects/Augments/arm.rsi
     state: base
   - type: ItemToggle
-    activated: true
+    activated: false
     onUse: false
     onActivate: false
+  - type: AugmentEmp
   - type: AugmentExamine
     color: "#5bcefa"
     examineText: augment-examine-item-panel
@@ -35,5 +36,9 @@
   - type: AugmentItemPanel
     itemPrototype: MantisBlade
     icon: { sprite: _Goobstation/Objects/Weapons/Melee/mantis_blade.rsi, state: icon }
+    extendSound: { collection: MantisBladeRetract }
+    retractSound: { collection: MantisBladeRetract }
+    extendHeldPrefix: popout
+    extendHeldPrefixDuration: 0.3
   - type: AugmentExamine
     examineText: augment-examine-mantis-blade-panel

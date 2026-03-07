@@ -286,8 +286,8 @@
 
 # <Onyx Augments>
 - type: latheRecipe
-  id: RunnerAugmentLeft
-  result: RunnerAugmentLeft
+  id: RunnerAugment
+  result: RunnerAugment
   categories:
   - Robotics
   completetime: 8
@@ -299,35 +299,8 @@
     Silver: 300
 
 - type: latheRecipe
-  id: RunnerAugmentRight
-  result: RunnerAugmentRight
-  categories:
-  - Robotics
-  completetime: 8
-  materials:
-    Steel: 1500
-    Glass: 500
-    Plastic: 800
-    Gold: 500
-    Silver: 300
-
-- type: latheRecipe
-  id: AdvancedRunnerAugmentLeft
-  result: AdvancedRunnerAugmentLeft
-  categories:
-  - Robotics
-  completetime: 12
-  materials:
-    Steel: 2000
-    Glass: 800
-    Plastic: 1000
-    Gold: 1000
-    Silver: 600
-    Plasma: 500
-
-- type: latheRecipe
-  id: AdvancedRunnerAugmentRight
-  result: AdvancedRunnerAugmentRight
+  id: AdvancedRunnerAugment
+  result: AdvancedRunnerAugment
   categories:
   - Robotics
   completetime: 12
@@ -364,6 +337,7 @@
     Glass: 500
     Plastic: 800
     Gold: 500
+
 # </Onyx Augments>
 
 - type: latheRecipe
@@ -438,6 +412,16 @@
   parent: BaseAugmentRecipe
   id: AugmentRechargerCasing
   result: AugmentRechargerCasing
+
+- type: latheRecipe
+  parent: BaseAugmentRecipe
+  id: AugmentBioReactorCasing
+  result: AugmentBioReactorCasing
+
+- type: latheRecipe
+  parent: BaseAugmentRecipe
+  id: AugmentRTGCasing
+  result: AugmentRTGCasing
 
 # Tools
 

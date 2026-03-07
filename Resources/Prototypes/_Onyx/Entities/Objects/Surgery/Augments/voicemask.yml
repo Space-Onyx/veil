@@ -23,6 +23,7 @@
     slotId: headImplant
     hiddenFromAnalyzer: true
   - type: AugmentVoiceMask
+  - type: AugmentEmp
   - type: AugmentExamine
     visible: false
   - type: Tag

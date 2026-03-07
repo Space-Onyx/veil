@@ -1,6 +1,5 @@
 using Content.Shared._Onyx.Surgery.Augments;
 using Content.Shared.Body.Events;
-using Content.Shared.Body.Organ;
 using Content.Shared.Damage.Components;
 using Content.Goobstation.Shared.Augments;
 
@@ -14,6 +13,8 @@ public sealed class AugmentStaminaSystem : EntitySystem
 
         SubscribeLocalEvent<AugmentStaminaComponent, OrganAddedToBodyEvent>(OnOrganAddedToBody);
         SubscribeLocalEvent<AugmentStaminaComponent, OrganRemovedFromBodyEvent>(OnOrganRemovedFromBody);
+        SubscribeLocalEvent<AugmentStaminaComponent, AugmentEmpDisabledEvent>(OnEmpDisabled);
+        SubscribeLocalEvent<AugmentStaminaComponent, AugmentEmpRestoredEvent>(OnEmpRestored);
     }
 
     private void OnOrganAddedToBody(EntityUid uid, AugmentStaminaComponent component, ref OrganAddedToBodyEvent args)
@@ -26,9 +27,21 @@ public sealed class AugmentStaminaSystem : EntitySystem
         RefreshStamina(args.OldBody);
     }
 
+    private void OnEmpDisabled(EntityUid uid, AugmentStaminaComponent component, ref AugmentEmpDisabledEvent args)
+    {
+        RefreshStamina(args.Body);
+    }
+
+    private void OnEmpRestored(EntityUid uid, AugmentStaminaComponent component, ref AugmentEmpRestoredEvent args)
+    {
+        RefreshStamina(args.Body);
+    }
+
     private void RefreshStamina(EntityUid body)
     {
         if (!TryComp<StaminaComponent>(body, out var stamina))
+            return;
+        if (!TryComp<InstalledAugmentsComponent>(body, out var installed))
             return;
 
         var baseCritThreshold = 100f;
@@ -38,10 +51,13 @@ public sealed class AugmentStaminaSystem : EntitySystem
         var totalFlat = 0f;
         var recoveryMult = 1.0f;
 
-        var query = EntityQueryEnumerator<OrganComponent, AugmentStaminaComponent>();
-        while (query.MoveNext(out _, out var organ, out var aug))
+        foreach (var netEnt in installed.InstalledAugments)
         {
-            if (organ.Body != body)
+            var augUid = GetEntity(netEnt);
+            if (!TryComp<AugmentStaminaComponent>(augUid, out var aug))
+                continue;
+
+            if (HasComp<AugmentEmpDisabledComponent>(augUid))
                 continue;
 
             switch (aug.ModifierType)

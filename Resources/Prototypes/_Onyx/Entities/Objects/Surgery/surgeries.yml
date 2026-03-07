@@ -34,8 +34,8 @@
 
 - type: entity
   parent: SurgeryInstallAugmentBase
-  id: SurgeryInsertRunnerAugmentLeft
-  name: Insert Left Runner Augment
+  id: SurgeryInsertRunnerAugment
+  name: Insert Runner Augment
   components:
   - type: Surgery
     requirement: SurgeryOpenIncision
@@ -45,28 +45,6 @@
     - SurgeryStepSealOrganWound
   - type: SurgeryPartCondition
     parts: [ Leg ]
-    symmetry: Left
-  - type: SurgeryOrganSlotCondition
-    organSlot: legImplant
-  - type: SurgeryOrganCondition
-    organ:
-    - type: AugmentMovementSpeed
-    inverse: true
-
-- type: entity
-  parent: SurgeryInstallAugmentBase
-  id: SurgeryInsertRunnerAugmentRight
-  name: Insert Right Runner Augment
-  components:
-  - type: Surgery
-    requirement: SurgeryOpenIncision
-    steps:
-    - SurgeryStepSawBones
-    - SurgeryStepInsertAugmentLeg
-    - SurgeryStepSealOrganWound
-  - type: SurgeryPartCondition
-    parts: [ Leg ]
-    symmetry: Right
   - type: SurgeryOrganSlotCondition
     organSlot: legImplant
   - type: SurgeryOrganCondition
@@ -76,28 +54,13 @@
 
 - type: entity
   parent: SurgeryRemoveAugmentBase
-  id: SurgeryRemoveRunnerAugmentLeft
-  name: Remove Left Runner Augment
+  id: SurgeryRemoveRunnerAugment
+  name: Remove Runner Augment
   components:
   - type: Surgery
     requirement: SurgeryOpenIncision
   - type: SurgeryPartCondition
     parts: [ Leg ]
-    symmetry: Left
-  - type: SurgeryOrganCondition
-    organ:
-    - type: AugmentMovementSpeed
-
-- type: entity
-  parent: SurgeryRemoveAugmentBase
-  id: SurgeryRemoveRunnerAugmentRight
-  name: Remove Right Runner Augment
-  components:
-  - type: Surgery
-    requirement: SurgeryOpenIncision
-  - type: SurgeryPartCondition
-    parts: [ Leg ]
-    symmetry: Right
   - type: SurgeryOrganCondition
     organ:
     - type: AugmentMovementSpeed

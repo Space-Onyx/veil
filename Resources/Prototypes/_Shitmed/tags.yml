@@ -26,6 +26,12 @@
   id: AugmentRechargerCasing
 
 - type: Tag
+  id: AugmentBioReactorCasing
+
+- type: Tag
+  id: AugmentRTGCasing
+
+- type: Tag
   id: AugmentStationBoard
 
 - type: Tag

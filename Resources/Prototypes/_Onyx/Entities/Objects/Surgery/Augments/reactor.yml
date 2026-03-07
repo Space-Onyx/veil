@@ -1,0 +1,111 @@
+- type: entity
+  abstract: true
+  parent: BaseItem
+  id: BaseIncompleteAugmentBioReactor
+  description: Can be implanted into a body to passively generate power. This one is incomplete.
+  components:
+  - type: Sprite
+    sprite: _Shitmed/Objects/Augments/power.rsi
+  - type: Item
+    size: Huge
+  - type: Construction
+    graph: AugmentBioReactor
+
+- type: entity
+  parent: BaseIncompleteAugmentBioReactor
+  id: AugmentBioReactorCasing
+  name: bio-reactor augment casing
+  components:
+  - type: Sprite
+    state: incomplete_charger
+  - type: Construction
+    node: casing
+  - type: Tag
+    tags: [ AugmentBioReactorCasing ]
+
+- type: entity
+  parent: BaseIncompleteAugmentBioReactor
+  id: AugmentBioReactorCables
+  name: bio-reactor augment casing with cables
+  components:
+  - type: Sprite
+    state: incomplete_charger_cables
+  - type: Construction
+    node: cables
+
+- type: entity
+  abstract: true
+  parent: BaseItem
+  id: BaseIncompleteAugmentRTG
+  description: Can be implanted into a body to passively generate power. This one is incomplete.
+  components:
+  - type: Sprite
+    sprite: _Shitmed/Objects/Augments/power.rsi
+  - type: Item
+    size: Huge
+  - type: Construction
+    graph: AugmentRTG
+
+- type: entity
+  parent: BaseIncompleteAugmentRTG
+  id: AugmentRTGCasing
+  name: RTG augment casing
+  components:
+  - type: Sprite
+    state: incomplete_charger
+  - type: Construction
+    node: casing
+  - type: Tag
+    tags: [ AugmentRTGCasing ]
+
+- type: entity
+  parent: BaseIncompleteAugmentRTG
+  id: AugmentRTGCables
+  name: RTG augment casing with cables
+  components:
+  - type: Sprite
+    state: incomplete_charger_cables
+  - type: Construction
+    node: cables
+
+- type: entity
+  parent: BaseAugmentRecharger
+  id: AugmentBioReactor
+  name: bio-reactor augment
+  description: A metabolic augment recharger that slowly converts nutrition into power.
+  components:
+  - type: Sprite
+    state: apc
+  - type: AugmentBioReactor
+    chargeRate: 8
+    hungerCostPerCharge: 1
+    minimumHungerThreshold: Starving
+  - type: AugmentEmp
+  - type: AugmentExamine
+    color: "#49b881"
+    examineText: augment-examine-bio-reactor
+    visible: true
+  - type: Construction
+    graph: AugmentBioReactor
+    node: bioreactor
+
+- type: entity
+  parent: BaseAugmentRecharger
+  id: AugmentRTG
+  name: RTG augment
+  description: A high-end implant reactor that passively generates power without metabolic cost.
+  components:
+  - type: Sprite
+    state: station
+  - type: AugmentBioReactor
+    chargeRate: 15
+    hungerCostPerCharge: 0
+    minimumHungerThreshold: Starving
+  - type: AugmentEmp
+  - type: AugmentExamine
+    color: "#d19b2b"
+    examineText: augment-examine-riteg
+    visible: true
+  - type: Construction
+    graph: AugmentRTG
+    node: rtg

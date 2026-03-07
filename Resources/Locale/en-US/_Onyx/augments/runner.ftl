@@ -1,23 +1,15 @@
 # Runner Augment Names
-ent-RunnerAugmentLeft = left runner augment
+ent-RunnerAugment = runner augment
     .desc = A cybernetic leg implant. Increases walk and sprint speed by ~10%.
 
-ent-RunnerAugmentRight = right runner augment
-    .desc = { ent-RunnerAugmentLeft.desc }
-
-ent-AdvancedRunnerAugmentLeft = advanced left runner augment
+ent-AdvancedRunnerAugment = advanced runner augment
     .desc = An advanced cybernetic leg implant. Increases walk and sprint speed by ~25%.
-
-ent-AdvancedRunnerAugmentRight = advanced right runner augment
-    .desc = { ent-AdvancedRunnerAugmentRight.desc }
 
 # Surgery Names
 ent-SurgeryOpenLegAugmentLeft = Open Left Leg Cavity
 ent-SurgeryOpenLegAugmentRight = Open Right Leg Cavity
-ent-SurgeryInsertRunnerAugmentLeft = Insert Left Runner Augment
-ent-SurgeryInsertRunnerAugmentRight = Insert Right Runner Augment
-ent-SurgeryRemoveRunnerAugmentLeft = Remove Left Runner Augment
-ent-SurgeryRemoveRunnerAugmentRight = Remove Right Runner Augment
+ent-SurgeryInsertRunnerAugment = Insert Runner Augment
+ent-SurgeryRemoveRunnerAugment = Remove Runner Augment
 
 # Surgery Steps
 ent-SurgeryStepInsertAugmentLeg = Insert leg augment

@@ -8,6 +8,8 @@
     size: Huge
   - type: AugmentExamine
     visible: true
+  - type: AugmentEmp
+  - type: AugmentPowerConfig
   - type: Tag
     tags:
     - Augment
@@ -138,4 +140,20 @@
   - type: Tag
     tags:
     - handAugment
+    - Augment
+
+- type: entity
+  abstract: true
+  parent: BaseOnyxAugment
+  id: BaseOnyxNeckAugment
+  description: Augment
+  components:
+  - type: Sprite
+    sprite: _Shitmed/Objects/Augments/power.rsi
+    state: cell
+  - type: Organ
+    slotId: neckImplant
+  - type: Tag
+    tags:
+    - neckAugment
     - Augment

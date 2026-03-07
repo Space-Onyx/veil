@@ -1,6 +1,6 @@
 # HoloPDA Augment
 
-ent-AugmentHoloPda = ГолоКПК
+ent-AugmentHoloPda = имплант ГолоКПК
     .desc = Кибернетический КПК, имплантируемый непосредственно в мозг, обеспечивающий голографический интерфейс.
 
 ent-ActionAugmentHoloPda = Открыть ГолоКПК

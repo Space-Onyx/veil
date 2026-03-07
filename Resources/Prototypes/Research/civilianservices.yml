@@ -355,14 +355,29 @@
   tier: 3
   cost: 15000
   recipeUnlocks:
+    - AugmentBioReactorCasing
     - AugmentHoloPda
     - AugmentNeuroInterface
-    - AdvancedRunnerAugmentLeft
-    - AdvancedRunnerAugmentRight
+    - RunnerAugment
   position: -3,5
   technologyPrerequisites:
     - BasicAugmentation
     - ImplantedTools
+- type: technology
+  id: AdvancedAugmentation2
+  name: research-technology-advanced-augmentation_two
+  icon:
+    sprite: _Shitmed/Objects/Augments/power.rsi
+    state: cell
+  discipline: CivilianServices
+  tier: 3
+  cost: 15000
+  recipeUnlocks:
+    - AugmentRTGCasing
+    - AdvancedRunnerAugment
+  position: -4,5
+  technologyPrerequisites:
+    - AdvancedAugmentation
 # </Onyx Augments>
 - type: technology
   id: AdvancedCybernetics

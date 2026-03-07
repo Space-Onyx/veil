@@ -57,6 +57,9 @@
     key: enum.AugmentToolPanelUiKey.Key
   - type: AugmentAction
     action: ActionAugmentOpenToolsPanel
+  - type: AugmentExamine
+    color: "#4cbf9a"
+    examineText: augment-examine-tool-panel
   - type: Construction
     graph: AugmentToolsPanel
 
@@ -194,6 +197,8 @@
       - GasAnalyzer
   - type: Construction
     node: "utility tools panel"
+  - type: AugmentExamine
+    examineText: augment-examine-tool-panel-utility
 
 - type: entity
   parent: BaseAugmentToolPanel
@@ -215,6 +220,8 @@
       - HandLabeler
   - type: Construction
     node: "botany tools panel"
+  - type: AugmentExamine
+    examineText: augment-examine-tool-panel-botany
 
 - type: entity
   parent: BaseAugmentToolPanel
@@ -234,6 +241,8 @@
       - TapeRecorder
   - type: Construction
     node: "paperwork tools panel"
+  - type: AugmentExamine
+    examineText: augment-examine-tool-panel-paperwork
 
 - type: entity
   parent: BaseAugmentToolPanel
@@ -252,6 +261,8 @@
       - SurgeryTool
   - type: Construction
     node: "surgery tools panel"
+  - type: AugmentExamine
+    examineText: augment-examine-tool-panel-surgical
 
 # Strength
 

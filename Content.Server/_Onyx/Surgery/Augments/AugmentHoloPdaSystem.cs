@@ -53,7 +53,6 @@ public sealed class AugmentHoloPdaSystem : EntitySystem
         SubscribeLocalEvent<InstalledAugmentsComponent, GetVerbsEvent<AlternativeVerb>>(OnBodyGetAlternativeVerbs);
 
         SubscribeLocalEvent<AugmentHoloPdaComponent, ItemSlotInsertAttemptEvent>(OnAugmentSlotInsertAttempt);
-        SubscribeLocalEvent<AugmentHoloPdaComponent, PdaToggleFlashlightMessage>(OnToggleFlashlight);
     }
 
     #region Lifecycle
@@ -377,10 +376,6 @@ public sealed class AugmentHoloPdaSystem : EntitySystem
         {
             args.Cancelled = true;
         }
-    }
-
-    private void OnToggleFlashlight(Entity<AugmentHoloPdaComponent> ent, ref PdaToggleFlashlightMessage args)
-    {
     }
 
     #endregion

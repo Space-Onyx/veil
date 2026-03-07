@@ -1,3 +1,5 @@
+using System;
+using Robust.Shared.Audio;
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
@@ -21,11 +23,68 @@ public sealed partial class AugmentItemPanelComponent : Component
 
     [DataField, AutoNetworkedField]
     public EntityUid? ActionEntity;
-}
 
-[RegisterComponent, NetworkedComponent]
-public sealed partial class AugmentItemPanelActiveItemComponent : Component
-{
     [DataField]
-    public EntityUid AugmentEntity;
+    public float PowerCost = 2f;
+
+    [DataField]
+    public bool RequiresPower = true;
+
+    [DataField]
+    public TimeSpan ActionCooldown = TimeSpan.FromSeconds(2f);
+
+    [DataField]
+    public SoundSpecifier? ExtendSound;
+
+    [DataField]
+    public SoundSpecifier? RetractSound;
+
+    /// <summary>
+    /// Temporary held prefix applied when deploying an item from the panel.
+    /// Useful for popout animations in in-hand states.
+    /// </summary>
+    [DataField]
+    public string? ExtendHeldPrefix;
+
+    /// <summary>
+    /// How long the deploy held prefix should stay before resetting.
+    /// </summary>
+    [DataField]
+    public TimeSpan ExtendHeldPrefixDuration = TimeSpan.FromSeconds(0.3f);
+
+    /// <summary>
+    /// Held prefix to apply after deploy animation finishes.
+    /// Null resets to default in-hand states.
+    /// </summary>
+    [DataField]
+    public string? ExtendHeldPrefixAfter;
+
+    // Backwards-compatible aliases for existing prototypes.
+    [DataField("deploySound")]
+    public SoundSpecifier? LegacyDeploySound
+    {
+        get => ExtendSound;
+        set => ExtendSound = value;
+    }
+
+    [DataField("deployHeldPrefix")]
+    public string? LegacyDeployHeldPrefix
+    {
+        get => ExtendHeldPrefix;
+        set => ExtendHeldPrefix = value;
+    }
+
+    [DataField("deployHeldPrefixDuration")]
+    public TimeSpan LegacyDeployHeldPrefixDuration
+    {
+        get => ExtendHeldPrefixDuration;
+        set => ExtendHeldPrefixDuration = value;
+    }
+
+    [DataField("deployHeldPrefixAfter")]
+    public string? LegacyDeployHeldPrefixAfter
+    {
+        get => ExtendHeldPrefixAfter;
+        set => ExtendHeldPrefixAfter = value;
+    }
 }

@@ -39,3 +39,6 @@
 
 - type: Tag
   id: SlotBlock
+
+- type: Tag
+  id: WallATMElectronics

@@ -115,6 +115,9 @@
   components:
   - type: Sprite
     state: apc
+  - type: AugmentExamine
+    color: "#3b88ff"
+    examineText: augment-examine-recharger-apc
   - type: Organ
     onAdd:
     - type: BatteryDrinker
@@ -130,6 +133,9 @@
   components:
   - type: Sprite
     state: station
+  - type: AugmentExamine
+    color: "#3b88ff"
+    examineText: augment-examine-recharger-station
   - type: Organ
     onAdd:
     - type: AugmentStationRecharge

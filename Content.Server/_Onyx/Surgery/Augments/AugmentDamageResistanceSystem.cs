@@ -1,6 +1,4 @@
 using Content.Shared._Onyx.Surgery.Augments;
-using Content.Shared.Body.Events;
-using Content.Shared.Body.Organ;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
 using Content.Goobstation.Shared.Augments;
@@ -16,25 +14,18 @@ public sealed class AugmentDamageResistanceSystem : EntitySystem
     {
         base.Initialize();
 
-        SubscribeLocalEvent<AugmentDamageResistanceComponent, OrganAddedToBodyEvent>(OnOrganAddedToBody);
-        SubscribeLocalEvent<AugmentDamageResistanceComponent, OrganRemovedFromBodyEvent>(OnOrganRemovedFromBody);
         SubscribeLocalEvent<InstalledAugmentsComponent, DamageModifyEvent>(OnDamageModify);
-    }
-
-    private void OnOrganAddedToBody(EntityUid uid, AugmentDamageResistanceComponent component, ref OrganAddedToBodyEvent args)
-    {
-    }
-
-    private void OnOrganRemovedFromBody(EntityUid uid, AugmentDamageResistanceComponent component, ref OrganRemovedFromBodyEvent args)
-    {
     }
 
     private void OnDamageModify(EntityUid uid, InstalledAugmentsComponent component, DamageModifyEvent args)
     {
-        var organQuery = EntityQueryEnumerator<OrganComponent, AugmentDamageResistanceComponent>();
-        while (organQuery.MoveNext(out _, out var organ, out var resist))
+        foreach (var netEnt in component.InstalledAugments)
         {
-            if (organ.Body != uid)
+            var augUid = GetEntity(netEnt);
+            if (!TryComp<AugmentDamageResistanceComponent>(augUid, out var resist))
+                continue;
+
+            if (HasComp<AugmentEmpDisabledComponent>(augUid))
                 continue;
 
             if (!_proto.TryIndex<DamageModifierSetPrototype>(resist.DamageModifierSetId, out var modifierSet))
