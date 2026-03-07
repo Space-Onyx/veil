@@ -6,3 +6,5 @@ ent-BioSynthLungs = bio-synthetic lungs
     .desc = These lungs can be transplanted into any living organism and it will adapt to its recipient.
 ent-BioSynthEyes = bio-synthetic eyes
     .desc = These eyes can be transplanted into any living organism and it will adapt to its recipient.
+ent-BioSynthTongue = bio-synthetic tongue
+    .desc = This tongue can be transplanted into any living organism and it will adapt to its recipient.

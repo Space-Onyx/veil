@@ -26,3 +26,11 @@
   id: BioSynthEyes
   name: bio-synthetic eyes
   description: These eyes can be transplanted into any living organism and it will adapt to its recipient.
+
+# <Onyx-Surgery>
+- type: entity
+  parent: OrganHumanTongue
+  id: BioSynthTongue
+  name: bio-synthetic tongue
+  description: This tongue can be transplanted into any living organism and it will adapt to its recipient.
+# </Onyx-Surgery>

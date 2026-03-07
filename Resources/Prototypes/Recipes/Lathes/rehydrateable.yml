@@ -112,6 +112,15 @@
   materials:
     Biomass: 10
 
+# <Onyx-Surgery>
+- type: latheRecipe
+  id: SynthTongue
+  result: BioSynthTongue
+  completetime: 10
+  materials:
+    Biomass: 5
+# </Onyx-Surgery>
+
 - type: latheRecipe
   id: SynthHeadEmpty
   result: BioSynthHeadEmpty
