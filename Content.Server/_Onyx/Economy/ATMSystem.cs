@@ -100,6 +100,9 @@ public sealed class ATMSystem : SharedATMSystem
 
     private void OnCardInserted(EntityUid uid, ATMComponent component, EntInsertedIntoContainerMessage args)
     {
+        if (component.CardSlot.ContainerSlot != args.Container)
+            return;
+
         if (!TryComp<BankCardComponent>(args.Entity, out var bankCard) || !bankCard.AccountId.HasValue)
         {
             _container.EmptyContainer(args.Container);
@@ -122,6 +125,9 @@ public sealed class ATMSystem : SharedATMSystem
 
     private void OnCardRemoved(EntityUid uid, ATMComponent component, EntRemovedFromContainerMessage args)
     {
+        if (component.CardSlot.ContainerSlot != args.Container)
+            return;
+
         _authenticatedCard.Remove(uid);
         UpdateUiState(uid, ATMUiState.NoCard, string.Empty, 0);
     }

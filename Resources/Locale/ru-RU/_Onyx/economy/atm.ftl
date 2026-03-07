@@ -19,3 +19,5 @@ atm-ui-next = Далее
 
 # Footer
 atm-ui-footer = NanoTrasen Банкинг
+
+construction-recipe-wall-atm = настенный банкомат NanoBank

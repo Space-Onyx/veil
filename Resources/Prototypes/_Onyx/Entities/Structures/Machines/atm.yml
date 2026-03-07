@@ -36,6 +36,9 @@
         components:
         - BankCard
   - type: ItemSlots
+  - type: ContainerFill
+    containers:
+      board: [ WallATMElectronics ]
   - type: ContainerContainer
     containers:
       IdCardSlot: !type:ContainerSlot
@@ -73,6 +76,8 @@
   - type: Construction
     graph: WallATM
     node: wall_atm
+    containers:
+    - board
 
 - type: entity
   parent: BaseWallmountMetallic
@@ -98,7 +103,7 @@
       enum.ConstructionVisuals.Key:
         enum.ConstructionVisuals.Layer:
           assembly: { state: off }
-          wired: { state: on }
+          wired: { state: off }
           electronics: { state: icon }
   - type: ContainerContainer
     containers:
@@ -106,6 +111,8 @@
   - type: Construction
     graph: WallATM
     node: assembly
+    containers:
+    - board
 
 
 - type: entity
