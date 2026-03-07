@@ -1,19 +1,35 @@
+﻿- type: entity
+  parent: BaseAugmentAction
+  id: ActionAugmentNeuroInterface
+  name: Open Neuro-Interface
+  description: Open the neuro-interface control panel.
+
 - type: entity
   parent: BaseOnyxNeckAugment
   id: AugmentNeuroInterface
   name: neuro-interface
-  description: An implanted neuro-interface unit installed at the back of the head. Currently non-functional, but looks cool.
+  description: An implanted neuro-interface unit installed at the back of the head.
   components:
   - type: Item
     size: Normal
   - type: Organ
     slotId: neckImplant
+  - type: AugmentNeuroInterface
+  - type: AugmentAction
+    action: ActionAugmentNeuroInterface
+  - type: AugmentActivatableUI
+    key: enum.NeuroInterfaceUiKey.Key
   - type: AugmentEmp
   - type: AugmentExamine
     color: "#00ffff"
     examineText: augment-examine-neuro-interface
     visible: true
+  - type: UserInterface
+    interfaces:
+      enum.NeuroInterfaceUiKey.Key:
+        type: NeuroInterfaceBui
   - type: Tag
     tags:
     - Augment
     - neckAugment
+

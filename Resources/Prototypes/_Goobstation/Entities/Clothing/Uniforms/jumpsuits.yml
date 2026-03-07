@@ -404,7 +404,66 @@
   description: A fancy purple suit with a Terra-Gov insignia.
   components:
   - type: Sprite
-    sprite: _Goobstation/Clothing/Uniforms/Jumpsuit/outcommsuit.rsi
+    sprite: _Goobstation/Clothing/Uniforms/Jumpsuit/Centcom/outcommsuit.rsi
+  - type: Clothing
+    sprite: _Goobstation/Clothing/Uniforms/Jumpsuit/Centcom/outcommsuit.rsi
+
+# Cargo
+
+- type: entity
+  parent: [ClothingUniformBase, ClothingUniformFoldableBase]
+  id: ClothingUniformJumpsuitShaftMiner
+  name: shaft miner's jumpsuit
+  description: It's a snappy jumpsuit, looks a bit burnt.
+  components:
+  - type: Sprite
+    sprite: _Goobstation/Clothing/Uniforms/Jumpsuit/Cargo/shaft_miner.rsi
+  - type: Clothing
+    sprite: _Goobstation/Clothing/Uniforms/Jumpsuit/Cargo/shaft_miner.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformOverallsCargo
+  name: cargo tech's overalls
+  description: It's a sturdy set of overalls. It's a bit dusty.
+  components:
+  - type: Sprite
+    sprite: _Goobstation/Clothing/Uniforms/Other/Overalls/Cargo/cargotech.rsi
+  - type: Clothing
+    sprite: _Goobstation/Clothing/Uniforms/Other/Overalls/Cargo/cargotech.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformOverallsSalvageSpecialist
+  name: salvage specialist's overalls
+  description: It's a sturdy set of overalls. It's very dirty.
+  components:
+  - type: Sprite
+    sprite: _Goobstation/Clothing/Uniforms/Other/Overalls/Cargo/salvage.rsi
+  - type: Clothing
+    sprite: _Goobstation/Clothing/Uniforms/Other/Overalls/Cargo/salvage.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformOverallsShaftMiner
+  name: shaft miner's overalls
+  description: It's a sturdy set of overalls, looks a bit burnt.
+  components:
+  - type: Sprite
+    sprite: _Goobstation/Clothing/Uniforms/Other/Overalls/Cargo/shaft_miner.rsi
+  - type: Clothing
+    sprite: _Goobstation/Clothing/Uniforms/Other/Overalls/Cargo/shaft_miner.rsi
+
+# RND
+
+- type: entity
+  parent: [ClothingUniformBase, ClothingUniformFoldableBase, BaseCommandContraband]
+  id: ClothingUniformJumpsuitResearchDirectorAlt
+  name: research director's turtleneck
+  description: It's a turtleneck worn by those with the know-how to achieve the position of Research Director. Its fabric provides minor protection from biological contaminants.
+  components:
+  - type: Sprite
+    sprite: _Goobstation/Clothing/Uniforms/Jumpsuit/RND/rndturtle.rsi
   - type: Clothing
     sprite: _Goobstation/Clothing/Uniforms/Jumpsuit/RND/rndturtle.rsi
   - type: Item
