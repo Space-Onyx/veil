@@ -1,10 +1,13 @@
 using Content.Goobstation.Shared.Augments;
+using Content.Shared._Shitmed.Body.Organ;
+using Content.Shared.Body.Organ;
 using Content.Shared.Body.Part;
 using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Item.ItemToggle;
 using Content.Shared.Popups;
 using Content.Shared.Storage.EntitySystems;
+using Robust.Server.GameObjects;
 
 namespace Content.Goobstation.Server.Augments;
 
@@ -16,6 +19,7 @@ public sealed class AugmentToolPanelSystem : SharedAugmentToolPanelSystem
     [Dependency] private readonly SharedHandsSystem _hands = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly SharedStorageSystem _storage = default!;
+    [Dependency] private readonly UserInterfaceSystem _ui = default!; // <Onyx-Surgery>
 
     private EntityQuery<HandsComponent> _handsQuery;
     private EntityQuery<BodyPartComponent> _partQuery;
@@ -28,6 +32,7 @@ public sealed class AugmentToolPanelSystem : SharedAugmentToolPanelSystem
         _partQuery = GetEntityQuery<BodyPartComponent>();
 
         SubscribeLocalEvent<AugmentToolPanelComponent, AugmentLostPowerEvent>(OnLostPower);
+        SubscribeLocalEvent<AugmentToolPanelComponent, OrganEnableChangedEvent>(OnOrganEnableChanged); // <Onyx-Surgery>
         Subs.BuiEvents<AugmentToolPanelComponent>(AugmentToolPanelUiKey.Key,
             subs =>
         {
@@ -46,11 +51,29 @@ public sealed class AugmentToolPanelSystem : SharedAugmentToolPanelSystem
         if (_augment.GetBody(augment) is not {} body)
             return;
 
+        // <Onyx-Surgery>
+        if (TryComp<OrganComponent>(augment.Owner, out var organ) && !organ.Enabled)
+            return;
+        // </Onyx-Surgery>
+
         if (augment.Comp.RequiresPower && !_augmentPowerCell.TryUseChargeBody(body, augment.Comp.SwitchCharge))
             return;
 
         SwitchTool(augment, GetEntity(args.DesiredTool), body);
     }
+
+    // <Onyx-Surgery>
+    private void OnOrganEnableChanged(Entity<AugmentToolPanelComponent> augment, ref OrganEnableChangedEvent args)
+    {
+        if (args.Enabled)
+            return;
+
+        if (_augment.GetBody(augment) is { } body)
+            SwitchTool(augment, null, body);
+
+        _ui.CloseUi(augment.Owner, AugmentToolPanelUiKey.Key);
+    }
+    // </Onyx-Surgery>
 
     /// <summary>
     /// Switches to a tool using a hand derived from the augment's arm.

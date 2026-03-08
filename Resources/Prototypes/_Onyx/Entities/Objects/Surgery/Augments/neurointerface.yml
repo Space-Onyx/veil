@@ -5,6 +5,51 @@
   description: Open the neuro-interface control panel.
 
 - type: entity
+  abstract: true
+  parent: BaseItem
+  id: BaseIncompleteAugmentNeuroInterface
+  description: An implantable neuro-interface unit. This one is incomplete.
+  components:
+  - type: Sprite
+    sprite: _Shitmed/Objects/Augments/power.rsi
+  - type: Item
+    size: Huge
+  - type: Construction
+    graph: AugmentNeuroInterface
+
+- type: entity
+  parent: BaseIncompleteAugmentNeuroInterface
+  id: AugmentNeuroInterfaceCasing
+  name: neuro-interface casing
+  components:
+  - type: Sprite
+    state: incomplete_charger
+  - type: Construction
+    node: casing
+    defaultTarget: augment
+  - type: Tag
+    tags: [ AugmentNeuroInterfaceCasing ]
+
+- type: entity
+  parent: BaseIncompleteAugmentNeuroInterface
+  id: AugmentNeuroInterfaceCables
+  name: neuro-interface casing with cables
+  components:
+  - type: Sprite
+    state: incomplete_charger_cables
+  - type: Construction
+    node: cables
+
+- type: entity
+  parent: BaseAugmentElectronics
+  id: AugmentNeuroInterfaceChip
+  name: neuro-interface microchip
+  description: A control microchip required to assemble a neuro-interface implant.
+  components:
+  - type: Tag
+    tags: [ AugmentNeuroInterfaceChip ]
+
+- type: entity
   parent: BaseOnyxNeckAugment
   id: AugmentNeuroInterface
   name: neuro-interface
@@ -15,6 +60,7 @@
   - type: Organ
     slotId: neckImplant
   - type: AugmentNeuroInterface
+    maxNeuroLoad: 20
   - type: AugmentAction
     action: ActionAugmentNeuroInterface
   - type: AugmentActivatableUI
@@ -28,8 +74,10 @@
     interfaces:
       enum.NeuroInterfaceUiKey.Key:
         type: NeuroInterfaceBui
+  - type: Construction
+    graph: AugmentNeuroInterface
+    node: augment
   - type: Tag
     tags:
     - Augment
     - neckAugment
-

@@ -25,3 +25,7 @@ ent-SurgeryStepInsertAugmentBrain = Вставить аугмент в мозг
 augment-examine-header = [bold]Видимые аугментации:[/bold]
 augment-examine-entry = [color={$color}]  {$part}:[/color] {$text}
 augment-examine-unknown-part = неизвестно
+
+
+augment-no-power = Недостаточно энергии для аугментации!
+augment-disabled-manually = Эта аугментация отключена вручную через нейро-интерфейс.

@@ -529,9 +529,27 @@ public partial class SharedBodySystem
     }
 
     private void OnStandAttempt(Entity<BodyComponent> ent, ref StandAttemptEvent args)
-    {
+    {   // <Onyx-Surgery>
         if (ent.Comp.LegEntities.Count < ent.Comp.RequiredLegs)
+        {
             args.Cancel();
+
+            var hasLegParts = false;
+            var hasEnabledLegs = false;
+            foreach (var leg in GetBodyChildrenOfType(ent.Owner, BodyPartType.Leg))
+            {
+                hasLegParts = true;
+                if (leg.Component.Enabled)
+                {
+                    hasEnabledLegs = true;
+                    break;
+                }
+            }
+
+            if (hasLegParts && !hasEnabledLegs)
+                _popup.PopupEntity(Loc.GetString("body-stand-attempt-disabled-legs"), ent, ent);
+        }
+        // </Onyx-Surgery>
     }
 
     private void OnBeingEquippedAttempt(Entity<BodyComponent> ent, ref IsEquippingAttemptEvent args)

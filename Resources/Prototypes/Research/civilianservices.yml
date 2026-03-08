@@ -357,7 +357,8 @@
   recipeUnlocks:
     - AugmentBioReactorCasing
     - AugmentHoloPda
-    - AugmentNeuroInterface
+    - AugmentNeuroInterfaceCasing
+    - AugmentNeuroInterfaceChip
     - RunnerAugment
   position: -3,5
   technologyPrerequisites:

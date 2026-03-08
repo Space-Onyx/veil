@@ -21,6 +21,8 @@ public sealed class NeuroInterfaceBui : BoundUserInterface
         _window.OnClose += Close;
         _window.OnToggleRequested += (augment, enable) =>
             SendMessage(new NeuroInterfaceToggleAugmentMessage(augment, enable));
+        _window.OnBulkToggleRequested += (target, enable) =>
+            SendMessage(new NeuroInterfaceBulkToggleMessage(target, enable));
 
         if (State is NeuroInterfaceBuiState state)
             _window.UpdateState(state);

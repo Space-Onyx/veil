@@ -1,0 +1,23 @@
+﻿- type: construction
+  id: AugmentBioReactor
+  graph: AugmentBioReactor
+  startNode: start
+  targetNode: bioreactor
+  category: construction-category-utilities
+  canBuildInImpassable: false
+
+- type: construction
+  id: AugmentRTG
+  graph: AugmentRTG
+  startNode: start
+  targetNode: rtg
+  category: construction-category-utilities
+  canBuildInImpassable: false
+
+- type: construction
+  id: AugmentNeuroInterface
+  graph: AugmentNeuroInterface
+  startNode: start
+  targetNode: augment
+  category: construction-category-utilities
+  canBuildInImpassable: false

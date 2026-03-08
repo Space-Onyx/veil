@@ -6,7 +6,9 @@
   components:
   - type: AugmentVision
     visionType: SolutionScanner
-    powerDraw: 0.5
+    powerDraw: 3
+  - type: AugmentNeuroLoad
+    passiveLoad: 2
   - type: AugmentEmp
   - type: AugmentExamine
     visible: false
@@ -19,12 +21,18 @@
   components:
   - type: AugmentVision
     visionType: NightVision
-    powerDraw: 1.5
+    powerDraw: 3
+    activePowerDrawByType:
+      NightVision: 5
+    activeNeuroLoadByType:
+      NightVision: 2
     visionSettings:
       NightVision:
         flashDurationMultiplier: 2
         drawOverlay: true
         overlayOpacity: 0.5
+  - type: AugmentNeuroLoad
+    passiveLoad: 2
   - type: AugmentEmp
   - type: AugmentExamine
     visible: false
@@ -37,13 +45,19 @@
   components:
   - type: AugmentVision
     visionType: ThermalVision
-    powerDraw: 2
+    powerDraw: 3
+    activePowerDrawByType:
+      ThermalVision: 5
+    activeNeuroLoadByType:
+      ThermalVision: 2
     visionSettings:
       ThermalVision:
         flashDurationMultiplier: 2
         drawOverlay: true
         overlayOpacity: 0.5
         lightRadius: 2
+  - type: AugmentNeuroLoad
+    passiveLoad: 2
   - type: AugmentEmp
   - type: AugmentExamine
     visible: false
@@ -56,7 +70,9 @@
   components:
   - type: AugmentVision
     visionType: DiagnosticHUD
-    powerDraw: 0.5
+    powerDraw: 3
+  - type: AugmentNeuroLoad
+    passiveLoad: 2
   - type: AugmentEmp
   - type: AugmentExamine
     visible: false

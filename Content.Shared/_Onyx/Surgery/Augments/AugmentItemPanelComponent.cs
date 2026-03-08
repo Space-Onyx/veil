@@ -25,7 +25,13 @@ public sealed partial class AugmentItemPanelComponent : Component
     public EntityUid? ActionEntity;
 
     [DataField]
-    public float PowerCost = 2f;
+    public float ExtendPowerCost = 2f;
+
+    [DataField]
+    public float RetractPowerCost = 2f;
+
+    [DataField]
+    public float EquippedNeuroLoad = 0f;
 
     [DataField]
     public bool RequiresPower = true;
@@ -86,5 +92,17 @@ public sealed partial class AugmentItemPanelComponent : Component
     {
         get => ExtendHeldPrefixAfter;
         set => ExtendHeldPrefixAfter = value;
+    }
+
+    // Backwards-compatible alias for older prototypes that used one shared power cost.
+    [DataField("powerCost")]
+    public float LegacyPowerCost
+    {
+        get => ExtendPowerCost;
+        set
+        {
+            ExtendPowerCost = value;
+            RetractPowerCost = value;
+        }
     }
 }

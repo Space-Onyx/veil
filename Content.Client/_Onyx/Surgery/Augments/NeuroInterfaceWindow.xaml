@@ -1,74 +1,65 @@
 <ui:NeuroInterfaceWindow
     xmlns="https://spacestation14.io"
     xmlns:ui="clr-namespace:Content.Client._Onyx.Surgery.Augments"
-    MinWidth="1120"
-    MinHeight="560">
+    MinWidth="1100"
+    MinHeight="555">
     <BoxContainer Orientation="Vertical" Margin="10" SeparationOverride="8">
         <BoxContainer Orientation="Horizontal" SeparationOverride="10" VerticalExpand="True">
-            <PanelContainer MinWidth="360" StyleClasses="PanelBackgroundBaseDark">
-                <BoxContainer Orientation="Vertical" SeparationOverride="8" Margin="8">
-                    <Label Text="{Loc 'neuro-interface-doll-label'}" HorizontalAlignment="Center" />
-                    <PanelContainer Name="DollBackgroundOuter" MinSize="320 420" HorizontalAlignment="Center" StyleClasses="PanelBackgroundBaseLight">
-                        <PanelContainer Name="DollBackground" MinSize="300 400" HorizontalAlignment="Center" VerticalAlignment="Center" StyleClasses="PanelBackgroundLight">
-                            <SpriteView
-                                Name="SpriteView"
-                                OverrideDirection="South"
-                                SetSize="192 192" />
-                            <PanelContainer
-                                Name="PartView"
-                                SetSize="114 192"
-                                Margin="36 0 0 0"
-                                VerticalAlignment="Center"
-                                HorizontalAlignment="Left">
-                                <PanelContainer
-                                    SetSize="30 66"
-                                    Margin="8 0 0 0"
-                                    HorizontalAlignment="Left">
-                                    <TextureButton Name="RightArmButton" MinSize="30 50" StyleClasses="TargetDollButtonRightArm" VerticalAlignment="Top"/>
-                                    <TextureButton Name="RightHandButton" MinSize="30 30" VerticalAlignment="Bottom" StyleClasses="TargetDollButtonRightHand"/>
-                                </PanelContainer>
-                                <PanelContainer
-                                    SetSize="86 150"
-                                    Margin="0"
-                                    VerticalAlignment="Center"
-                                    HorizontalAlignment="Center">
-                                    <TextureButton Name="HeadButton" MinSize="56 46" VerticalAlignment="Top" HorizontalAlignment="Center" StyleClasses="TargetDollButtonHead"/>
-                                    <TextureButton Name="ChestButton" SetSize="56 60" Margin="0 36 0 0" VerticalAlignment="Top" HorizontalAlignment="Center" StyleClasses="TargetDollButtonChest"/>
-                                    <PanelContainer MinSize="76 70" VerticalAlignment="Bottom" HorizontalAlignment="Center">
-                                        <TextureButton Name="GroinButton" MinSize="56 30" VerticalAlignment="Top" HorizontalAlignment="Center" StyleClasses="TargetDollButtonGroin"/>
-                                        <PanelContainer MinSize="40 60" VerticalAlignment="Bottom" HorizontalAlignment="Right">
-                                            <TextureButton Name="LeftLegButton" MinSize="30 56" VerticalAlignment="Top" HorizontalAlignment="Left" StyleClasses="TargetDollButtonLeftLeg"/>
-                                            <TextureButton Name="LeftFootButton" MinSize="40 20" VerticalAlignment="Bottom" StyleClasses="TargetDollButtonLeftFoot"/>
-                                        </PanelContainer>
-                                        <PanelContainer MinSize="40 60" VerticalAlignment="Bottom" HorizontalAlignment="Left">
-                                            <TextureButton Name="RightLegButton" MinSize="30 56" VerticalAlignment="Top" HorizontalAlignment="Right" StyleClasses="TargetDollButtonRightLeg"/>
-                                            <TextureButton Name="RightFootButton" MinSize="40 20" VerticalAlignment="Bottom" HorizontalAlignment="Center" StyleClasses="TargetDollButtonRightFoot"/>
-                                        </PanelContainer>
-                                    </PanelContainer>
-                                </PanelContainer>
-                                <PanelContainer
-                                    SetSize="30 66"
-                                    Margin="0 0 8 0"
-                                    HorizontalAlignment="Right">
-                                    <TextureButton Name="LeftArmButton" MinSize="30 50" StyleClasses="TargetDollButtonLeftArm" VerticalAlignment="Top"/>
-                                    <TextureButton Name="LeftHandButton" MinSize="30 30" VerticalAlignment="Bottom" StyleClasses="TargetDollButtonLeftHand"/>
-                                </PanelContainer>
-                            </PanelContainer>
-                        </PanelContainer>
+            <PanelContainer MinWidth="340" VerticalExpand="True" StyleClasses="PanelBackgroundBaseDark">
+                <BoxContainer Orientation="Vertical" Margin="8" VerticalExpand="True">
+                    <PanelContainer StyleClasses="PanelBackgroundLight" Margin="0 0 0 6">
+                        <Label Text="{Loc 'neuro-interface-quick-actions-label'}" HorizontalAlignment="Center" Margin="8 6 8 6" />
                     </PanelContainer>
-
-                    <PanelContainer StyleClasses="PanelBackgroundLight">
+                    <PanelContainer StyleClasses="PanelBackgroundLight" Margin="0 0 0 6">
+                        <BoxContainer Orientation="Vertical" Margin="6" SeparationOverride="6">
+                            <BoxContainer Orientation="Horizontal" SeparationOverride="6">
+                                <Button Name="DisableImplantsButton" Text="{Loc 'neuro-interface-button-disable-implants'}" HorizontalExpand="True" />
+                                <Button Name="EnableImplantsButton" Text="{Loc 'neuro-interface-button-enable-implants'}" HorizontalExpand="True" />
+                            </BoxContainer>
+                            <BoxContainer Orientation="Horizontal" SeparationOverride="6">
+                                <Button Name="DisableLimbsButton" Text="{Loc 'neuro-interface-button-disable-limbs'}" HorizontalExpand="True" />
+                                <Button Name="EnableLimbsButton" Text="{Loc 'neuro-interface-button-enable-limbs'}" HorizontalExpand="True" />
+                            </BoxContainer>
+                            <BoxContainer Orientation="Horizontal" SeparationOverride="6">
+                                <Button Name="DisableAllButton" Text="{Loc 'neuro-interface-button-disable-all'}" HorizontalExpand="True" />
+                                <Button Name="EnableAllButton" Text="{Loc 'neuro-interface-button-enable-all'}" HorizontalExpand="True" />
+                            </BoxContainer>
+                        </BoxContainer>
+                    </PanelContainer>
+                    <PanelContainer StyleClasses="PanelBackgroundLight" Margin="0 0 0 6">
+                        <Label Text="{Loc 'neuro-interface-info-label'}" HorizontalAlignment="Center" Margin="8 6 8 6" />
+                    </PanelContainer>
+                    <PanelContainer StyleClasses="PanelBackgroundLight" Margin="0 0 0 6">
+                        <Label Name="PowerSourceLabel" HorizontalAlignment="Center" Margin="8 6 8 2" />
+                    </PanelContainer>
+                    <PanelContainer StyleClasses="PanelBackgroundLight" Margin="0 0 0 6">
                         <Label Name="BatteryLabel" HorizontalAlignment="Center" Margin="8 6 8 6" />
+                    </PanelContainer>
+                    <PanelContainer StyleClasses="PanelBackgroundLight" Margin="0 0 0 6">
+                        <BoxContainer Orientation="Vertical" Margin="8 6 8 6" SeparationOverride="4">
+                            <Label Name="NeuroLoadTitleLabel" HorizontalAlignment="Center" />
+                            <ProgressBar Name="NeuroLoadBar"
+                                         MinValue="0"
+                                         MaxValue="1"
+                                         Value="0"
+                                         HorizontalExpand="True"
+                                         SetHeight="20" />
+                            <Label Name="NeuroLoadValueLabel" HorizontalAlignment="Center" />
+                        </BoxContainer>
                     </PanelContainer>
                 </BoxContainer>
             </PanelContainer>
 
             <PanelContainer VerticalExpand="True" HorizontalExpand="True" MinWidth="760" StyleClasses="PanelBackgroundBaseLight">
                 <BoxContainer Orientation="Vertical" Margin="8" VerticalExpand="True">
-                    <PanelContainer StyleClasses="PanelBackgroundLight" Margin="0 0 0 6">
+                    <PanelContainer Name="AugmentsHeaderPanel" StyleClasses="PanelBackgroundLight" Margin="0 0 0 6">
                         <Label Text="{Loc 'neuro-interface-augments-label'}" Margin="10 6 10 6" />
                     </PanelContainer>
-                    <ScrollContainer VerticalExpand="True" HorizontalExpand="True">
+                    <ScrollContainer
+                        VerticalExpand="True"
+                        HorizontalExpand="True"
+                        VScrollEnabled="True"
+                        HScrollEnabled="False">
                         <BoxContainer Name="AugmentsContainer" Orientation="Vertical" Margin="8 6 8 8" SeparationOverride="6" />
                     </ScrollContainer>
                     <BoxContainer Orientation="Horizontal" Margin="0 6 0 0">

@@ -128,8 +128,10 @@ public sealed class AugmentItemPanelSystem : EntitySystem
             return;
         }
 
+        var actionPowerCost = GetActionPowerCost(ent);
         if (RequiresPower(ent) &&
-            !TryUseChargeBody(body, ent.Comp.PowerCost))
+            actionPowerCost > 0f &&
+            !TryUseChargeBody(body, actionPowerCost))
         {
             return;
         }
@@ -238,8 +240,15 @@ public sealed class AugmentItemPanelSystem : EntitySystem
     private bool RequiresPower(Entity<AugmentItemPanelComponent> ent)
     {
         return ent.Comp.RequiresPower
-            && ent.Comp.PowerCost > 0f
+            && (ent.Comp.ExtendPowerCost > 0f || ent.Comp.RetractPowerCost > 0f)
             && (!TryComp<AugmentPowerConfigComponent>(ent.Owner, out var globalConfig) || globalConfig.RequiresPower);
+    }
+
+    private float GetActionPowerCost(Entity<AugmentItemPanelComponent> ent)
+    {
+        return ent.Comp.IsEquipped
+            ? ent.Comp.RetractPowerCost
+            : ent.Comp.ExtendPowerCost;
     }
 
     private bool TryUseChargeBody(EntityUid body, float amount)

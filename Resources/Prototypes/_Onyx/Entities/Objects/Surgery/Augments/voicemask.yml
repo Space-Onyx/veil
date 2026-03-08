@@ -26,6 +26,8 @@
   - type: AugmentEmp
   - type: AugmentExamine
     visible: false
+  - type: AugmentNeuroLoad
+    passiveLoad: 1
   - type: Tag
     tags:
     - Augment

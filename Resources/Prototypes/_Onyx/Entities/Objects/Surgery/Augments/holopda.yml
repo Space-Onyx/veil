@@ -19,6 +19,8 @@
     empVulnerable: false
   - type: AugmentExamine
     visible: false
+  - type: AugmentNeuroLoad
+    passiveLoad: 1
   - type: Pda
     idSlot:
       name: access-id-card-component-default

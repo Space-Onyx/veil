@@ -55,6 +55,9 @@ public sealed partial class AugmentVisionComponent : Component
     public Dictionary<AugmentVisionType, float> ActivePowerDrawByType = new();
 
     [DataField, AutoNetworkedField]
+    public Dictionary<AugmentVisionType, float> ActiveNeuroLoadByType = new();
+
+    [DataField, AutoNetworkedField]
     public bool RequiresPower = true;
 
     public AugmentVisionSettings GetSettings(AugmentVisionType type)
@@ -77,6 +80,11 @@ public sealed partial class AugmentVisionComponent : Component
     public float GetActivePowerDraw(AugmentVisionType type)
     {
         return ActivePowerDrawByType.GetValueOrDefault(type, PowerDraw);
+    }
+
+    public float GetActiveNeuroLoad(AugmentVisionType type)
+    {
+        return ActiveNeuroLoadByType.GetValueOrDefault(type, 0f);
     }
 
     public static bool IsToggleable(AugmentVisionType type)

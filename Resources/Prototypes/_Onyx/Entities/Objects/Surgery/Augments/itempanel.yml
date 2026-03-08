@@ -35,6 +35,9 @@
     state: engineering
   - type: AugmentItemPanel
     itemPrototype: MantisBlade
+    extendPowerCost: 3
+    retractPowerCost: 2
+    equippedNeuroLoad: 2
     icon: { sprite: _Goobstation/Objects/Weapons/Melee/mantis_blade.rsi, state: icon }
     extendSound: { collection: MantisBladeRetract }
     retractSound: { collection: MantisBladeRetract }

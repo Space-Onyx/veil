@@ -1,0 +1,18 @@
+﻿- type: latheRecipePack
+  id: LegAugments
+  recipes:
+  - RunnerAugment
+
+- type: latheRecipePack
+  id: AdvancedLegAugments
+  recipes:
+  - AdvancedRunnerAugment
+
+- type: latheRecipePack
+  id: OnyxAugments
+  recipes:
+  - AugmentBioReactorCasing
+  - AugmentRTGCasing
+  - AugmentHoloPda
+  - AugmentNeuroInterfaceCasing
+  - AugmentNeuroInterfaceChip

@@ -25,6 +25,7 @@
   - type: AugmentMovementSpeed
     walkMultiplier: 1.10
     sprintMultiplier: 1.10
+    powerDraw: 2
     augmentId: Runner
   - type: Organ
     slotId: legImplant
@@ -48,6 +49,7 @@
   - type: AugmentMovementSpeed
     walkMultiplier: 1.25
     sprintMultiplier: 1.25
+    powerDraw: 4
     augmentId: AdvancedRunner
   - type: Organ
     slotId: legImplant

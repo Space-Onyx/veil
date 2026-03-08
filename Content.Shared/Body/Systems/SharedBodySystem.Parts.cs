@@ -100,6 +100,7 @@ using Robust.Shared.Utility;
 
 // Shitmed Change Start
 using Content.Shared._Shitmed.Body.Components;
+using Content.Shared._Shitmed.Body.Events;
 using Content.Shared._Shitmed.BodyEffects;
 using Content.Shared._Shitmed.Targeting;
 using Content.Shared.Damage.Prototypes;
@@ -111,6 +112,7 @@ namespace Content.Shared.Body.Systems;
 
 public partial class SharedBodySystem
 {
+    private const float DisabledLegCrawlSpeedMultiplier = 0.10f; // <Onyx-Surgery>
     private static readonly ProtoId<DamageTypePrototype> BloodlossDamageType = "Bloodloss";
 
     private void InitializeParts()
@@ -124,6 +126,7 @@ public partial class SharedBodySystem
         // Shitmed Change
         SubscribeLocalEvent<BodyPartComponent, MapInitEvent>(OnMapInit);
         SubscribeLocalEvent<BodyPartComponent, ComponentRemove>(OnBodyPartRemove);
+        SubscribeLocalEvent<BodyPartComponent, BodyPartEnableChangedEvent>(OnBodyPartEnableChanged); // <Onyx-Surgery>
     }
 
     private void OnMapInit(Entity<BodyPartComponent> ent, ref MapInitEvent args)
@@ -156,6 +159,61 @@ public partial class SharedBodySystem
         if (ent.Comp.PartType == BodyPartType.Chest)
             _slots.RemoveItemSlot(ent, ent.Comp.ItemInsertionSlot);
     }
+
+    // <Onyx-Surgery>
+    private void OnBodyPartEnableChanged(Entity<BodyPartComponent> partEnt, ref BodyPartEnableChangedEvent args)
+    {
+        if (!partEnt.Comp.CanEnable && args.Enabled)
+            return;
+
+        if (partEnt.Comp.Enabled == args.Enabled)
+            return;
+
+        partEnt.Comp.Enabled = args.Enabled;
+
+        if (partEnt.Comp.Body is { Valid: true } bodyUid
+            && TryComp<BodyComponent>(bodyUid, out var bodyComp))
+        {
+            if (partEnt.Comp.PartType == BodyPartType.Leg)
+            {
+                if (args.Enabled)
+                    bodyComp.LegEntities.Add(partEnt);
+                else
+                    bodyComp.LegEntities.Remove(partEnt);
+
+                UpdateMovementSpeed(bodyUid, bodyComp);
+
+                if (bodyComp.LegEntities.Count < bodyComp.RequiredLegs)
+                    Standing.Down(bodyUid);
+            }
+
+            Dirty(bodyUid, bodyComp);
+        }
+
+        if (args.Enabled)
+        {
+            var enabledEv = new BodyPartEnabledEvent(partEnt);
+            RaiseLocalEvent(partEnt, ref enabledEv);
+            if (partEnt.Comp.Body is { Valid: true } partBodyUid)
+            {
+                var bodyEnabledEv = new BodyPartEnabledEvent(partEnt);
+                RaiseLocalEvent(partBodyUid, ref bodyEnabledEv);
+            }
+        }
+        else
+        {
+            var disabledEv = new BodyPartDisabledEvent(partEnt);
+            RaiseLocalEvent(partEnt, ref disabledEv);
+            if (partEnt.Comp.Body is { Valid: true } partBodyUid)
+            {
+                var bodyDisabledEv = new BodyPartDisabledEvent(partEnt);
+                RaiseLocalEvent(partBodyUid, ref bodyDisabledEv);
+            }
+        }
+
+        Dirty(partEnt, partEnt.Comp);
+    }
+    // </Onyx-Surgery>
 
     /// <summary>
     ///     Shitmed Change: This function handles dropping the items in an entity's slots if they lose all of a given part.
@@ -701,6 +759,27 @@ public partial class SharedBodySystem
         walkSpeed /= body.RequiredLegs;
         sprintSpeed /= body.RequiredLegs;
         acceleration /= body.RequiredLegs;
+
+        // <Onyx-Surgery>
+        var hasLegParts = false;
+        var hasEnabledLegs = false;
+        foreach (var leg in GetBodyChildrenOfType(bodyId, BodyPartType.Leg))
+        {
+            hasLegParts = true;
+            if (leg.Component.Enabled)
+            {
+                hasEnabledLegs = true;
+                break;
+            }
+        }
+
+        if (walkSpeed <= 0f && hasLegParts && !hasEnabledLegs)
+        {
+            walkSpeed = MovementSpeedModifierComponent.DefaultBaseWalkSpeed * DisabledLegCrawlSpeedMultiplier;
+            sprintSpeed = MovementSpeedModifierComponent.DefaultBaseSprintSpeed * DisabledLegCrawlSpeedMultiplier;
+            acceleration = MovementSpeedModifierComponent.DefaultAcceleration * DisabledLegCrawlSpeedMultiplier;
+        }
+        // </Onyx-Surgery>
         Movement.ChangeBaseSpeed(bodyId, walkSpeed, sprintSpeed, acceleration, movement);
     }
 

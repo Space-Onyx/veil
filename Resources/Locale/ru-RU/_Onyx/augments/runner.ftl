@@ -1,8 +1,8 @@
 # Runner Augment Names
-ent-RunnerAugment = бегунок
+ent-RunnerAugment = имплант бегунок
     .desc = Кибернетический имплант для левой ноги. Увеличивает скорость ходьбы и бега на ~10%.
 
-ent-AdvancedRunnerAugment = улучшенный бегунок
+ent-AdvancedRunnerAugment = имплант улучшенный бегунок
     .desc = Продвинутый кибернетический имплант. Увеличивает скорость ходьбы и бега на ~25%.
 
 # Augment Examine
