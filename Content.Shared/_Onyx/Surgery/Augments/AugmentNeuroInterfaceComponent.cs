@@ -1,4 +1,5 @@
-﻿using Robust.Shared.GameStates;
+using System.Collections.Generic;
+using Robust.Shared.GameStates;
 
 namespace Content.Shared._Onyx.Surgery.Augments;
 
@@ -10,6 +11,8 @@ public sealed partial class AugmentNeuroInterfaceComponent : Component
 
     [DataField]
     public float MaxNeuroLoad = 20f;
+
+    public HashSet<EntityUid> AuthorizedRemoteViewers = new();
 }
 
 [RegisterComponent]

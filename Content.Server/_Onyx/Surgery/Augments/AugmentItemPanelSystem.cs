@@ -49,6 +49,7 @@ public sealed class AugmentItemPanelSystem : EntitySystem
         SubscribeLocalEvent<AugmentItemPanelComponent, AugmentEmpDisabledEvent>(OnEmpDisabled);
         SubscribeLocalEvent<AugmentItemPanelComponent, AugmentManuallyDisabledEvent>(OnManuallyDisabled);
         SubscribeLocalEvent<AugmentItemPanelComponent, AugmentLostPowerEvent>(OnLostPower);
+        SubscribeLocalEvent<AugmentItemPanelComponent, CollectAugmentNeuroInterfaceMetricsEvent>(OnCollectMetrics);
     }
 
     private void OnOrganAddedToBody(Entity<AugmentItemPanelComponent> ent, ref OrganAddedToBodyEvent args)
@@ -119,6 +120,12 @@ public sealed class AugmentItemPanelSystem : EntitySystem
         if (HasComp<AugmentNeuroManuallyDisabledComponent>(ent.Owner))
         {
             _popup.PopupEntity(Loc.GetString("augment-disabled-manually"), body, body, PopupType.SmallCaution);
+            return;
+        }
+
+        if (HasComp<AugmentBrainDeactivatedComponent>(ent.Owner))
+        {
+            _popup.PopupEntity(Loc.GetString("augment-brain-disabled"), body, body, PopupType.SmallCaution);
             return;
         }
 
@@ -242,6 +249,20 @@ public sealed class AugmentItemPanelSystem : EntitySystem
         return ent.Comp.RequiresPower
             && (ent.Comp.ExtendPowerCost > 0f || ent.Comp.RetractPowerCost > 0f)
             && (!TryComp<AugmentPowerConfigComponent>(ent.Owner, out var globalConfig) || globalConfig.RequiresPower);
+    }
+
+    private void OnCollectMetrics(Entity<AugmentItemPanelComponent> ent, ref CollectAugmentNeuroInterfaceMetricsEvent args)
+    {
+        if (ent.Comp.RequiresPower && args.PowerEnabled)
+        {
+            if (ent.Comp.ExtendPowerCost > 0f)
+                args.ActivePowerEntries.Add(new NeuroInterfaceMetricEntry("neuro-interface-tooltip-source-power-item-panel-extend", ent.Comp.ExtendPowerCost));
+            if (ent.Comp.RetractPowerCost > 0f)
+                args.ActivePowerEntries.Add(new NeuroInterfaceMetricEntry("neuro-interface-tooltip-source-power-item-panel-retract", ent.Comp.RetractPowerCost));
+        }
+
+        if (ent.Comp.EquippedNeuroLoad > 0f)
+            args.ActiveNeuroLoadEntries.Add(new NeuroInterfaceMetricEntry("neuro-interface-tooltip-source-neuro-item-panel-equipped", ent.Comp.EquippedNeuroLoad));
     }
 
     private float GetActionPowerCost(Entity<AugmentItemPanelComponent> ent)

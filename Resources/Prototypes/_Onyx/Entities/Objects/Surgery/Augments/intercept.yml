@@ -1,0 +1,48 @@
+- type: entity
+  parent: BaseAction
+  id: ActionAugmentIntercept
+  name: Target Neuro-Interface
+  description: Target a nearby subject to intercept their neuro-interface.
+  components:
+  - type: Action
+    itemIconStyle: BigAction
+  - type: TargetAction
+    range: 20
+    deselectOnMiss: true
+    interactOnMiss: false
+    targetingIndicator: true
+  - type: EntityTargetAction
+    event: !type:AugmentInterceptTargetActionEvent
+    canTargetSelf: false
+
+- type: entity
+  parent: BaseAction
+  id: ActionAugmentInterceptReconnect
+  name: Open Last Intercept
+  description: Re-open the last intercepted neuro-interface link.
+  components:
+  - type: Action
+    itemIconStyle: BigAction
+  - type: InstantAction
+    event: !type:AugmentInterceptReconnectActionEvent
+
+- type: entity
+  parent: BaseOnyxHeadAugment
+  id: AugmentIntercept
+  name: intercept augment
+  description: A cranial hacking implant used to intercept foreign neuro-interfaces.
+  components:
+  - type: AugmentIntercept
+    foreignManipulationNeuroLoad: 2
+    foreignManipulationPowerDraw: 1
+    foreignManipulationDurationSeconds: 30
+  - type: AugmentExamine
+    visible: false
+  - type: AugmentNeuroLoad
+    passiveLoad: 1
+  - type: AugmentPassivePowerDraw
+    draw: 0.5
+    tooltipSource: neuro-interface-tooltip-source-power-passive-generic
+  - type: Organ
+    slotId: headImplant
+    hiddenFromAnalyzer: true

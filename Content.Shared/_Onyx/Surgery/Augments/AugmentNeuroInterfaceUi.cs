@@ -45,6 +45,19 @@ public enum NeuroInterfaceBulkTarget : byte
 }
 
 [Serializable, NetSerializable]
+public sealed class NeuroInterfaceMetricEntry
+{
+    public string Label;
+    public float Value;
+
+    public NeuroInterfaceMetricEntry(string label, float value)
+    {
+        Label = label;
+        Value = value;
+    }
+}
+
+[Serializable, NetSerializable]
 public sealed class NeuroInterfaceAugmentEntry
 {
     public NetEntity Augment;
@@ -56,10 +69,10 @@ public sealed class NeuroInterfaceAugmentEntry
     public bool CanConfigure;
     public NeuroInterfaceAugmentStatus Status;
     public string Description;
-    public float PassivePower;
-    public float ActivePower;
-    public float PassiveNeuroLoad;
-    public float ActiveNeuroLoad;
+    public List<NeuroInterfaceMetricEntry> PassivePowerEntries;
+    public List<NeuroInterfaceMetricEntry> ActivePowerEntries;
+    public List<NeuroInterfaceMetricEntry> PassiveNeuroLoadEntries;
+    public List<NeuroInterfaceMetricEntry> ActiveNeuroLoadEntries;
 
     public NeuroInterfaceAugmentEntry(
         NetEntity augment,
@@ -71,10 +84,10 @@ public sealed class NeuroInterfaceAugmentEntry
         bool canConfigure,
         NeuroInterfaceAugmentStatus status,
         string description,
-        float passivePower,
-        float activePower,
-        float passiveNeuroLoad,
-        float activeNeuroLoad)
+        List<NeuroInterfaceMetricEntry> passivePowerEntries,
+        List<NeuroInterfaceMetricEntry> activePowerEntries,
+        List<NeuroInterfaceMetricEntry> passiveNeuroLoadEntries,
+        List<NeuroInterfaceMetricEntry> activeNeuroLoadEntries)
     {
         Augment = augment;
         Part = part;
@@ -85,10 +98,10 @@ public sealed class NeuroInterfaceAugmentEntry
         CanConfigure = canConfigure;
         Status = status;
         Description = description;
-        PassivePower = passivePower;
-        ActivePower = activePower;
-        PassiveNeuroLoad = passiveNeuroLoad;
-        ActiveNeuroLoad = activeNeuroLoad;
+        PassivePowerEntries = passivePowerEntries;
+        ActivePowerEntries = activePowerEntries;
+        PassiveNeuroLoadEntries = passiveNeuroLoadEntries;
+        ActiveNeuroLoadEntries = activeNeuroLoadEntries;
     }
 }
 

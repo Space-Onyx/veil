@@ -45,3 +45,5 @@
     extendHeldPrefixDuration: 0.3
   - type: AugmentExamine
     examineText: augment-examine-mantis-blade-panel
+  - type: AugmentNeuroLoad
+    passiveLoad: 1

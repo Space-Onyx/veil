@@ -28,6 +28,7 @@ public sealed class AugmentVisionSystem : EntitySystem
         SubscribeLocalEvent<AugmentVisionComponent, AugmentLostPowerEvent>(OnLostPower);
         SubscribeLocalEvent<AugmentVisionComponent, AugmentGainedPowerEvent>(OnGainedPower);
         SubscribeLocalEvent<AugmentVisionComponent, GetAugmentsPowerDrawEvent>(OnGetPowerDraw);
+        SubscribeLocalEvent<AugmentVisionComponent, CollectAugmentNeuroInterfaceMetricsEvent>(OnCollectMetrics);
 
         SubscribeLocalEvent<InstalledAugmentsComponent, SwitchableOverlayToggledEvent>(OnVisionToggled);
     }
@@ -39,7 +40,8 @@ public sealed class AugmentVisionSystem : EntitySystem
 
     private void OnEmpRestored(EntityUid uid, AugmentVisionComponent component, ref AugmentEmpRestoredEvent args)
     {
-        if (HasComp<AugmentNeuroManuallyDisabledComponent>(uid))
+        if (HasComp<AugmentNeuroManuallyDisabledComponent>(uid)
+            || HasComp<AugmentBrainDeactivatedComponent>(uid))
             return;
 
         if (!RequiresPower(uid, component) || HasAugmentPower(args.Body))
@@ -53,7 +55,7 @@ public sealed class AugmentVisionSystem : EntitySystem
 
     private void OnManuallyRestored(EntityUid uid, AugmentVisionComponent component, ref AugmentManuallyRestoredEvent args)
     {
-        if (HasComp<AugmentEmpDisabledComponent>(uid))
+        if (HasComp<AugmentEmpDisabledComponent>(uid) || HasComp<AugmentBrainDeactivatedComponent>(uid))
             return;
 
         if (!RequiresPower(uid, component) || HasAugmentPower(args.Body))
@@ -87,7 +89,9 @@ public sealed class AugmentVisionSystem : EntitySystem
         if (!RequiresPower(uid, component))
             return;
 
-        if (HasComp<AugmentEmpDisabledComponent>(uid) || HasComp<AugmentNeuroManuallyDisabledComponent>(uid))
+        if (HasComp<AugmentEmpDisabledComponent>(uid)
+            || HasComp<AugmentBrainDeactivatedComponent>(uid)
+            || HasComp<AugmentNeuroManuallyDisabledComponent>(uid))
             return;
 
         ApplyVision(args.Body, component, true);
@@ -98,7 +102,9 @@ public sealed class AugmentVisionSystem : EntitySystem
         if (!RequiresPower(uid, component))
             return;
 
-        if (HasComp<AugmentEmpDisabledComponent>(uid) || HasComp<AugmentNeuroManuallyDisabledComponent>(uid))
+        if (HasComp<AugmentEmpDisabledComponent>(uid)
+            || HasComp<AugmentBrainDeactivatedComponent>(uid)
+            || HasComp<AugmentNeuroManuallyDisabledComponent>(uid))
             return;
 
         var hasPassiveVision = false;
@@ -129,6 +135,41 @@ public sealed class AugmentVisionSystem : EntitySystem
             args.TotalDraw += component.ActivePowerDrawByType.Count > 0
                 ? activeDraw
                 : component.PowerDraw;
+        }
+    }
+
+    private void OnCollectMetrics(EntityUid uid, AugmentVisionComponent component, ref CollectAugmentNeuroInterfaceMetricsEvent args)
+    {
+        var hasPassiveVisionType = false;
+        foreach (var type in component.GetAllVisionTypes())
+        {
+            if (!AugmentVisionComponent.IsToggleable(type))
+            {
+                hasPassiveVisionType = true;
+                break;
+            }
+        }
+
+        if (args.PowerEnabled && component.RequiresPower && component.PowerDraw > 0f && hasPassiveVisionType)
+            args.PassivePowerEntries.Add(new NeuroInterfaceMetricEntry("neuro-interface-tooltip-source-power-vision-passive", component.PowerDraw));
+
+        foreach (var type in component.GetAllVisionTypes())
+        {
+            if (!AugmentVisionComponent.IsToggleable(type))
+                continue;
+
+            if (args.PowerEnabled && component.RequiresPower)
+            {
+                var draw = component.ActivePowerDrawByType.Count > 0
+                    ? component.GetActivePowerDraw(type)
+                    : component.PowerDraw;
+                if (draw > 0f)
+                    args.ActivePowerEntries.Add(new NeuroInterfaceMetricEntry(GetVisionActivePowerLocKey(type), draw));
+            }
+
+            var neuro = component.GetActiveNeuroLoad(type);
+            if (neuro > 0f)
+                args.ActiveNeuroLoadEntries.Add(new NeuroInterfaceMetricEntry(GetVisionActiveNeuroLocKey(type), neuro));
         }
     }
 
@@ -294,6 +335,26 @@ public sealed class AugmentVisionSystem : EntitySystem
             AugmentVisionType.NightVision => TryComp<NightVisionComponent>(body, out var nv) && nv.IsActive,
             AugmentVisionType.ThermalVision => TryComp<ThermalVisionComponent>(body, out var tv) && tv.IsActive,
             _ => false,
+        };
+    }
+
+    private static string GetVisionActivePowerLocKey(AugmentVisionType type)
+    {
+        return type switch
+        {
+            AugmentVisionType.NightVision => "neuro-interface-tooltip-source-power-vision-night",
+            AugmentVisionType.ThermalVision => "neuro-interface-tooltip-source-power-vision-thermal",
+            _ => "neuro-interface-tooltip-source-power-vision-active",
+        };
+    }
+
+    private static string GetVisionActiveNeuroLocKey(AugmentVisionType type)
+    {
+        return type switch
+        {
+            AugmentVisionType.NightVision => "neuro-interface-tooltip-source-neuro-vision-night",
+            AugmentVisionType.ThermalVision => "neuro-interface-tooltip-source-neuro-vision-thermal",
+            _ => "neuro-interface-tooltip-source-neuro-vision-active",
         };
     }
 }

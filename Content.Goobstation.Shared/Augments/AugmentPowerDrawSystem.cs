@@ -1,6 +1,7 @@
 using Content.Shared._Shitmed.Body.Organ;
 using Content.Shared.Item.ItemToggle;
 using Content.Shared.Item.ItemToggle.Components;
+using Content.Shared._Onyx.Surgery.Augments;
 using Content.Shared.PowerCell;
 
 namespace Content.Goobstation.Shared.Augments;
@@ -21,6 +22,11 @@ public sealed class AugmentPowerDrawSystem : EntitySystem
         SubscribeLocalEvent<AugmentPowerDrawComponent, ItemToggleActivateAttemptEvent>(OnActivateAttempt);
         SubscribeLocalEvent<AugmentPowerDrawComponent, ItemToggledEvent>(OnToggled);
         SubscribeLocalEvent<AugmentPowerDrawComponent, AugmentLostPowerEvent>(OnLostPower);
+        SubscribeLocalEvent<AugmentPowerDrawComponent, CollectAugmentNeuroInterfaceMetricsEvent>(OnCollectMetrics);
+
+        SubscribeLocalEvent<AugmentPassivePowerDrawComponent, GetAugmentsPowerDrawEvent>(OnGetPassivePowerDraw);
+        SubscribeLocalEvent<AugmentPassivePowerDrawComponent, OrganEnableChangedEvent>(OnPassiveEnableChanged);
+        SubscribeLocalEvent<AugmentPassivePowerDrawComponent, CollectAugmentNeuroInterfaceMetricsEvent>(OnCollectPassiveMetrics);
     }
 
     private void OnGetPowerDraw(Entity<AugmentPowerDrawComponent> ent, ref GetAugmentsPowerDrawEvent args)
@@ -54,5 +60,32 @@ public sealed class AugmentPowerDrawSystem : EntitySystem
     private void OnLostPower(Entity<AugmentPowerDrawComponent> ent, ref AugmentLostPowerEvent args)
     {
         _toggle.TryDeactivate(ent.Owner);
+    }
+
+    private void OnCollectMetrics(Entity<AugmentPowerDrawComponent> ent, ref CollectAugmentNeuroInterfaceMetricsEvent args)
+    {
+        if (!args.PowerEnabled || ent.Comp.Draw <= 0f)
+            return;
+
+        args.ActivePowerEntries.Add(new NeuroInterfaceMetricEntry("neuro-interface-tooltip-source-power-toggle", ent.Comp.Draw));
+    }
+
+    private void OnGetPassivePowerDraw(Entity<AugmentPassivePowerDrawComponent> ent, ref GetAugmentsPowerDrawEvent args)
+    {
+        if (ent.Comp.Enabled && ent.Comp.Draw > 0f)
+            args.TotalDraw += ent.Comp.Draw;
+    }
+
+    private void OnPassiveEnableChanged(Entity<AugmentPassivePowerDrawComponent> ent, ref OrganEnableChangedEvent args)
+    {
+        ent.Comp.Enabled = args.Enabled;
+    }
+
+    private void OnCollectPassiveMetrics(Entity<AugmentPassivePowerDrawComponent> ent, ref CollectAugmentNeuroInterfaceMetricsEvent args)
+    {
+        if (!args.PowerEnabled || !ent.Comp.Enabled || ent.Comp.Draw <= 0f)
+            return;
+
+        args.PassivePowerEntries.Add(new NeuroInterfaceMetricEntry(ent.Comp.TooltipSource, ent.Comp.Draw));
     }
 }

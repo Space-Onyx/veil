@@ -84,6 +84,9 @@ public sealed class AugmentVoiceMaskSystem : EntitySystem
         if (HasComp<AugmentEmpDisabledComponent>(ent.Owner))
             return;
 
+        if (HasComp<AugmentBrainDeactivatedComponent>(ent.Owner))
+            return;
+
         if (HasComp<AugmentNeuroManuallyDisabledComponent>(ent.Owner))
             return;
 
@@ -97,6 +100,9 @@ public sealed class AugmentVoiceMaskSystem : EntitySystem
             return;
 
         if (HasComp<AugmentEmpDisabledComponent>(ent.Owner))
+            return;
+
+        if (HasComp<AugmentBrainDeactivatedComponent>(ent.Owner))
             return;
 
         if (HasComp<AugmentNeuroManuallyDisabledComponent>(ent.Owner))
@@ -117,6 +123,12 @@ public sealed class AugmentVoiceMaskSystem : EntitySystem
         if (HasComp<AugmentEmpDisabledComponent>(ent.Owner))
         {
             _popup.PopupEntity(Loc.GetString("augment-emp-disabled"), args.Performer, args.Performer, PopupType.SmallCaution);
+            return;
+        }
+
+        if (HasComp<AugmentBrainDeactivatedComponent>(ent.Owner))
+        {
+            _popup.PopupEntity(Loc.GetString("augment-brain-disabled"), args.Performer, args.Performer, PopupType.SmallCaution);
             return;
         }
 

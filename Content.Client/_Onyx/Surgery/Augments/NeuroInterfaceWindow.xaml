@@ -1,11 +1,11 @@
 <ui:NeuroInterfaceWindow
     xmlns="https://spacestation14.io"
     xmlns:ui="clr-namespace:Content.Client._Onyx.Surgery.Augments"
-    MinWidth="1100"
+    MinWidth="930"
     MinHeight="555">
     <BoxContainer Orientation="Vertical" Margin="10" SeparationOverride="8">
         <BoxContainer Orientation="Horizontal" SeparationOverride="10" VerticalExpand="True">
-            <PanelContainer MinWidth="340" VerticalExpand="True" StyleClasses="PanelBackgroundBaseDark">
+            <PanelContainer MinWidth="420" MaxWidth="420" VerticalExpand="True" StyleClasses="PanelBackgroundBaseDark">
                 <BoxContainer Orientation="Vertical" Margin="8" VerticalExpand="True">
                     <PanelContainer StyleClasses="PanelBackgroundLight" Margin="0 0 0 6">
                         <Label Text="{Loc 'neuro-interface-quick-actions-label'}" HorizontalAlignment="Center" Margin="8 6 8 6" />
@@ -38,13 +38,17 @@
                     <PanelContainer StyleClasses="PanelBackgroundLight" Margin="0 0 0 6">
                         <BoxContainer Orientation="Vertical" Margin="8 6 8 6" SeparationOverride="4">
                             <Label Name="NeuroLoadTitleLabel" HorizontalAlignment="Center" />
-                            <ProgressBar Name="NeuroLoadBar"
-                                         MinValue="0"
-                                         MaxValue="1"
-                                         Value="0"
-                                         HorizontalExpand="True"
-                                         SetHeight="20" />
-                            <Label Name="NeuroLoadValueLabel" HorizontalAlignment="Center" />
+                            <LayoutContainer Name="NeuroLoadOverlay" SetHeight="20" HorizontalExpand="True">
+                                <ProgressBar Name="NeuroLoadBar"
+                                             MinValue="0"
+                                             MaxValue="1"
+                                             Value="0"
+                                             HorizontalExpand="True"
+                                             VerticalExpand="True" />
+                                <Label Name="NeuroLoadValueLabel"
+                                       HorizontalAlignment="Left"
+                                       VerticalAlignment="Center" />
+                            </LayoutContainer>
                         </BoxContainer>
                     </PanelContainer>
                 </BoxContainer>

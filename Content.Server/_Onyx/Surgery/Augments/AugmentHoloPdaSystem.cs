@@ -124,6 +124,12 @@ public sealed class AugmentHoloPdaSystem : EntitySystem
             return;
         }
 
+        if (HasComp<AugmentBrainDeactivatedComponent>(ent.Owner))
+        {
+            _popup.PopupEntity(Loc.GetString("augment-brain-disabled"), args.Performer, args.Performer, PopupType.SmallCaution);
+            return;
+        }
+
         if (HasComp<AugmentNeuroManuallyDisabledComponent>(ent.Owner))
         {
             _popup.PopupEntity(Loc.GetString("augment-disabled-manually"), args.Performer, args.Performer, PopupType.SmallCaution);

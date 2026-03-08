@@ -34,6 +34,9 @@ public sealed class AugmentBioReactorSystem : EntitySystem
             if (HasComp<AugmentEmpDisabledComponent>(uid))
                 continue;
 
+            if (HasComp<AugmentBrainDeactivatedComponent>(uid))
+                continue;
+
             if (HasComp<AugmentNeuroManuallyDisabledComponent>(uid))
                 continue;
 

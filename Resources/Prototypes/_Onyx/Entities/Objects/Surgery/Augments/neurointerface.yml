@@ -74,6 +74,8 @@
     interfaces:
       enum.NeuroInterfaceUiKey.Key:
         type: NeuroInterfaceBui
+        interactionRange: 0
+        requireInputValidation: false
   - type: Construction
     graph: AugmentNeuroInterface
     node: augment

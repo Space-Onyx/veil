@@ -28,6 +28,7 @@ public sealed class AugmentMovementSpeedSystem : EntitySystem
         SubscribeLocalEvent<AugmentMovementSpeedComponent, AugmentLostPowerEvent>(OnLostPower);
         SubscribeLocalEvent<AugmentMovementSpeedComponent, AugmentGainedPowerEvent>(OnGainedPower);
         SubscribeLocalEvent<AugmentMovementSpeedComponent, GetAugmentsPowerDrawEvent>(OnGetPowerDraw);
+        SubscribeLocalEvent<AugmentMovementSpeedComponent, CollectAugmentNeuroInterfaceMetricsEvent>(OnCollectMetrics);
     }
 
     private void OnOrganAddedToBody(EntityUid uid, AugmentMovementSpeedComponent component, ref OrganAddedToBodyEvent args)
@@ -80,11 +81,21 @@ public sealed class AugmentMovementSpeedSystem : EntitySystem
 
     private void OnGetPowerDraw(EntityUid uid, AugmentMovementSpeedComponent component, ref GetAugmentsPowerDrawEvent args)
     {
-        if (HasComp<AugmentEmpDisabledComponent>(uid) || HasComp<AugmentNeuroManuallyDisabledComponent>(uid))
+        if (HasComp<AugmentEmpDisabledComponent>(uid)
+            || HasComp<AugmentBrainDeactivatedComponent>(uid)
+            || HasComp<AugmentNeuroManuallyDisabledComponent>(uid))
             return;
 
         if (RequiresPower(uid, component))
             args.TotalDraw += component.PowerDraw;
+    }
+
+    private void OnCollectMetrics(EntityUid uid, AugmentMovementSpeedComponent component, ref CollectAugmentNeuroInterfaceMetricsEvent args)
+    {
+        if (!args.PowerEnabled || !component.RequiresPower || component.PowerDraw <= 0f)
+            return;
+
+        args.PassivePowerEntries.Add(new NeuroInterfaceMetricEntry("neuro-interface-tooltip-source-power-movement", component.PowerDraw));
     }
 
     private void OnRefreshMovementSpeed(EntityUid uid, InstalledAugmentsComponent component, RefreshMovementSpeedModifiersEvent args)
@@ -110,6 +121,9 @@ public sealed class AugmentMovementSpeedSystem : EntitySystem
                 continue;
 
             if (HasComp<AugmentEmpDisabledComponent>(augUid))
+                continue;
+
+            if (HasComp<AugmentBrainDeactivatedComponent>(augUid))
                 continue;
 
             if (HasComp<AugmentNeuroManuallyDisabledComponent>(augUid))
