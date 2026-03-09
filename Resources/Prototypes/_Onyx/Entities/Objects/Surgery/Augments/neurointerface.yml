@@ -23,7 +23,7 @@
   name: neuro-interface casing
   components:
   - type: Sprite
-    state: incomplete_charger
+    state: incomplete_cell
   - type: Construction
     node: casing
     defaultTarget: augment
@@ -36,7 +36,7 @@
   name: neuro-interface casing with cables
   components:
   - type: Sprite
-    state: incomplete_charger_cables
+    state: incomplete_cell_cables
   - type: Construction
     node: cables
 
@@ -59,8 +59,21 @@
     size: Normal
   - type: Organ
     slotId: neckImplant
+    toolName: surgery-tool-augment-target-neck
   - type: AugmentNeuroInterface
-    maxNeuroLoad: 20
+    maxNeuroLoad: 15
+  - type: AugmentNeuroLoad
+    passiveLoad: 1
+  - type: AugmentModuleSlots
+    slots:
+    - id: neuro_module_capacity
+      name: augment-modules-slot-neuro-interface-capacity
+      allowInsertWhenUninstalled: true
+      allowInsertWhenInstalled: true
+      visibleInVerbs: true
+      whitelist:
+        tags:
+        - AugmentModuleNeuroCapacity
   - type: AugmentAction
     action: ActionAugmentNeuroInterface
   - type: AugmentActivatableUI
@@ -83,3 +96,20 @@
     tags:
     - Augment
     - neckAugment
+
+- type: entity
+  parent: BaseItem
+  id: AugmentModuleNeuroCapacity
+  name: neuro-capacity module
+  description: A dedicated module that increases neuro-interface max neuro-load.
+  components:
+  - type: Sprite
+    sprite: Objects/Misc/module.rsi
+    state: generic
+  - type: Item
+    size: Tiny
+  - type: Tag
+    tags:
+    - AugmentModuleNeuroCapacity
+  - type: AugmentUniversalModule
+    maxNeuroLoadDelta: 5

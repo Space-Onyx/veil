@@ -1,0 +1,17 @@
+- type: technology
+  id: IntegratedWeaponAugments
+  name: research-technology-integrated-weapon-augments
+  icon:
+    sprite: _Shitmed/Objects/Augments/arm.rsi
+    state: strength
+  discipline: Arsenal
+  tier: 2
+  cost: 10000
+  recipeUnlocks:
+    - AugmentStunnerPanel
+    - AugmentStunbatonPanel
+    - AugmentLaserPistolPanel
+  position: 4,4
+  technologyPrerequisites:
+    - AdvancedRiotControl
+    - BasicAugmentation

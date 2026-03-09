@@ -25,6 +25,7 @@
     state: cell
   - type: Organ
     slotId: legImplant
+    toolName: surgery-tool-augment-target-leg
   - type: Tag
     tags:
     - LegAugment
@@ -41,6 +42,7 @@
     state: cell
   - type: Organ
     slotId: footImplant
+    toolName: surgery-tool-augment-target-foot
   - type: Tag
     tags:
     - footAugment
@@ -57,6 +59,7 @@
     state: cell
   - type: Organ
     slotId: chestImplant
+    toolName: surgery-tool-augment-target-chest
   - type: Tag
     tags:
     - chestAugment
@@ -73,6 +76,7 @@
     state: cell
   - type: Organ
     slotId: headImplant
+    toolName: surgery-tool-augment-target-head
   - type: Tag
     tags:
     - headAugment
@@ -89,6 +93,7 @@
     state: cell
   - type: Organ
     slotId: eyeImplant
+    toolName: surgery-tool-augment-target-eye
   - type: Tag
     tags:
     - eyeAugment
@@ -105,6 +110,7 @@
     state: cell
   - type: Organ
     slotId: brainImplant
+    toolName: surgery-tool-augment-target-brain
   - type: Tag
     tags:
     - brainAugment
@@ -121,6 +127,7 @@
     state: cell
   - type: Organ
     slotId: armImplant
+    toolName: surgery-tool-augment-target-arm
   - type: Tag
     tags:
     - armAugment
@@ -137,6 +144,7 @@
     state: cell
   - type: Organ
     slotId: handImplant
+    toolName: surgery-tool-augment-target-hand
   - type: Tag
     tags:
     - handAugment
@@ -153,6 +161,7 @@
     state: cell
   - type: Organ
     slotId: neckImplant
+    toolName: surgery-tool-augment-target-neck
   - type: Tag
     tags:
     - neckAugment

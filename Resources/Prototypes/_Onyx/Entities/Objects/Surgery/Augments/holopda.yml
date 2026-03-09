@@ -1,12 +1,29 @@
 - type: entity
   parent: BaseAction
   id: ActionAugmentHoloPda
-  name: Open HoloPDA
-  description: Open your implanted holographic PDA interface.
+  name: augment-holopda-action-open-name
+  description: augment-holopda-action-open-desc
   components:
   - type: InstantAction
     event: !type:AugmentHoloPdaOpenEvent
     itemIconStyle: NoItem
+
+- type: entity
+  parent: BaseAction
+  id: ActionAugmentHoloPdaMedTekScan
+  name: augment-holopda-action-medtek-scan-name
+  description: augment-holopda-action-medtek-scan-desc
+  components:
+  - type: Action
+    itemIconStyle: BigAction
+  - type: TargetAction
+    range: 2.5
+    deselectOnMiss: true
+    interactOnMiss: false
+    targetingIndicator: true
+  - type: EntityTargetAction
+    event: !type:AugmentHoloPdaMedTekScanEvent
+    canTargetSelf: true
 
 - type: entity
   parent: BaseOnyxBrainAugment
@@ -20,7 +37,7 @@
   - type: AugmentExamine
     visible: false
   - type: AugmentNeuroLoad
-    passiveLoad: 1
+    passiveLoad: 2
   - type: Pda
     idSlot:
       name: access-id-card-component-default
@@ -66,8 +83,11 @@
     interfaces:
       enum.PdaUiKey.Key:
         type: PdaBoundUserInterface
+      enum.HealthAnalyzerUiKey.Key:
+        type: HealthAnalyzerBoundUserInterface
   - type: Organ
     slotId: brainImplant
+    toolName: surgery-tool-augment-target-brain
     hiddenFromAnalyzer: true
   - type: Tag
     tags:

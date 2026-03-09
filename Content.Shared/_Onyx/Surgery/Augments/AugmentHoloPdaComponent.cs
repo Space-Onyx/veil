@@ -15,6 +15,9 @@ public sealed partial class AugmentHoloPdaComponent : Component
     public EntityUid? ActionEntity;
 
     [DataField]
+    public EntityUid? MedTekScanActionEntity;
+
+    [DataField]
     public SoundSpecifier EjectSound = new SoundPathSpecifier("/Audio/Machines/id_swipe.ogg");
 
     [DataField]

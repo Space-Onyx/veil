@@ -86,12 +86,13 @@ public sealed partial class AugmentNeuroInterfaceSystem
         if (_remoteManipulationPenalties.Count == 0)
             return;
 
-        var bodiesToClear = new List<EntityUid>();
+        List<EntityUid>? bodiesToClear = null;
 
         foreach (var (body, entries) in _remoteManipulationPenalties)
         {
             if (Deleted(body))
             {
+                bodiesToClear ??= new List<EntityUid>();
                 bodiesToClear.Add(body);
                 continue;
             }
@@ -110,6 +111,7 @@ public sealed partial class AugmentNeuroInterfaceSystem
 
             if (entries.Count == 0)
             {
+                bodiesToClear ??= new List<EntityUid>();
                 bodiesToClear.Add(body);
 
                 if (hadActive)
@@ -120,6 +122,9 @@ public sealed partial class AugmentNeuroInterfaceSystem
                 }
             }
         }
+
+        if (bodiesToClear == null)
+            return;
 
         foreach (var body in bodiesToClear)
         {

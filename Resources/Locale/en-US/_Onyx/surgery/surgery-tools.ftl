@@ -1,0 +1,9 @@
+surgery-tool-augment-target-neck = a neck augment
+surgery-tool-augment-target-brain = a brain augment
+surgery-tool-augment-target-head = a head augment
+surgery-tool-augment-target-eye = an eye augment
+surgery-tool-augment-target-chest = a chest augment
+surgery-tool-augment-target-arm = an arm augment
+surgery-tool-augment-target-hand = a hand augment
+surgery-tool-augment-target-leg = a leg augment
+surgery-tool-augment-target-foot = a foot augment

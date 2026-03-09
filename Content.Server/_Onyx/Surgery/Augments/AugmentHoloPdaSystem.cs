@@ -5,14 +5,24 @@ using Content.Shared.Body.Events;
 using Content.Shared.CartridgeLoader;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.DoAfter;
+using Content.Shared.IdentityManagement;
 using Content.Shared.Hands.EntitySystems;
+using Content.Shared.Interaction;
+using Content.Shared.Interaction.Events;
+using Content.Shared.MedicalScanner;
+using Content.Shared.Mobs.Components;
 using Content.Shared.PDA;
 using Content.Shared.Popups;
 using Content.Shared.Verbs;
 using Content.Shared.Whitelist;
+using Content.Server.CartridgeLoader;
+using Content.Server.CartridgeLoader.Cartridges;
+using Content.Server.Medical.Components;
+using Content.Server.PowerCell;
 using Robust.Server.GameObjects;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Containers;
+using Robust.Shared.Utility;
 
 namespace Content.Server._Onyx.Surgery.Augments;
 
@@ -27,9 +37,15 @@ public sealed class AugmentHoloPdaSystem : EntitySystem
     [Dependency] private readonly SharedContainerSystem _containers = default!;
     [Dependency] private readonly SharedHandsSystem _hands = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
+    [Dependency] private readonly CartridgeLoaderSystem _cartridgeLoader = default!;
+    [Dependency] private readonly PowerCellSystem _powerCell = default!;
+    [Dependency] private readonly SharedInteractionSystem _interaction = default!;
 
     private const float IdEjectDelay = 3f;
     private const float CartridgeEjectDelay = 2f;
+    private const string MedTekScanAction = "ActionAugmentHoloPdaMedTekScan";
+    private static readonly SpriteSpecifier MedTekActionIcon =
+        new SpriteSpecifier.Rsi(new ResPath("/Textures/_CorvaxGoob/Interface/Misc/program_icons.rsi"), "medtek");
 
     public override void Initialize()
     {
@@ -39,6 +55,7 @@ public sealed class AugmentHoloPdaSystem : EntitySystem
         SubscribeLocalEvent<AugmentHoloPdaComponent, OrganAddedToBodyEvent>(OnOrganAdded);
         SubscribeLocalEvent<AugmentHoloPdaComponent, OrganRemovedFromBodyEvent>(OnOrganRemoved);
         SubscribeLocalEvent<AugmentHoloPdaComponent, AugmentHoloPdaOpenEvent>(OnOpenAction);
+        SubscribeLocalEvent<AugmentHoloPdaComponent, AugmentHoloPdaMedTekScanEvent>(OnMedTekScanAction);
         SubscribeLocalEvent<AugmentHoloPdaComponent, AugmentEmpDisabledEvent>(OnEmpDisabled);
         SubscribeLocalEvent<AugmentHoloPdaComponent, AugmentManuallyDisabledEvent>(OnManuallyDisabled);
 
@@ -80,6 +97,8 @@ public sealed class AugmentHoloPdaSystem : EntitySystem
         ent.Comp.CartridgeSlot.Whitelist = new EntityWhitelist { Components = new[] { "Cartridge" } };
         ent.Comp.CartridgeSlot.Name = "device-pda-slot-component-slot-name-cartridge";
         _itemSlots.AddItemSlot(args.Body, AugmentHoloPdaComponent.HoloPdaCartridgeSlotId, ent.Comp.CartridgeSlot);
+
+        UpdateMedTekScanAction(ent, args.Body);
     }
 
     private void OnOrganRemoved(Entity<AugmentHoloPdaComponent> ent, ref OrganRemovedFromBodyEvent args)
@@ -100,6 +119,7 @@ public sealed class AugmentHoloPdaSystem : EntitySystem
 
         _itemSlots.RemoveItemSlot(args.OldBody, ent.Comp.BodyIdSlot);
         _itemSlots.RemoveItemSlot(args.OldBody, ent.Comp.CartridgeSlot);
+        RemoveMedTekScanAction(ent, args.OldBody);
     }
 
     #endregion
@@ -138,6 +158,57 @@ public sealed class AugmentHoloPdaSystem : EntitySystem
 
         _ui.TryToggleUi(ent.Owner, PdaUiKey.Key, args.Performer);
         args.Handled = true;
+    }
+
+    private void OnMedTekScanAction(Entity<AugmentHoloPdaComponent> ent, ref AugmentHoloPdaMedTekScanEvent args)
+    {
+        if (args.Handled)
+            return;
+
+        var body = _augment.GetBody(ent);
+        if (body == null || body != args.Performer)
+            return;
+
+        if (!CanUseHoloPda(ent, body.Value))
+            return;
+
+        if (!TryComp<HealthAnalyzerComponent>(ent, out var analyzer)
+            || !_cartridgeLoader.HasProgram<MedTekCartridgeComponent>(ent))
+            return;
+
+        if (!HasComp<MobStateComponent>(args.Target))
+            return;
+
+        if (!_powerCell.HasDrawCharge(ent, user: args.Performer))
+            return;
+
+        if (analyzer.MaxScanRange is { } range &&
+            !_interaction.InRangeUnobstructed(args.Performer, args.Target, range))
+            return;
+
+        _audio.PlayPvs(analyzer.ScanningBeginSound, ent);
+
+        var started = _doAfter.TryStartDoAfter(new DoAfterArgs(EntityManager,
+            args.Performer,
+            analyzer.ScanDelay,
+            new HealthAnalyzerDoAfterEvent(),
+            ent,
+            target: args.Target,
+            used: ent)
+        {
+            BreakOnMove = true,
+        });
+
+        if (!started)
+            return;
+
+        args.Handled = true;
+
+        if (args.Target == args.Performer || analyzer.Silent)
+            return;
+
+        var msg = Loc.GetString("health-analyzer-popup-scan-target", ("user", Identity.Entity(args.Performer, EntityManager)));
+        _popup.PopupEntity(msg, args.Target, args.Target, PopupType.Medium);
     }
 
     private void OnEmpDisabled(Entity<AugmentHoloPdaComponent> ent, ref AugmentEmpDisabledEvent args)
@@ -186,6 +257,13 @@ public sealed class AugmentHoloPdaSystem : EntitySystem
         {
             pda.ContainedId = args.Entity;
         }
+
+        if (args.Container.ID == CartridgeLoaderComponent.CartridgeSlotId)
+        {
+            var body = _augment.GetBody(ent);
+            if (body != null)
+                UpdateMedTekScanAction(ent, body.Value);
+        }
     }
 
     private void OnAugmentItemRemoved(Entity<AugmentHoloPdaComponent> ent, ref EntRemovedFromContainerMessage args)
@@ -200,6 +278,13 @@ public sealed class AugmentHoloPdaSystem : EntitySystem
             var body = _augment.GetBody(ent);
             if (body != null)
                 _hands.TryPickupAnyHand(body.Value, args.Entity);
+        }
+
+        if (args.Container.ID == CartridgeLoaderComponent.CartridgeSlotId)
+        {
+            var body = _augment.GetBody(ent);
+            if (body != null)
+                UpdateMedTekScanAction(ent, body.Value);
         }
     }
 
@@ -411,6 +496,51 @@ public sealed class AugmentHoloPdaSystem : EntitySystem
     #endregion
 
     #region Helpers
+
+    private bool CanUseHoloPda(Entity<AugmentHoloPdaComponent> ent, EntityUid body)
+    {
+        if (HasComp<AugmentEmpDisabledComponent>(ent.Owner))
+        {
+            _popup.PopupEntity(Loc.GetString("augment-emp-disabled"), body, body, PopupType.SmallCaution);
+            return false;
+        }
+
+        if (HasComp<AugmentBrainDeactivatedComponent>(ent.Owner))
+        {
+            _popup.PopupEntity(Loc.GetString("augment-brain-disabled"), body, body, PopupType.SmallCaution);
+            return false;
+        }
+
+        if (HasComp<AugmentNeuroManuallyDisabledComponent>(ent.Owner))
+        {
+            _popup.PopupEntity(Loc.GetString("augment-disabled-manually"), body, body, PopupType.SmallCaution);
+            return false;
+        }
+
+        return true;
+    }
+
+    private void UpdateMedTekScanAction(Entity<AugmentHoloPdaComponent> ent, EntityUid body)
+    {
+        if (_cartridgeLoader.HasProgram<MedTekCartridgeComponent>(ent))
+        {
+            _actions.AddAction(body, ref ent.Comp.MedTekScanActionEntity, MedTekScanAction, ent);
+            if (ent.Comp.MedTekScanActionEntity is { } action)
+                _actions.SetIcon(action, MedTekActionIcon);
+            return;
+        }
+
+        RemoveMedTekScanAction(ent, body);
+    }
+
+    private void RemoveMedTekScanAction(Entity<AugmentHoloPdaComponent> ent, EntityUid body)
+    {
+        if (ent.Comp.MedTekScanActionEntity is not { } action)
+            return;
+
+        _actions.RemoveAction(body, action);
+        ent.Comp.MedTekScanActionEntity = null;
+    }
 
     private EntityUid? FindHoloPdaAugment(Entity<InstalledAugmentsComponent> ent)
     {

@@ -54,3 +54,6 @@
 
 - type: Tag
   id: AugmentNeuroInterfaceChip
+
+- type: Tag
+  id: AugmentModuleNeuroCapacity

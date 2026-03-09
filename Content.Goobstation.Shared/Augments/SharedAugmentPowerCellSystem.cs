@@ -1,5 +1,7 @@
+using System;
 using Content.Shared.Body.Systems;
 using Content.Shared.PowerCell;
+using Content.Shared._Onyx.Surgery.Augments;
 using Content.Shared._Shitmed.Body.Organ;
 
 namespace Content.Goobstation.Shared.Augments;
@@ -59,9 +61,22 @@ public abstract class SharedAugmentPowerCellSystem : EntitySystem
 
     public float GetBodyDraw(EntityUid body)
     {
-        var ev = new GetAugmentsPowerDrawEvent(body);
-        Augment.RelayEvent(body, ref ev);
-        return ev.TotalDraw;
+        // <Onyx-Augment-Tweak Edited>
+        if (!TryComp<InstalledAugmentsComponent>(body, out var installed))
+            return 0f;
+
+        var total = 0f;
+        foreach (var netAugment in installed.InstalledAugments)
+        {
+            var augment = GetEntity(netAugment);
+            var ev = new GetAugmentsPowerDrawEvent(body);
+            RaiseLocalEvent(augment, ref ev);
+
+            total += ApplyUniversalModulePowerDelta(augment, ev.TotalDraw);
+        }
+
+        return total;
+        // <Onyx-Augment-Tweak Edited>
     }
 
     /// <summary>
@@ -94,4 +109,21 @@ public abstract class SharedAugmentPowerCellSystem : EntitySystem
 
         return null;
     }
+
+    // <Onyx-Augment-Tweak>
+    private float ApplyUniversalModulePowerDelta(EntityUid augment, float baseDraw)
+    {
+        if (!TryComp<AugmentUniversalModuleAccumulatorComponent>(augment, out var accumulator)
+            || accumulator.PassivePowerDrawDelta == 0f)
+        {
+            return MathF.Max(0f, baseDraw);
+        }
+
+        var modified = baseDraw + accumulator.PassivePowerDrawDelta;
+        if (accumulator.PassivePowerDrawDelta < 0f && baseDraw > 0f)
+            return MathF.Max(1f, modified);
+
+        return MathF.Max(0f, modified);
+    }
+    // <Onyx-Augment-Tweak>
 }

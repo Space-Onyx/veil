@@ -35,8 +35,8 @@
     state: engineering
   - type: AugmentItemPanel
     itemPrototype: MantisBlade
-    extendPowerCost: 3
-    retractPowerCost: 2
+    extendPowerCost: 3.5
+    retractPowerCost: 3
     equippedNeuroLoad: 2
     icon: { sprite: _Goobstation/Objects/Weapons/Melee/mantis_blade.rsi, state: icon }
     extendSound: { collection: MantisBladeRetract }
@@ -46,4 +46,61 @@
   - type: AugmentExamine
     examineText: augment-examine-mantis-blade-panel
   - type: AugmentNeuroLoad
-    passiveLoad: 1
+    passiveLoad: 2.5
+
+- type: entity
+  parent: BaseAugmentItemPanel
+  id: AugmentStunnerPanel
+  name: stunner panel augment
+  description: An arm implant containing a stunner. Compatible with both arms.
+  components:
+  - type: Sprite
+    state: strength
+  - type: AugmentItemPanel
+    itemPrototype: WeaponDisabler
+    extendPowerCost: 2.5
+    retractPowerCost: 3.5
+    equippedNeuroLoad: 1.5
+    icon: { sprite: Objects/Weapons/Guns/Battery/disabler.rsi, state: icon }
+  - type: AugmentExamine
+    examineText: augment-examine-stunner-panel
+  - type: AugmentNeuroLoad
+    passiveLoad: 1.5
+
+- type: entity
+  parent: BaseAugmentItemPanel
+  id: AugmentStunbatonPanel
+  name: stunbaton panel augment
+  description: An arm implant containing a stun baton. Compatible with both arms.
+  components:
+  - type: Sprite
+    state: strength
+  - type: AugmentItemPanel
+    itemPrototype: Stunbaton
+    extendPowerCost: 2.5
+    retractPowerCost: 1.5
+    equippedNeuroLoad: 1.5
+    icon: { sprite: Objects/Weapons/Melee/stunbaton.rsi, state: stunbaton_off }
+  - type: AugmentExamine
+    examineText: augment-examine-stunbaton-panel
+  - type: AugmentNeuroLoad
+    passiveLoad: 2
+
+- type: entity
+  parent: BaseAugmentItemPanel
+  id: AugmentLaserPistolPanel
+  name: laser pistol panel augment
+  description: An arm implant containing a self-recharging laser pistol. Compatible with both arms.
+  components:
+  - type: Sprite
+    state: strength
+  - type: AugmentItemPanel
+    itemPrototype: WeaponAdvancedLaser
+    extendPowerCost: 3.5
+    retractPowerCost: 3
+    equippedNeuroLoad: 2
+    icon: { sprite: Objects/Weapons/Guns/Battery/advancedlasergun.rsi, state: base }
+  - type: AugmentExamine
+    examineText: augment-examine-laser-pistol-panel
+  - type: AugmentNeuroLoad
+    passiveLoad: 2.5

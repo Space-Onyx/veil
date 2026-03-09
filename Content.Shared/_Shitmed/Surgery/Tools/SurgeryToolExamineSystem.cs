@@ -78,6 +78,7 @@ public sealed class SurgeryToolExamineSystem : EntitySystem
     public void OnExamined(EntityUid uid, ISurgeryToolComponent comp, ref SurgeryToolExaminedEvent args)
     {
         var msg = args.Message;
+        var toolName = Loc.TryGetString(comp.ToolName, out var locToolName) ? locToolName : comp.ToolName; // <Onyx-Augment-Tweak Edited>
         var color = comp.Speed switch
         {
             < 1f => "red",
@@ -86,7 +87,7 @@ public sealed class SurgeryToolExamineSystem : EntitySystem
         };
         var key = "surgery-tool-" + (comp.Used == true ? "used" : "unlimited");
         var speed = comp.Speed.ToString("N2"); // 2 decimal places to not get trolled by float
-        msg.PushMarkup(Loc.GetString(key, ("tool", comp.ToolName), ("speed", speed), ("color", color)));
+        msg.PushMarkup(Loc.GetString(key, ("tool", toolName), ("speed", speed), ("color", color))); // <Onyx-Augment-Tweak Edited>
     }
 }
 

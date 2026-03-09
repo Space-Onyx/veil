@@ -7,10 +7,19 @@ ent-BaseAugmentItemPanel = { ent-BaseArmAugment }
 
 ent-AugmentManitBladePanel = mantis blade panel augment
     .desc = An arm implant containing a mantis blade. Compatible with both arms.
+ent-AugmentStunnerPanel = stunner panel augment
+    .desc = An arm implant containing a stunner. Compatible with both arms.
+ent-AugmentStunbatonPanel = stunbaton panel augment
+    .desc = An arm implant containing a stun baton. Compatible with both arms.
+ent-AugmentLaserPistolPanel = laser pistol panel augment
+    .desc = An arm implant containing a self-recharging laser pistol. Compatible with both arms.
 
 # ItemPanel Examine Text
 augment-examine-item-panel = Item panel augment
 augment-examine-mantis-blade-panel = Mantis Blade panel
+augment-examine-stunner-panel = Stunner panel
+augment-examine-stunbaton-panel = Stunbaton panel
+augment-examine-laser-pistol-panel = Laser pistol panel
 
 # ItemPanel Messages
 augment-item-panel-no-hand = Your hand is missing!

@@ -39,10 +39,11 @@
   - type: AugmentExamine
     visible: false
   - type: AugmentNeuroLoad
-    passiveLoad: 1
+    passiveLoad: 3
   - type: AugmentPassivePowerDraw
     draw: 0.5
     tooltipSource: neuro-interface-tooltip-source-power-passive-generic
   - type: Organ
     slotId: headImplant
+    toolName: surgery-tool-augment-target-head
     hiddenFromAnalyzer: true

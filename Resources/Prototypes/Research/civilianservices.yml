@@ -376,6 +376,7 @@
   recipeUnlocks:
     - AugmentRTGCasing
     - AdvancedRunnerAugment
+    - AugmentModuleNeuroCapacity
   position: -4,5
   technologyPrerequisites:
     - AdvancedAugmentation

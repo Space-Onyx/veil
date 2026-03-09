@@ -6,6 +6,8 @@ namespace Content.Shared._Onyx.Surgery.Augments;
 
 public sealed partial class AugmentHoloPdaOpenEvent : InstantActionEvent;
 
+public sealed partial class AugmentHoloPdaMedTekScanEvent : EntityTargetActionEvent;
+
 [Serializable, NetSerializable]
 public sealed partial class AugmentHoloPdaEjectIdDoAfterEvent : SimpleDoAfterEvent;
 

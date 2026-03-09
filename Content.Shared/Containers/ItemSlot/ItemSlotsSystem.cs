@@ -757,7 +757,7 @@ namespace Content.Shared.Containers.ItemSlots
                 foreach (var slot in itemSlots.Slots.Values)
                 {
                     // Disable slot insert if InsertOnInteract is true
-                    if (slot.InsertOnInteract || !CanInsert(uid, args.Using.Value, args.User, slot))
+                    if (slot.DisableInsert || slot.InsertOnInteract || !CanInsert(uid, args.Using.Value, args.User, slot)) // <Onyx-Augment-Tweak Edited>
                         continue;
 
                     var verbSubject = slot.Name != string.Empty
@@ -880,7 +880,7 @@ namespace Content.Shared.Containers.ItemSlots
 
             foreach (var slot in itemSlots.Slots.Values)
             {
-                if (!slot.InsertOnInteract || !CanInsert(uid, args.Using.Value, args.User, slot))
+                if (slot.DisableInsert || !slot.InsertOnInteract || !CanInsert(uid, args.Using.Value, args.User, slot)) // <Onyx-Augment-Tweak Edited>
                     continue;
 
                 var verbSubject = slot.Name != string.Empty

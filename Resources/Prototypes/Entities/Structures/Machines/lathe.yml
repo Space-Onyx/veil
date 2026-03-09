@@ -807,6 +807,8 @@
     # CorvaxGoob Packs
     - SecurityCaptureDevicePack # WeaponGrapplingGunHunter
     - WorkBeltsSecDynamic # WorkBelts-Techfab
+    # <Onyx Packs>
+    - IntegratedWeaponAugments
   - type: EmagLatheRecipes # Goobstation
     emagStaticPacks:
     - SyndicateAmmoLightStatic

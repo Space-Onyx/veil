@@ -133,12 +133,26 @@ public sealed partial class AugmentNeuroInterfaceSystem
         }
     }
 
-    private float GetAdjustedMaxNeuroLoad(EntityUid body, float baseMaxLoad)
+    private float GetAdjustedMaxNeuroLoad(EntityUid body, EntityUid neuroInterfaceUid, float baseMaxLoad)
     {
-        if (GetBrainPenaltyStage(body) < BrainPenaltyStage.Below75)
-            return baseMaxLoad;
+        var moduleDelta = GetUniversalModuleMaxNeuroLoadDelta(neuroInterfaceUid);
+        var adjustedBase = baseMaxLoad + moduleDelta;
+        if (moduleDelta < 0f && baseMaxLoad > 0f)
+            adjustedBase = MathF.Max(1f, adjustedBase);
+        else
+            adjustedBase = MathF.Max(0f, adjustedBase);
 
-        return MathF.Max(0f, baseMaxLoad - BrainNeuroLoadPenalty);
+        if (GetBrainPenaltyStage(body) < BrainPenaltyStage.Below75)
+            return adjustedBase;
+
+        return MathF.Max(0f, adjustedBase - BrainNeuroLoadPenalty);
+    }
+
+    private float GetUniversalModuleMaxNeuroLoadDelta(EntityUid neuroInterfaceUid)
+    {
+        return TryComp<AugmentUniversalModuleAccumulatorComponent>(neuroInterfaceUid, out var accumulator)
+            ? accumulator.MaxNeuroLoadDelta
+            : 0f;
     }
 
     private BrainPenaltyStage GetBrainPenaltyStage(EntityUid body)

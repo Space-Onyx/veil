@@ -184,7 +184,14 @@ public abstract partial class SharedSurgerySystem
             args.Invalid = StepInvalidReason.MissingTool;
 
             if (reg.Component is ISurgeryToolComponent required)
-                args.Popup = $"You need {required.ToolName} to perform this step!";
+            // <Onyx-Augment-Tweak Edited>
+            {
+                var toolName = Loc.TryGetString(required.ToolName, out var locToolName)
+                    ? locToolName
+                    : required.ToolName;
+                args.Popup = $"You need {toolName} to perform this step!";
+            }
+            // </Onyx-Augment-Tweak Edited>
             else
                 Log.Error($"Surgery step {ToPrettyString(ent)} wants bad component {reg.Component} which isn't a ISurgeryTool");
 

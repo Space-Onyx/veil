@@ -5,10 +5,9 @@
   - Robotics
   completetime: 8
   materials:
-    Steel: 1500
+    Steel: 1600
     Glass: 500
     Plastic: 800
-    Gold: 500
     Silver: 300
 
 - type: latheRecipe
@@ -66,3 +65,52 @@
   parent: BaseAugmentRecipe
   id: AugmentRTGCasing
   result: AugmentRTGCasing
+
+- type: latheRecipe
+  parent: BaseAugmentRecipe
+  id: AugmentStunnerPanel
+  result: AugmentStunnerPanel
+  completetime: 10
+  materials:
+    Steel: 1300
+    Glass: 900
+    Plastic: 900
+    Silver: 500
+    Gold: 700
+
+- type: latheRecipe
+  parent: BaseAugmentRecipe
+  id: AugmentStunbatonPanel
+  result: AugmentStunbatonPanel
+  completetime: 10
+  materials:
+    Steel: 1400
+    Glass: 700
+    Plastic: 900
+    Silver: 600
+    Gold: 600
+
+- type: latheRecipe
+  parent: BaseAugmentRecipe
+  id: AugmentLaserPistolPanel
+  result: AugmentLaserPistolPanel
+  completetime: 12
+  materials:
+    Steel: 1500
+    Glass: 1000
+    Plastic: 1000
+    Silver: 600
+    Gold: 1000
+    Plasma: 400
+
+- type: latheRecipe
+  parent: BaseAugmentRecipe
+  id: AugmentModuleNeuroCapacity
+  result: AugmentModuleNeuroCapacity
+  completetime: 8
+  materials:
+    Steel: 300
+    Glass: 150
+    Plastic: 400
+    Silver: 100
+    Plasma: 500

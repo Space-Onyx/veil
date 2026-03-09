@@ -1,0 +1,9 @@
+surgery-tool-augment-target-neck = аугментацию в шею
+surgery-tool-augment-target-brain = аугментацию в мозг
+surgery-tool-augment-target-head = аугментацию в голову
+surgery-tool-augment-target-eye = аугментацию в глаз
+surgery-tool-augment-target-chest = аугментацию в грудь
+surgery-tool-augment-target-arm = аугментацию в руку
+surgery-tool-augment-target-hand = аугментацию в кисть
+surgery-tool-augment-target-leg = аугментацию в ногу
+surgery-tool-augment-target-foot = аугментацию в стопу

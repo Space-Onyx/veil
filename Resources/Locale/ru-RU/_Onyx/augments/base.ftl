@@ -30,3 +30,15 @@ augment-examine-unknown-part = неизвестно
 augment-no-power = Недостаточно энергии для аугментации!
 augment-disabled-manually = Эта аугментация отключена вручную через нейро-интерфейс.
 augment-brain-disabled = Эта аугментация принудительно деактивирована из-за критического повреждения мозга.
+
+augment-modules-verb-category = Аугментации
+augment-modules-slot-default-name = Слот модуля
+
+augment-modules-verb-open-panel = Открыть панель модулей: {$augment}
+augment-modules-verb-close-panel = Закрыть панель модулей: {$augment}
+augment-modules-verb-insert-module = Вставить модуль в {$augment} ({$slot})
+augment-modules-verb-insert-module-short = Вставить: {$slot}
+augment-modules-verb-eject-module = Извлечь модуль из {$augment} ({$slot}): {$module}
+
+augment-modules-popup-panel-opened = Панель модулей открыта для {$augment}.
+augment-modules-popup-panel-closed = Панель модулей закрыта для {$augment}.

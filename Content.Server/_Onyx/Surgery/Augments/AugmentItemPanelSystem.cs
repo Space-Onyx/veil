@@ -7,12 +7,14 @@ using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction.Components;
 using Content.Shared.Item.ItemToggle;
 using Content.Shared.Popups;
+using Content.Shared.Containers;
 using Content.Server.Power.Components;
 using Content.Server.Power.EntitySystems;
 using Content.Server.PowerCell;
 using Content.Goobstation.Shared.Augments;
 using Content.Shared.Item;
 using Robust.Shared.Audio.Systems;
+using Robust.Shared.Containers;
 using Robust.Shared.Utility;
 using Robust.Shared.Timing;
 
@@ -30,6 +32,7 @@ public sealed class AugmentItemPanelSystem : EntitySystem
     [Dependency] private readonly ItemToggleSystem _toggle = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
+    [Dependency] private readonly SharedContainerSystem _containers = default!;
 
     private EntityQuery<HandsComponent> _handsQuery;
     private EntityQuery<BodyPartComponent> _partQuery;
@@ -45,6 +48,7 @@ public sealed class AugmentItemPanelSystem : EntitySystem
 
         SubscribeLocalEvent<AugmentItemPanelComponent, OrganAddedToBodyEvent>(OnOrganAddedToBody);
         SubscribeLocalEvent<AugmentItemPanelComponent, OrganRemovedFromBodyEvent>(OnOrganRemovedFromBody);
+        SubscribeLocalEvent<AugmentItemPanelComponent, ComponentInit>(OnInit);
         SubscribeLocalEvent<AugmentItemPanelComponent, AugmentActionEvent>(OnToggleItem);
         SubscribeLocalEvent<AugmentItemPanelComponent, AugmentEmpDisabledEvent>(OnEmpDisabled);
         SubscribeLocalEvent<AugmentItemPanelComponent, AugmentManuallyDisabledEvent>(OnManuallyDisabled);
@@ -52,8 +56,15 @@ public sealed class AugmentItemPanelSystem : EntitySystem
         SubscribeLocalEvent<AugmentItemPanelComponent, CollectAugmentNeuroInterfaceMetricsEvent>(OnCollectMetrics);
     }
 
+    private void OnInit(Entity<AugmentItemPanelComponent> ent, ref ComponentInit args)
+    {
+        EnsureStorageContainer(ent);
+        EnsureStoredItem(ent);
+    }
+
     private void OnOrganAddedToBody(Entity<AugmentItemPanelComponent> ent, ref OrganAddedToBodyEvent args)
     {
+        EnsureStoredItem(ent);
         AddActionWithItemIcon(ent, args.Body);
     }
 
@@ -68,12 +79,6 @@ public sealed class AugmentItemPanelSystem : EntitySystem
         if (ent.Comp.IsEquipped && ent.Comp.SpawnedItem.HasValue)
         {
             RetractItem(ent, args.OldBody);
-        }
-
-        if (ent.Comp.SpawnedItem.HasValue && !Terminating(ent.Comp.SpawnedItem.Value))
-        {
-            QueueDel(ent.Comp.SpawnedItem.Value);
-            ent.Comp.SpawnedItem = null;
         }
     }
 
@@ -158,31 +163,26 @@ public sealed class AugmentItemPanelSystem : EntitySystem
         if (!_handsQuery.TryComp(body, out var handsComp))
             return;
 
-        var hand = GetHandForAugment(ent, body, handsComp);
-        if (hand == null)
+        if (!EnsureStoredItem(ent))
         {
-            _popup.PopupEntity(Loc.GetString("augment-item-panel-no-hand"), body, body, PopupType.LargeCaution);
+            _popup.PopupEntity(Loc.GetString("augment-item-panel-cannot-equip"), body, body, PopupType.SmallCaution);
             return;
         }
 
-        if (_hands.GetHeldItem(body, hand) != null)
+        var spawnedItem = ent.Comp.SpawnedItem!.Value;
+        var storage = EnsureStorageContainer(ent);
+        RemComp<UnremoveableComponent>(spawnedItem);
+        var preferredHand = GetHandForAugment(ent, body, handsComp);
+        var pickedUp = false;
+        if (preferredHand != null && _hands.GetHeldItem(body, preferredHand) == null)
+            pickedUp = _hands.TryForcePickup((body, handsComp), spawnedItem, preferredHand, checkActionBlocker: false);
+
+        if (!pickedUp)
+            pickedUp = _hands.TryForcePickupAnyHand(body, spawnedItem, checkActionBlocker: false, handsComp: handsComp);
+
+        if (!pickedUp)
         {
-            _popup.PopupEntity(Loc.GetString("augment-item-panel-hand-full"), body, body, PopupType.SmallCaution);
-            return;
-        }
-
-        if (ent.Comp.SpawnedItem is { } oldItem && !Terminating(oldItem))
-            QueueDel(oldItem);
-
-        var spawnedItem = Spawn(ent.Comp.ItemPrototype, Transform(body).Coordinates);
-        ent.Comp.SpawnedItem = spawnedItem;
-
-        if (!_hands.TryPickup(body, spawnedItem, hand))
-        {
-            if (!Terminating(spawnedItem))
-                QueueDel(spawnedItem);
-
-            ent.Comp.SpawnedItem = null;
+            _containers.Insert(spawnedItem, storage);
 
             _popup.PopupEntity(Loc.GetString("augment-item-panel-cannot-equip"), body, body, PopupType.SmallCaution);
             return;
@@ -208,13 +208,23 @@ public sealed class AugmentItemPanelSystem : EntitySystem
         }
 
         var item = ent.Comp.SpawnedItem.Value;
+        var storage = EnsureStorageContainer(ent);
+        RemComp<UnremoveableComponent>(item);
+        if (!Terminating(item))
+        {
+            if (_containers.TryGetContainingContainer(item, out var current) && current != storage)
+            {
+                if (!_containers.Remove(item, current, force: true))
+                    return;
+            }
+
+            if (!_containers.Insert(item, storage))
+                return;
+        }
+
         if (ent.Comp.RetractSound != null)
             _audio.PlayPvs(ent.Comp.RetractSound, body);
 
-        if (!Terminating(item))
-            QueueDel(item);
-
-        ent.Comp.SpawnedItem = null;
         ent.Comp.IsEquipped = false;
         _toggle.TryDeactivate(ent.Owner);
         StartActionCooldown(ent.Comp);
@@ -256,20 +266,43 @@ public sealed class AugmentItemPanelSystem : EntitySystem
         if (ent.Comp.RequiresPower && args.PowerEnabled)
         {
             if (ent.Comp.ExtendPowerCost > 0f)
-                args.ActivePowerEntries.Add(new NeuroInterfaceMetricEntry("neuro-interface-tooltip-source-power-item-panel-extend", ent.Comp.ExtendPowerCost));
+            {
+                var extend = ApplyActiveModifiersWithFloor(
+                    ent.Comp.ExtendPowerCost,
+                    GetItemPanelActivePowerMultiplier(ent.Owner),
+                    GetItemPanelActivePowerDelta(ent.Owner));
+                args.ActivePowerEntries.Add(new NeuroInterfaceMetricEntry("neuro-interface-tooltip-source-power-item-panel-extend", extend));
+            }
             if (ent.Comp.RetractPowerCost > 0f)
-                args.ActivePowerEntries.Add(new NeuroInterfaceMetricEntry("neuro-interface-tooltip-source-power-item-panel-retract", ent.Comp.RetractPowerCost));
+            {
+                var retract = ApplyActiveModifiersWithFloor(
+                    ent.Comp.RetractPowerCost,
+                    GetItemPanelActivePowerMultiplier(ent.Owner),
+                    GetItemPanelActivePowerDelta(ent.Owner));
+                args.ActivePowerEntries.Add(new NeuroInterfaceMetricEntry("neuro-interface-tooltip-source-power-item-panel-retract", retract));
+            }
         }
 
         if (ent.Comp.EquippedNeuroLoad > 0f)
-            args.ActiveNeuroLoadEntries.Add(new NeuroInterfaceMetricEntry("neuro-interface-tooltip-source-neuro-item-panel-equipped", ent.Comp.EquippedNeuroLoad));
+        {
+            var neuro = ApplyActiveModifiersWithFloor(
+                ent.Comp.EquippedNeuroLoad,
+                GetItemPanelActiveNeuroMultiplier(ent.Owner),
+                GetItemPanelActiveNeuroDelta(ent.Owner));
+            args.ActiveNeuroLoadEntries.Add(new NeuroInterfaceMetricEntry("neuro-interface-tooltip-source-neuro-item-panel-equipped", neuro));
+        }
     }
 
     private float GetActionPowerCost(Entity<AugmentItemPanelComponent> ent)
     {
-        return ent.Comp.IsEquipped
+        var baseCost = ent.Comp.IsEquipped
             ? ent.Comp.RetractPowerCost
             : ent.Comp.ExtendPowerCost;
+
+        return ApplyActiveModifiersWithFloor(
+            baseCost,
+            GetItemPanelActivePowerMultiplier(ent.Owner),
+            GetItemPanelActivePowerDelta(ent.Owner));
     }
 
     private bool TryUseChargeBody(EntityUid body, float amount)
@@ -293,6 +326,36 @@ public sealed class AugmentItemPanelSystem : EntitySystem
         }
 
         return true;
+    }
+
+    private ContainerSlot EnsureStorageContainer(Entity<AugmentItemPanelComponent> ent)
+    {
+        return _containers.EnsureContainer<ContainerSlot>(ent.Owner, ent.Comp.StorageContainerId);
+    }
+
+    private bool EnsureStoredItem(Entity<AugmentItemPanelComponent> ent)
+    {
+        var storage = EnsureStorageContainer(ent);
+
+        if (ent.Comp.SpawnedItem is { } existing && !Terminating(existing))
+        {
+            if (storage.ContainedEntity != existing && !_containers.Insert(existing, storage))
+                return false;
+
+            return true;
+        }
+
+        var spawnedItem = Spawn(ent.Comp.ItemPrototype, Transform(ent.Owner).Coordinates);
+        ent.Comp.SpawnedItem = spawnedItem;
+        Dirty(ent, ent.Comp);
+
+        if (_containers.Insert(spawnedItem, storage))
+            return true;
+
+        QueueDel(spawnedItem);
+        ent.Comp.SpawnedItem = null;
+        Dirty(ent, ent.Comp);
+        return false;
     }
 
     private void ApplyExtendHeldAnimation(AugmentItemPanelComponent component, EntityUid item)
@@ -325,6 +388,50 @@ public sealed class AugmentItemPanelSystem : EntitySystem
             return;
 
         _actions.StartUseDelay(action);
+    }
+
+    private float GetItemPanelActivePowerMultiplier(EntityUid uid)
+    {
+        if (!TryComp<AugmentUniversalModuleAccumulatorComponent>(uid, out var accumulator))
+            return 1f;
+
+        return MathF.Max(0f, accumulator.ItemPanelActivePowerMultiplier);
+    }
+
+    private float GetItemPanelActiveNeuroMultiplier(EntityUid uid)
+    {
+        if (!TryComp<AugmentUniversalModuleAccumulatorComponent>(uid, out var accumulator))
+            return 1f;
+
+        return MathF.Max(0f, accumulator.ItemPanelActiveNeuroMultiplier);
+    }
+
+    private float GetItemPanelActivePowerDelta(EntityUid uid)
+    {
+        if (!TryComp<AugmentUniversalModuleAccumulatorComponent>(uid, out var accumulator))
+            return 0f;
+
+        return accumulator.ItemPanelActivePowerDelta;
+    }
+
+    private float GetItemPanelActiveNeuroDelta(EntityUid uid)
+    {
+        if (!TryComp<AugmentUniversalModuleAccumulatorComponent>(uid, out var accumulator))
+            return 0f;
+
+        return accumulator.ItemPanelActiveNeuroDelta;
+    }
+
+    private static float ApplyActiveModifiersWithFloor(float baseValue, float multiplier, float delta)
+    {
+        if (baseValue <= 0f)
+            return 0f;
+
+        var value = baseValue * MathF.Max(0f, multiplier) + delta;
+        if (multiplier < 1f || delta < 0f)
+            return MathF.Max(1f, value);
+
+        return MathF.Max(0f, value);
     }
 }
 

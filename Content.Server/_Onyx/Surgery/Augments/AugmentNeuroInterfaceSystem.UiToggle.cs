@@ -8,6 +8,7 @@ using Content.Shared.Body.Part;
 using Content.Shared.Popups;
 using Content.Shared._Shitmed.Body.Events;
 using Content.Shared._Shitmed.Body.Organ;
+using Content.Shared.Containers.ItemSlots;
 
 namespace Content.Server._Onyx.Surgery.Augments;
 
@@ -75,7 +76,7 @@ public sealed partial class AugmentNeuroInterfaceSystem
             charge,
             maxCharge,
             GetCurrentNeuroLoad(body),
-            GetAdjustedMaxNeuroLoad(body, ent.Comp.MaxNeuroLoad),
+            GetAdjustedMaxNeuroLoad(body, ent.Owner, ent.Comp.MaxNeuroLoad),
             augments);
         _ui.SetUiState(ent.Owner, NeuroInterfaceUiKey.Key, state);
     }
@@ -110,6 +111,7 @@ public sealed partial class AugmentNeuroInterfaceSystem
     private List<NeuroInterfaceAugmentEntry> BuildAugmentList(EntityUid body)
     {
         var entries = new List<NeuroInterfaceAugmentEntry>();
+        var descriptionCache = new Dictionary<EntityUid, string>();
 
         foreach (var (partUid, partComp) in _body.GetBodyChildren(body))
         {
@@ -122,7 +124,7 @@ public sealed partial class AugmentNeuroInterfaceSystem
                                   && !HasComp<AugmentBrainDeactivatedComponent>(partUid);
                 var partName = Name(partUid);
                 var partStatus = GetStatus(partUid, partComp);
-                var partDescription = GetEntityDescription(partUid);
+                var partDescription = GetEntityDescriptionCached(partUid, descriptionCache);
                 var partMetrics = GetAugmentMetrics(partUid);
 
                 entries.Add(new NeuroInterfaceAugmentEntry(
@@ -138,7 +140,8 @@ public sealed partial class AugmentNeuroInterfaceSystem
                     partMetrics.PassivePowerEntries,
                     partMetrics.ActivePowerEntries,
                     partMetrics.PassiveNeuroLoadEntries,
-                    partMetrics.ActiveNeuroLoadEntries));
+                    partMetrics.ActiveNeuroLoadEntries,
+                    new List<NeuroInterfaceModuleEntry>()));
             }
 
             foreach (var (organUid, organComp) in _body.GetPartOrgans(partUid, partComp))
@@ -155,8 +158,9 @@ public sealed partial class AugmentNeuroInterfaceSystem
                 var canConfigure = HasComp<AugmentComponent>(organUid) && HasComp<AugmentNeuroConfigurableComponent>(organUid);
                 var name = Name(organUid);
                 var status = GetStatus(organUid, organComp, body);
-                var description = GetEntityDescription(organUid);
+                var description = GetEntityDescriptionCached(organUid, descriptionCache);
                 var metrics = GetAugmentMetrics(organUid);
+                var modules = GetModuleEntries(organUid, descriptionCache);
 
                 entries.Add(new NeuroInterfaceAugmentEntry(
                     GetNetEntity(organUid),
@@ -171,7 +175,8 @@ public sealed partial class AugmentNeuroInterfaceSystem
                     metrics.PassivePowerEntries,
                     metrics.ActivePowerEntries,
                     metrics.PassiveNeuroLoadEntries,
-                    metrics.ActiveNeuroLoadEntries));
+                    metrics.ActiveNeuroLoadEntries,
+                    modules));
             }
         }
 
@@ -187,6 +192,48 @@ public sealed partial class AugmentNeuroInterfaceSystem
         });
 
         return entries;
+    }
+
+    private string GetEntityDescriptionCached(EntityUid uid, Dictionary<EntityUid, string> cache)
+    {
+        if (cache.TryGetValue(uid, out var cached))
+            return cached;
+
+        var description = GetEntityDescription(uid);
+        cache[uid] = description;
+        return description;
+    }
+
+    private List<NeuroInterfaceModuleEntry> GetModuleEntries(EntityUid augmentUid, Dictionary<EntityUid, string> descriptionCache)
+    {
+        var modules = new List<NeuroInterfaceModuleEntry>();
+        if (!TryComp<AugmentModuleSlotsComponent>(augmentUid, out var moduleSlots)
+            || !TryComp<ItemSlotsComponent>(augmentUid, out var itemSlots))
+        {
+            return modules;
+        }
+
+        foreach (var definition in moduleSlots.Slots)
+        {
+            if (!_itemSlots.TryGetSlot(augmentUid, definition.Id, out var slot, itemSlots))
+                continue;
+
+            if (slot.Item is not { } moduleUid)
+                continue;
+
+            var slotName = definition.Name.StartsWith("augment-", StringComparison.Ordinal)
+                ? Loc.GetString(definition.Name)
+                : definition.Name;
+
+            modules.Add(new NeuroInterfaceModuleEntry(
+                GetNetEntity(moduleUid),
+                definition.Id,
+                slotName,
+                Name(moduleUid),
+                GetEntityDescriptionCached(moduleUid, descriptionCache)));
+        }
+
+        return modules;
     }
 
     private static int GetCategoryRank(NeuroInterfaceBodyCategory category)

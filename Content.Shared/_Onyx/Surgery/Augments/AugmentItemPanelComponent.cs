@@ -18,6 +18,9 @@ public sealed partial class AugmentItemPanelComponent : Component
     [DataField, AutoNetworkedField]
     public EntityUid? SpawnedItem;
 
+    [DataField]
+    public string StorageContainerId = "item_panel_storage";
+
     [DataField, AutoNetworkedField]
     public bool IsEquipped = false;
 

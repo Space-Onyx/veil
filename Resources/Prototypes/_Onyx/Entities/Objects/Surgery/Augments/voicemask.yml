@@ -21,13 +21,14 @@
     size: Normal
   - type: Organ
     slotId: headImplant
+    toolName: surgery-tool-augment-target-head
     hiddenFromAnalyzer: true
   - type: AugmentVoiceMask
   - type: AugmentEmp
   - type: AugmentExamine
     visible: false
   - type: AugmentNeuroLoad
-    passiveLoad: 1
+    passiveLoad: 1.5
   - type: Tag
     tags:
     - Augment

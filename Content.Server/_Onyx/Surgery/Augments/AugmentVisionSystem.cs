@@ -1,3 +1,4 @@
+using System;
 using Content.Goobstation.Shared.Augments;
 using Content.Goobstation.Shared.Overlays;
 using Content.Shared._Onyx.Surgery.Augments;
@@ -132,9 +133,13 @@ public sealed class AugmentVisionSystem : EntitySystem
 
         if (hasActiveToggleableVision)
         {
-            args.TotalDraw += component.ActivePowerDrawByType.Count > 0
+            var activePower = component.ActivePowerDrawByType.Count > 0
                 ? activeDraw
                 : component.PowerDraw;
+            args.TotalDraw += ApplyActiveModifiersWithFloor(
+                activePower,
+                GetVisionActivePowerMultiplier(uid),
+                GetVisionActivePowerDelta(uid));
         }
     }
 
@@ -163,11 +168,19 @@ public sealed class AugmentVisionSystem : EntitySystem
                 var draw = component.ActivePowerDrawByType.Count > 0
                     ? component.GetActivePowerDraw(type)
                     : component.PowerDraw;
+                draw = ApplyActiveModifiersWithFloor(
+                    draw,
+                    GetVisionActivePowerMultiplier(uid),
+                    GetVisionActivePowerDelta(uid));
                 if (draw > 0f)
                     args.ActivePowerEntries.Add(new NeuroInterfaceMetricEntry(GetVisionActivePowerLocKey(type), draw));
             }
 
             var neuro = component.GetActiveNeuroLoad(type);
+            neuro = ApplyActiveModifiersWithFloor(
+                neuro,
+                GetVisionActiveNeuroMultiplier(uid),
+                GetVisionActiveNeuroDelta(uid));
             if (neuro > 0f)
                 args.ActiveNeuroLoadEntries.Add(new NeuroInterfaceMetricEntry(GetVisionActiveNeuroLocKey(type), neuro));
         }
@@ -356,5 +369,49 @@ public sealed class AugmentVisionSystem : EntitySystem
             AugmentVisionType.ThermalVision => "neuro-interface-tooltip-source-neuro-vision-thermal",
             _ => "neuro-interface-tooltip-source-neuro-vision-active",
         };
+    }
+
+    private float GetVisionActivePowerMultiplier(EntityUid uid)
+    {
+        if (!TryComp<AugmentUniversalModuleAccumulatorComponent>(uid, out var accumulator))
+            return 1f;
+
+        return MathF.Max(0f, accumulator.VisionActivePowerMultiplier);
+    }
+
+    private float GetVisionActivePowerDelta(EntityUid uid)
+    {
+        if (!TryComp<AugmentUniversalModuleAccumulatorComponent>(uid, out var accumulator))
+            return 0f;
+
+        return accumulator.VisionActivePowerDelta;
+    }
+
+    private float GetVisionActiveNeuroMultiplier(EntityUid uid)
+    {
+        if (!TryComp<AugmentUniversalModuleAccumulatorComponent>(uid, out var accumulator))
+            return 1f;
+
+        return MathF.Max(0f, accumulator.VisionActiveNeuroMultiplier);
+    }
+
+    private float GetVisionActiveNeuroDelta(EntityUid uid)
+    {
+        if (!TryComp<AugmentUniversalModuleAccumulatorComponent>(uid, out var accumulator))
+            return 0f;
+
+        return accumulator.VisionActiveNeuroDelta;
+    }
+
+    private static float ApplyActiveModifiersWithFloor(float baseValue, float multiplier, float delta)
+    {
+        if (baseValue <= 0f)
+            return 0f;
+
+        var value = baseValue * MathF.Max(0f, multiplier) + delta;
+        if (multiplier < 1f || delta < 0f)
+            return MathF.Max(1f, value);
+
+        return MathF.Max(0f, value);
     }
 }

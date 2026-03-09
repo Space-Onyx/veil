@@ -169,6 +169,7 @@ namespace Content.Shared.Containers.ItemSlots
         ///     It doesn't block other insertion methods, like verbs.
         /// </summary>
         [DataField]
+        [Access(typeof(ItemSlotsSystem), Other = AccessPermissions.ReadWriteExecute)] // <Onyx-Augment-Tweak>
         public bool InsertOnInteract = true;
 
         /// <summary>
@@ -200,6 +201,12 @@ namespace Content.Shared.Containers.ItemSlots
         /// </summary>
         [DataField]
         public string? InsertVerbText;
+
+        // <Onyx-Augment-Tweak>
+        [DataField, ViewVariables(VVAccess.ReadWrite)]
+        [Access(typeof(ItemSlotsSystem), Other = AccessPermissions.ReadWriteExecute)]
+        public bool DisableInsert = false;
+        // </Onyx-Augment-Tweak>
 
         /// <summary>
         ///     Override the eject verb text. Defaults to using the slot's name (if specified) or the name of the
@@ -316,6 +323,7 @@ namespace Content.Shared.Containers.ItemSlots
             EjectOnInteract = other.EjectOnInteract;
             EjectOnUse = other.EjectOnUse;
             InsertVerbText = other.InsertVerbText;
+            DisableInsert = other.DisableInsert; // <Onyx-Augment-Tweak>
             EjectVerbText = other.EjectVerbText;
             WhitelistFailPopup = other.WhitelistFailPopup;
             LockedFailPopup = other.LockedFailPopup;

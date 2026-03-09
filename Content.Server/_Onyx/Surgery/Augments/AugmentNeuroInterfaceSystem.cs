@@ -9,6 +9,7 @@ using Content.Shared.Movement.Components;
 using Content.Shared.Movement.Systems;
 using Content.Server.Hands.Systems;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas.Systems;
+using Content.Shared.Containers.ItemSlots;
 using Robust.Server.GameObjects;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
@@ -45,6 +46,7 @@ public sealed partial class AugmentNeuroInterfaceSystem : EntitySystem
     [Dependency] private readonly MovementSpeedModifierSystem _movementSpeed = default!;
     [Dependency] private readonly HandsSystem _hands = default!;
     [Dependency] private readonly MobStateSystem _mobState = default!;
+    [Dependency] private readonly ItemSlotsSystem _itemSlots = default!;
 
     private static readonly TimeSpan UiUpdateInterval = TimeSpan.FromSeconds(0.25);
     private static readonly TimeSpan OverloadDamageInterval = TimeSpan.FromSeconds(1);
@@ -76,6 +78,7 @@ public sealed partial class AugmentNeuroInterfaceSystem : EntitySystem
         Subs.BuiEvents<AugmentNeuroInterfaceComponent>(NeuroInterfaceUiKey.Key, subs =>
         {
             subs.Event<BoundUIOpenedEvent>(OnUiOpened);
+            subs.Event<BoundUIClosedEvent>(OnUiClosed);
             subs.Event<NeuroInterfaceToggleAugmentMessage>(OnToggleAugment);
             subs.Event<NeuroInterfaceBulkToggleMessage>(OnBulkToggle);
         });
@@ -99,6 +102,21 @@ public sealed partial class AugmentNeuroInterfaceSystem : EntitySystem
     private void OnRemoved(Entity<AugmentNeuroInterfaceComponent> ent, ref ComponentRemove args)
     {
         _nextUiUpdate.Remove(ent.Owner);
+        ent.Comp.AuthorizedRemoteViewers.Clear();
+    }
+
+    private void OnUiClosed(Entity<AugmentNeuroInterfaceComponent> ent, ref BoundUIClosedEvent args)
+    {
+        if (args.UiKey is not NeuroInterfaceUiKey.Key)
+            return;
+
+        if (!args.Actor.Valid)
+            return;
+
+        if (_augment.GetBody(ent) is { } body && args.Actor == body)
+            return;
+
+        ent.Comp.AuthorizedRemoteViewers.Remove(args.Actor);
     }
 
     private void OnBodyShutdown(Entity<BodyComponent> ent, ref ComponentShutdown args)

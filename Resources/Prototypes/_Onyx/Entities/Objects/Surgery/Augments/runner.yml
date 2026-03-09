@@ -29,6 +29,7 @@
     augmentId: Runner
   - type: Organ
     slotId: legImplant
+    toolName: surgery-tool-augment-target-leg
   - type: AugmentExamine
     color: "#974cf9"
     examineText: augment-examine-runner
@@ -37,6 +38,8 @@
     tags:
     - LegAugment
     - Augment
+  - type: AugmentNeuroLoad
+    passiveLoad: 1
 
 - type: entity
   parent: BaseRunnerAugment
@@ -53,6 +56,9 @@
     augmentId: AdvancedRunner
   - type: Organ
     slotId: legImplant
+    toolName: surgery-tool-augment-target-leg
   - type: AugmentExamine
     examineText: augment-examine-runner-advanced
     visible: true
+  - type: AugmentNeuroLoad
+    passiveLoad: 1.5

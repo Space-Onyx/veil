@@ -40,6 +40,7 @@
     state: cell
   - type: Organ
     slotId: powerCell
+    toolName: surgery-tool-augment-target-chest # <Onyx-Augment-Tweak>
     onAdd:
     - type: HasAugmentPowerCellSlot
   - type: AugmentPowerCellSlot
@@ -77,6 +78,7 @@
     state: cell
   - type: Organ
     slotId: charger
+    toolName: surgery-tool-augment-target-chest # <Onyx-Augment-Tweak>
   - type: AugmentCharger
 
 - type: entity

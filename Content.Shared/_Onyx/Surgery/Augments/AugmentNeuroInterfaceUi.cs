@@ -58,6 +58,30 @@ public sealed class NeuroInterfaceMetricEntry
 }
 
 [Serializable, NetSerializable]
+public sealed class NeuroInterfaceModuleEntry
+{
+    public NetEntity Module;
+    public string SlotId;
+    public string SlotName;
+    public string Name;
+    public string Description;
+
+    public NeuroInterfaceModuleEntry(
+        NetEntity module,
+        string slotId,
+        string slotName,
+        string name,
+        string description)
+    {
+        Module = module;
+        SlotId = slotId;
+        SlotName = slotName;
+        Name = name;
+        Description = description;
+    }
+}
+
+[Serializable, NetSerializable]
 public sealed class NeuroInterfaceAugmentEntry
 {
     public NetEntity Augment;
@@ -73,6 +97,7 @@ public sealed class NeuroInterfaceAugmentEntry
     public List<NeuroInterfaceMetricEntry> ActivePowerEntries;
     public List<NeuroInterfaceMetricEntry> PassiveNeuroLoadEntries;
     public List<NeuroInterfaceMetricEntry> ActiveNeuroLoadEntries;
+    public List<NeuroInterfaceModuleEntry> Modules;
 
     public NeuroInterfaceAugmentEntry(
         NetEntity augment,
@@ -87,7 +112,8 @@ public sealed class NeuroInterfaceAugmentEntry
         List<NeuroInterfaceMetricEntry> passivePowerEntries,
         List<NeuroInterfaceMetricEntry> activePowerEntries,
         List<NeuroInterfaceMetricEntry> passiveNeuroLoadEntries,
-        List<NeuroInterfaceMetricEntry> activeNeuroLoadEntries)
+        List<NeuroInterfaceMetricEntry> activeNeuroLoadEntries,
+        List<NeuroInterfaceModuleEntry>? modules = null)
     {
         Augment = augment;
         Part = part;
@@ -102,6 +128,7 @@ public sealed class NeuroInterfaceAugmentEntry
         ActivePowerEntries = activePowerEntries;
         PassiveNeuroLoadEntries = passiveNeuroLoadEntries;
         ActiveNeuroLoadEntries = activeNeuroLoadEntries;
+        Modules = modules ?? new List<NeuroInterfaceModuleEntry>();
     }
 }
 
@@ -169,6 +196,3 @@ public sealed class NeuroInterfaceToggleAugmentMessage : BoundUserInterfaceMessa
         Enable = enable;
     }
 }
-
-
-
