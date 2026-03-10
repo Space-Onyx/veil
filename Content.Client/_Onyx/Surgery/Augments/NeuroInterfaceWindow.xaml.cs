@@ -155,6 +155,61 @@ public sealed partial class NeuroInterfaceWindow : FancyWindow
         ContentMarginBottomOverride = 0,
     };
 
+    private static readonly StyleBoxFlat CategoryToggleButtonBackground = new()
+    {
+        BackgroundColor = new Color(58, 64, 98, 235),
+        BorderColor = new Color(142, 160, 232, 245),
+        BorderThickness = new Thickness(1),
+        ContentMarginLeftOverride = 0,
+        ContentMarginRightOverride = 0,
+        ContentMarginTopOverride = 0,
+        ContentMarginBottomOverride = 0,
+    };
+
+    private static readonly StyleBoxFlat ModuleTreeLineEnabledBackground = new()
+    {
+        BackgroundColor = new Color(120, 210, 120, 215),
+        BorderColor = Color.Transparent,
+        BorderThickness = new Thickness(0),
+        ContentMarginLeftOverride = 0,
+        ContentMarginRightOverride = 0,
+        ContentMarginTopOverride = 0,
+        ContentMarginBottomOverride = 0,
+    };
+
+    private static readonly StyleBoxFlat ModuleTreeLineDisabledBackground = new()
+    {
+        BackgroundColor = new Color(220, 120, 120, 215),
+        BorderColor = Color.Transparent,
+        BorderThickness = new Thickness(0),
+        ContentMarginLeftOverride = 0,
+        ContentMarginRightOverride = 0,
+        ContentMarginTopOverride = 0,
+        ContentMarginBottomOverride = 0,
+    };
+
+    private static readonly StyleBoxFlat ModuleTreeLineDeactivatedBackground = new()
+    {
+        BackgroundColor = new Color(235, 210, 120, 215),
+        BorderColor = Color.Transparent,
+        BorderThickness = new Thickness(0),
+        ContentMarginLeftOverride = 0,
+        ContentMarginRightOverride = 0,
+        ContentMarginTopOverride = 0,
+        ContentMarginBottomOverride = 0,
+    };
+
+    private static readonly StyleBoxFlat ModuleTreeLineNoPowerBackground = new()
+    {
+        BackgroundColor = new Color(120, 134, 198, 215),
+        BorderColor = Color.Transparent,
+        BorderThickness = new Thickness(0),
+        ContentMarginLeftOverride = 0,
+        ContentMarginRightOverride = 0,
+        ContentMarginTopOverride = 0,
+        ContentMarginBottomOverride = 0,
+    };
+
     private static readonly StyleBoxFlat NeuroLoadSafeBar = new()
     {
         BackgroundColor = new Color(70, 180, 85, 220),
@@ -320,23 +375,43 @@ public sealed partial class NeuroInterfaceWindow : FancyWindow
         foreach (var group in BuildAugmentGroups(entries))
         {
             var groupCollapsed = _viewSettings.CollapsedGroups.Contains(group.PartNet);
-            var groupButton = new Button
+            var groupHeaderPanel = new PanelContainer
             {
-                Text = GetGroupHeaderText(group.PartName, groupCollapsed),
-                HorizontalExpand = true,
+                PanelOverride = CategoryHeaderBackground,
                 Margin = new Thickness(0, 6, 0, 2),
-                TextAlign = Label.AlignMode.Left,
-                StyleBoxOverride = CategoryHeaderBackground,
             };
-            groupButton.Label.HorizontalAlignment = HAlignment.Left;
-            groupButton.Label.Margin = new Thickness(6, 0, 0, 0);
-            groupButton.OnPressed += _ =>
+
+            var groupHeaderRow = new BoxContainer
+            {
+                Orientation = LayoutOrientation.Horizontal,
+                SeparationOverride = 6,
+                HorizontalExpand = true,
+                Margin = new Thickness(6, 4, 6, 4),
+            };
+
+            var groupToggleButton = new Button
+            {
+                Text = groupCollapsed ? "v" : "^",
+                MinWidth = 30,
+                MinHeight = 30,
+                StyleBoxOverride = CategoryToggleButtonBackground,
+            };
+            groupToggleButton.OnPressed += _ =>
             {
                 ToggleGroupCollapsed(group.PartNet);
-                groupButton.Text = GetGroupHeaderText(group.PartName, _viewSettings.CollapsedGroups.Contains(group.PartNet));
                 RebuildAugments(entries);
             };
-            AugmentsContainer.AddChild(groupButton);
+            groupHeaderRow.AddChild(groupToggleButton);
+
+            groupHeaderRow.AddChild(new Label
+            {
+                Text = CapitalizeFirstSafe(group.PartName),
+                HorizontalExpand = true,
+                VerticalAlignment = VAlignment.Center,
+            });
+
+            groupHeaderPanel.AddChild(groupHeaderRow);
+            AugmentsContainer.AddChild(groupHeaderPanel);
 
             if (groupCollapsed)
                 continue;
@@ -642,17 +717,22 @@ public sealed partial class NeuroInterfaceWindow : FancyWindow
         var modules = new BoxContainer
         {
             Orientation = LayoutOrientation.Vertical,
-            SeparationOverride = 2,
-            Margin = new Thickness(22, 2, 0, 4),
+            SeparationOverride = 0,
+            Margin = new Thickness(5, 0, 0, 4),
             HorizontalExpand = true,
         };
+        var treeLineBackground = GetStatusTreeLineBackground(entry.Status);
 
-        foreach (var module in entry.Modules)
+        modules.AddChild(CreateModuleRootConnector(treeLineBackground));
+
+        for (var i = 0; i < entry.Modules.Count; i++)
         {
+            var module = entry.Modules[i];
             var row = new PanelContainer
             {
                 PanelOverride = GetStatusBackground(entry.Status),
-                Margin = new Thickness(0, 0, 0, 2),
+                Margin = new Thickness(0),
+                HorizontalExpand = true,
             };
 
             var description = string.IsNullOrWhiteSpace(module.Description)
@@ -669,10 +749,101 @@ public sealed partial class NeuroInterfaceWindow : FancyWindow
             };
             line.ToolTip = description;
             row.AddChild(line);
-            modules.AddChild(row);
+
+            var rowWithTree = new BoxContainer
+            {
+                Orientation = LayoutOrientation.Horizontal,
+                SeparationOverride = 2,
+                HorizontalExpand = true,
+            };
+            rowWithTree.AddChild(CreateModuleTreeBranch(i, entry.Modules.Count, treeLineBackground));
+            rowWithTree.AddChild(row);
+            modules.AddChild(rowWithTree);
         }
 
         return modules;
+    }
+
+    private static Control CreateModuleRootConnector(StyleBoxFlat treeLineBackground)
+    {
+        var root = new LayoutContainer
+        {
+            MinWidth = 16,
+            MinHeight = 8,
+            Margin = new Thickness(0),
+        };
+
+        var vertical = new PanelContainer
+        {
+            PanelOverride = treeLineBackground,
+            MinWidth = 2,
+            MinHeight = 8,
+        };
+        SetAnchorPreset(vertical, LayoutPreset.TopLeft);
+        SetPosition(vertical, new Vector2(7, 0));
+        root.AddChild(vertical);
+
+        return root;
+    }
+
+    private static Control CreateModuleTreeBranch(int index, int total, StyleBoxFlat treeLineBackground)
+    {
+        const int branchX = 7;
+        const int branchMidY = 10;
+        const int branchWidth = 9;
+        const int branchHeight = 2;
+        const int rowHeight = 22;
+
+        var branch = new LayoutContainer
+        {
+            MinWidth = 16,
+            MinHeight = rowHeight,
+            Margin = new Thickness(0, 0, 2, 0),
+        };
+
+        if (total > 1)
+        {
+            const int verticalStart = 0;
+            var verticalEnd = index == total - 1 ? branchMidY + branchHeight / 2 : rowHeight;
+            var verticalHeight = Math.Max(0, verticalEnd - verticalStart);
+
+            if (verticalHeight > 0)
+            {
+                var vertical = new PanelContainer
+                {
+                    PanelOverride = treeLineBackground,
+                    MinWidth = 2,
+                    MinHeight = verticalHeight,
+                };
+                SetAnchorPreset(vertical, LayoutPreset.TopLeft);
+                SetPosition(vertical, new Vector2(branchX, verticalStart));
+                branch.AddChild(vertical);
+            }
+        }
+        else
+        {
+            var vertical = new PanelContainer
+            {
+                PanelOverride = treeLineBackground,
+                MinWidth = 2,
+                MinHeight = branchMidY + branchHeight / 2,
+            };
+            SetAnchorPreset(vertical, LayoutPreset.TopLeft);
+            SetPosition(vertical, new Vector2(branchX, 0));
+            branch.AddChild(vertical);
+        }
+
+        var horizontal = new PanelContainer
+        {
+            PanelOverride = treeLineBackground,
+            MinWidth = branchWidth,
+            MinHeight = branchHeight,
+        };
+        SetAnchorPreset(horizontal, LayoutPreset.TopLeft);
+        SetPosition(horizontal, new Vector2(branchX, branchMidY));
+        branch.AddChild(horizontal);
+
+        return branch;
     }
 
     private Control BuildAugmentTooltip(NeuroInterfaceAugmentEntry entry)
@@ -745,12 +916,6 @@ public sealed partial class NeuroInterfaceWindow : FancyWindow
         parent.AddChild(line);
     }
 
-    private static string GetGroupHeaderText(string partName, bool collapsed)
-    {
-        var arrow = collapsed ? "v" : "^";
-        return OopsConcat(OopsConcat(arrow, " | "), CapitalizeFirstSafe(partName));
-    }
-
     private static string CapitalizeFirstSafe(string text)
     {
         if (string.IsNullOrEmpty(text))
@@ -809,6 +974,18 @@ public sealed partial class NeuroInterfaceWindow : FancyWindow
             NeuroInterfaceAugmentStatus.Deactivated => "neuro-interface-status-tooltip-deactivated",
             NeuroInterfaceAugmentStatus.NoPower => "neuro-interface-status-tooltip-no-power",
             _ => "neuro-interface-status-tooltip-disabled",
+        };
+    }
+
+    private static StyleBoxFlat GetStatusTreeLineBackground(NeuroInterfaceAugmentStatus status)
+    {
+        return status switch
+        {
+            NeuroInterfaceAugmentStatus.Enabled => ModuleTreeLineEnabledBackground,
+            NeuroInterfaceAugmentStatus.Disabled => ModuleTreeLineDisabledBackground,
+            NeuroInterfaceAugmentStatus.Deactivated => ModuleTreeLineDeactivatedBackground,
+            NeuroInterfaceAugmentStatus.NoPower => ModuleTreeLineNoPowerBackground,
+            _ => ModuleTreeLineDisabledBackground,
         };
     }
 

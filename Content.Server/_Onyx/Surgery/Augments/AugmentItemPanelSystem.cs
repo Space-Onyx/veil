@@ -48,6 +48,8 @@ public sealed class AugmentItemPanelSystem : EntitySystem
 
         SubscribeLocalEvent<AugmentItemPanelComponent, OrganAddedToBodyEvent>(OnOrganAddedToBody);
         SubscribeLocalEvent<AugmentItemPanelComponent, OrganRemovedFromBodyEvent>(OnOrganRemovedFromBody);
+        SubscribeLocalEvent<AugmentItemPanelComponent, BodyPartAddedEvent>(OnBodyPartAdded);
+        SubscribeLocalEvent<AugmentItemPanelComponent, BodyPartRemovedEvent>(OnBodyPartRemoved);
         SubscribeLocalEvent<AugmentItemPanelComponent, ComponentInit>(OnInit);
         SubscribeLocalEvent<AugmentItemPanelComponent, AugmentActionEvent>(OnToggleItem);
         SubscribeLocalEvent<AugmentItemPanelComponent, AugmentEmpDisabledEvent>(OnEmpDisabled);
@@ -80,6 +82,31 @@ public sealed class AugmentItemPanelSystem : EntitySystem
         {
             RetractItem(ent, args.OldBody);
         }
+    }
+
+    private void OnBodyPartAdded(Entity<AugmentItemPanelComponent> ent, ref BodyPartAddedEvent args)
+    {
+        EnsureStoredItem(ent);
+
+        if (args.Part.Comp.Body is not { } body)
+            return;
+
+        AddActionWithItemIcon(ent, body);
+    }
+
+    private void OnBodyPartRemoved(Entity<AugmentItemPanelComponent> ent, ref BodyPartRemovedEvent args)
+    {
+        if (args.Part.Comp.Body is not { } oldBody)
+            return;
+
+        if (ent.Comp.ActionEntity.HasValue)
+        {
+            _actions.RemoveAction(oldBody, ent.Comp.ActionEntity.Value);
+            ent.Comp.ActionEntity = null;
+        }
+
+        if (ent.Comp.IsEquipped && ent.Comp.SpawnedItem.HasValue)
+            RetractItem(ent, oldBody);
     }
 
     private void AddActionWithItemIcon(Entity<AugmentItemPanelComponent> ent, EntityUid body)
@@ -119,7 +146,7 @@ public sealed class AugmentItemPanelSystem : EntitySystem
 
     private void OnToggleItem(Entity<AugmentItemPanelComponent> ent, ref AugmentActionEvent args)
     {
-        if (_augment.GetBody(ent) is not {} body)
+        if (!TryGetHostBody(ent, out var body))
             return;
 
         if (HasComp<AugmentNeuroManuallyDisabledComponent>(ent.Owner))
@@ -234,9 +261,12 @@ public sealed class AugmentItemPanelSystem : EntitySystem
 
     private string? GetHandForAugment(Entity<AugmentItemPanelComponent> ent, EntityUid body, HandsComponent handsComp)
     {
-        var partUid = Transform(ent).ParentUid;
-        if (!_partQuery.TryComp(partUid, out var part))
-            return null;
+        if (!_partQuery.TryComp(ent.Owner, out var part))
+        {
+            var partUid = Transform(ent).ParentUid;
+            if (!_partQuery.TryComp(partUid, out part))
+                return null;
+        }
 
         var targetLocation = part.Symmetry switch
         {
@@ -252,6 +282,18 @@ public sealed class AugmentItemPanelSystem : EntitySystem
         }
 
         return null;
+    }
+
+    private bool TryGetHostBody(Entity<AugmentItemPanelComponent> ent, out EntityUid body)
+    {
+        if (_augment.GetBody(ent) is { } currentBody)
+        {
+            body = currentBody;
+            return true;
+        }
+
+        body = default;
+        return false;
     }
 
     private bool RequiresPower(Entity<AugmentItemPanelComponent> ent)

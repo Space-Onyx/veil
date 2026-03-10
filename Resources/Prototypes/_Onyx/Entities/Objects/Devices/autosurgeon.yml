@@ -7,3 +7,23 @@
     targetBodyPart: Head
     targetOrgan: headImplant
     newPartProto: AugmentVoiceMask
+
+- type: entity
+  parent: BaseAutosurgeonSingle
+  id: AutosurgeonRTGAugment
+  name: autosurgeon (RTG augment)
+  components:
+  - type: AutoSurgeon
+    targetBodyPart: Chest
+    targetOrgan: charger
+    newPartProto: AugmentRTG
+
+- type: entity
+  parent: BaseAutosurgeonSingle
+  id: AutosurgeonNeuroInterface
+  name: autosurgeon (neuro-interface)
+  components:
+  - type: AutoSurgeon
+    targetBodyPart: Head
+    targetOrgan: neckImplant
+    newPartProto: AugmentNeuroInterface

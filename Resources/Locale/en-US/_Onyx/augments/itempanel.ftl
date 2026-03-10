@@ -14,6 +14,11 @@ ent-AugmentStunbatonPanel = stunbaton panel augment
 ent-AugmentLaserPistolPanel = laser pistol panel augment
     .desc = An arm implant containing a self-recharging laser pistol. Compatible with both arms.
 
+ent-WeaponDisablerAugmentSelfCharging = { ent-WeaponDisabler }
+    .desc = { ent-WeaponDisabler.desc }
+ent-StunbatonAugmentSelfCharging = { ent-Stunbaton }
+    .desc = { ent-Stunbaton.desc }
+
 # ItemPanel Examine Text
 augment-examine-item-panel = Item panel augment
 augment-examine-mantis-blade-panel = Mantis Blade panel

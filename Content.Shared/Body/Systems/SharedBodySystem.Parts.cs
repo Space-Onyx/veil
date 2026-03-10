@@ -112,7 +112,7 @@ namespace Content.Shared.Body.Systems;
 
 public partial class SharedBodySystem
 {
-    private const float DisabledLegCrawlSpeedMultiplier = 0.10f; // <Onyx-Surgery>
+    private const float DisabledLegCrawlSpeedMultiplier = 0.15f; // <Onyx-Surgery>
     private static readonly ProtoId<DamageTypePrototype> BloodlossDamageType = "Bloodloss";
 
     private void InitializeParts()
@@ -184,7 +184,7 @@ public partial class SharedBodySystem
                 UpdateMovementSpeed(bodyUid, bodyComp);
 
                 if (bodyComp.LegEntities.Count < bodyComp.RequiredLegs)
-                    Standing.Down(bodyUid);
+                    KnockdownForMissingLegs(bodyUid); // <Onyx-Surgery>
             }
 
             Dirty(bodyUid, bodyComp);
@@ -424,7 +424,7 @@ public partial class SharedBodySystem
         bodyEnt.Comp.LegEntities.Remove(legEnt);
         UpdateMovementSpeed(bodyEnt);
         Dirty(bodyEnt, bodyEnt.Comp);
-        Standing.Down(bodyEnt);
+        KnockdownForMissingLegs(bodyEnt); // <Onyx-Surgery>
     }
 
     /// <summary>
@@ -773,15 +773,24 @@ public partial class SharedBodySystem
             }
         }
 
-        if (walkSpeed <= 0f && hasLegParts && !hasEnabledLegs)
+        if (!hasEnabledLegs && hasLegParts) // <Onyx-Surgery Edited>
         {
             walkSpeed = MovementSpeedModifierComponent.DefaultBaseWalkSpeed * DisabledLegCrawlSpeedMultiplier;
             sprintSpeed = MovementSpeedModifierComponent.DefaultBaseSprintSpeed * DisabledLegCrawlSpeedMultiplier;
             acceleration = MovementSpeedModifierComponent.DefaultAcceleration * DisabledLegCrawlSpeedMultiplier;
         }
         // </Onyx-Surgery>
+
         Movement.ChangeBaseSpeed(bodyId, walkSpeed, sprintSpeed, acceleration, movement);
     }
+
+    // <Onyx-Surgery>
+    private void KnockdownForMissingLegs(EntityUid bodyUid)
+    {
+        if (!Stun.TryCrawling(bodyUid, refresh: true, autoStand: false, drop: false))
+            Standing.Down(bodyUid);
+    }
+    // <Onyx-Surgery>
 
     #endregion
 

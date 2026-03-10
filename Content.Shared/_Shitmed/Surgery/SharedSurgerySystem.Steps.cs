@@ -44,16 +44,20 @@ using Content.Shared.Item;
 using Content.Shared._Shitmed.Body.Organ;
 using Content.Shared._Shitmed.Body.Part;
 using Content.Shared.Popups;
+using Content.Shared.Tag;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 using System.Linq;
 using Content.Shared._Shitmed.Surgery;
 using Content.Shared._Onyx.Surgery.Conditions;
+using Content.Shared._Onyx.Surgery.Augments;
 
 namespace Content.Shared._Shitmed.Medical.Surgery;
 
 public abstract partial class SharedSurgerySystem
 {
+    private static readonly ProtoId<TagPrototype> AugmentTag = "Augment"; // <Onyx-Surgery>
+
     private EntityQuery<BodyPartComponent> _partQuery;
     private EntityQuery<SurgeryIgnoreClothingComponent> _ignoreQuery;
     private EntityQuery<SurgeryStepComponent> _stepQuery;
@@ -387,6 +391,11 @@ public abstract partial class SharedSurgerySystem
         {
             if (!_tag.HasTag(args.Tool, tagComp!.Tag))
                 return;
+        }
+        if (TryGetAugmentCompatibilityFailure(args.Part, args.Tool, out var compatibilityPopup))
+        {
+            _popup.PopupClient(compatibilityPopup, args.User, args.User, PopupType.SmallCaution);
+            return;
         }
 
         if (!TryComp<OrganComponent>(args.Tool, out var insertedOrgan)
@@ -1231,6 +1240,21 @@ public abstract partial class SharedSurgerySystem
         reason = check.Invalid;
         data = check.ValidTool;
 
+        // <Onyx-Surgery>
+        if (check.IsValid
+            && HasComp<SurgeryAddOrganStepComponent>(step)
+            && TryGetAugmentCompatibilityFailure(part, tool, out var compatibilityPopup))
+        {
+            popup = compatibilityPopup;
+            reason = StepInvalidReason.ToolInvalid;
+
+            if (doPopup)
+                _popup.PopupClient(compatibilityPopup, user, user, PopupType.SmallCaution);
+
+            return false;
+        }
+        // <Onyx-Surgery>
+
         if (check.IsValid)
             return true;
 
@@ -1270,7 +1294,74 @@ public abstract partial class SharedSurgerySystem
     }
 
     private bool HasSurgeryComp(EntityUid tool, IComponent component) => GetSurgeryComp(tool, component) != null;
+
     // <Onyx-Surgery>
+    private bool TryGetAugmentCompatibilityFailure(EntityUid part, EntityUid insertedOrgan, out string popup)
+    {
+        popup = string.Empty;
+
+        if (!_tag.HasTag(insertedOrgan, AugmentTag)
+            || !_partQuery.TryComp(part, out var partComp)
+            || !TryComp<AugmentCompatibilityComponent>(part, out var compatibility))
+        {
+            return false;
+        }
+
+        if (!compatibility.AllowAugments)
+        {
+            popup = Loc.GetString("augment-compatibility-denied-all");
+            return true;
+        }
+
+        if (compatibility.AllowedAugmentTags.Count > 0)
+        {
+            var hasAllowedTag = false;
+            foreach (var allowedTag in compatibility.AllowedAugmentTags)
+            {
+                if (_tag.HasTag(insertedOrgan, allowedTag))
+                {
+                    hasAllowedTag = true;
+                    break;
+                }
+            }
+
+            if (!hasAllowedTag)
+            {
+                popup = Loc.GetString("augment-compatibility-denied-tags");
+                return true;
+            }
+        }
+
+        foreach (var blockedTag in compatibility.BlockedAugmentTags)
+        {
+            if (_tag.HasTag(insertedOrgan, blockedTag))
+            {
+                popup = Loc.GetString("augment-compatibility-denied-tags");
+                return true;
+            }
+        }
+
+        if (compatibility.MaxAugmentCount >= 0)
+        {
+            var existingAugments = 0;
+            foreach (var organ in _body.GetPartOrgans(part, partComp))
+            {
+                if (organ.Id == insertedOrgan)
+                    continue;
+
+                if (_tag.HasTag(organ.Id, AugmentTag))
+                    existingAugments++;
+            }
+
+            if (existingAugments >= compatibility.MaxAugmentCount)
+            {
+                popup = Loc.GetString("augment-compatibility-denied-capacity");
+                return true;
+            }
+        }
+
+        return false;
+    }
     private bool MatchesOrganComponent(EntityUid organId, SurgeryOrganConditionComponent organComp)
     {
         foreach (var reg in organComp.Organ!.Values)

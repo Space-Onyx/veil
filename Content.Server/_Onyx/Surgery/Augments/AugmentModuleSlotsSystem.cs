@@ -5,6 +5,7 @@ using Content.Shared.Body.Events;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Popups;
 using Content.Shared.Verbs;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Containers;
 
 namespace Content.Server._Onyx.Surgery.Augments;
@@ -14,6 +15,7 @@ public sealed class AugmentModuleSlotsSystem : EntitySystem
     [Dependency] private readonly AugmentSystem _augment = default!;
     [Dependency] private readonly ItemSlotsSystem _itemSlots = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
+    [Dependency] private readonly SharedAudioSystem _audio = default!;
 
     private static readonly VerbCategory AugmentationsCategory =
         new("augment-modules-verb-category", "/Textures/Interface/VerbIcons/group.svg.192dpi.png");
@@ -131,6 +133,13 @@ public sealed class AugmentModuleSlotsSystem : EntitySystem
             return;
 
         var body = _augment.GetBody(ent);
+        if (body != null
+            && _itemSlots.TryGetSlot(ent, args.Container.ID, out var slot)
+            && slot.InsertSound != null)
+        {
+            _audio.PlayPvs(slot.InsertSound, body.Value);
+        }
+
         var ev = new AugmentModuleInsertedEvent(ent.Owner, args.Container.ID, args.Entity, body);
         RaiseLocalEvent(ent, ref ev);
     }
@@ -141,6 +150,13 @@ public sealed class AugmentModuleSlotsSystem : EntitySystem
             return;
 
         var body = _augment.GetBody(ent);
+        if (body != null
+            && _itemSlots.TryGetSlot(ent, args.Container.ID, out var slot)
+            && slot.EjectSound != null)
+        {
+            _audio.PlayPvs(slot.EjectSound, body.Value);
+        }
+
         var ev = new AugmentModuleRemovedEvent(ent.Owner, args.Container.ID, args.Entity, body);
         RaiseLocalEvent(ent, ref ev);
     }

@@ -26,6 +26,9 @@
     painMultiplier: 1.5
   - type: Woundable
     canBleed: false
+  # <Onyx-Surgery>
+  - type: AugmentCompatibility
+    allowAugments: false
 
 - type: entity
   parent: [ CyberneticPartBase, BaseLeftArm ]

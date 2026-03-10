@@ -68,6 +68,7 @@ using Content.Shared.Standing;
 using Robust.Shared.Network;
 using Content.Shared.Rejuvenate;
 using Content.Shared.Popups;
+using Content.Shared.Stunnable;
 using Robust.Shared.Configuration;
 using Robust.Shared.Timing;
 using Content.Goobstation.Maths.FixedPoint;
@@ -109,6 +110,7 @@ public partial class SharedBodySystem
         SubscribeLocalEvent<BodyComponent, MapInitEvent>(OnBodyMapInit);
         SubscribeLocalEvent<BodyComponent, CanDragEvent>(OnBodyCanDrag);
         SubscribeLocalEvent<BodyComponent, StandAttemptEvent>(OnStandAttempt); // Shitmed Change
+        SubscribeLocalEvent<BodyComponent, StandUpAttemptEvent>(OnStandUpAttempt); // <Onyx-Surgery>
         SubscribeLocalEvent<BodyComponent, ProfileLoadFinishedEvent>(OnProfileLoadFinished); // Shitmed change
         SubscribeLocalEvent<BodyComponent, IsEquippingAttemptEvent>(OnBeingEquippedAttempt); // Shitmed Change
         SubscribeLocalEvent<BodyComponent, AttemptStopPullingEvent>(OnAttemptStopPulling); // Goobstation
@@ -530,27 +532,43 @@ public partial class SharedBodySystem
 
     private void OnStandAttempt(Entity<BodyComponent> ent, ref StandAttemptEvent args)
     {   // <Onyx-Surgery>
-        if (ent.Comp.LegEntities.Count < ent.Comp.RequiredLegs)
-        {
+        if (HasMissingEnabledLegs(ent))
             args.Cancel();
-
-            var hasLegParts = false;
-            var hasEnabledLegs = false;
-            foreach (var leg in GetBodyChildrenOfType(ent.Owner, BodyPartType.Leg))
-            {
-                hasLegParts = true;
-                if (leg.Component.Enabled)
-                {
-                    hasEnabledLegs = true;
-                    break;
-                }
-            }
-
-            if (hasLegParts && !hasEnabledLegs)
-                _popup.PopupEntity(Loc.GetString("body-stand-attempt-disabled-legs"), ent, ent);
-        }
         // </Onyx-Surgery>
     }
+
+    private void OnStandUpAttempt(Entity<BodyComponent> ent, ref StandUpAttemptEvent args)
+    {   // <Onyx-Surgery>
+        if (!HasMissingEnabledLegs(ent))
+            return;
+
+        args.Cancelled = true;
+        args.Autostand = false;
+
+        if (args.Message == null && HasOnlyDisabledLegs(ent))
+            args.Message = (Loc.GetString("body-stand-attempt-disabled-legs"), PopupType.SmallCaution);
+        // </Onyx-Surgery>
+    }
+
+    // <Onyx-Surgery>
+    private bool HasMissingEnabledLegs(Entity<BodyComponent> ent)
+    {
+        return ent.Comp.RequiredLegs > 0 && ent.Comp.LegEntities.Count < ent.Comp.RequiredLegs;
+    }
+
+    private bool HasOnlyDisabledLegs(Entity<BodyComponent> ent)
+    {
+        var hasLegParts = false;
+        foreach (var leg in GetBodyChildrenOfType(ent.Owner, BodyPartType.Leg))
+        {
+            hasLegParts = true;
+            if (leg.Component.Enabled)
+                return false;
+        }
+
+        return hasLegParts;
+    }
+    // </Onyx-Surgery>
 
     private void OnBeingEquippedAttempt(Entity<BodyComponent> ent, ref IsEquippingAttemptEvent args)
     {

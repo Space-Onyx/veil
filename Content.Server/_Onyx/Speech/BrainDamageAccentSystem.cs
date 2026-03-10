@@ -1,3 +1,4 @@
+using System;
 using Content.Shared._Onyx.Speech;
 using Content.Shared.Speech;
 using Robust.Shared.Random;
@@ -8,38 +9,35 @@ public sealed class BrainDamageAccentSystem : EntitySystem
 {
     [Dependency] private readonly IRobustRandom _random = default!;
 
-    private const float LetterScrambleChance = 0.6f;
-    private const float RandomSpeechChance = 0.3f;
-
     private static readonly string[] RuRandomSpeech =
     {
-        "подождите... я не помню",
-        "где я сейчас",
-        "не трогайте!",
-        "мне кажется тут кто-то",
-        "секунду... мысль...",
-        "это было важно, я забыл..",
-        "голоса снова шепчут",
-        "я что-то не понимаю",
-        "не знаю почему, страшно",
-        "дайте подумать",
-        "что-то не так в башке",
-        "я слышу голоса"
+        "Подождите... я не помню",
+        "Где я сейчас",
+        "Не трогайте!",
+        "Мне кажется тут кто-то",
+        "Секунду... мысль...",
+        "Это было важно, я забыл..",
+        "Голоса снова шепчут",
+        "Я что-то не понимаю",
+        "Не знаю почему, страшно",
+        "Дайте подумать",
+        "Что-то не так в башке",
+        "Я слышу голоса"
     };
 
     private static readonly string[] EnRandomSpeech =
     {
-        "wait... I forgot",
-        "where am I right now",
-        "don't touch me",
+        "Wait... I forgot",
+        "Where am I right now",
+        "Don't touch me",
         "I think someone is here",
-        "hold on... I lost the thought",
+        "Hold on... I lost the thought",
         "it was important, I forgot",
-        "the voices are back",
+        "The voices are back",
         "I am missing something",
         "I don't know why, but I'm scared",
-        "stop, let me think",
-        "something is wrong in my head",
+        "Stop, let me think",
+        "Something is wrong in my head",
         "I keep hearing noise"
     };
 
@@ -51,13 +49,16 @@ public sealed class BrainDamageAccentSystem : EntitySystem
 
     private void OnAccentGet(Entity<BrainDamagedAccentComponent> ent, ref AccentGetEvent args)
     {
-        if (_random.Prob(RandomSpeechChance))
+        var replaceChance = Math.Clamp(ent.Comp.MessageReplaceChance, 0f, 1f);
+        var swapChance = Math.Clamp(ent.Comp.LetterSwapChance, 0f, 1f);
+
+        if (_random.Prob(replaceChance))
         {
             args.Message = GetRandomSpeech(args.Message);
             return;
         }
 
-        args.Message = ScrambleMessage(args.Message);
+        args.Message = ScrambleMessage(args.Message, swapChance);
     }
 
     private string GetRandomSpeech(string original)
@@ -67,7 +68,7 @@ public sealed class BrainDamageAccentSystem : EntitySystem
         return source[_random.Next(source.Length)];
     }
 
-    private string ScrambleMessage(string message)
+    private string ScrambleMessage(string message, float letterSwapChance)
     {
         if (string.IsNullOrWhiteSpace(message))
             return message;
@@ -90,7 +91,7 @@ public sealed class BrainDamageAccentSystem : EntitySystem
             }
 
             var length = i - start;
-            if (length < 3 || !_random.Prob(LetterScrambleChance))
+            if (length < 3 || !_random.Prob(letterSwapChance))
                 continue;
 
             var innerStart = start + 1;

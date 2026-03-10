@@ -21,9 +21,13 @@ public sealed partial class AugmentNeuroInterfaceSystem : EntitySystem
     private enum BrainPenaltyStage : byte
     {
         None = 0,
-        Below75 = 1,
-        Below50 = 2,
-        Below30 = 3,
+        Below80 = 1,
+        Below60 = 2,
+        Below50 = 3,
+        Below30 = 4,
+        Below20 = 5,
+        Below10 = 6,
+        Destroyed = 7,
     }
 
     private sealed class AugmentMetricBreakdown
@@ -50,17 +54,28 @@ public sealed partial class AugmentNeuroInterfaceSystem : EntitySystem
 
     private static readonly TimeSpan UiUpdateInterval = TimeSpan.FromSeconds(0.25);
     private static readonly TimeSpan OverloadDamageInterval = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan BrainOverloadPopupInterval = TimeSpan.FromSeconds(6);
     private const float DefaultNeuroLoadWithoutInterface = 5f;
-    private const float BrainPenaltyThreshold75 = 0.75f;
+    private const float BrainPenaltyThreshold80 = 0.80f;
+    private const float BrainPenaltyThreshold60 = 0.60f;
     private const float BrainPenaltyThreshold50 = 0.50f;
     private const float BrainPenaltyThreshold30 = 0.30f;
+    private const float BrainPenaltyThreshold20 = 0.20f;
+    private const float BrainPenaltyThreshold10 = 0.10f;
     private const float BrainNeuroLoadPenalty = 5f;
-    private const float BrainSlowdownMultiplier = 0.6f;
-    private const float CriticalDropChancePerHeldItem = 0.2f;
+    private const float BrainSlowdownMultiplier60 = 0.9f;
+    private const float BrainSlowdownMultiplier50 = 0.7f;
+    private const float CriticalDropChancePerHeldItem30 = 0.15f;
+    private const float CriticalDropChancePerHeldItem20 = 0.5f;
+    private const float BrainAccentMessageReplaceChance60 = 0.10f;
+    private const float BrainAccentLetterSwapChance60 = 0.20f;
+    private const float BrainAccentMessageReplaceChance50 = 0.15f;
+    private const float BrainAccentLetterSwapChance50 = 0.30f;
     private const string NeuroLoadOverloadIdentifier = "NeuroLoadOverload";
     private const float NeuroOverloadDamagePerSecond = 0.1f;
     private readonly Dictionary<EntityUid, TimeSpan> _nextUiUpdate = new();
     private readonly Dictionary<EntityUid, BrainPenaltyStage> _brainPenaltyStages = new();
+    private readonly Dictionary<EntityUid, TimeSpan> _nextBrainOverloadPopup = new();
     private TimeSpan _nextOverloadDamageSweep = TimeSpan.Zero;
 
     public override void Initialize()
@@ -123,6 +138,7 @@ public sealed partial class AugmentNeuroInterfaceSystem : EntitySystem
     {
         _brainPenaltyStages.Remove(ent.Owner);
         _remoteManipulationPenalties.Remove(ent.Owner);
+        _nextBrainOverloadPopup.Remove(ent.Owner);
     }
 
     private void OnCollectNeuroLoadMetrics(Entity<AugmentNeuroLoadComponent> ent, ref CollectAugmentNeuroInterfaceMetricsEvent args)

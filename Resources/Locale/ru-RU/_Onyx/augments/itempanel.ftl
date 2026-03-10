@@ -27,3 +27,7 @@ augment-item-panel-hand-full = В вашей руке что-то есть!
 augment-item-panel-cannot-equip = Ваша рука не способна это удержать!
 augment-item-panel-deployed = Из вашей руки появляется { CAPITALIZE($item) }.
 augment-item-panel-retracted = { $item } втягивается обратно в вашу руку.
+ent-WeaponDisablerAugmentSelfCharging = { ent-WeaponDisabler }
+    .desc = { ent-WeaponDisabler.desc }
+ent-StunbatonAugmentSelfCharging = { ent-Stunbaton }
+    .desc = { ent-Stunbaton.desc }

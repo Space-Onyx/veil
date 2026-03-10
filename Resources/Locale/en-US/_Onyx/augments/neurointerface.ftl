@@ -78,6 +78,7 @@ neuro-interface-info-label = Information
 neuro-interface-popup-cannot-toggle = This augment cannot be toggled.
 neuro-interface-popup-emp-blocked = This augment is temporarily disabled by EMP.
 neuro-interface-popup-brain-blocked = This augment is force-deactivated due to critical brain damage.
+neuro-interface-popup-brain-overload-damage = Your brain is overheating from augmentation overload and taking damage.
 
 
 neuro-interface-augments-label = Augmentation Control

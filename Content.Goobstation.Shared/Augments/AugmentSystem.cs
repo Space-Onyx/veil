@@ -1,5 +1,6 @@
 using Content.Shared.Body.Events;
 using Content.Shared.Body.Organ;
+using Content.Shared.Body.Part;
 using Content.Shared.Interaction;
 
 namespace Content.Goobstation.Shared.Augments;
@@ -8,6 +9,7 @@ public sealed class AugmentSystem : EntitySystem
 {
     private EntityQuery<InstalledAugmentsComponent> _installedQuery;
     private EntityQuery<OrganComponent> _organQuery;
+    private EntityQuery<BodyPartComponent> _bodyPartQuery; // <Onyx-Surgery>
 
     public override void Initialize()
     {
@@ -15,6 +17,7 @@ public sealed class AugmentSystem : EntitySystem
 
         _installedQuery = GetEntityQuery<InstalledAugmentsComponent>();
         _organQuery = GetEntityQuery<OrganComponent>();
+        _bodyPartQuery = GetEntityQuery<BodyPartComponent>(); // <Onyx-Surgery>
 
         SubscribeLocalEvent<AugmentComponent, OrganAddedToBodyEvent>(OnOrganOrganAddedToBody);
         SubscribeLocalEvent<AugmentComponent, OrganRemovedFromBodyEvent>(OnOrganOrganRemovedFromBody);
@@ -53,7 +56,13 @@ public sealed class AugmentSystem : EntitySystem
     /// Get the body linked to an augment's organ.
     /// Returns null if not installed into a body.
     /// </summary>
-    public EntityUid? GetBody(EntityUid uid) => _organQuery.CompOrNull(uid)?.Body;
+    // <Onyx-Surgery Edited>
+    public EntityUid? GetBody(EntityUid uid)
+    {
+        return _organQuery.CompOrNull(uid)?.Body
+            ?? _bodyPartQuery.CompOrNull(uid)?.Body;
+    }
+    // </Onyx-Surgery Edited>
 
     /// <summary>
     /// Relays an event to all installed augments.

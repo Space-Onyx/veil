@@ -23,6 +23,7 @@
 using Content.Shared.Damage;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Standing;
+using Content.Shared.Stunnable;
 using Robust.Shared.Containers;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
@@ -62,6 +63,7 @@ public abstract partial class SharedBodySystem : EntitySystem
     [Dependency] protected readonly SharedContainerSystem Containers = default!;
     [Dependency] protected readonly SharedTransformSystem SharedTransform = default!;
     [Dependency] protected readonly StandingStateSystem Standing = default!;
+    [Dependency] protected readonly SharedStunSystem Stun = default!; // <Onyx-Surgery>
     // <Shitmed>
     [Dependency] private readonly CommonInsideBodyPartSystem _insideBodyPart = default!;
     [Dependency] private readonly IRobustRandom _random = default!;

@@ -15,6 +15,7 @@ using Content.Shared.Movement.Components;
 using Content.Shared.Movement.Systems;
 using Content.Shared._Shitmed.Body.Events;
 using Content.Shared._Shitmed.Body.Organ;
+using Robust.Shared.Maths;
 using Robust.Shared.Random;
 
 namespace Content.Server._Onyx.Surgery.Augments;
@@ -23,32 +24,31 @@ public sealed partial class AugmentNeuroInterfaceSystem
 {
     private void OnRefreshMovementSpeed(EntityUid uid, MovementSpeedModifierComponent component, RefreshMovementSpeedModifiersEvent args)
     {
-        if (GetBrainPenaltyStage(uid) < BrainPenaltyStage.Below50)
+        var stage = GetBrainPenaltyStage(uid);
+        var slowdown = GetBrainSlowdownMultiplier(stage);
+        if (slowdown >= 1f)
             return;
 
-        args.ModifySpeed(BrainSlowdownMultiplier, BrainSlowdownMultiplier);
+        args.ModifySpeed(slowdown, slowdown);
     }
 
     private void ApplyBrainIntegrityEffects(EntityUid body)
     {
-        if (TryGetLowestBrainIntegrityRatio(body, out var ratio) && ratio <= 0f)
+        var newStage = GetBrainPenaltyStage(body);
+        if (newStage >= BrainPenaltyStage.Below10)
             TryForceDeadByBrainFailure(body);
 
-        var newStage = GetBrainPenaltyStage(body);
         var oldStage = _brainPenaltyStages.GetValueOrDefault(body, BrainPenaltyStage.None);
         if (newStage != oldStage)
         {
             _brainPenaltyStages[body] = newStage;
-            var wasSlowed = oldStage >= BrainPenaltyStage.Below50;
-            var isSlowed = newStage >= BrainPenaltyStage.Below50;
-            if (wasSlowed != isSlowed)
+            var oldSlowdown = GetBrainSlowdownMultiplier(oldStage);
+            var newSlowdown = GetBrainSlowdownMultiplier(newStage);
+            if (!MathHelper.CloseTo(oldSlowdown, newSlowdown))
                 _movementSpeed.RefreshMovementSpeedModifiers(body);
         }
 
-        if (newStage >= BrainPenaltyStage.Below50)
-            EnsureComp<BrainDamagedAccentComponent>(body);
-        else
-            RemComp<BrainDamagedAccentComponent>(body);
+        UpdateBrainDamageAccent(body, newStage);
 
         SetBrainDeactivationState(body, newStage >= BrainPenaltyStage.Below30);
 
@@ -56,7 +56,10 @@ public sealed partial class AugmentNeuroInterfaceSystem
             return;
 
         ForceDisableAllAugments(body);
-        TryDropHeldItemsFromHands(body);
+
+        var dropChance = GetDropChanceForStage(newStage);
+        if (dropChance > 0f)
+            TryDropHeldItemsFromHands(body, dropChance);
     }
 
     private void ForceDisableAllAugments(EntityUid body)
@@ -118,7 +121,7 @@ public sealed partial class AugmentNeuroInterfaceSystem
         }
     }
 
-    private void TryDropHeldItemsFromHands(EntityUid body)
+    private void TryDropHeldItemsFromHands(EntityUid body, float dropChancePerHeldItem)
     {
         if (!TryComp<HandsComponent>(body, out var hands))
             return;
@@ -126,7 +129,7 @@ public sealed partial class AugmentNeuroInterfaceSystem
         var heldItems = _hands.EnumerateHeld((body, hands)).ToList();
         foreach (var held in heldItems)
         {
-            if (!_random.Prob(CriticalDropChancePerHeldItem))
+            if (!_random.Prob(dropChancePerHeldItem))
                 continue;
 
             _hands.TryDrop((body, hands), held, checkActionBlocker: false);
@@ -142,7 +145,7 @@ public sealed partial class AugmentNeuroInterfaceSystem
         else
             adjustedBase = MathF.Max(0f, adjustedBase);
 
-        if (GetBrainPenaltyStage(body) < BrainPenaltyStage.Below75)
+        if (GetBrainPenaltyStage(body) < BrainPenaltyStage.Below80)
             return adjustedBase;
 
         return MathF.Max(0f, adjustedBase - BrainNeuroLoadPenalty);
@@ -160,12 +163,20 @@ public sealed partial class AugmentNeuroInterfaceSystem
         if (!TryGetLowestBrainIntegrityRatio(body, out var ratio))
             return BrainPenaltyStage.None;
 
-        if (ratio < BrainPenaltyThreshold30)
+        if (ratio <= 0f)
+            return BrainPenaltyStage.Destroyed;
+        if (ratio <= BrainPenaltyThreshold10)
+            return BrainPenaltyStage.Below10;
+        if (ratio <= BrainPenaltyThreshold20)
+            return BrainPenaltyStage.Below20;
+        if (ratio <= BrainPenaltyThreshold30)
             return BrainPenaltyStage.Below30;
-        if (ratio < BrainPenaltyThreshold50)
+        if (ratio <= BrainPenaltyThreshold50)
             return BrainPenaltyStage.Below50;
-        if (ratio < BrainPenaltyThreshold75)
-            return BrainPenaltyStage.Below75;
+        if (ratio <= BrainPenaltyThreshold60)
+            return BrainPenaltyStage.Below60;
+        if (ratio <= BrainPenaltyThreshold80)
+            return BrainPenaltyStage.Below80;
 
         return BrainPenaltyStage.None;
     }
@@ -212,6 +223,57 @@ public sealed partial class AugmentNeuroInterfaceSystem
             return;
 
         _mobState.ChangeMobState(body, MobState.Dead, mobState);
+    }
+
+    private float GetBrainSlowdownMultiplier(BrainPenaltyStage stage)
+    {
+        if (stage >= BrainPenaltyStage.Below50)
+            return BrainSlowdownMultiplier50;
+
+        if (stage >= BrainPenaltyStage.Below60)
+            return BrainSlowdownMultiplier60;
+
+        return 1f;
+    }
+
+    private float GetDropChanceForStage(BrainPenaltyStage stage)
+    {
+        if (stage >= BrainPenaltyStage.Below20)
+            return CriticalDropChancePerHeldItem20;
+
+        if (stage >= BrainPenaltyStage.Below30)
+            return CriticalDropChancePerHeldItem30;
+
+        return 0f;
+    }
+
+    private void UpdateBrainDamageAccent(EntityUid body, BrainPenaltyStage stage)
+    {
+        if (stage < BrainPenaltyStage.Below60)
+        {
+            RemComp<BrainDamagedAccentComponent>(body);
+            return;
+        }
+
+        var accent = EnsureComp<BrainDamagedAccentComponent>(body);
+        var replaceChance = BrainAccentMessageReplaceChance60;
+        var swapChance = BrainAccentLetterSwapChance60;
+
+        if (stage >= BrainPenaltyStage.Below50)
+        {
+            replaceChance = BrainAccentMessageReplaceChance50;
+            swapChance = BrainAccentLetterSwapChance50;
+        }
+
+        if (MathHelper.CloseTo(accent.MessageReplaceChance, replaceChance)
+            && MathHelper.CloseTo(accent.LetterSwapChance, swapChance))
+        {
+            return;
+        }
+
+        accent.MessageReplaceChance = replaceChance;
+        accent.LetterSwapChance = swapChance;
+        Dirty(body, accent);
     }
 
     private string GenerateHexCode(int length = 8)

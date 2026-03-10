@@ -49,6 +49,26 @@
     passiveLoad: 2.5
 
 - type: entity
+  parent: WeaponDisabler
+  id: WeaponDisablerAugmentSelfCharging
+  name: implant disabler
+  description: A disabler modified to slowly self-recharge while deployed from an implant.
+  components:
+  - type: BatterySelfRecharger
+    autoRecharge: true
+    autoRechargeRate: 10
+
+- type: entity
+  parent: Stunbaton
+  id: StunbatonAugmentSelfCharging
+  name: implant stun baton
+  description: A stun baton modified to slowly self-recharge while deployed from an implant.
+  components:
+  - type: BatterySelfRecharger
+    autoRecharge: true
+    autoRechargeRate: 10
+
+- type: entity
   parent: BaseAugmentItemPanel
   id: AugmentStunnerPanel
   name: stunner panel augment
@@ -57,11 +77,11 @@
   - type: Sprite
     state: strength
   - type: AugmentItemPanel
-    itemPrototype: WeaponDisabler
+    itemPrototype: WeaponDisablerAugmentSelfCharging
     extendPowerCost: 2.5
     retractPowerCost: 3.5
     equippedNeuroLoad: 1.5
-    icon: { sprite: Objects/Weapons/Guns/Battery/disabler.rsi, state: icon }
+    icon: { sprite: Objects/Weapons/Guns/Battery/disabler.rsi, state: base }
   - type: AugmentExamine
     examineText: augment-examine-stunner-panel
   - type: AugmentNeuroLoad
@@ -76,7 +96,7 @@
   - type: Sprite
     state: strength
   - type: AugmentItemPanel
-    itemPrototype: Stunbaton
+    itemPrototype: StunbatonAugmentSelfCharging
     extendPowerCost: 2.5
     retractPowerCost: 1.5
     equippedNeuroLoad: 1.5

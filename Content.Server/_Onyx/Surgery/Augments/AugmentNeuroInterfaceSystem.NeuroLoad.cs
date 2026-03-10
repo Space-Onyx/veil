@@ -6,6 +6,7 @@ using Content.Shared._Onyx.Surgery.Augments;
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Organ;
 using Content.Shared.Body.Part;
+using Content.Shared.Popups;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas.Systems;
 
 namespace Content.Server._Onyx.Surgery.Augments;
@@ -203,6 +204,7 @@ public sealed partial class AugmentNeuroInterfaceSystem
 
     private void ApplyOverloadDamage(EntityUid body)
     {
+        var now = _timing.CurTime;
         var currentLoad = GetCurrentNeuroLoad(body);
         TryGetNeuroLoadLimit(body, out var maxLoad);
 
@@ -224,6 +226,12 @@ public sealed partial class AugmentNeuroInterfaceSystem
         foreach (var brain in brains)
         {
             ApplyBrainIntegrityDamage(brain, effectOwner, damage);
+        }
+
+        if (!_nextBrainOverloadPopup.TryGetValue(body, out var nextPopupAt) || now >= nextPopupAt)
+        {
+            _nextBrainOverloadPopup[body] = now + BrainOverloadPopupInterval;
+            _popup.PopupEntity(Loc.GetString("neuro-interface-popup-brain-overload-damage"), body, body, PopupType.SmallCaution);
         }
     }
 
