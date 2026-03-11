@@ -18,8 +18,8 @@ namespace Content.Server._Onyx.Surgery.Augments;
 
 public sealed class AugmentSuppressionProjectorSystem : EntitySystem
 {
-    private const float MinProjectorUpdateInterval = 0.1f;
-    private const float VisualizationUpdateInterval = 0.35f;
+    private const float MinProjectorUpdateInterval = 0.05f;
+    private const float VisualizationUpdateInterval = 0.1f;
     private const float SquareLookupMultiplier = 1.4142135f;
 
     [Dependency] private readonly AugmentSystem _augment = default!;
@@ -92,22 +92,22 @@ public sealed class AugmentSuppressionProjectorSystem : EntitySystem
 
     private void OnProjectorMoved(Entity<AugmentSuppressionProjectorComponent> ent, ref MoveEvent args)
     {
-        _dirtyProjectors.Add(ent.Owner);
+        UpdateProjector(ent);
     }
 
     private void OnProjectorParentChanged(Entity<AugmentSuppressionProjectorComponent> ent, ref EntParentChangedMessage args)
     {
-        _dirtyProjectors.Add(ent.Owner);
+        UpdateProjector(ent);
     }
 
     private void OnBodyMoved(Entity<InstalledAugmentsComponent> ent, ref MoveEvent args)
     {
-        MarkRelevantProjectorsDirty(ent.Owner);
+        UpdateRelevantProjectorsForBody(ent.Owner);
     }
 
     private void OnBodyParentChanged(Entity<InstalledAugmentsComponent> ent, ref EntParentChangedMessage args)
     {
-        MarkRelevantProjectorsDirty(ent.Owner);
+        UpdateRelevantProjectorsForBody(ent.Owner);
     }
 
     private void OnBodyShutdown(Entity<InstalledAugmentsComponent> ent, ref ComponentShutdown args)
@@ -176,7 +176,7 @@ public sealed class AugmentSuppressionProjectorSystem : EntitySystem
             RemComp<AugmentEmpDisabledComponent>(ent);
 
         RemCompDeferred<AugmentSuppressedByProjectorsComponent>(ent);
-        MarkRelevantProjectorsDirty(args.OldBody);
+        UpdateRelevantProjectorsForBody(args.OldBody);
     }
 
     private void UpdateProjector(Entity<AugmentSuppressionProjectorComponent> ent)
@@ -210,7 +210,7 @@ public sealed class AugmentSuppressionProjectorSystem : EntitySystem
             Transform(ent.Owner).Coordinates,
             lookupRange,
             _bodyCandidates,
-            LookupFlags.Dynamic | LookupFlags.Sensors);
+            LookupFlags.Dynamic | LookupFlags.StaticSundries | LookupFlags.Sensors);
 
         foreach (var candidate in _bodyCandidates)
         {
@@ -244,12 +244,15 @@ public sealed class AugmentSuppressionProjectorSystem : EntitySystem
         ent.Comp.AffectedBodies = currentlyAffected;
     }
 
-    private void MarkRelevantProjectorsDirty(EntityUid body)
+    private void UpdateRelevantProjectorsForBody(EntityUid body)
     {
         if (_bodyProjectorLinks.TryGetValue(body, out var linkedProjectors))
         {
             foreach (var projectorUid in linkedProjectors)
-                _dirtyProjectors.Add(projectorUid);
+            {
+                if (TryComp<AugmentSuppressionProjectorComponent>(projectorUid, out var linkedComp))
+                    UpdateProjector((projectorUid, linkedComp));
+            }
         }
 
         if (_maxProjectorLookupRadius <= 0f || !TryComp<TransformComponent>(body, out var xform))
@@ -259,14 +262,15 @@ public sealed class AugmentSuppressionProjectorSystem : EntitySystem
         _lookup.GetEntitiesInRange<AugmentSuppressionProjectorComponent>(
             xform.Coordinates,
             _maxProjectorLookupRadius,
-            _projectorCandidates);
+            _projectorCandidates,
+            LookupFlags.Dynamic | LookupFlags.StaticSundries | LookupFlags.Sensors);
 
         foreach (var projector in _projectorCandidates)
         {
             if (!projector.Comp.Enabled || projector.Comp.Radius <= 0f)
                 continue;
 
-            _dirtyProjectors.Add(projector.Owner);
+            UpdateProjector(projector);
         }
     }
 
@@ -496,11 +500,15 @@ public sealed class AugmentSuppressionProjectorSystem : EntitySystem
         var query = EntityQueryEnumerator<AugmentSuppressionProjectorComponent>();
         while (query.MoveNext(out var uid, out var comp))
         {
+            var center = _transform.GetWorldPosition(uid);
+            var rotation = _transform.GetWorldRotation(uid);
             zones.Add(new AugmentSuppressionZoneVisualizationEvent.ZoneData(
                 GetNetEntity(uid),
                 comp.Radius,
                 comp.Shape,
-                comp.Enabled && comp.Radius > 0f));
+                comp.Enabled && comp.Radius > 0f,
+                center,
+                (float) rotation.Theta));
         }
 
         return new AugmentSuppressionZoneVisualizationEvent(zones);

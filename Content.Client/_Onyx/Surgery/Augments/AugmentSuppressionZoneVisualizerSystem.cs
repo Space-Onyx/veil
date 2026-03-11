@@ -24,6 +24,8 @@ public sealed class AugmentSuppressionZoneVisualizerSystem : EntitySystem
         public float Radius;
         public AugmentSuppressionFieldShape Shape;
         public bool Active;
+        public Vector2 Center;
+        public Angle Rotation;
     }
 
     public override void Initialize()
@@ -57,6 +59,8 @@ public sealed class AugmentSuppressionZoneVisualizerSystem : EntitySystem
                 Radius = MathF.Max(0f, zone.Radius),
                 Shape = zone.Shape,
                 Active = zone.Active,
+                Center = zone.Center,
+                Rotation = new Angle(zone.Rotation),
             };
         }
     }
@@ -65,7 +69,6 @@ public sealed class AugmentSuppressionZoneVisualizerSystem : EntitySystem
     {
         private readonly AugmentSuppressionZoneVisualizerSystem _system;
         private readonly IEntityManager _entityManager;
-        private readonly SharedTransformSystem _transform;
 
         public override OverlaySpace Space => OverlaySpace.WorldSpace;
 
@@ -73,7 +76,6 @@ public sealed class AugmentSuppressionZoneVisualizerSystem : EntitySystem
         {
             _system = system;
             _entityManager = entityManager;
-            _transform = entityManager.System<SharedTransformSystem>();
         }
 
         protected override void Draw(in OverlayDrawArgs args)
@@ -86,11 +88,11 @@ public sealed class AugmentSuppressionZoneVisualizerSystem : EntitySystem
                 if (zone.Radius <= 0f)
                     continue;
 
-                if (!_entityManager.EntityExists(projector) || !_entityManager.TryGetComponent(projector, out TransformComponent? xform))
+                if (!_entityManager.EntityExists(projector))
                     continue;
 
-                var center = _transform.GetWorldPosition(xform);
-                var rotation = _transform.GetWorldRotation(xform);
+                var center = zone.Center;
+                var rotation = zone.Rotation;
                 var baseColor = zone.Active ? ActiveZoneColor : InactiveZoneColor;
                 var fill = baseColor.WithAlpha(zone.Active ? ActiveFillAlpha : InactiveFillAlpha);
                 var centerColor = zone.Active

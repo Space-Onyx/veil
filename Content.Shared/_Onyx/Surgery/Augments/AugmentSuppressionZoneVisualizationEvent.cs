@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Serialization;
 
@@ -15,13 +16,23 @@ public sealed class AugmentSuppressionZoneVisualizationEvent : EntityEventArgs
         public float Radius { get; }
         public AugmentSuppressionFieldShape Shape { get; }
         public bool Active { get; }
+        public Vector2 Center { get; }
+        public float Rotation { get; }
 
-        public ZoneData(NetEntity projector, float radius, AugmentSuppressionFieldShape shape, bool active)
+        public ZoneData(
+            NetEntity projector,
+            float radius,
+            AugmentSuppressionFieldShape shape,
+            bool active,
+            Vector2 center,
+            float rotation)
         {
             Projector = projector;
             Radius = radius;
             Shape = shape;
             Active = active;
+            Center = center;
+            Rotation = rotation;
         }
     }
 
