@@ -1,78 +1,97 @@
 - type: entity
   parent: BaseOnyxBrainAugment
   id: AugmentVisionChemical
-  name: Chemical visor augment
-  description: A cybernetic brain implant that allows the user to analyze chemical compositions of solutions.
+  name: Medical HUD implant
+  description: A cybernetic brain implant that provides the functionality of a medical HUD.
   components:
   - type: AugmentVision
-    visionType: SolutionScanner
+    overlayTypes:
+    - HealthBars
+    - HealthIcons
+    - DiseaseIcons
+    healthBarDamageContainers:
+    - Biological
+    healthIconDamageContainers:
+    - Biological
     powerDraw: 3
   - type: AugmentNeuroLoad
     passiveLoad: 2
   - type: AugmentEmp
   - type: AugmentExamine
     visible: false
+  - type: Tag
+    tags:
+    - Augment
+    - brainAugment
+    - AugmentVision
 
 - type: entity
   parent: BaseOnyxBrainAugment
   id: AugmentVisionNight
-  name: Night vision augment
-  description: A cybernetic brain implant that grants enhanced low-light vision capabilities.
+  name: Security HUD implant
+  description: A cybernetic brain implant that provides the functionality of a security HUD.
   components:
   - type: AugmentVision
-    visionType: NightVision
+    overlayTypes:
+    - JobIcons
+    - MindShieldIcons
+    - CriminalRecordIcons
     powerDraw: 3
-    activePowerDrawByType:
-      NightVision: 5
-    activeNeuroLoadByType:
-      NightVision: 2
-    visionSettings:
-      NightVision:
-        flashDurationMultiplier: 2
-        drawOverlay: true
-        overlayOpacity: 0.5
   - type: AugmentNeuroLoad
     passiveLoad: 2
   - type: AugmentEmp
   - type: AugmentExamine
     visible: false
+  - type: Tag
+    tags:
+    - Augment
+    - brainAugment
+    - AugmentVision
 
 - type: entity
   parent: BaseOnyxBrainAugment
   id: AugmentVisionThermal
-  name: Thermal vision augment
-  description: A cybernetic brain implant that allows the user to see heat signatures of living beings.
+  name: Diagnostic HUD implant
+  description: A cybernetic brain implant that provides the functionality of a diagnostic HUD.
   components:
   - type: AugmentVision
-    visionType: ThermalVision
+    overlayTypes:
+    - HealthBars
+    healthBarDamageContainers:
+    - Inorganic
+    - Silicon
+    - SiliconRadiation
     powerDraw: 3
-    activePowerDrawByType:
-      ThermalVision: 5
-    activeNeuroLoadByType:
-      ThermalVision: 2
-    visionSettings:
-      ThermalVision:
-        flashDurationMultiplier: 2
-        drawOverlay: true
-        overlayOpacity: 0.5
-        lightRadius: 2
   - type: AugmentNeuroLoad
     passiveLoad: 2
   - type: AugmentEmp
   - type: AugmentExamine
     visible: false
+  - type: Tag
+    tags:
+    - Augment
+    - brainAugment
+    - AugmentVision
 
 - type: entity
   parent: BaseOnyxBrainAugment
   id: AugmentVisionDiagnostic
-  name: Diagnostic visor augment
-  description: A cybernetic brain implant that provides a diagnostic HUD overlay for analyzing machinery and equipment.
+  name: Syndicate HUD implant
+  description: A cybernetic brain implant that provides the functionality of a syndicate visor.
   components:
   - type: AugmentVision
-    visionType: DiagnosticHUD
+    overlayTypes:
+    - SyndicateIcons
+    - JobIcons
+    - MindShieldIcons
     powerDraw: 3
   - type: AugmentNeuroLoad
     passiveLoad: 2
   - type: AugmentEmp
   - type: AugmentExamine
     visible: false
+  - type: Tag
+    tags:
+    - Augment
+    - brainAugment
+    - AugmentVision

@@ -138,6 +138,12 @@ public sealed class AugmentHoloPdaSystem : EntitySystem
         if (!_ui.HasUi(ent.Owner, PdaUiKey.Key))
             return;
 
+        if (HasComp<AugmentSuppressedByProjectorsComponent>(ent.Owner))
+        {
+            _popup.PopupEntity(Loc.GetString("augment-suppression-disabled"), args.Performer, args.Performer, PopupType.SmallCaution);
+            return;
+        }
+
         if (HasComp<AugmentEmpDisabledComponent>(ent.Owner))
         {
             _popup.PopupEntity(Loc.GetString("augment-emp-disabled"), args.Performer, args.Performer, PopupType.SmallCaution);
@@ -499,6 +505,12 @@ public sealed class AugmentHoloPdaSystem : EntitySystem
 
     private bool CanUseHoloPda(Entity<AugmentHoloPdaComponent> ent, EntityUid body)
     {
+        if (HasComp<AugmentSuppressedByProjectorsComponent>(ent.Owner))
+        {
+            _popup.PopupEntity(Loc.GetString("augment-suppression-disabled"), body, body, PopupType.SmallCaution);
+            return false;
+        }
+
         if (HasComp<AugmentEmpDisabledComponent>(ent.Owner))
         {
             _popup.PopupEntity(Loc.GetString("augment-emp-disabled"), body, body, PopupType.SmallCaution);

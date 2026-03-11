@@ -1,0 +1,434 @@
+- type: entity
+  abstract: true
+  parent: BaseItem
+  id: BaseAdminAugmentImplanter
+  name: augment implanter
+  description: A rapid implanter for augmentation installation with explicit limb targeting.
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Medical/implanter.rsi
+    state: implanter0
+  - type: Item
+    sprite: Objects/Specific/Medical/implanter.rsi
+    heldPrefix: implanter
+    size: Small
+  - type: AdminAugmentImplanter
+    replaceExisting: true
+    oneTimeUse: false
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterCustom
+  suffix: Admeme, Configurable
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterRunnerLeft
+  suffix: Admeme, Runner, Left Leg
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: RunnerAugment
+      slot: legImplant
+      partType: Leg
+      symmetry: Left
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterRunnerRight
+  suffix: Admeme, Runner, Right Leg
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: RunnerAugment
+      slot: legImplant
+      partType: Leg
+      symmetry: Right
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterRunnerBothLegs
+  suffix: Admeme, Runner, Both Legs
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: RunnerAugment
+      slot: legImplant
+      partType: Leg
+      symmetry: Left
+    - prototype: RunnerAugment
+      slot: legImplant
+      partType: Leg
+      symmetry: Right
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterNeuroInterface
+  suffix: Admeme, Neuro-Interface
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentNeuroInterface
+      slot: neckImplant
+      partType: Head
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterAdvancedRunnerLeft
+  suffix: Admeme, Advanced Runner, Left Leg
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AdvancedRunnerAugment
+      slot: legImplant
+      partType: Leg
+      symmetry: Left
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterAdvancedRunnerRight
+  suffix: Admeme, Advanced Runner, Right Leg
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AdvancedRunnerAugment
+      slot: legImplant
+      partType: Leg
+      symmetry: Right
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterVoiceMask
+  suffix: Admeme, Voice Modulator
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentVoiceMask
+      slot: headImplant
+      partType: Head
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterHoloPda
+  suffix: Admeme, HoloPDA
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentHoloPda
+      slot: brainImplant
+      partType: Head
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterVisionMedical
+  suffix: Admeme, Medical HUD
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentVisionChemical
+      slot: brainImplant
+      partType: Head
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterVisionSecurity
+  suffix: Admeme, Security HUD
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentVisionNight
+      slot: brainImplant
+      partType: Head
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterVisionDiagnostic
+  suffix: Admeme, Diagnostic HUD
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentVisionThermal
+      slot: brainImplant
+      partType: Head
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterVisionSyndicate
+  suffix: Admeme, Syndicate HUD
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentVisionDiagnostic
+      slot: brainImplant
+      partType: Head
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterBioReactor
+  suffix: Admeme, Bio-Reactor
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentBioReactor
+      slot: charger
+      partType: Chest
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterRTG
+  suffix: Admeme, RTG
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentRTG
+      slot: charger
+      partType: Chest
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterPowerCellSlot
+  suffix: Admeme, Power Cell Slot (Hyper)
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentPowerCellSlotHyper
+      slot: powerCell
+      partType: Chest
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterRechargerAPC
+  suffix: Admeme, APC Recharger
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentRechargerAPC
+      slot: charger
+      partType: Chest
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterRechargerStation
+  suffix: Admeme, Station Recharger
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentRechargerStation
+      slot: charger
+      partType: Chest
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterToolsPanelLeft
+  suffix: Admeme, Utility Tools Panel, Left Arm
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentToolsPanel
+      slot: armImplant
+      partType: Arm
+      symmetry: Left
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterToolsPanelRight
+  suffix: Admeme, Utility Tools Panel, Right Arm
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentToolsPanel
+      slot: armImplant
+      partType: Arm
+      symmetry: Right
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterBotanyPanelLeft
+  suffix: Admeme, Botany Tools Panel, Left Arm
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentBotanyPanel
+      slot: armImplant
+      partType: Arm
+      symmetry: Left
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterBotanyPanelRight
+  suffix: Admeme, Botany Tools Panel, Right Arm
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentBotanyPanel
+      slot: armImplant
+      partType: Arm
+      symmetry: Right
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterPaperworkPanelLeft
+  suffix: Admeme, Paperwork Panel, Left Arm
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentPaperworkPanel
+      slot: armImplant
+      partType: Arm
+      symmetry: Left
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterPaperworkPanelRight
+  suffix: Admeme, Paperwork Panel, Right Arm
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentPaperworkPanel
+      slot: armImplant
+      partType: Arm
+      symmetry: Right
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterSurgicalPanelLeft
+  suffix: Admeme, Surgical Panel, Left Arm
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentSurgicalPanel
+      slot: armImplant
+      partType: Arm
+      symmetry: Left
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterSurgicalPanelRight
+  suffix: Admeme, Surgical Panel, Right Arm
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentSurgicalPanel
+      slot: armImplant
+      partType: Arm
+      symmetry: Right
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterStrengthLeft
+  suffix: Admeme, Strength, Left Arm
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentStrength
+      slot: armImplant
+      partType: Arm
+      symmetry: Left
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterStrengthRight
+  suffix: Admeme, Strength, Right Arm
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentStrength
+      slot: armImplant
+      partType: Arm
+      symmetry: Right
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterMantisBladeLeft
+  suffix: Admeme, Mantis Blade Panel, Left Arm
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentManitBladePanel
+      slot: armImplant
+      partType: Arm
+      symmetry: Left
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterMantisBladeRight
+  suffix: Admeme, Mantis Blade Panel, Right Arm
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentManitBladePanel
+      slot: armImplant
+      partType: Arm
+      symmetry: Right
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterStunnerLeft
+  suffix: Admeme, Stunner Panel, Left Arm
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentStunnerPanel
+      slot: armImplant
+      partType: Arm
+      symmetry: Left
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterStunnerRight
+  suffix: Admeme, Stunner Panel, Right Arm
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentStunnerPanel
+      slot: armImplant
+      partType: Arm
+      symmetry: Right
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterStunbatonLeft
+  suffix: Admeme, Stunbaton Panel, Left Arm
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentStunbatonPanel
+      slot: armImplant
+      partType: Arm
+      symmetry: Left
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterStunbatonRight
+  suffix: Admeme, Stunbaton Panel, Right Arm
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentStunbatonPanel
+      slot: armImplant
+      partType: Arm
+      symmetry: Right
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterLaserPistolLeft
+  suffix: Admeme, Laser Pistol Panel, Left Arm
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentLaserPistolPanel
+      slot: armImplant
+      partType: Arm
+      symmetry: Left
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterLaserPistolRight
+  suffix: Admeme, Laser Pistol Panel, Right Arm
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentLaserPistolPanel
+      slot: armImplant
+      partType: Arm
+      symmetry: Right

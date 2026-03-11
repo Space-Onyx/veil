@@ -1,5 +1,7 @@
 using Robust.Shared.GameStates;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
+using Content.Shared.Damage.Prototypes;
 
 namespace Content.Shared._Onyx.Surgery.Augments;
 
@@ -15,6 +17,18 @@ public enum AugmentVisionType : byte
     SyndicateHUD,
     MindShieldHUD,
     SolutionScanner,
+}
+
+[Serializable, NetSerializable]
+public enum AugmentVisionOverlayType : byte
+{
+    HealthBars,
+    HealthIcons,
+    DiseaseIcons,
+    JobIcons,
+    CriminalRecordIcons,
+    MindShieldIcons,
+    SyndicateIcons,
 }
 
 [DataDefinition, Serializable, NetSerializable]
@@ -59,6 +73,21 @@ public sealed partial class AugmentVisionComponent : Component
 
     [DataField, AutoNetworkedField]
     public bool RequiresPower = true;
+
+    [DataField, AutoNetworkedField]
+    public HashSet<AugmentVisionOverlayType> OverlayTypes = new();
+
+    [DataField, AutoNetworkedField]
+    public List<ProtoId<DamageContainerPrototype>> HealthBarDamageContainers = new()
+    {
+        "Biological",
+    };
+
+    [DataField, AutoNetworkedField]
+    public List<ProtoId<DamageContainerPrototype>> HealthIconDamageContainers = new()
+    {
+        "Biological",
+    };
 
     public AugmentVisionSettings GetSettings(AugmentVisionType type)
     {

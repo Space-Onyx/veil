@@ -16,10 +16,16 @@ public sealed partial class AugmentNeuroInterfaceSystem
 {
     private void OnToggleAugment(Entity<AugmentNeuroInterfaceComponent> ent, ref NeuroInterfaceToggleAugmentMessage msg)
     {
-        if (_augment.GetBody(ent) is not { } body || !CanControlInterface(ent, body, msg.Actor))
+        if (_augment.GetBody(ent) is not { } body || !CanControlInterface(body, msg.Actor))
             return;
 
         var isRemoteControl = msg.Actor != body;
+        if (isRemoteControl && msg.Enable)
+        {
+            _popup.PopupEntity(Loc.GetString("neuro-interface-popup-remote-enable-blocked"), msg.Actor, msg.Actor, PopupType.SmallCaution);
+            return;
+        }
+
         var target = GetEntity(msg.Augment);
 
         if (target == ent.Owner)
@@ -45,8 +51,6 @@ public sealed partial class AugmentNeuroInterfaceSystem
         UpdatePowerDraw(body);
         UpdateUi(ent, body);
 
-        if (isRemoteControl)
-            ApplyForeignInterfaceManipulationPenalty(msg.Actor);
     }
 
     private void UpdateUi(Entity<AugmentNeuroInterfaceComponent> ent, EntityUid body)
@@ -83,10 +87,16 @@ public sealed partial class AugmentNeuroInterfaceSystem
 
     private void OnBulkToggle(Entity<AugmentNeuroInterfaceComponent> ent, ref NeuroInterfaceBulkToggleMessage msg)
     {
-        if (_augment.GetBody(ent) is not { } body || !CanControlInterface(ent, body, msg.Actor))
+        if (_augment.GetBody(ent) is not { } body || !CanControlInterface(body, msg.Actor))
             return;
 
         var isRemoteControl = msg.Actor != body;
+        if (isRemoteControl)
+        {
+            _popup.PopupEntity(Loc.GetString("neuro-interface-popup-remote-bulk-blocked"), msg.Actor, msg.Actor, PopupType.SmallCaution);
+            return;
+        }
+
         switch (msg.Target)
         {
             case NeuroInterfaceBulkTarget.Implants:
@@ -104,8 +114,6 @@ public sealed partial class AugmentNeuroInterfaceSystem
         UpdatePowerDraw(body);
         UpdateUi(ent, body);
 
-        if (isRemoteControl)
-            ApplyForeignInterfaceManipulationPenalty(msg.Actor);
     }
 
     private List<NeuroInterfaceAugmentEntry> BuildAugmentList(EntityUid body)
@@ -133,7 +141,8 @@ public sealed partial class AugmentNeuroInterfaceSystem
                     category,
                     partName,
                     partEnabled,
-                    partComp.CanEnable && !IsEmpBlocked(partUid),
+                    partComp.CanEnable
+                    && !IsEmpBlocked(partUid),
                     false,
                     partStatus,
                     partDescription,
@@ -398,8 +407,9 @@ public sealed partial class AugmentNeuroInterfaceSystem
         }
     }
 
-    private static bool CanControlInterface(Entity<AugmentNeuroInterfaceComponent> ent, EntityUid body, EntityUid actor)
+    private static bool CanControlInterface(EntityUid body, EntityUid actor)
     {
-        return actor == body || ent.Comp.AuthorizedRemoteViewers.Contains(actor);
+        return actor == body;
     }
+
 }

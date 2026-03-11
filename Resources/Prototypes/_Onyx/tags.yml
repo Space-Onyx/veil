@@ -57,3 +57,24 @@
 
 - type: Tag
   id: AugmentModuleNeuroCapacity
+
+- type: Tag
+  id: AugmentModuleNeuroInterface
+
+- type: Tag
+  id: AugmentCombat
+
+- type: Tag
+  id: AugmentVision
+
+- type: Tag
+  id: AugmentUtility
+
+- type: Tag
+  id: AugmentPower
+
+- type: Tag
+  id: AugmentMobility
+
+- type: Tag
+  id: AugmentNeuroInterface

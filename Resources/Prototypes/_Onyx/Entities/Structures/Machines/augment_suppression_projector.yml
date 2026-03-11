@@ -1,0 +1,76 @@
+- type: entity
+  id: AugmentSuppressionProjector
+  parent: BaseStructure
+  suffix: All, Circle
+  name: augmentation perimeter limiter
+  description: Limits augmentation operation within a configured perimeter.
+  placement:
+    mode: AlignTileAny
+  components:
+  - type: Transform
+    anchored: true
+  - type: Clickable
+  - type: InteractionOutline
+  - type: Physics
+    bodyType: Static
+  - type: Sprite
+    sprite: Structures/Machines/station_anchor.rsi
+    scale: 0.6667, 0.6667
+    layers:
+    - state: station_anchor
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.4,-0.4,0.4,0.4"
+        density: 100
+        mask:
+        - TableMask
+        layer:
+        - MidImpassable
+  - type: AugmentSuppressionProjector
+    shape: Circle
+    radius: 4
+    targetTags:
+    - Augment
+
+- type: entity
+  id: AugmentSuppressionProjectorSquare
+  parent: AugmentSuppressionProjector
+  suffix: All, Square
+  components:
+  - type: AugmentSuppressionProjector
+    shape: Square
+    radius: 4
+    targetTags:
+    - Augment
+
+- type: entity
+  id: AugmentSuppressionProjectorInverted
+  parent: AugmentSuppressionProjector
+  suffix: BrainWhitelist, Circle
+  components:
+  - type: AugmentSuppressionProjector
+    invertTags: true
+    targetTags:
+    - brainAugment
+
+- type: entity
+  id: AugmentSuppressionProjectorCombat
+  parent: AugmentSuppressionProjector
+  suffix: CombatOnly, Circle
+  components:
+  - type: AugmentSuppressionProjector
+    targetTags:
+    - AugmentCombat
+
+- type: entity
+  id: AugmentSuppressionProjectorExceptNeuroInterface
+  parent: AugmentSuppressionProjector
+  suffix: AllExceptNeuroInterface, Circle
+  components:
+  - type: AugmentSuppressionProjector
+    invertTags: true
+    targetTags:
+    - AugmentNeuroInterface

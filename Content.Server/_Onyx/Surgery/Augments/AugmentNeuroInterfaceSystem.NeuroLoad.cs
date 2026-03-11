@@ -16,7 +16,6 @@ public sealed partial class AugmentNeuroInterfaceSystem
     private float GetCurrentNeuroLoad(EntityUid body)
     {
         var load = 0f;
-        var now = _timing.CurTime;
 
         foreach (var (partUid, partComp) in _body.GetBodyChildren(body))
         {
@@ -43,7 +42,6 @@ public sealed partial class AugmentNeuroInterfaceSystem
             }
         }
 
-        load += GetRemoteManipulationPenaltyNeuroLoad(body, now);
         return load;
     }
 

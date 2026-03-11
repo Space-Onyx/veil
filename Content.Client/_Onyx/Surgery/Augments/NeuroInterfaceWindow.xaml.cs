@@ -157,8 +157,8 @@ public sealed partial class NeuroInterfaceWindow : FancyWindow
 
     private static readonly StyleBoxFlat CategoryToggleButtonBackground = new()
     {
-        BackgroundColor = new Color(58, 64, 98, 235),
-        BorderColor = new Color(142, 160, 232, 245),
+        BackgroundColor = new Color(108, 122, 176, 242),
+        BorderColor = new Color(194, 210, 255, 250),
         BorderThickness = new Thickness(1),
         ContentMarginLeftOverride = 0,
         ContentMarginRightOverride = 0,

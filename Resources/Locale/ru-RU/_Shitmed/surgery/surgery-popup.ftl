@@ -67,6 +67,7 @@ surgery-popup-step-SurgeryStepSealOrganWound = { $user } запечатывае�
 surgery-popup-step-SurgeryStepLobotomize = { $user } делает лоботомию { $target }!
 surgery-popup-step-SurgeryStepMendBrainTissue = { $user } восстанавливает ткани мозга на { $part } у { $target }.
 surgery-popup-step-SurgeryStepRemoveOrgan-failed = Вам по какой-то причине не удалось удалить орган...
+surgery-popup-step-SurgeryStepRemoveOrgan-unremovable = Этот аугмент нельзя удалить хирургически.
 surgery-step-acid-popup = Из { $part } { $target } брызжет кислотная кровь!
 surgery-popup-step-SurgeryStepXenoCutExoskeleton = { $user } делает надрез в экзоскелете { $part } { $target }.
 surgery-popup-step-SurgeryStepXenoClampBleeders = { $user } зажимает кислотные сосуды { $part } { $target }.

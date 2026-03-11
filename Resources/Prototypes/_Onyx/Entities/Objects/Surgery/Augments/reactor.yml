@@ -90,6 +90,10 @@
   - type: Construction
     graph: AugmentBioReactor
     node: bioreactor
+  - type: Tag
+    tags:
+    - Augment
+    - AugmentPower
 
 - type: entity
   parent: BaseAugmentRecharger
@@ -111,3 +115,7 @@
   - type: Construction
     graph: AugmentRTG
     node: rtg
+  - type: Tag
+    tags:
+    - Augment
+    - AugmentPower

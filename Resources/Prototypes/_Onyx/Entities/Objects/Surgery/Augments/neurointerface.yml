@@ -61,19 +61,27 @@
     slotId: neckImplant
     toolName: surgery-tool-augment-target-neck
   - type: AugmentNeuroInterface
-    maxNeuroLoad: 15
+    maxNeuroLoad: 10
   - type: AugmentNeuroLoad
     passiveLoad: 1
   - type: AugmentModuleSlots
     slots:
-    - id: neuro_module_capacity
-      name: augment-modules-slot-neuro-interface-capacity
+    - id: neuro_module_neurocapacity
+      name: augment-modules-slot-neuro-interface-capacity 
       allowInsertWhenUninstalled: true
       allowInsertWhenInstalled: true
       visibleInVerbs: true
       whitelist:
         tags:
-        - AugmentModuleNeuroCapacity
+        - AugmentModuleNeuroInterface
+    - id: neuro_module_neurocapacity_2
+      name: augment-modules-slot-neuro-interface-capacity 
+      allowInsertWhenUninstalled: true
+      allowInsertWhenInstalled: true
+      visibleInVerbs: true
+      whitelist:
+        tags:
+        - AugmentModuleNeuroInterface
   - type: AugmentAction
     action: ActionAugmentNeuroInterface
   - type: AugmentActivatableUI
@@ -96,6 +104,7 @@
     tags:
     - Augment
     - neckAugment
+    - AugmentNeuroInterface
 
 - type: entity
   parent: BaseItem
@@ -110,6 +119,7 @@
     size: Tiny
   - type: Tag
     tags:
+    - AugmentModuleNeuroInterface
     - AugmentModuleNeuroCapacity
   - type: AugmentUniversalModule
     maxNeuroLoadDelta: 5

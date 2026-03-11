@@ -91,3 +91,4 @@ neuro-interface-modules-label = Модули:
 neuro-interface-module-line = {$slot}: {$name}
 
 augment-modules-slot-neuro-interface-capacity = нейро-лимит
+augment-modules-slot-neuro-interface-universal = универсальный слот модуля

@@ -87,13 +87,9 @@ public sealed partial class AugmentNeuroInterfaceSystem : EntitySystem
         SubscribeLocalEvent<AugmentNeuroLoadComponent, CollectAugmentNeuroInterfaceMetricsEvent>(OnCollectNeuroLoadMetrics);
         SubscribeLocalEvent<MovementSpeedModifierComponent, RefreshMovementSpeedModifiersEvent>(OnRefreshMovementSpeed);
         SubscribeLocalEvent<BodyComponent, ComponentShutdown>(OnBodyShutdown);
-        SubscribeLocalEvent<AugmentNeuroInterfaceComponent, BoundUserInterfaceCheckRangeEvent>(OnNeuroInterfaceRangeCheck);
-        SubscribeLocalEvent<AugmentNeuroInterfaceComponent, GetAugmentsPowerDrawEvent>(OnGetRemoteManipulationPenaltyPowerDraw);
-
         Subs.BuiEvents<AugmentNeuroInterfaceComponent>(NeuroInterfaceUiKey.Key, subs =>
         {
             subs.Event<BoundUIOpenedEvent>(OnUiOpened);
-            subs.Event<BoundUIClosedEvent>(OnUiClosed);
             subs.Event<NeuroInterfaceToggleAugmentMessage>(OnToggleAugment);
             subs.Event<NeuroInterfaceBulkToggleMessage>(OnBulkToggle);
         });
@@ -117,27 +113,11 @@ public sealed partial class AugmentNeuroInterfaceSystem : EntitySystem
     private void OnRemoved(Entity<AugmentNeuroInterfaceComponent> ent, ref ComponentRemove args)
     {
         _nextUiUpdate.Remove(ent.Owner);
-        ent.Comp.AuthorizedRemoteViewers.Clear();
-    }
-
-    private void OnUiClosed(Entity<AugmentNeuroInterfaceComponent> ent, ref BoundUIClosedEvent args)
-    {
-        if (args.UiKey is not NeuroInterfaceUiKey.Key)
-            return;
-
-        if (!args.Actor.Valid)
-            return;
-
-        if (_augment.GetBody(ent) is { } body && args.Actor == body)
-            return;
-
-        ent.Comp.AuthorizedRemoteViewers.Remove(args.Actor);
     }
 
     private void OnBodyShutdown(Entity<BodyComponent> ent, ref ComponentShutdown args)
     {
         _brainPenaltyStages.Remove(ent.Owner);
-        _remoteManipulationPenalties.Remove(ent.Owner);
         _nextBrainOverloadPopup.Remove(ent.Owner);
     }
 
@@ -149,27 +129,11 @@ public sealed partial class AugmentNeuroInterfaceSystem : EntitySystem
         args.PassiveNeuroLoadEntries.Add(new NeuroInterfaceMetricEntry("neuro-interface-tooltip-source-neuro-passive", ent.Comp.PassiveLoad));
     }
 
-    private void OnNeuroInterfaceRangeCheck(Entity<AugmentNeuroInterfaceComponent> ent, ref BoundUserInterfaceCheckRangeEvent args)
-    {
-        if (args.UiKey is not NeuroInterfaceUiKey.Key)
-            return;
-
-        if (_augment.GetBody(ent) is not { } body)
-            return;
-
-        if (args.Actor.Owner == body)
-            return;
-
-        if (ent.Comp.AuthorizedRemoteViewers.Contains(args.Actor.Owner))
-            args.Result = BoundUserInterfaceRangeResult.Pass;
-    }
-
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
 
         var now = _timing.CurTime;
-        PruneRemoteManipulationPenalties(now);
 
         if (now >= _nextOverloadDamageSweep)
         {

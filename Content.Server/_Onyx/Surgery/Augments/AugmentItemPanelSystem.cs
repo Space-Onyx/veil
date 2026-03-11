@@ -161,6 +161,12 @@ public sealed class AugmentItemPanelSystem : EntitySystem
             return;
         }
 
+        if (HasComp<AugmentSuppressedByProjectorsComponent>(ent.Owner))
+        {
+            _popup.PopupEntity(Loc.GetString("augment-suppression-disabled"), body, body, PopupType.SmallCaution);
+            return;
+        }
+
         if (HasComp<AugmentEmpDisabledComponent>(ent.Owner))
         {
             _popup.PopupEntity(Loc.GetString("augment-emp-disabled"), body, body, PopupType.SmallCaution);

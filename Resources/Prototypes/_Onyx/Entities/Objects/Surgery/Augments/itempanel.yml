@@ -24,6 +24,10 @@
     color: "#5bcefa"
     examineText: augment-examine-item-panel
     visible: true
+  - type: Tag
+    tags:
+    - Augment
+    - AugmentCombat
 
 - type: entity
   parent: BaseAugmentItemPanel

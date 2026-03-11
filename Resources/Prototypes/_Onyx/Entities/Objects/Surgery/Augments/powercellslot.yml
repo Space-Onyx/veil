@@ -1,0 +1,15 @@
+- type: entity
+  parent: AugmentPowerCellSlot
+  id: AugmentPowerCellSlotHyper
+  components:
+  - type: ItemSlots
+    slots:
+      cell_slot:
+        name: power-cell-slot-component-slot-name-default
+        startingItem: PowerCellHyper
+        whitelist:
+          components:
+          - PowerCell
+        blacklist:
+          tags:
+          - PowerCage

@@ -38,6 +38,7 @@
     tags:
     - LegAugment
     - Augment
+    - AugmentMobility
   - type: AugmentNeuroLoad
     passiveLoad: 1
 
@@ -62,3 +63,8 @@
     visible: true
   - type: AugmentNeuroLoad
     passiveLoad: 1.5
+  - type: Tag
+    tags:
+    - LegAugment
+    - Augment
+    - AugmentMobility

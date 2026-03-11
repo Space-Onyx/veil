@@ -573,6 +573,7 @@ public abstract partial class SharedSurgerySystem
 
         EntityUid? organToRemove = null;
         OrganComponent? organToRemoveComp = null;
+        var hasMatchingUnremovableOrgan = false; // <Onyx-Surgery>
 
         if (hasTagCondition && hasOrganCondition)
         {
@@ -584,6 +585,14 @@ public abstract partial class SharedSurgerySystem
                 if (!MatchesOrganComponent(organId, organComp!))
                     continue;
 
+                // <Onyx-Surgery>
+                if (HasComp<AugmentSurgicallyUnremovableComponent>(organId))
+                {
+                    hasMatchingUnremovableOrgan = true;
+                    continue;
+                }
+                // </Onyx-Surgery>
+
                 organToRemove = organId;
                 organToRemoveComp = organ;
                 break;
@@ -593,25 +602,49 @@ public abstract partial class SharedSurgerySystem
         {
             foreach (var (organId, organ) in _body.GetPartOrgans(args.Part, partComp))
             {
-                if (_tag.HasTag(organId, tagComp!.Tag))
+                // <Onyx-Surgery Edited>
+                if (!_tag.HasTag(organId, tagComp!.Tag))
+                    continue;
+
+                if (HasComp<AugmentSurgicallyUnremovableComponent>(organId))
                 {
-                    organToRemove = organId;
-                    organToRemoveComp = organ;
-                    break;
+                    hasMatchingUnremovableOrgan = true;
+                    continue;
                 }
+
+                organToRemove = organId;
+                organToRemoveComp = organ;
+                break;
+                // </Onyx-Surgery Edited>
             }
         }
         else
         {
             foreach (var reg in organComp!.Organ!.Values)
             {
-                if (_body.TryGetBodyPartOrgans(args.Part, reg.Component.GetType(), out var organs)
-                    && organs.Count > 0)
+                // <Onyx-Surgery Edited>
+                if (!_body.TryGetBodyPartOrgans(args.Part, reg.Component.GetType(), out var organs)
+                    || organs.Count == 0)
                 {
-                    organToRemove = organs[0].Id;
-                    organToRemoveComp = organs[0].Organ;
+                    continue;
+                }
+
+                foreach (var organ in organs)
+                {
+                    if (HasComp<AugmentSurgicallyUnremovableComponent>(organ.Id))
+                    {
+                        hasMatchingUnremovableOrgan = true;
+                        continue;
+                    }
+
+                    organToRemove = organ.Id;
+                    organToRemoveComp = organ.Organ;
                     break;
                 }
+
+                if (organToRemove != null)
+                    break;
+                // </Onyx-Surgery Edited>
             }
         }
 
@@ -622,7 +655,12 @@ public abstract partial class SharedSurgerySystem
             else
                 _popup.PopupClient(Loc.GetString("surgery-popup-step-SurgeryStepRemoveOrgan-failed"), args.User, args.User);
         }
-        // </Onyx-Surgery-Edited>
+        // <Onyx-Surgery>
+        else if (hasMatchingUnremovableOrgan)
+        {
+            _popup.PopupClient(Loc.GetString("surgery-popup-step-SurgeryStepRemoveOrgan-unremovable"), args.User, args.User);
+        }
+        // </Onyx-Surgery>
     }
 
     private void OnRemoveOrganCheck(Entity<SurgeryRemoveOrganStepComponent> ent, ref SurgeryStepCompleteCheckEvent args)
@@ -1253,7 +1291,7 @@ public abstract partial class SharedSurgerySystem
 
             return false;
         }
-        // <Onyx-Surgery>
+        // </Onyx-Surgery>
 
         if (check.IsValid)
             return true;

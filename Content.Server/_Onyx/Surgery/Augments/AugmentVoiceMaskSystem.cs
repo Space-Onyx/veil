@@ -81,6 +81,9 @@ public sealed class AugmentVoiceMaskSystem : EntitySystem
         if (_augment.GetBody(ent) != args.Sender)
             return;
 
+        if (HasComp<AugmentSuppressedByProjectorsComponent>(ent.Owner))
+            return;
+
         if (HasComp<AugmentEmpDisabledComponent>(ent.Owner))
             return;
 
@@ -97,6 +100,9 @@ public sealed class AugmentVoiceMaskSystem : EntitySystem
     private void OnTransformSpeakerBark(Entity<AugmentVoiceMaskComponent> ent, ref TransformSpeakerBarkEvent args)
     {
         if (_augment.GetBody(ent) != args.Sender)
+            return;
+
+        if (HasComp<AugmentSuppressedByProjectorsComponent>(ent.Owner))
             return;
 
         if (HasComp<AugmentEmpDisabledComponent>(ent.Owner))
@@ -119,6 +125,12 @@ public sealed class AugmentVoiceMaskSystem : EntitySystem
     {
         if (_augment.GetBody(ent) != args.Performer)
             return;
+
+        if (HasComp<AugmentSuppressedByProjectorsComponent>(ent.Owner))
+        {
+            _popup.PopupEntity(Loc.GetString("augment-suppression-disabled"), args.Performer, args.Performer, PopupType.SmallCaution);
+            return;
+        }
 
         if (HasComp<AugmentEmpDisabledComponent>(ent.Owner))
         {

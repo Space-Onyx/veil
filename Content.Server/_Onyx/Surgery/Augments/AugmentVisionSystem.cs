@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using Content.Goobstation.Shared.Augments;
+using Content.Goobstation.Shared.Disease.Components;
 using Content.Goobstation.Shared.Overlays;
+using Content.Shared.Damage.Prototypes;
 using Content.Shared._Onyx.Surgery.Augments;
 using Content.Shared.Body.Events;
 using Content.Shared.Body.Organ;
@@ -8,6 +11,7 @@ using Content.Shared.Chemistry.Components;
 using Content.Shared.Flash.Components;
 using Content.Shared.Overlays;
 using Content.Shared.PowerCell;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server._Onyx.Surgery.Augments;
 
@@ -128,6 +132,9 @@ public sealed class AugmentVisionSystem : EntitySystem
             }
         }
 
+        if (component.OverlayTypes.Count > 0)
+            hasPassiveVision = true;
+
         if (hasPassiveVision)
             args.TotalDraw += component.PowerDraw;
 
@@ -154,6 +161,9 @@ public sealed class AugmentVisionSystem : EntitySystem
                 break;
             }
         }
+
+        if (component.OverlayTypes.Count > 0)
+            hasPassiveVisionType = true;
 
         if (args.PowerEnabled && component.RequiresPower && component.PowerDraw > 0f && hasPassiveVisionType)
             args.PassivePowerEntries.Add(new NeuroInterfaceMetricEntry("neuro-interface-tooltip-source-power-vision-passive", component.PowerDraw));
@@ -197,6 +207,8 @@ public sealed class AugmentVisionSystem : EntitySystem
         {
             ApplyVisionType(body, component, visionType, enable);
         }
+
+        ApplyOverlays(body, component, enable);
     }
 
     private void ApplyVisionType(EntityUid body, AugmentVisionComponent component, AugmentVisionType visionType, bool enable)
@@ -219,37 +231,15 @@ public sealed class AugmentVisionSystem : EntitySystem
                 break;
 
             case AugmentVisionType.MedicalHUD:
-                if (enable)
-                    EnsureComp<ShowHealthIconsComponent>(body);
-                else
-                    RemComp<ShowHealthIconsComponent>(body);
                 break;
 
             case AugmentVisionType.SecurityHUD:
-                if (enable)
-                {
-                    EnsureComp<ShowJobIconsComponent>(body);
-                    EnsureComp<ShowCriminalRecordIconsComponent>(body);
-                }
-                else
-                {
-                    RemComp<ShowJobIconsComponent>(body);
-                    RemComp<ShowCriminalRecordIconsComponent>(body);
-                }
                 break;
 
             case AugmentVisionType.DiagnosticHUD:
-                if (enable)
-                    EnsureComp<ShowHealthIconsComponent>(body);
-                else
-                    RemComp<ShowHealthIconsComponent>(body);
                 break;
 
             case AugmentVisionType.SyndicateHUD:
-                if (enable)
-                    EnsureComp<ShowSyndicateIconsComponent>(body);
-                else
-                    RemComp<ShowSyndicateIconsComponent>(body);
                 break;
 
             case AugmentVisionType.MindShieldHUD:
@@ -264,6 +254,81 @@ public sealed class AugmentVisionSystem : EntitySystem
                     EnsureComp<SolutionScannerComponent>(body);
                 else
                     RemComp<SolutionScannerComponent>(body);
+                break;
+        }
+    }
+
+    private void ApplyOverlays(EntityUid body, AugmentVisionComponent component, bool enable)
+    {
+        foreach (var overlayType in component.OverlayTypes)
+        {
+            ApplyOverlay(body, overlayType, component, enable);
+        }
+    }
+
+    private void ApplyOverlay(EntityUid body, AugmentVisionOverlayType overlayType, AugmentVisionComponent component, bool enable)
+    {
+        switch (overlayType)
+        {
+            case AugmentVisionOverlayType.HealthBars:
+                if (enable)
+                {
+                    var bars = EnsureComp<ShowHealthBarsComponent>(body);
+                    bars.DamageContainers = new List<ProtoId<DamageContainerPrototype>>(component.HealthBarDamageContainers);
+                    Dirty(body, bars);
+                }
+                else
+                {
+                    RemComp<ShowHealthBarsComponent>(body);
+                }
+                break;
+
+            case AugmentVisionOverlayType.HealthIcons:
+                if (enable)
+                {
+                    var icons = EnsureComp<ShowHealthIconsComponent>(body);
+                    icons.DamageContainers = new List<ProtoId<DamageContainerPrototype>>(component.HealthIconDamageContainers);
+                    Dirty(body, icons);
+                }
+                else
+                {
+                    RemComp<ShowHealthIconsComponent>(body);
+                }
+                break;
+
+            case AugmentVisionOverlayType.DiseaseIcons:
+                if (enable)
+                    EnsureComp<ShowDiseaseIconsComponent>(body);
+                else
+                    RemComp<ShowDiseaseIconsComponent>(body);
+                break;
+
+            case AugmentVisionOverlayType.JobIcons:
+                if (enable)
+                    EnsureComp<ShowJobIconsComponent>(body);
+                else
+                    RemComp<ShowJobIconsComponent>(body);
+                break;
+
+            case AugmentVisionOverlayType.CriminalRecordIcons:
+                if (enable)
+                    EnsureComp<ShowCriminalRecordIconsComponent>(body);
+                else
+                    RemComp<ShowCriminalRecordIconsComponent>(body);
+                break;
+
+            case AugmentVisionOverlayType.MindShieldIcons:
+                if (enable)
+                    EnsureComp<ShowMindShieldIconsComponent>(body);
+                else
+                    RemComp<ShowMindShieldIconsComponent>(body);
+                break;
+
+            case AugmentVisionOverlayType.SyndicateIcons:
+                if (enable)
+                    EnsureComp<ShowSyndicateIconsComponent>(body);
+                else
+                    RemComp<ShowSyndicateIconsComponent>(body);
                 break;
         }
     }
