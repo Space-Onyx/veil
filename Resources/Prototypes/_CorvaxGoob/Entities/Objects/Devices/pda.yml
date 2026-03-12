@@ -19,7 +19,17 @@
     state: pda-surgeon
   - type: Sprite
     sprite: _CorvaxGoob/Objects/Devices/pda.rsi
-    state: pda-surgeon
+    layers:
+    - map: [ "enum.PdaVisualLayers.Base" ]
+      state: "pda-surgeon"
+    - state: "light_overlay"
+      map: [ "enum.PdaVisualLayers.Flashlight" ]
+      shader: "unshaded"
+      visible: false
+    - state: "id_overlay"
+      map: [ "enum.PdaVisualLayers.IdLight" ]
+      shader: "unshaded"
+      visible: false
   - type: GuideHelp
     guides:
     - MedicalDoctor

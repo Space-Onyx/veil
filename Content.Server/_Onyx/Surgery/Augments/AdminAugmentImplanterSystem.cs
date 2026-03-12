@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System;
-using System.Linq;
 using Content.Server.Popups;
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Organ;
@@ -50,7 +49,7 @@ public sealed class AdminAugmentImplanterSystem : EntitySystem
             return;
         }
 
-        var bodyParts = _body.GetBodyChildren(target).ToList();
+        var bodyParts = AugmentBodyPartHelpers.CollectBodyParts(target, _body);
         if (bodyParts.Count == 0)
         {
             PopupUser(args.User, "admin-augment-implanter-popup-no-body");
@@ -89,73 +88,91 @@ public sealed class AdminAugmentImplanterSystem : EntitySystem
         if (string.IsNullOrWhiteSpace(entry.Slot))
             return false;
 
-        var part = FindPart(bodyParts, entry);
-        if (part == null)
+        if (!TryFindPart(bodyParts, entry, out var part))
             return false;
 
-        var partValue = part.Value;
-        _body.TryCreateOrganSlot(partValue.Id, entry.Slot, out _, partValue.Component);
+        _body.TryCreateOrganSlot(part.Id, entry.Slot, out _, part.Component);
 
-        EntityUid? existing = null;
-        foreach (var organ in _body.GetPartOrgans(partValue.Id))
-        {
-            if (!string.Equals(organ.Component.SlotId, entry.Slot, StringComparison.Ordinal))
-                continue;
-
-            existing = organ.Id;
-            break;
-        }
-
-        if (existing != null)
+        if (TryGetPartOrganInSlot(part.Id, entry.Slot, out var existing))
         {
             if (!replaceExisting)
                 return false;
 
-            _body.RemoveOrgan(existing.Value);
+            _body.RemoveOrgan(existing);
         }
 
-        var augment = Spawn(entry.Prototype, Transform(target).Coordinates);
-        if (!TryComp<OrganComponent>(augment, out var organComp))
+        if (!TrySpawnMatchingOrgan(target, entry, out var augment, out var organComp))
+            return false;
+
+        if (!_body.CanInsertOrgan(part.Id, entry.Slot, part.Component))
         {
             QueueDel(augment);
             return false;
         }
 
-        if (!string.Equals(organComp.SlotId, entry.Slot, StringComparison.Ordinal))
-        {
-            QueueDel(augment);
-            return false;
-        }
-
-        if (!_body.CanInsertOrgan(partValue.Id, entry.Slot, partValue.Component))
-        {
-            QueueDel(augment);
-            return false;
-        }
-
-        if (_body.InsertOrgan(partValue.Id, augment, entry.Slot, partValue.Component, organComp))
+        if (_body.InsertOrgan(part.Id, augment, entry.Slot, part.Component, organComp))
             return true;
 
         QueueDel(augment);
         return false;
     }
 
-    private static (EntityUid Id, BodyPartComponent Component)? FindPart(
+    private static bool TryFindPart(
         List<(EntityUid Id, BodyPartComponent Component)> bodyParts,
-        PresetAugmentEntry entry)
+        PresetAugmentEntry entry,
+        out (EntityUid Id, BodyPartComponent Component) part)
     {
-        foreach (var part in bodyParts)
+        foreach (var candidate in bodyParts)
         {
-            if (entry.PartType != BodyPartType.Other && part.Component.PartType != entry.PartType)
+            if (entry.PartType != BodyPartType.Other && candidate.Component.PartType != entry.PartType)
                 continue;
 
-            if (entry.Symmetry != BodyPartSymmetry.None && part.Component.Symmetry != entry.Symmetry)
+            if (entry.Symmetry != BodyPartSymmetry.None && candidate.Component.Symmetry != entry.Symmetry)
                 continue;
 
-            return part;
+            part = candidate;
+            return true;
         }
 
-        return null;
+        part = default;
+        return false;
+    }
+
+    private bool TryGetPartOrganInSlot(EntityUid partUid, string slotId, out EntityUid organUid)
+    {
+        foreach (var organ in _body.GetPartOrgans(partUid))
+        {
+            if (!string.Equals(organ.Component.SlotId, slotId, StringComparison.Ordinal))
+                continue;
+
+            organUid = organ.Id;
+            return true;
+        }
+
+        organUid = default;
+        return false;
+    }
+
+    private bool TrySpawnMatchingOrgan(
+        EntityUid target,
+        PresetAugmentEntry entry,
+        out EntityUid augment,
+        out OrganComponent organComp)
+    {
+        augment = Spawn(entry.Prototype, Transform(target).Coordinates);
+        if (!TryComp<OrganComponent>(augment, out var comp) || comp == null)
+        {
+            QueueDel(augment);
+            organComp = default!;
+            return false;
+        }
+
+        organComp = comp;
+        if (string.Equals(organComp.SlotId, entry.Slot, StringComparison.Ordinal))
+            return true;
+
+        QueueDel(augment);
+        return false;
     }
 
     private void PopupUser(EntityUid user, string key, params (string, object)[] args)

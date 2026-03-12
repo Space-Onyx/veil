@@ -3,9 +3,9 @@ using Content.Goobstation.Shared.Augments;
 using Content.Shared._Onyx.Surgery.Augments;
 using Content.Shared.Body.Events;
 using Content.Shared.Containers.ItemSlots;
+using Content.Shared.Hands.Components;
 using Content.Shared.Popups;
 using Content.Shared.Verbs;
-using Robust.Shared.Audio.Systems;
 using Robust.Shared.Containers;
 
 namespace Content.Server._Onyx.Surgery.Augments;
@@ -15,7 +15,6 @@ public sealed class AugmentModuleSlotsSystem : EntitySystem
     [Dependency] private readonly AugmentSystem _augment = default!;
     [Dependency] private readonly ItemSlotsSystem _itemSlots = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
 
     private static readonly VerbCategory AugmentationsCategory =
         new("augment-modules-verb-category", "/Textures/Interface/VerbIcons/group.svg.192dpi.png");
@@ -65,6 +64,12 @@ public sealed class AugmentModuleSlotsSystem : EntitySystem
             };
 
             _itemSlots.AddItemSlot(ent, def.Id, slot);
+
+            if (_itemSlots.TryGetSlot(ent, def.Id, out var addedSlot))
+            {
+                addedSlot.InsertDelay = null;
+                addedSlot.EjectDelay = null;
+            }
         }
     }
 
@@ -133,13 +138,6 @@ public sealed class AugmentModuleSlotsSystem : EntitySystem
             return;
 
         var body = _augment.GetBody(ent);
-        if (body != null
-            && _itemSlots.TryGetSlot(ent, args.Container.ID, out var slot)
-            && slot.InsertSound != null)
-        {
-            _audio.PlayPvs(slot.InsertSound, body.Value);
-        }
-
         var ev = new AugmentModuleInsertedEvent(ent.Owner, args.Container.ID, args.Entity, body);
         RaiseLocalEvent(ent, ref ev);
     }
@@ -150,13 +148,6 @@ public sealed class AugmentModuleSlotsSystem : EntitySystem
             return;
 
         var body = _augment.GetBody(ent);
-        if (body != null
-            && _itemSlots.TryGetSlot(ent, args.Container.ID, out var slot)
-            && slot.EjectSound != null)
-        {
-            _audio.PlayPvs(slot.EjectSound, body.Value);
-        }
-
         var ev = new AugmentModuleRemovedEvent(ent.Owner, args.Container.ID, args.Entity, body);
         RaiseLocalEvent(ent, ref ev);
     }
@@ -180,89 +171,15 @@ public sealed class AugmentModuleSlotsSystem : EntitySystem
 
             var augmentName = Name(augment);
             if (user == body)
-            {
-                if (!modules.PanelOpen)
-                {
-                    args.Verbs.Add(new AlternativeVerb
-                    {
-                        Text = Loc.GetString("augment-modules-verb-open-panel", ("augment", augmentName)),
-                        Category = AugmentationsCategory,
-                        Act = () =>
-                        {
-                            if (!TryComp<AugmentModuleSlotsComponent>(augment, out var comp))
-                                return;
-
-                            SetPanelState((augment, comp), body, true, silent: false);
-                        }
-                    });
-                }
-                else
-                {
-                    args.Verbs.Add(new AlternativeVerb
-                    {
-                        Text = Loc.GetString("augment-modules-verb-close-panel", ("augment", augmentName)),
-                        Category = AugmentationsCategory,
-                        Act = () =>
-                        {
-                            if (!TryComp<AugmentModuleSlotsComponent>(augment, out var comp))
-                                return;
-
-                            SetPanelState((augment, comp), body, false, silent: false);
-                        }
-                    });
-                }
-            }
+                AddPanelToggleVerb(ref args, augment, body, augmentName, modules.PanelOpen);
 
             if (!modules.PanelOpen)
                 continue;
 
             if (args.Using is { } usingEnt)
-            {
-                foreach (var def in modules.Slots)
-                {
-                    if (!def.VisibleInVerbs
-                        || !def.AllowInsertWhenInstalled
-                        || !_itemSlots.TryGetSlot(augment, def.Id, out var slot)
-                        || slot.Item != null
-                        || !_itemSlots.CanInsert(augment, usingEnt, user, slot))
-                    {
-                        continue;
-                    }
+                AddInsertVerbs(ref args, augment, modules, augmentName, usingEnt, user, installed: true);
 
-                    var slotLabel = GetSlotLabel(def);
-                    args.Verbs.Add(new AlternativeVerb
-                    {
-                        Text = Loc.GetString("augment-modules-verb-insert-module-short",
-                            ("slot", slotLabel)),
-                        Message = Loc.GetString("augment-modules-verb-insert-module",
-                            ("augment", augmentName),
-                            ("slot", slotLabel)),
-                        Category = AugmentationsCategory,
-                        Act = () => TryInsertModuleNoDelay(augment, def.Id, usingEnt, user),
-                    });
-                }
-            }
-
-            foreach (var def in modules.Slots)
-            {
-                if (!def.VisibleInVerbs
-                    || !_itemSlots.TryGetSlot(augment, def.Id, out var slot)
-                    || slot.Item is not { } item)
-                {
-                    continue;
-                }
-
-                var slotLabel = GetSlotLabel(def);
-                args.Verbs.Add(new AlternativeVerb
-                {
-                    Text = Loc.GetString("augment-modules-verb-eject-module",
-                        ("augment", augmentName),
-                        ("slot", slotLabel),
-                        ("module", Name(item))),
-                    Category = AugmentationsCategory,
-                    Act = () => _itemSlots.TryEjectToHands(augment, slot, user, excludeUserAudio: true, doAfter: false),
-                });
-            }
+            AddEjectVerbs(ref args, augment, modules, augmentName, user);
         }
     }
 
@@ -279,52 +196,9 @@ public sealed class AugmentModuleSlotsSystem : EntitySystem
         var user = args.User;
 
         if (args.Using is { } usingEnt)
-        {
-            foreach (var def in ent.Comp.Slots)
-            {
-                if (!def.VisibleInVerbs
-                    || !def.AllowInsertWhenUninstalled
-                    || !_itemSlots.TryGetSlot(ent, def.Id, out var slot)
-                    || slot.Item != null
-                    || !_itemSlots.CanInsert(ent, usingEnt, user, slot))
-                {
-                    continue;
-                }
+            AddInsertVerbs(ref args, ent.Owner, ent.Comp, augmentName, usingEnt, user, installed: false);
 
-                var slotLabel = GetSlotLabel(def);
-                args.Verbs.Add(new AlternativeVerb
-                {
-                    Text = Loc.GetString("augment-modules-verb-insert-module-short",
-                        ("slot", slotLabel)),
-                    Message = Loc.GetString("augment-modules-verb-insert-module",
-                        ("augment", augmentName),
-                        ("slot", slotLabel)),
-                    Category = AugmentationsCategory,
-                    Act = () => TryInsertModuleNoDelay(ent, def.Id, usingEnt, user),
-                });
-            }
-        }
-
-        foreach (var def in ent.Comp.Slots)
-        {
-            if (!def.VisibleInVerbs
-                || !_itemSlots.TryGetSlot(ent, def.Id, out var slot)
-                || slot.Item is not { } item)
-            {
-                continue;
-            }
-
-            var slotLabel = GetSlotLabel(def);
-            args.Verbs.Add(new AlternativeVerb
-            {
-                Text = Loc.GetString("augment-modules-verb-eject-module",
-                    ("augment", augmentName),
-                    ("slot", slotLabel),
-                    ("module", Name(item))),
-                Category = AugmentationsCategory,
-                Act = () => _itemSlots.TryEjectToHands(ent, slot, user, excludeUserAudio: true, doAfter: false),
-            });
-        }
+        AddEjectVerbs(ref args, ent.Owner, ent.Comp, augmentName, user);
     }
 
     private void SetPanelState(Entity<AugmentModuleSlotsComponent> ent, EntityUid? body, bool open, bool silent)
@@ -382,6 +256,107 @@ public sealed class AugmentModuleSlotsSystem : EntitySystem
 
     private void TryInsertModuleNoDelay(EntityUid augment, string slotId, EntityUid module, EntityUid user)
     {
+        if (_itemSlots.TryGetSlot(augment, slotId, out var slot)
+            && TryComp<HandsComponent>(user, out var hands))
+        {
+            _itemSlots.TryInsertOrDoAfter(augment, (user, hands), module, slot, doAfter: false);
+            return;
+        }
+
         _itemSlots.TryInsert(augment, slotId, module, user, excludeUserAudio: true);
+    }
+
+    private void AddPanelToggleVerb(
+        ref GetVerbsEvent<AlternativeVerb> args,
+        EntityUid augment,
+        EntityUid body,
+        string augmentName,
+        bool currentlyOpen)
+    {
+        var open = !currentlyOpen;
+        var textLoc = open
+            ? "augment-modules-verb-open-panel"
+            : "augment-modules-verb-close-panel";
+
+        args.Verbs.Add(new AlternativeVerb
+        {
+            Text = Loc.GetString(textLoc, ("augment", augmentName)),
+            Category = AugmentationsCategory,
+            Act = () =>
+            {
+                if (!TryComp<AugmentModuleSlotsComponent>(augment, out var comp))
+                    return;
+
+                SetPanelState((augment, comp), body, open, silent: false);
+            }
+        });
+    }
+
+    private void AddInsertVerbs(
+        ref GetVerbsEvent<AlternativeVerb> args,
+        EntityUid augment,
+        AugmentModuleSlotsComponent modules,
+        string augmentName,
+        EntityUid usingEnt,
+        EntityUid user,
+        bool installed)
+    {
+        foreach (var def in modules.Slots)
+        {
+            if (!def.VisibleInVerbs)
+                continue;
+
+            var canInsert = installed ? def.AllowInsertWhenInstalled : def.AllowInsertWhenUninstalled;
+            if (!canInsert)
+                continue;
+
+            if (!_itemSlots.TryGetSlot(augment, def.Id, out var slot)
+                || slot.Item != null
+                || !_itemSlots.CanInsert(augment, usingEnt, user, slot))
+            {
+                continue;
+            }
+
+            var slotLabel = GetSlotLabel(def);
+            args.Verbs.Add(new AlternativeVerb
+            {
+                Text = Loc.GetString("augment-modules-verb-insert-module-short",
+                    ("slot", slotLabel)),
+                Message = Loc.GetString("augment-modules-verb-insert-module",
+                    ("augment", augmentName),
+                    ("slot", slotLabel)),
+                Category = AugmentationsCategory,
+                Act = () => TryInsertModuleNoDelay(augment, def.Id, usingEnt, user),
+            });
+        }
+    }
+
+    private void AddEjectVerbs(
+        ref GetVerbsEvent<AlternativeVerb> args,
+        EntityUid augment,
+        AugmentModuleSlotsComponent modules,
+        string augmentName,
+        EntityUid user)
+    {
+        foreach (var def in modules.Slots)
+        {
+            if (!def.VisibleInVerbs
+                || !_itemSlots.TryGetSlot(augment, def.Id, out var slot)
+                || slot.Item is not { } item)
+            {
+                continue;
+            }
+
+            var slotLabel = GetSlotLabel(def);
+            args.Verbs.Add(new AlternativeVerb
+            {
+                Text = Loc.GetString("augment-modules-verb-eject-module",
+                    ("augment", augmentName),
+                    ("slot", slotLabel),
+                    ("module", Name(item))),
+                Category = AugmentationsCategory,
+                Act = () => _itemSlots.TryEjectToHands(augment, slot, user, excludeUserAudio: true, doAfter: false),
+            });
+        }
     }
 }

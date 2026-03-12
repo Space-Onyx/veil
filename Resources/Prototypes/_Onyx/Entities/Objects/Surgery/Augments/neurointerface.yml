@@ -66,22 +66,22 @@
     passiveLoad: 1
   - type: AugmentModuleSlots
     slots:
-    - id: neuro_module_neurocapacity
-      name: augment-modules-slot-neuro-interface-capacity 
+    - id: neuro_module_capacity_1
+      name: augment-modules-slot-neuro-interface-capacity
       allowInsertWhenUninstalled: true
       allowInsertWhenInstalled: true
       visibleInVerbs: true
       whitelist:
         tags:
-        - AugmentModuleNeuroInterface
-    - id: neuro_module_neurocapacity_2
-      name: augment-modules-slot-neuro-interface-capacity 
+        - AugmentModuleNeuroCapacity
+    - id: neuro_module_capacity_2
+      name: augment-modules-slot-neuro-interface-capacity
       allowInsertWhenUninstalled: true
       allowInsertWhenInstalled: true
       visibleInVerbs: true
       whitelist:
         tags:
-        - AugmentModuleNeuroInterface
+        - AugmentModuleNeuroCapacity
   - type: AugmentAction
     action: ActionAugmentNeuroInterface
   - type: AugmentActivatableUI
@@ -122,4 +122,4 @@
     - AugmentModuleNeuroInterface
     - AugmentModuleNeuroCapacity
   - type: AugmentUniversalModule
-    maxNeuroLoadDelta: 5
+    maxNeuroLoad: 5

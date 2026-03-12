@@ -6,41 +6,41 @@ namespace Content.Shared._Onyx.Surgery.Augments;
 public sealed partial class AugmentUniversalModuleComponent : Component
 {
     [DataField]
-    public float MaxNeuroLoadDelta;
+    public float MaxNeuroLoad;
 
     [DataField]
-    public float CurrentNeuroLoadDelta;
+    public float CurrentNeuroLoad;
 
     [DataField]
-    public float PassivePowerDrawDelta;
+    public float PassivePowerDraw;
 
     [DataField]
-    public float VisionActivePowerMultiplier = 1f;
+    public float VisionActivePowerMultiplier = AugmentUniversalModuleDefaults.NeutralMultiplier;
 
     [DataField]
-    public float VisionActivePowerDelta;
+    public float VisionActivePower;
 
     [DataField]
-    public float VisionActiveNeuroMultiplier = 1f;
+    public float VisionActiveNeuroMultiplier = AugmentUniversalModuleDefaults.NeutralMultiplier;
 
     [DataField]
-    public float VisionActiveNeuroDelta;
+    public float VisionActiveNeuro;
 
     [DataField]
-    public float ItemPanelActivePowerMultiplier = 1f;
+    public float ItemPanelActivePowerMultiplier = AugmentUniversalModuleDefaults.NeutralMultiplier;
 
     [DataField]
-    public float ItemPanelActivePowerDelta;
+    public float ItemPanelActivePower;
 
     [DataField]
-    public float ItemPanelActiveNeuroMultiplier = 1f;
+    public float ItemPanelActiveNeuroMultiplier = AugmentUniversalModuleDefaults.NeutralMultiplier;
 
     [DataField]
-    public float ItemPanelActiveNeuroDelta;
+    public float ItemPanelActiveNeuro;
 
     [DataField]
-    public string NeuroLoadTooltipSource = "neuro-interface-tooltip-source-neuro-module-passive";
+    public string NeuroLoadTooltipSource = AugmentUniversalModuleDefaults.PassiveNeuroTooltipSource;
 
     [DataField]
-    public string PowerTooltipSource = "neuro-interface-tooltip-source-power-module-passive";
+    public string PowerTooltipSource = AugmentUniversalModuleDefaults.PassivePowerTooltipSource;
 }

@@ -1,0 +1,66 @@
+﻿- type: entity
+  abstract: true
+  parent: BaseItem
+  id: BaseIncompleteAugmentSubdermalArmor
+  description: An implantable subdermal armor unit for full-body protection. This one is incomplete.
+  components:
+  - type: Sprite
+    sprite: _Shitmed/Objects/Augments/power.rsi
+  - type: Item
+    size: Huge
+  - type: Construction
+    graph: AugmentSubdermalArmor
+
+- type: entity
+  parent: BaseIncompleteAugmentSubdermalArmor
+  id: AugmentSubdermalArmorCasing
+  name: subdermal armor casing
+  components:
+  - type: Sprite
+    state: incomplete_charger
+  - type: Construction
+    node: casing
+    defaultTarget: armor
+  - type: Tag
+    tags: [ AugmentSubdermalArmorCasing ]
+
+- type: entity
+  parent: BaseIncompleteAugmentSubdermalArmor
+  id: AugmentSubdermalArmorCables
+  name: subdermal armor casing with cables
+  components:
+  - type: Sprite
+    state: incomplete_charger_cables
+  - type: Construction
+    node: cables
+
+- type: entity
+  parent: BaseOnyxChestAugment
+  id: AugmentSubdermalArmor
+  name: subdermal armor implant
+  description: An implantable subdermal armor mesh installed in the torso that protects the whole body.
+  components:
+  - type: Organ
+    slotId: chestImplant
+    toolName: surgery-tool-augment-target-chest
+    canEnable: false
+  - type: AugmentBehaviorPolicy
+    canToggle: false
+    affectedByBrainDeactivation: false
+    affectedByEmp: false
+    affectedBySuppression: false
+  - type: AugmentDamageResistance
+    damageModifierSetId: AugmentSubdermalArmor
+  - type: AugmentNeuroLoad
+    passiveLoad: 1
+  - type: AugmentExamine
+    color: "#7aa6ff"
+    examineText: augment-examine-subdermal-armor
+    visible: true
+  - type: Construction
+    graph: AugmentSubdermalArmor
+    node: armor
+  - type: Tag
+    tags:
+    - Augment
+    - chestAugment

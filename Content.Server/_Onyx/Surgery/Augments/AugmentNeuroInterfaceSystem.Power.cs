@@ -1,5 +1,5 @@
+using System.Collections.Generic;
 using Content.Goobstation.Shared.Augments;
-using Content.Server.Power.Components;
 using Content.Shared._Onyx.Surgery.Augments;
 using Content.Shared.Body.Organ;
 using Content.Shared.Body.Part;
@@ -21,7 +21,7 @@ public sealed partial class AugmentNeuroInterfaceSystem
         if (IsEmpBlocked(organUid))
             return NeuroInterfaceAugmentStatus.Deactivated;
 
-        if (!organ.Enabled || HasComp<AugmentNeuroManuallyDisabledComponent>(organUid))
+        if (!organ.Enabled || IsManuallyDisabled(organUid))
             return NeuroInterfaceAugmentStatus.Disabled;
 
         if (RequiresPower(organUid) && !HasAugmentPower(body))
@@ -35,7 +35,7 @@ public sealed partial class AugmentNeuroInterfaceSystem
         if (IsEmpBlocked(partUid))
             return NeuroInterfaceAugmentStatus.Deactivated;
 
-        if (!part.Enabled || HasComp<AugmentNeuroManuallyDisabledComponent>(partUid))
+        if (!part.Enabled || IsManuallyDisabled(partUid))
             return NeuroInterfaceAugmentStatus.Disabled;
 
         return NeuroInterfaceAugmentStatus.Enabled;
@@ -63,14 +63,8 @@ public sealed partial class AugmentNeuroInterfaceSystem
         if (TryComp<AugmentVisionComponent>(uid, out var vision)
             && vision.RequiresPower)
         {
-            if (vision.PowerDraw > 0f)
+            if (vision.PowerDraw > 0f || HasPositiveDraw(vision.ActivePowerDrawByType.Values))
                 return true;
-
-            foreach (var draw in vision.ActivePowerDrawByType.Values)
-            {
-                if (draw > 0f)
-                    return true;
-            }
         }
 
         if (TryComp<AugmentPowerDrawComponent>(uid, out var powerDraw)
@@ -84,13 +78,7 @@ public sealed partial class AugmentNeuroInterfaceSystem
 
     private bool HasAugmentPower(EntityUid body)
     {
-        if (_augmentPower.GetBodyAugment(body) is not { } slot)
-            return false;
-
-        if (!TryComp<PowerCellDrawComponent>(slot, out var draw))
-            return false;
-
-        return _powerCell.HasDrawCharge(slot, draw);
+        return AugmentPowerHelpers.HasAugmentPower(body, _augmentPower, _powerCell, EntityManager);
     }
 
     private (string SourceName, float OutputPerSecond) GetPowerSourceInfo(EntityUid body)
@@ -103,19 +91,10 @@ public sealed partial class AugmentNeuroInterfaceSystem
         {
             foreach (var (organUid, organComp) in _body.GetPartOrgans(partUid, partComp))
             {
-                if (!TryComp<AugmentBioReactorComponent>(organUid, out var reactor))
+                if (!TryComp<AugmentReactorComponent>(organUid, out var reactor))
                     continue;
 
-                if (!organComp.Enabled)
-                    continue;
-
-                if (IsEmpBlocked(organUid))
-                    continue;
-
-                if (HasComp<AugmentNeuroManuallyDisabledComponent>(organUid))
-                    continue;
-
-                if (reactor.ChargeRate <= 0f)
+                if (!IsActiveReactorSource(organUid, organComp, reactor))
                     continue;
 
                 output += reactor.ChargeRate;
@@ -146,8 +125,36 @@ public sealed partial class AugmentNeuroInterfaceSystem
 
     private bool IsEmpBlocked(EntityUid uid)
     {
+        var brainBlocked = AugmentBehaviorPolicyHelpers.IsAffectedByBrainDeactivation(uid, EntityManager)
+                           && HasComp<AugmentBrainDeactivatedComponent>(uid);
+
         return HasComp<AugmentEmpDisabledComponent>(uid)
-               || HasComp<AugmentBrainDeactivatedComponent>(uid)
+               || brainBlocked
                || (TryComp<CyberneticsComponent>(uid, out var cyber) && cyber.Disabled);
+    }
+
+    private bool IsManuallyDisabled(EntityUid uid)
+    {
+        return AugmentBehaviorPolicyHelpers.CanToggle(uid, EntityManager)
+               && HasComp<AugmentNeuroManuallyDisabledComponent>(uid);
+    }
+
+    private bool IsActiveReactorSource(EntityUid uid, OrganComponent organ, AugmentReactorComponent reactor)
+    {
+        return organ.Enabled
+               && !IsEmpBlocked(uid)
+               && !IsManuallyDisabled(uid)
+               && reactor.ChargeRate > 0f;
+    }
+
+    private static bool HasPositiveDraw(IEnumerable<float> draws)
+    {
+        foreach (var draw in draws)
+        {
+            if (draw > 0f)
+                return true;
+        }
+
+        return false;
     }
 }

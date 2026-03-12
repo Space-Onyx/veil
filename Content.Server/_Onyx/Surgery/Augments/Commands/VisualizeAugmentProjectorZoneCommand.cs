@@ -10,14 +10,13 @@ public sealed class VisualizeAugmentProjectorZoneCommand : IConsoleCommand
 {
     [Dependency] private readonly IEntitySystemManager _systems = default!;
 
-    public string Command => "visaugmentzone";
+    public string Command => "showaugsuppresszone";
     public string Description => "Toggles in-game visualization for all augment suppression zones.";
-    public string Help => "visaugmentzone | visaugmentzone off";
+    public string Help => "showaugsuppresszone | showaugsuppresszone off";
 
     public void Execute(IConsoleShell shell, string argStr, string[] args)
     {
-        var player = shell.Player;
-        if (player == null)
+        if (shell.Player is not { } player)
         {
             shell.WriteError("You must be a player to use this command.");
             return;
@@ -30,7 +29,7 @@ public sealed class VisualizeAugmentProjectorZoneCommand : IConsoleCommand
         }
 
         var system = _systems.GetEntitySystem<AugmentSuppressionProjectorSystem>();
-        if (args.Length == 1 && args[0].Equals("off", StringComparison.OrdinalIgnoreCase))
+        if (IsOffCommand(args))
         {
             var disabled = system.DisableVisualization(player);
             shell.WriteLine(disabled
@@ -44,4 +43,10 @@ public sealed class VisualizeAugmentProjectorZoneCommand : IConsoleCommand
             ? "Augment zone visualization enabled for all projectors."
             : "Augment zone visualization disabled.");
     }
+
+    private static bool IsOffCommand(string[] args)
+    {
+        return args.Length == 1 && args[0].Equals("off", StringComparison.OrdinalIgnoreCase);
+    }
 }
+

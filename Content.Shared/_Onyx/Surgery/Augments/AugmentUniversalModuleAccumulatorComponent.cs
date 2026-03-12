@@ -3,42 +3,46 @@ namespace Content.Shared._Onyx.Surgery.Augments;
 [RegisterComponent]
 public sealed partial class AugmentUniversalModuleAccumulatorComponent : Component
 {
-    [DataField]
-    public float MaxNeuroLoadDelta;
+    public bool Dirty = true;
+
+    public uint Revision;
 
     [DataField]
-    public float CurrentNeuroLoadDelta;
+    public float MaxNeuroLoad;
 
     [DataField]
-    public float PassivePowerDrawDelta;
+    public float CurrentNeuroLoad;
 
     [DataField]
-    public float VisionActivePowerMultiplier = 1f;
+    public float PassivePowerDraw;
 
     [DataField]
-    public float VisionActivePowerDelta;
+    public float VisionActivePowerMultiplier = AugmentUniversalModuleDefaults.NeutralMultiplier;
 
     [DataField]
-    public float VisionActiveNeuroMultiplier = 1f;
+    public float VisionActivePower;
 
     [DataField]
-    public float VisionActiveNeuroDelta;
+    public float VisionActiveNeuroMultiplier = AugmentUniversalModuleDefaults.NeutralMultiplier;
 
     [DataField]
-    public float ItemPanelActivePowerMultiplier = 1f;
+    public float VisionActiveNeuro;
 
     [DataField]
-    public float ItemPanelActivePowerDelta;
+    public float ItemPanelActivePowerMultiplier = AugmentUniversalModuleDefaults.NeutralMultiplier;
 
     [DataField]
-    public float ItemPanelActiveNeuroMultiplier = 1f;
+    public float ItemPanelActivePower;
 
     [DataField]
-    public float ItemPanelActiveNeuroDelta;
+    public float ItemPanelActiveNeuroMultiplier = AugmentUniversalModuleDefaults.NeutralMultiplier;
 
     [DataField]
-    public string NeuroLoadTooltipSource = "neuro-interface-tooltip-source-neuro-module-passive";
+    public float ItemPanelActiveNeuro;
 
     [DataField]
-    public string PowerTooltipSource = "neuro-interface-tooltip-source-power-module-passive";
+    public string NeuroLoadTooltipSource = AugmentUniversalModuleDefaults.PassiveNeuroTooltipSource;
+
+    [DataField]
+    public string PowerTooltipSource = AugmentUniversalModuleDefaults.PassivePowerTooltipSource;
 }

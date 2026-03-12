@@ -11,6 +11,7 @@ using Content.Server.Hands.Systems;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas.Systems;
 using Content.Shared.Containers.ItemSlots;
 using Robust.Server.GameObjects;
+using Robust.Shared.Player;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
 
@@ -76,6 +77,7 @@ public sealed partial class AugmentNeuroInterfaceSystem : EntitySystem
     private readonly Dictionary<EntityUid, TimeSpan> _nextUiUpdate = new();
     private readonly Dictionary<EntityUid, BrainPenaltyStage> _brainPenaltyStages = new();
     private readonly Dictionary<EntityUid, TimeSpan> _nextBrainOverloadPopup = new();
+    private readonly Dictionary<EntityUid, EntityUid> _adminRemoteControlBodies = new();
     private TimeSpan _nextOverloadDamageSweep = TimeSpan.Zero;
 
     public override void Initialize()
@@ -90,6 +92,7 @@ public sealed partial class AugmentNeuroInterfaceSystem : EntitySystem
         Subs.BuiEvents<AugmentNeuroInterfaceComponent>(NeuroInterfaceUiKey.Key, subs =>
         {
             subs.Event<BoundUIOpenedEvent>(OnUiOpened);
+            subs.Event<BoundUIClosedEvent>(OnUiClosed);
             subs.Event<NeuroInterfaceToggleAugmentMessage>(OnToggleAugment);
             subs.Event<NeuroInterfaceBulkToggleMessage>(OnBulkToggle);
         });
@@ -110,9 +113,46 @@ public sealed partial class AugmentNeuroInterfaceSystem : EntitySystem
         _nextUiUpdate[ent.Owner] = _timing.CurTime + UiUpdateInterval;
     }
 
+    private void OnUiClosed(Entity<AugmentNeuroInterfaceComponent> ent, ref BoundUIClosedEvent args)
+    {
+        if (!args.Actor.IsValid())
+            return;
+
+        if (_augment.GetBody(ent) is not { } body)
+            return;
+
+        RemoveRemoteControlIfMatches(args.Actor, body);
+    }
+
     private void OnRemoved(Entity<AugmentNeuroInterfaceComponent> ent, ref ComponentRemove args)
     {
         _nextUiUpdate.Remove(ent.Owner);
+
+        if (_augment.GetBody(ent) is not { } body)
+            return;
+
+        RemoveRemoteControllersForBody(body);
+    }
+
+    private void RemoveRemoteControlIfMatches(EntityUid actor, EntityUid body)
+    {
+        if (_adminRemoteControlBodies.TryGetValue(actor, out var controlledBody) && controlledBody == body)
+            _adminRemoteControlBodies.Remove(actor);
+    }
+
+    private void RemoveRemoteControllersForBody(EntityUid body)
+    {
+        var toRemove = new List<EntityUid>();
+        foreach (var pair in _adminRemoteControlBodies)
+        {
+            if (pair.Value == body)
+                toRemove.Add(pair.Key);
+        }
+
+        foreach (var controller in toRemove)
+        {
+            _adminRemoteControlBodies.Remove(controller);
+        }
     }
 
     private void OnBodyShutdown(Entity<BodyComponent> ent, ref ComponentShutdown args)
@@ -161,6 +201,51 @@ public sealed partial class AugmentNeuroInterfaceSystem : EntitySystem
             _nextUiUpdate[uid] = now + UiUpdateInterval;
             UpdateUi((uid, comp), body);
         }
+    }
+
+    public bool TryOpenInterfaceForRemoteController(EntityUid body, EntityUid controller, out string error)
+    {
+        error = string.Empty;
+
+        if (!TryGetNeuroInterfaceEntity(body, out var neuroEntity))
+        {
+            error = "No installed neuro-interface found in this body.";
+            return false;
+        }
+
+        _adminRemoteControlBodies[controller] = body;
+        if (!_ui.TryOpenUi(neuroEntity.Owner, NeuroInterfaceUiKey.Key, controller))
+        {
+            _adminRemoteControlBodies.Remove(controller);
+            error = "Failed to open neuro-interface UI.";
+            return false;
+        }
+
+        UpdateUi(neuroEntity, body);
+        return true;
+    }
+
+    private bool TryGetNeuroInterfaceEntity(EntityUid body, out Entity<AugmentNeuroInterfaceComponent> neuroEntity)
+    {
+        foreach (var (partUid, partComp) in _body.GetBodyChildren(body))
+        {
+            foreach (var (organUid, _) in _body.GetPartOrgans(partUid, partComp))
+            {
+                if (!TryComp<AugmentNeuroInterfaceComponent>(organUid, out var neuroComp))
+                    continue;
+
+                neuroEntity = (organUid, neuroComp);
+                return true;
+            }
+        }
+
+        neuroEntity = default;
+        return false;
+    }
+
+    private bool HasAdminRemoteControl(EntityUid body, EntityUid actor)
+    {
+        return _adminRemoteControlBodies.TryGetValue(actor, out var controlledBody) && controlledBody == body;
     }
 
 }

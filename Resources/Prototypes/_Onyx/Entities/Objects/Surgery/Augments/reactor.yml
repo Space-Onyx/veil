@@ -78,7 +78,7 @@
   components:
   - type: Sprite
     state: apc
-  - type: AugmentBioReactor
+  - type: AugmentReactor
     chargeRate: 8
     hungerCostPerCharge: 1
     minimumHungerThreshold: Starving
@@ -103,7 +103,7 @@
   components:
   - type: Sprite
     state: station
-  - type: AugmentBioReactor
+  - type: AugmentReactor
     chargeRate: 15
     hungerCostPerCharge: 0
     minimumHungerThreshold: Starving

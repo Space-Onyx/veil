@@ -127,30 +127,7 @@ public sealed partial class AugmentNeuroInterfaceSystem
 
             if (IsControllablePart(partUid))
             {
-                var partEnabled = partComp.Enabled
-                                  && !HasComp<AugmentNeuroManuallyDisabledComponent>(partUid)
-                                  && !HasComp<AugmentBrainDeactivatedComponent>(partUid);
-                var partName = Name(partUid);
-                var partStatus = GetStatus(partUid, partComp);
-                var partDescription = GetEntityDescriptionCached(partUid, descriptionCache);
-                var partMetrics = GetAugmentMetrics(partUid);
-
-                entries.Add(new NeuroInterfaceAugmentEntry(
-                    GetNetEntity(partUid),
-                    GetNetEntity(partUid),
-                    category,
-                    partName,
-                    partEnabled,
-                    partComp.CanEnable
-                    && !IsEmpBlocked(partUid),
-                    false,
-                    partStatus,
-                    partDescription,
-                    partMetrics.PassivePowerEntries,
-                    partMetrics.ActivePowerEntries,
-                    partMetrics.PassiveNeuroLoadEntries,
-                    partMetrics.ActiveNeuroLoadEntries,
-                    new List<NeuroInterfaceModuleEntry>()));
+                entries.Add(BuildPartEntry(partUid, partComp, category, descriptionCache));
             }
 
             foreach (var (organUid, organComp) in _body.GetPartOrgans(partUid, partComp))
@@ -158,34 +135,7 @@ public sealed partial class AugmentNeuroInterfaceSystem
                 if (!IsControllableOrgan(organUid))
                     continue;
 
-                var enabled = organComp.Enabled
-                              && !HasComp<AugmentNeuroManuallyDisabledComponent>(organUid)
-                              && !HasComp<AugmentBrainDeactivatedComponent>(organUid);
-                var canToggle = organComp.CanEnable
-                                && !HasComp<AugmentNeuroInterfaceComponent>(organUid)
-                                && !IsEmpBlocked(organUid);
-                var canConfigure = HasComp<AugmentComponent>(organUid) && HasComp<AugmentNeuroConfigurableComponent>(organUid);
-                var name = Name(organUid);
-                var status = GetStatus(organUid, organComp, body);
-                var description = GetEntityDescriptionCached(organUid, descriptionCache);
-                var metrics = GetAugmentMetrics(organUid);
-                var modules = GetModuleEntries(organUid, descriptionCache);
-
-                entries.Add(new NeuroInterfaceAugmentEntry(
-                    GetNetEntity(organUid),
-                    GetNetEntity(partUid),
-                    category,
-                    name,
-                    enabled,
-                    canToggle,
-                    canConfigure,
-                    status,
-                    description,
-                    metrics.PassivePowerEntries,
-                    metrics.ActivePowerEntries,
-                    metrics.PassiveNeuroLoadEntries,
-                    metrics.ActiveNeuroLoadEntries,
-                    modules));
+                entries.Add(BuildOrganEntry(organUid, organComp, partUid, category, body, descriptionCache));
             }
         }
 
@@ -201,6 +151,70 @@ public sealed partial class AugmentNeuroInterfaceSystem
         });
 
         return entries;
+    }
+
+    private NeuroInterfaceAugmentEntry BuildPartEntry(
+        EntityUid partUid,
+        BodyPartComponent partComp,
+        NeuroInterfaceBodyCategory category,
+        Dictionary<EntityUid, string> descriptionCache)
+    {
+        var metrics = GetAugmentMetrics(partUid);
+        return new NeuroInterfaceAugmentEntry(
+            GetNetEntity(partUid),
+            GetNetEntity(partUid),
+            category,
+            Name(partUid),
+            IsEnhancementEnabled(partUid, partComp.Enabled),
+            partComp.CanEnable
+            && AugmentBehaviorPolicyHelpers.CanToggle(partUid, EntityManager)
+            && !IsEmpBlocked(partUid),
+            false,
+            GetStatus(partUid, partComp),
+            GetEntityDescriptionCached(partUid, descriptionCache),
+            metrics.PassivePowerEntries,
+            metrics.ActivePowerEntries,
+            metrics.PassiveNeuroLoadEntries,
+            metrics.ActiveNeuroLoadEntries,
+            new List<NeuroInterfaceModuleEntry>());
+    }
+
+    private NeuroInterfaceAugmentEntry BuildOrganEntry(
+        EntityUid organUid,
+        OrganComponent organComp,
+        EntityUid partUid,
+        NeuroInterfaceBodyCategory category,
+        EntityUid body,
+        Dictionary<EntityUid, string> descriptionCache)
+    {
+        var metrics = GetAugmentMetrics(organUid);
+        return new NeuroInterfaceAugmentEntry(
+            GetNetEntity(organUid),
+            GetNetEntity(partUid),
+            category,
+            Name(organUid),
+            IsEnhancementEnabled(organUid, organComp.Enabled),
+            organComp.CanEnable
+            && AugmentBehaviorPolicyHelpers.CanToggle(organUid, EntityManager)
+            && !HasComp<AugmentNeuroInterfaceComponent>(organUid)
+            && !IsEmpBlocked(organUid),
+            HasComp<AugmentComponent>(organUid) && HasComp<AugmentNeuroConfigurableComponent>(organUid),
+            GetStatus(organUid, organComp, body),
+            GetEntityDescriptionCached(organUid, descriptionCache),
+            metrics.PassivePowerEntries,
+            metrics.ActivePowerEntries,
+            metrics.PassiveNeuroLoadEntries,
+            metrics.ActiveNeuroLoadEntries,
+            GetModuleEntries(organUid, descriptionCache));
+    }
+
+    private bool IsEnhancementEnabled(EntityUid uid, bool enabledFlag)
+    {
+        return enabledFlag
+               && (!AugmentBehaviorPolicyHelpers.CanToggle(uid, EntityManager)
+                   || !HasComp<AugmentNeuroManuallyDisabledComponent>(uid))
+               && (!AugmentBehaviorPolicyHelpers.IsAffectedByBrainDeactivation(uid, EntityManager)
+                   || !HasComp<AugmentBrainDeactivatedComponent>(uid));
     }
 
     private string GetEntityDescriptionCached(EntityUid uid, Dictionary<EntityUid, string> cache)
@@ -234,12 +248,18 @@ public sealed partial class AugmentNeuroInterfaceSystem
                 ? Loc.GetString(definition.Name)
                 : definition.Name;
 
+            var metrics = GetAugmentMetrics(moduleUid, forcePowerEnabled: true);
+
             modules.Add(new NeuroInterfaceModuleEntry(
                 GetNetEntity(moduleUid),
                 definition.Id,
                 slotName,
                 Name(moduleUid),
-                GetEntityDescriptionCached(moduleUid, descriptionCache)));
+                GetEntityDescriptionCached(moduleUid, descriptionCache),
+                metrics.PassivePowerEntries,
+                metrics.ActivePowerEntries,
+                metrics.PassiveNeuroLoadEntries,
+                metrics.ActiveNeuroLoadEntries));
         }
 
         return modules;
@@ -285,26 +305,8 @@ public sealed partial class AugmentNeuroInterfaceSystem
 
     private void ToggleOrgan(EntityUid body, EntityUid target, OrganComponent organ, bool enable, bool showPopups)
     {
-        if (!organ.CanEnable)
-        {
-            if (showPopups)
-                _popup.PopupEntity(Loc.GetString("neuro-interface-popup-cannot-toggle"), body, body, PopupType.SmallCaution);
+        if (!CanToggleEnhancement(body, target, organ.CanEnable, showPopups))
             return;
-        }
-
-        if (HasComp<AugmentBrainDeactivatedComponent>(target))
-        {
-            if (showPopups)
-                _popup.PopupEntity(Loc.GetString("neuro-interface-popup-brain-blocked"), body, body, PopupType.SmallCaution);
-            return;
-        }
-
-        if (IsEmpBlocked(target))
-        {
-            if (showPopups)
-                _popup.PopupEntity(Loc.GetString("neuro-interface-popup-emp-blocked"), body, body, PopupType.SmallCaution);
-            return;
-        }
 
         var manuallyDisabled = HasComp<AugmentNeuroManuallyDisabledComponent>(target);
 
@@ -335,26 +337,8 @@ public sealed partial class AugmentNeuroInterfaceSystem
 
     private void TogglePart(EntityUid body, EntityUid target, BodyPartComponent part, bool enable, bool showPopups)
     {
-        if (!part.CanEnable)
-        {
-            if (showPopups)
-                _popup.PopupEntity(Loc.GetString("neuro-interface-popup-cannot-toggle"), body, body, PopupType.SmallCaution);
+        if (!CanToggleEnhancement(body, target, part.CanEnable, showPopups))
             return;
-        }
-
-        if (HasComp<AugmentBrainDeactivatedComponent>(target))
-        {
-            if (showPopups)
-                _popup.PopupEntity(Loc.GetString("neuro-interface-popup-brain-blocked"), body, body, PopupType.SmallCaution);
-            return;
-        }
-
-        if (IsEmpBlocked(target))
-        {
-            if (showPopups)
-                _popup.PopupEntity(Loc.GetString("neuro-interface-popup-emp-blocked"), body, body, PopupType.SmallCaution);
-            return;
-        }
 
         var manuallyDisabled = HasComp<AugmentNeuroManuallyDisabledComponent>(target);
 
@@ -377,6 +361,40 @@ public sealed partial class AugmentNeuroInterfaceSystem
             return;
 
         EnsureComp<AugmentNeuroManuallyDisabledComponent>(target);
+    }
+
+    private bool CanToggleEnhancement(EntityUid body, EntityUid target, bool canEnable, bool showPopups)
+    {
+        if (!canEnable)
+        {
+            if (showPopups)
+                _popup.PopupEntity(Loc.GetString("neuro-interface-popup-cannot-toggle"), body, body, PopupType.SmallCaution);
+            return false;
+        }
+
+        if (!AugmentBehaviorPolicyHelpers.CanToggle(target, EntityManager))
+        {
+            if (showPopups)
+                _popup.PopupEntity(Loc.GetString("neuro-interface-popup-cannot-toggle"), body, body, PopupType.SmallCaution);
+            return false;
+        }
+
+        if (AugmentBehaviorPolicyHelpers.IsAffectedByBrainDeactivation(target, EntityManager)
+            && HasComp<AugmentBrainDeactivatedComponent>(target))
+        {
+            if (showPopups)
+                _popup.PopupEntity(Loc.GetString("neuro-interface-popup-brain-blocked"), body, body, PopupType.SmallCaution);
+            return false;
+        }
+
+        if (IsEmpBlocked(target))
+        {
+            if (showPopups)
+                _popup.PopupEntity(Loc.GetString("neuro-interface-popup-emp-blocked"), body, body, PopupType.SmallCaution);
+            return false;
+        }
+
+        return true;
     }
 
     private void ToggleAllOrgans(EntityUid body, bool enable)
@@ -407,9 +425,9 @@ public sealed partial class AugmentNeuroInterfaceSystem
         }
     }
 
-    private static bool CanControlInterface(EntityUid body, EntityUid actor)
+    private bool CanControlInterface(EntityUid body, EntityUid actor)
     {
-        return actor == body;
+        return actor == body || HasAdminRemoteControl(body, actor);
     }
 
 }

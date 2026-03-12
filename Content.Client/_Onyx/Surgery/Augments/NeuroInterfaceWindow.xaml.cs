@@ -472,7 +472,11 @@ public sealed partial class NeuroInterfaceWindow : FancyWindow
                 entry.SlotId,
                 entry.SlotName,
                 entry.Name,
-                entry.Description));
+                entry.Description,
+                CloneMetricEntries(entry.PassivePowerEntries),
+                CloneMetricEntries(entry.ActivePowerEntries),
+                CloneMetricEntries(entry.PassiveNeuroLoadEntries),
+                CloneMetricEntries(entry.ActiveNeuroLoadEntries)));
         }
 
         return copy;
@@ -534,7 +538,11 @@ public sealed partial class NeuroInterfaceWindow : FancyWindow
                 || a[i].SlotId != b[i].SlotId
                 || a[i].SlotName != b[i].SlotName
                 || a[i].Name != b[i].Name
-                || a[i].Description != b[i].Description)
+                || a[i].Description != b[i].Description
+                || !AreMetricListsEqual(a[i].PassivePowerEntries, b[i].PassivePowerEntries)
+                || !AreMetricListsEqual(a[i].ActivePowerEntries, b[i].ActivePowerEntries)
+                || !AreMetricListsEqual(a[i].PassiveNeuroLoadEntries, b[i].PassiveNeuroLoadEntries)
+                || !AreMetricListsEqual(a[i].ActiveNeuroLoadEntries, b[i].ActiveNeuroLoadEntries))
             {
                 return false;
             }
@@ -747,7 +755,7 @@ public sealed partial class NeuroInterfaceWindow : FancyWindow
                 Margin = new Thickness(6, 3, 6, 3),
                 HorizontalExpand = true,
             };
-            line.ToolTip = description;
+            line.TooltipSupplier = _ => BuildModuleTooltip(module, description, entry.Status);
             row.AddChild(line);
 
             var rowWithTree = new BoxContainer
@@ -880,6 +888,33 @@ public sealed partial class NeuroInterfaceWindow : FancyWindow
         var panel = new PanelContainer
         {
             PanelOverride = GetTooltipBackground(entry.Status),
+        };
+        panel.AddChild(root);
+        return panel;
+    }
+
+    private Control BuildModuleTooltip(NeuroInterfaceModuleEntry module, string description, NeuroInterfaceAugmentStatus status)
+    {
+        var root = new BoxContainer
+        {
+            Orientation = LayoutOrientation.Vertical,
+            SeparationOverride = 4,
+            Margin = new Thickness(8),
+        };
+
+        AddTooltipText(root, Loc.GetString("neuro-interface-module-line",
+            ("slot", module.SlotName),
+            ("name", module.Name)));
+        AddTooltipText(root, Loc.GetString("neuro-interface-tooltip-description", ("description", description)));
+
+        AddMetricSection(root, "neuro-interface-tooltip-section-power-passive", module.PassivePowerEntries);
+        AddMetricSection(root, "neuro-interface-tooltip-section-power-active", module.ActivePowerEntries);
+        AddMetricSection(root, "neuro-interface-tooltip-section-neuro-passive", module.PassiveNeuroLoadEntries);
+        AddMetricSection(root, "neuro-interface-tooltip-section-neuro-active", module.ActiveNeuroLoadEntries);
+
+        var panel = new PanelContainer
+        {
+            PanelOverride = GetTooltipBackground(status),
         };
         panel.AddChild(root);
         return panel;

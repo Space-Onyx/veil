@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Robust.Shared.Serialization;
 using Robust.Shared.GameObjects;
@@ -65,19 +65,31 @@ public sealed class NeuroInterfaceModuleEntry
     public string SlotName;
     public string Name;
     public string Description;
+    public List<NeuroInterfaceMetricEntry> PassivePowerEntries;
+    public List<NeuroInterfaceMetricEntry> ActivePowerEntries;
+    public List<NeuroInterfaceMetricEntry> PassiveNeuroLoadEntries;
+    public List<NeuroInterfaceMetricEntry> ActiveNeuroLoadEntries;
 
     public NeuroInterfaceModuleEntry(
         NetEntity module,
         string slotId,
         string slotName,
         string name,
-        string description)
+        string description,
+        List<NeuroInterfaceMetricEntry>? passivePowerEntries = null,
+        List<NeuroInterfaceMetricEntry>? activePowerEntries = null,
+        List<NeuroInterfaceMetricEntry>? passiveNeuroLoadEntries = null,
+        List<NeuroInterfaceMetricEntry>? activeNeuroLoadEntries = null)
     {
         Module = module;
         SlotId = slotId;
         SlotName = slotName;
         Name = name;
         Description = description;
+        PassivePowerEntries = passivePowerEntries ?? new List<NeuroInterfaceMetricEntry>();
+        ActivePowerEntries = activePowerEntries ?? new List<NeuroInterfaceMetricEntry>();
+        PassiveNeuroLoadEntries = passiveNeuroLoadEntries ?? new List<NeuroInterfaceMetricEntry>();
+        ActiveNeuroLoadEntries = activeNeuroLoadEntries ?? new List<NeuroInterfaceMetricEntry>();
     }
 }
 

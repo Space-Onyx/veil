@@ -1,5 +1,7 @@
 using Content.Shared._Onyx.Surgery.Augments;
 using Content.Shared.Body.Events;
+using Content.Server.Body.Systems;
+using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Emp;
 using Content.Shared.Movement.Components;
 using Content.Shared.Movement.Systems;
@@ -10,6 +12,8 @@ namespace Content.Server._Onyx.Surgery.Augments;
 
 public sealed class AugmentMovementSpeedSystem : EntitySystem
 {
+    [Dependency] private readonly BodySystem _body = default!;
+    [Dependency] private readonly ItemSlotsSystem _itemSlots = default!;
     [Dependency] private readonly MovementSpeedModifierSystem _movementSpeed = default!;
     [Dependency] private readonly SharedAugmentPowerCellSystem _augmentPower = default!;
     [Dependency] private readonly SharedPowerCellSystem _powerCell = default!;
@@ -81,9 +85,7 @@ public sealed class AugmentMovementSpeedSystem : EntitySystem
 
     private void OnGetPowerDraw(EntityUid uid, AugmentMovementSpeedComponent component, ref GetAugmentsPowerDrawEvent args)
     {
-        if (HasComp<AugmentEmpDisabledComponent>(uid)
-            || HasComp<AugmentBrainDeactivatedComponent>(uid)
-            || HasComp<AugmentNeuroManuallyDisabledComponent>(uid))
+        if (IsEnhancementDisabled(uid))
             return;
 
         if (RequiresPower(uid, component))
@@ -98,38 +100,29 @@ public sealed class AugmentMovementSpeedSystem : EntitySystem
         args.PassivePowerEntries.Add(new NeuroInterfaceMetricEntry("neuro-interface-tooltip-source-power-movement", component.PowerDraw));
     }
 
-    private void OnRefreshMovementSpeed(EntityUid uid, InstalledAugmentsComponent component, RefreshMovementSpeedModifiersEvent args)
+    private void OnRefreshMovementSpeed(EntityUid uid, InstalledAugmentsComponent _, RefreshMovementSpeedModifiersEvent args)
     {
-        var (walkMult, sprintMult) = CalculateTotalSpeedModifier(uid, component);
+        var (walkMult, sprintMult) = CalculateTotalSpeedModifier(uid);
 
         if (walkMult != 1.0f || sprintMult != 1.0f)
         {
             args.ModifySpeed(walkMult, sprintMult);
         }
     }
-    private (float WalkMult, float SprintMult) CalculateTotalSpeedModifier(EntityUid body, InstalledAugmentsComponent installed)
+    private (float WalkMult, float SprintMult) CalculateTotalSpeedModifier(EntityUid body)
     {
         var totalWalkMult = 1.0f;
         var totalSprintMult = 1.0f;
         var totalWalkFlat = 0f;
         var totalSprintFlat = 0f;
+        var hasPower = HasAugmentPower(body);
 
-        foreach (var netEnt in installed.InstalledAugments)
+        foreach (var enhancement in AugmentEnhancementHelpers.EnumerateEnhancements(body, _body, _itemSlots, EntityManager))
         {
-            var augUid = GetEntity(netEnt);
-            if (!TryComp<AugmentMovementSpeedComponent>(augUid, out var augment))
+            if (!TryComp<AugmentMovementSpeedComponent>(enhancement, out var augment))
                 continue;
 
-            if (HasComp<AugmentEmpDisabledComponent>(augUid))
-                continue;
-
-            if (HasComp<AugmentBrainDeactivatedComponent>(augUid))
-                continue;
-
-            if (HasComp<AugmentNeuroManuallyDisabledComponent>(augUid))
-                continue;
-
-            if (RequiresPower(augUid, augment) && !HasAugmentPower(body))
+            if (!CanApplySpeedModifier(enhancement, augment, hasPower))
                 continue;
 
             switch (augment.ModifierType)
@@ -158,15 +151,24 @@ public sealed class AugmentMovementSpeedSystem : EntitySystem
         return (totalWalkMult, totalSprintMult);
     }
 
+    private bool CanApplySpeedModifier(EntityUid uid, AugmentMovementSpeedComponent component, bool hasPower)
+    {
+        if (IsEnhancementDisabled(uid))
+            return false;
+
+        return !RequiresPower(uid, component) || hasPower;
+    }
+
+    private bool IsEnhancementDisabled(EntityUid uid)
+    {
+        return HasComp<AugmentEmpDisabledComponent>(uid)
+               || HasComp<AugmentBrainDeactivatedComponent>(uid)
+               || HasComp<AugmentNeuroManuallyDisabledComponent>(uid);
+    }
+
     private bool HasAugmentPower(EntityUid body)
     {
-        if (_augmentPower.GetBodyAugment(body) is not { } slot)
-            return false;
-
-        if (!TryComp<PowerCellDrawComponent>(slot, out var draw))
-            return false;
-
-        return _powerCell.HasDrawCharge(slot, draw);
+        return AugmentPowerHelpers.HasAugmentPower(body, _augmentPower, _powerCell, EntityManager);
     }
 
     private bool RequiresPower(EntityUid uid, AugmentMovementSpeedComponent component)

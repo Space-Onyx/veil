@@ -4,13 +4,13 @@ using Robust.Shared.GameStates;
 
 namespace Content.Shared._Onyx.Surgery.Augments;
 
-[RegisterComponent, NetworkedComponent]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class AugmentModuleSlotsComponent : Component
 {
     [DataField(required: true)]
     public List<AugmentModuleSlotDefinition> Slots = new();
 
-    [DataField]
+    [DataField, AutoNetworkedField]
     public bool PanelOpen;
 }
 

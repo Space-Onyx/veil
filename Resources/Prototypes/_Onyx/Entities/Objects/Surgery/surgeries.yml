@@ -211,3 +211,45 @@
   - type: SurgeryOrganCondition
     organ:
     - type: Organ
+
+- type: entity
+  parent: SurgeryOpenCavityBase
+  id: SurgeryOpenChestAugment
+  name: Open Chest Cavity
+  components:
+  - type: SurgeryPartCondition
+    parts: [ Chest ]
+  - type: SurgeryOrganSlotCondition
+    organSlot: chestImplant
+    inverse: true
+
+- type: entity
+  id: SurgeryInsertChestAugment
+  name: Insert Chest Augment
+  components:
+  - type: Surgery
+    requirement: SurgeryOpenChestAugment
+    steps:
+    - SurgeryStepInsertAugmentChest
+    - SurgeryStepSealOrganWound
+  - type: SurgeryPartCondition
+    parts: [ Chest ]
+  - type: SurgeryOrganSlotCondition
+    organSlot: chestImplant
+  - type: SurgeryOrganTagCondition
+    tag: chestAugment
+    inverse: true
+    reattaching: true
+
+- type: entity
+  parent: SurgeryRemoveAugmentBase
+  id: SurgeryRemoveChestAugment
+  name: Remove Chest Augment
+  components:
+  - type: SurgeryPartCondition
+    parts: [ Chest ]
+  - type: SurgeryOrganTagCondition
+    tag: chestAugment
+  - type: SurgeryOrganCondition
+    organ:
+    - type: Organ

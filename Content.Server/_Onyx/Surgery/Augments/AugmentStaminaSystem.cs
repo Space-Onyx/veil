@@ -2,11 +2,18 @@ using Content.Shared._Onyx.Surgery.Augments;
 using Content.Shared.Body.Events;
 using Content.Shared.Damage.Components;
 using Content.Goobstation.Shared.Augments;
+using Content.Server.Body.Systems;
+using Content.Shared.Containers.ItemSlots;
 
 namespace Content.Server._Onyx.Surgery.Augments;
 
 public sealed class AugmentStaminaSystem : EntitySystem
 {
+    [Dependency] private readonly BodySystem _body = default!;
+    [Dependency] private readonly ItemSlotsSystem _itemSlots = default!;
+    private const float BaseCritThreshold = 100f;
+    private const float BaseDecay = 5f;
+
     public override void Initialize()
     {
         base.Initialize();
@@ -53,29 +60,17 @@ public sealed class AugmentStaminaSystem : EntitySystem
     {
         if (!TryComp<StaminaComponent>(body, out var stamina))
             return;
-        if (!TryComp<InstalledAugmentsComponent>(body, out var installed))
-            return;
-
-        var baseCritThreshold = 100f;
-        var baseDecay = 5f;
 
         var totalMult = 1.0f;
         var totalFlat = 0f;
         var recoveryMult = 1.0f;
 
-        foreach (var netEnt in installed.InstalledAugments)
+        foreach (var enhancement in AugmentEnhancementHelpers.EnumerateEnhancements(body, _body, _itemSlots, EntityManager))
         {
-            var augUid = GetEntity(netEnt);
-            if (!TryComp<AugmentStaminaComponent>(augUid, out var aug))
+            if (!TryComp<AugmentStaminaComponent>(enhancement, out var aug))
                 continue;
 
-            if (HasComp<AugmentEmpDisabledComponent>(augUid))
-                continue;
-
-            if (HasComp<AugmentBrainDeactivatedComponent>(augUid))
-                continue;
-
-            if (HasComp<AugmentNeuroManuallyDisabledComponent>(augUid))
+            if (!CanApplyStaminaModifier(enhancement))
                 continue;
 
             switch (aug.ModifierType)
@@ -91,9 +86,16 @@ public sealed class AugmentStaminaSystem : EntitySystem
             recoveryMult *= aug.RecoveryMultiplier;
         }
 
-        stamina.CritThreshold = baseCritThreshold * totalMult + totalFlat;
-        stamina.Decay = baseDecay * recoveryMult;
+        stamina.CritThreshold = BaseCritThreshold * totalMult + totalFlat;
+        stamina.Decay = BaseDecay * recoveryMult;
 
         Dirty(body, stamina);
+    }
+
+    private bool CanApplyStaminaModifier(EntityUid enhancement)
+    {
+        return !HasComp<AugmentEmpDisabledComponent>(enhancement)
+               && !HasComp<AugmentBrainDeactivatedComponent>(enhancement)
+               && !HasComp<AugmentNeuroManuallyDisabledComponent>(enhancement);
     }
 }

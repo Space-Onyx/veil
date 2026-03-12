@@ -69,6 +69,8 @@ public sealed class AugmentSuppressionZoneVisualizerSystem : EntitySystem
     {
         private readonly AugmentSuppressionZoneVisualizerSystem _system;
         private readonly IEntityManager _entityManager;
+        private readonly Vector2[] _circleVertices = new Vector2[CircleSegments + 2];
+        private readonly Vector2[] _squareVertices = new Vector2[6];
 
         public override OverlaySpace Space => OverlaySpace.WorldSpace;
 
@@ -116,30 +118,28 @@ public sealed class AugmentSuppressionZoneVisualizerSystem : EntitySystem
 
         private void DrawCircleFan(DrawingHandleWorld handle, Vector2 center, float radius, Color color)
         {
-            var vertices = new Vector2[CircleSegments + 2];
-            vertices[0] = center;
+            _circleVertices[0] = center;
 
             for (var i = 0; i <= CircleSegments; i++)
             {
                 var angle = MathF.Tau * i / CircleSegments;
                 var offset = new Vector2(MathF.Cos(angle), MathF.Sin(angle)) * radius;
-                vertices[i + 1] = center + offset;
+                _circleVertices[i + 1] = center + offset;
             }
 
-            handle.DrawPrimitives(DrawPrimitiveTopology.TriangleFan, vertices, color);
+            handle.DrawPrimitives(DrawPrimitiveTopology.TriangleFan, _circleVertices, color);
         }
 
         private void DrawSquareFan(DrawingHandleWorld handle, Vector2 center, float radius, Angle rotation, Color color)
         {
-            var vertices = new Vector2[6];
-            vertices[0] = center;
-            vertices[1] = center + rotation.RotateVec(new Vector2(-radius, -radius));
-            vertices[2] = center + rotation.RotateVec(new Vector2(radius, -radius));
-            vertices[3] = center + rotation.RotateVec(new Vector2(radius, radius));
-            vertices[4] = center + rotation.RotateVec(new Vector2(-radius, radius));
-            vertices[5] = vertices[1];
+            _squareVertices[0] = center;
+            _squareVertices[1] = center + rotation.RotateVec(new Vector2(-radius, -radius));
+            _squareVertices[2] = center + rotation.RotateVec(new Vector2(radius, -radius));
+            _squareVertices[3] = center + rotation.RotateVec(new Vector2(radius, radius));
+            _squareVertices[4] = center + rotation.RotateVec(new Vector2(-radius, radius));
+            _squareVertices[5] = _squareVertices[1];
 
-            handle.DrawPrimitives(DrawPrimitiveTopology.TriangleFan, vertices, color);
+            handle.DrawPrimitives(DrawPrimitiveTopology.TriangleFan, _squareVertices, color);
         }
     }
 }

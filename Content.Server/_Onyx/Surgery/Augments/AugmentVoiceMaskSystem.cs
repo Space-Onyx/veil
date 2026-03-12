@@ -78,19 +78,7 @@ public sealed class AugmentVoiceMaskSystem : EntitySystem
 
     private void OnTransformSpeakerName(Entity<AugmentVoiceMaskComponent> ent, ref TransformSpeakerNameEvent args)
     {
-        if (_augment.GetBody(ent) != args.Sender)
-            return;
-
-        if (HasComp<AugmentSuppressedByProjectorsComponent>(ent.Owner))
-            return;
-
-        if (HasComp<AugmentEmpDisabledComponent>(ent.Owner))
-            return;
-
-        if (HasComp<AugmentBrainDeactivatedComponent>(ent.Owner))
-            return;
-
-        if (HasComp<AugmentNeuroManuallyDisabledComponent>(ent.Owner))
+        if (!CanUseVoiceMask(ent, args.Sender))
             return;
 
         args.VoiceName = GetCurrentVoiceName(ent);
@@ -99,19 +87,7 @@ public sealed class AugmentVoiceMaskSystem : EntitySystem
 
     private void OnTransformSpeakerBark(Entity<AugmentVoiceMaskComponent> ent, ref TransformSpeakerBarkEvent args)
     {
-        if (_augment.GetBody(ent) != args.Sender)
-            return;
-
-        if (HasComp<AugmentSuppressedByProjectorsComponent>(ent.Owner))
-            return;
-
-        if (HasComp<AugmentEmpDisabledComponent>(ent.Owner))
-            return;
-
-        if (HasComp<AugmentBrainDeactivatedComponent>(ent.Owner))
-            return;
-
-        if (HasComp<AugmentNeuroManuallyDisabledComponent>(ent.Owner))
+        if (!CanUseVoiceMask(ent, args.Sender))
             return;
 
         if (_proto.TryIndex<BarkPrototype>(ent.Comp.BarkId, out var proto))
@@ -123,32 +99,8 @@ public sealed class AugmentVoiceMaskSystem : EntitySystem
 
     private void OnSetNameEvent(Entity<AugmentVoiceMaskComponent> ent, ref VoiceMaskSetNameEvent args)
     {
-        if (_augment.GetBody(ent) != args.Performer)
+        if (!CanUseVoiceMask(ent, args.Performer, showPopup: true))
             return;
-
-        if (HasComp<AugmentSuppressedByProjectorsComponent>(ent.Owner))
-        {
-            _popup.PopupEntity(Loc.GetString("augment-suppression-disabled"), args.Performer, args.Performer, PopupType.SmallCaution);
-            return;
-        }
-
-        if (HasComp<AugmentEmpDisabledComponent>(ent.Owner))
-        {
-            _popup.PopupEntity(Loc.GetString("augment-emp-disabled"), args.Performer, args.Performer, PopupType.SmallCaution);
-            return;
-        }
-
-        if (HasComp<AugmentBrainDeactivatedComponent>(ent.Owner))
-        {
-            _popup.PopupEntity(Loc.GetString("augment-brain-disabled"), args.Performer, args.Performer, PopupType.SmallCaution);
-            return;
-        }
-
-        if (HasComp<AugmentNeuroManuallyDisabledComponent>(ent.Owner))
-        {
-            _popup.PopupEntity(Loc.GetString("augment-disabled-manually"), args.Performer, args.Performer, PopupType.SmallCaution);
-            return;
-        }
 
         if (!_uiSystem.HasUi(ent.Owner, VoiceMaskUIKey.Key))
             return;
@@ -170,8 +122,7 @@ public sealed class AugmentVoiceMaskSystem : EntitySystem
         ent.Comp.VoiceMaskName = message.Name;
         _adminLogger.Add(LogType.Action, LogImpact.Medium, $"{ToPrettyString(message.Actor):player} set voice of augment {ToPrettyString(ent):augment}: {ent.Comp.VoiceMaskName}");
 
-        _popup.PopupEntity(Loc.GetString("voice-mask-popup-success"), ent, message.Actor);
-        UpdateUI(ent);
+        NotifyUpdateSuccess(ent, message.Actor);
     }
 
     private void OnChangeVerb(Entity<AugmentVoiceMaskComponent> ent, ref VoiceMaskChangeVerbMessage msg)
@@ -180,15 +131,13 @@ public sealed class AugmentVoiceMaskSystem : EntitySystem
             return;
 
         ent.Comp.VoiceMaskSpeechVerb = msg.Verb;
-        _popup.PopupEntity(Loc.GetString("voice-mask-popup-success"), ent, msg.Actor);
-        UpdateUI(ent);
+        NotifyUpdateSuccess(ent, msg.Actor);
     }
 
     private void OnChangeBark(Entity<AugmentVoiceMaskComponent> ent, ref VoiceMaskChangeBarkMessage msg)
     {
         ent.Comp.BarkId = msg.Proto;
-        _popup.PopupEntity(Loc.GetString("voice-mask-popup-success"), ent, msg.Actor);
-        UpdateUI(ent);
+        NotifyUpdateSuccess(ent, msg.Actor);
     }
 
     private void OnChangeBarkPitch(Entity<AugmentVoiceMaskComponent> ent, ref VoiceMaskChangeBarkPitchMessage msg)
@@ -196,8 +145,7 @@ public sealed class AugmentVoiceMaskSystem : EntitySystem
         if (float.TryParse(msg.Pitch, out var pitch))
             ent.Comp.BarkPitch = pitch;
 
-        _popup.PopupEntity(Loc.GetString("voice-mask-popup-success"), ent, msg.Actor);
-        UpdateUI(ent);
+        NotifyUpdateSuccess(ent, msg.Actor);
     }
 
     #endregion
@@ -219,5 +167,57 @@ public sealed class AugmentVoiceMaskSystem : EntitySystem
     private string GetCurrentVoiceName(Entity<AugmentVoiceMaskComponent> ent)
     {
         return ent.Comp.VoiceMaskName ?? Loc.GetString("voice-mask-default-name-override");
+    }
+
+    private bool CanUseVoiceMask(Entity<AugmentVoiceMaskComponent> ent, EntityUid performer, bool showPopup = false)
+    {
+        if (_augment.GetBody(ent) != performer)
+            return false;
+
+        if (TryGetBlockedPopupLocKey(ent.Owner, out var popupLocKey))
+        {
+            if (showPopup)
+                _popup.PopupEntity(Loc.GetString(popupLocKey), performer, performer, PopupType.SmallCaution);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool TryGetBlockedPopupLocKey(EntityUid augment, out string popupLocKey)
+    {
+        if (HasComp<AugmentSuppressedByProjectorsComponent>(augment))
+        {
+            popupLocKey = "augment-suppression-disabled";
+            return true;
+        }
+
+        if (HasComp<AugmentEmpDisabledComponent>(augment))
+        {
+            popupLocKey = "augment-emp-disabled";
+            return true;
+        }
+
+        if (HasComp<AugmentBrainDeactivatedComponent>(augment))
+        {
+            popupLocKey = "augment-brain-disabled";
+            return true;
+        }
+
+        if (HasComp<AugmentNeuroManuallyDisabledComponent>(augment))
+        {
+            popupLocKey = "augment-disabled-manually";
+            return true;
+        }
+
+        popupLocKey = string.Empty;
+        return false;
+    }
+
+    private void NotifyUpdateSuccess(Entity<AugmentVoiceMaskComponent> ent, EntityUid actor)
+    {
+        _popup.PopupEntity(Loc.GetString("voice-mask-popup-success"), ent, actor);
+        UpdateUI(ent);
     }
 }

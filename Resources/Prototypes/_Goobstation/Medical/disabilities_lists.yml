@@ -16,6 +16,8 @@
     - type: Narcolepsy # the fields are just so no errors throw
       timeBetweenIncidents: 0, 0
       durationOfIncident: 0, 0
+    - type: NeuroLoadLimitModifier # <Onyx-Surgery>
+      maxNeuroLoad: 0
     - type: Paracusia # the fields are just so no errors throw
       minTimeBetweenIncidents: 0
       maxTimeBetweenIncidents: 0

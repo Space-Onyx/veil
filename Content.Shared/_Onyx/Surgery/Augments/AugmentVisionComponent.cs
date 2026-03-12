@@ -96,13 +96,16 @@ public sealed partial class AugmentVisionComponent : Component
 
     public IEnumerable<AugmentVisionType> GetAllVisionTypes()
     {
-        if (VisionType.HasValue)
-            yield return VisionType.Value;
+        var primaryType = VisionType;
+        if (primaryType is { } primary)
+            yield return primary;
 
         foreach (var type in VisionTypes)
         {
-            if (!VisionType.HasValue || type != VisionType.Value)
-                yield return type;
+            if (primaryType is { } existing && type == existing)
+                continue;
+
+            yield return type;
         }
     }
 

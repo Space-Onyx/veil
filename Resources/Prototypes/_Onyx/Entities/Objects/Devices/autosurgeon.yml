@@ -27,3 +27,13 @@
     targetBodyPart: Head
     targetOrgan: neckImplant
     newPartProto: AugmentNeuroInterface
+
+- type: entity
+  parent: BaseAutosurgeonSingle
+  id: AutosurgeonSubdermalArmor
+  name: autosurgeon (subdermal armor)
+  components:
+  - type: AutoSurgeon
+    targetBodyPart: Chest
+    targetOrgan: chestImplant
+    newPartProto: AugmentSubdermalArmor

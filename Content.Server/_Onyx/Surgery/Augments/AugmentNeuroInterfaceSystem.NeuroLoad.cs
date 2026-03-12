@@ -7,6 +7,7 @@ using Content.Shared._Onyx.Surgery.Augments;
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Organ;
 using Content.Shared.Body.Part;
+using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Popups;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas.Systems;
 
@@ -32,14 +33,16 @@ public sealed partial class AugmentNeuroInterfaceSystem
 
                 if (TryComp<AugmentItemPanelComponent>(organUid, out var panel) && panel.IsEquipped)
                 {
-                    load += ApplyActiveModifiersWithFloor(
+                    load += AugmentModuleModifierHelpers.ApplyActiveModifiersWithFloor(
                         panel.EquippedNeuroLoad,
-                        GetItemPanelActiveNeuroMultiplier(organUid),
-                        GetItemPanelActiveNeuroDelta(organUid));
+                        AugmentModuleModifierHelpers.GetItemPanelActiveNeuroMultiplier(organUid, EntityManager),
+                        AugmentModuleModifierHelpers.GetItemPanelActiveNeuro(organUid, EntityManager));
                 }
 
                 if (TryComp<AugmentVisionComponent>(organUid, out var vision))
                     load += GetActiveVisionNeuroLoad(body, organUid, vision);
+
+                load += GetActiveModuleVisionNeuroLoad(body, organUid);
             }
         }
 
@@ -49,25 +52,26 @@ public sealed partial class AugmentNeuroInterfaceSystem
     private float GetPassiveNeuroLoad(EntityUid uid)
     {
         var baseLoad = 0f;
-        var moduleDelta = 0f;
+        var moduleNeuroLoad = 0f;
 
         if (TryComp<AugmentNeuroLoadComponent>(uid, out var load))
             baseLoad += load.PassiveLoad;
 
-        if (TryComp<AugmentUniversalModuleAccumulatorComponent>(uid, out var moduleAccumulator))
-            moduleDelta += moduleAccumulator.CurrentNeuroLoadDelta;
+        moduleNeuroLoad += AugmentModuleModifierHelpers.GetPassiveNeuroLoad(uid, EntityManager);
 
-        var modified = baseLoad + moduleDelta;
-        if (moduleDelta < 0f && baseLoad > 0f)
+        var modified = baseLoad + moduleNeuroLoad;
+        if (moduleNeuroLoad < 0f && baseLoad > 0f)
             return MathF.Max(1f, modified);
 
         return MathF.Max(0f, modified);
     }
 
-    private AugmentMetricBreakdown GetAugmentMetrics(EntityUid uid)
+    private AugmentMetricBreakdown GetAugmentMetrics(EntityUid uid, bool? forcePowerEnabled = null)
     {
         var metrics = new AugmentMetricBreakdown();
-        var powerEnabled = !TryComp<AugmentPowerConfigComponent>(uid, out var powerConfig) || powerConfig.RequiresPower;
+        var powerEnabled = forcePowerEnabled
+            ?? (!TryComp<AugmentPowerConfigComponent>(uid, out var powerConfig)
+                || powerConfig.RequiresPower);
         var ev = new CollectAugmentNeuroInterfaceMetricsEvent(
             powerEnabled,
             metrics.PassivePowerEntries,
@@ -96,14 +100,16 @@ public sealed partial class AugmentNeuroInterfaceSystem
     private bool IsPartActive(EntityUid partUid, BodyPartComponent part)
     {
         return part.Enabled
-               && !HasComp<AugmentNeuroManuallyDisabledComponent>(partUid)
+               && (!AugmentBehaviorPolicyHelpers.CanToggle(partUid, EntityManager)
+                   || !HasComp<AugmentNeuroManuallyDisabledComponent>(partUid))
                && !IsEmpBlocked(partUid);
     }
 
     private bool IsOrganActive(EntityUid organUid, OrganComponent organ)
     {
         return organ.Enabled
-               && !HasComp<AugmentNeuroManuallyDisabledComponent>(organUid)
+               && (!AugmentBehaviorPolicyHelpers.CanToggle(organUid, EntityManager)
+                   || !HasComp<AugmentNeuroManuallyDisabledComponent>(organUid))
                && !IsEmpBlocked(organUid);
     }
 
@@ -120,10 +126,47 @@ public sealed partial class AugmentNeuroInterfaceSystem
                 continue;
 
             var active = vision.GetActiveNeuroLoad(type);
-            load += ApplyActiveModifiersWithFloor(
+            load += AugmentModuleModifierHelpers.ApplyActiveModifiersWithFloor(
                 active,
-                GetVisionActiveNeuroMultiplier(augmentUid),
-                GetVisionActiveNeuroDelta(augmentUid));
+                AugmentModuleModifierHelpers.GetVisionActiveNeuroMultiplier(augmentUid, EntityManager),
+                AugmentModuleModifierHelpers.GetVisionActiveNeuro(augmentUid, EntityManager));
+        }
+
+        return load;
+    }
+
+    private float GetActiveModuleVisionNeuroLoad(EntityUid body, EntityUid hostAugmentUid)
+    {
+        if (!TryComp<AugmentModuleSlotsComponent>(hostAugmentUid, out var moduleSlots)
+            || !TryComp<ItemSlotsComponent>(hostAugmentUid, out var itemSlots))
+        {
+            return 0f;
+        }
+
+        var load = 0f;
+        foreach (var definition in moduleSlots.Slots)
+        {
+            if (!_itemSlots.TryGetSlot(hostAugmentUid, definition.Id, out var slot, itemSlots)
+                || slot.Item is not { } moduleUid
+                || !TryComp<AugmentVisionComponent>(moduleUid, out var moduleVision))
+            {
+                continue;
+            }
+
+            foreach (var type in moduleVision.GetAllVisionTypes())
+            {
+                if (!AugmentVisionComponent.IsToggleable(type))
+                    continue;
+
+                if (!IsVisionTypeActive(body, type))
+                    continue;
+
+                var active = moduleVision.GetActiveNeuroLoad(type);
+                load += AugmentModuleModifierHelpers.ApplyActiveModifiersWithFloor(
+                    active,
+                    AugmentModuleModifierHelpers.GetVisionActiveNeuroMultiplier(hostAugmentUid, EntityManager),
+                    AugmentModuleModifierHelpers.GetVisionActiveNeuro(hostAugmentUid, EntityManager));
+            }
         }
 
         return load;
@@ -155,50 +198,6 @@ public sealed partial class AugmentNeuroInterfaceSystem
 
         maxLoad = GetAdjustedMaxNeuroLoad(body, body, DefaultNeuroLoadWithoutInterface);
         return true;
-    }
-
-    private float GetVisionActiveNeuroMultiplier(EntityUid uid)
-    {
-        if (!TryComp<AugmentUniversalModuleAccumulatorComponent>(uid, out var accumulator))
-            return 1f;
-
-        return MathF.Max(0f, accumulator.VisionActiveNeuroMultiplier);
-    }
-
-    private float GetVisionActiveNeuroDelta(EntityUid uid)
-    {
-        if (!TryComp<AugmentUniversalModuleAccumulatorComponent>(uid, out var accumulator))
-            return 0f;
-
-        return accumulator.VisionActiveNeuroDelta;
-    }
-
-    private float GetItemPanelActiveNeuroMultiplier(EntityUid uid)
-    {
-        if (!TryComp<AugmentUniversalModuleAccumulatorComponent>(uid, out var accumulator))
-            return 1f;
-
-        return MathF.Max(0f, accumulator.ItemPanelActiveNeuroMultiplier);
-    }
-
-    private float GetItemPanelActiveNeuroDelta(EntityUid uid)
-    {
-        if (!TryComp<AugmentUniversalModuleAccumulatorComponent>(uid, out var accumulator))
-            return 0f;
-
-        return accumulator.ItemPanelActiveNeuroDelta;
-    }
-
-    private static float ApplyActiveModifiersWithFloor(float baseValue, float multiplier, float delta)
-    {
-        if (baseValue <= 0f)
-            return 0f;
-
-        var value = baseValue * MathF.Max(0f, multiplier) + delta;
-        if (multiplier < 1f || delta < 0f)
-            return MathF.Max(1f, value);
-
-        return MathF.Max(0f, value);
     }
 
     private void ApplyOverloadDamage(EntityUid body)

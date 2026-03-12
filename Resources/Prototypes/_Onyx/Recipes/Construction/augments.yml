@@ -1,4 +1,4 @@
-﻿- type: construction
+- type: construction
   id: AugmentBioReactor
   graph: AugmentBioReactor
   startNode: start
@@ -21,3 +21,12 @@
   targetNode: augment
   category: construction-category-utilities
   canBuildInImpassable: false
+
+- type: construction
+  id: AugmentSubdermalArmor
+  graph: AugmentSubdermalArmor
+  startNode: start
+  targetNode: armor
+  category: construction-category-utilities
+  canBuildInImpassable: false
+

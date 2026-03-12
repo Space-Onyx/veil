@@ -169,7 +169,7 @@
   components:
   - type: AdminAugmentImplanter
     entries:
-    - prototype: AugmentBioReactor
+    - prototype: AugmentReactor
       slot: charger
       partType: Chest
 
@@ -432,3 +432,14 @@
       slot: armImplant
       partType: Arm
       symmetry: Right
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterSubdermalArmor
+  suffix: Admeme, Subdermal Armor, Chest
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentSubdermalArmor
+      slot: chestImplant
+      partType: Chest

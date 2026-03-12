@@ -10,7 +10,7 @@ using Content.Shared.Nutrition.EntitySystems;
 
 namespace Content.Server._Onyx.Surgery.Augments;
 
-public sealed class AugmentBioReactorSystem : EntitySystem
+public sealed class AugmentReactorSystem : EntitySystem
 {
     [Dependency] private readonly SharedAugmentPowerCellSystem _augmentPower = default!;
     [Dependency] private readonly PowerCellSystem _powerCell = default!;
@@ -22,7 +22,7 @@ public sealed class AugmentBioReactorSystem : EntitySystem
     {
         base.Update(frameTime);
 
-        var query = EntityQueryEnumerator<AugmentBioReactorComponent, OrganComponent>();
+        var query = EntityQueryEnumerator<AugmentReactorComponent, OrganComponent>();
         while (query.MoveNext(out var uid, out var reactor, out var organ))
         {
             if (organ.Body is not { } body)
@@ -31,19 +31,10 @@ public sealed class AugmentBioReactorSystem : EntitySystem
             if (_mobState.IsDead(body))
                 continue;
 
-            if (HasComp<AugmentEmpDisabledComponent>(uid))
+            if (IsReactorBlocked(uid))
                 continue;
 
-            if (HasComp<AugmentBrainDeactivatedComponent>(uid))
-                continue;
-
-            if (HasComp<AugmentNeuroManuallyDisabledComponent>(uid))
-                continue;
-
-            if (_augmentPower.GetBodyAugment(body) is not { } slot)
-                continue;
-
-            if (!_powerCell.TryGetBatteryFromSlot(slot.Owner, out var batteryUid, out BatteryComponent? battery))
+            if (!TryGetBodyBattery(body, out var batteryUid, out var battery))
                 continue;
 
             var missingCharge = battery.MaxCharge - battery.CurrentCharge;
@@ -73,11 +64,38 @@ public sealed class AugmentBioReactorSystem : EntitySystem
             if (chargeToGenerate <= 0f)
                 continue;
 
-            _battery.AddCharge(batteryUid.Value, chargeToGenerate, battery);
+            _battery.AddCharge(batteryUid, chargeToGenerate, battery);
 
             if (reactor.HungerCostPerCharge > 0f)
                 _hunger.ModifyHunger(body, -chargeToGenerate * reactor.HungerCostPerCharge, hungerComp);
         }
+    }
+
+    private bool IsReactorBlocked(EntityUid reactorUid)
+    {
+        return HasComp<AugmentEmpDisabledComponent>(reactorUid)
+               || HasComp<AugmentBrainDeactivatedComponent>(reactorUid)
+               || HasComp<AugmentNeuroManuallyDisabledComponent>(reactorUid);
+    }
+
+    private bool TryGetBodyBattery(EntityUid body, out EntityUid batteryUid, out BatteryComponent battery)
+    {
+        batteryUid = default;
+        battery = default!;
+
+        if (_augmentPower.GetBodyAugment(body) is not { } slot)
+            return false;
+
+        if (!_powerCell.TryGetBatteryFromSlot(slot.Owner, out var foundUid, out BatteryComponent? foundBattery)
+            || foundUid == null
+            || foundBattery == null)
+        {
+            return false;
+        }
+
+        batteryUid = foundUid.Value;
+        battery = foundBattery;
+        return true;
     }
 
     private float ClampChargeByHungerThreshold(

@@ -131,36 +131,14 @@ public sealed class AugmentHoloPdaSystem : EntitySystem
         if (args.Handled)
             return;
 
-        var body = _augment.GetBody(ent);
-        if (body == null || body != args.Performer)
+        if (!TryGetOwningBody(ent, args.Performer, out _))
             return;
 
         if (!_ui.HasUi(ent.Owner, PdaUiKey.Key))
             return;
 
-        if (HasComp<AugmentSuppressedByProjectorsComponent>(ent.Owner))
-        {
-            _popup.PopupEntity(Loc.GetString("augment-suppression-disabled"), args.Performer, args.Performer, PopupType.SmallCaution);
+        if (!CanUseHoloPda(ent, args.Performer))
             return;
-        }
-
-        if (HasComp<AugmentEmpDisabledComponent>(ent.Owner))
-        {
-            _popup.PopupEntity(Loc.GetString("augment-emp-disabled"), args.Performer, args.Performer, PopupType.SmallCaution);
-            return;
-        }
-
-        if (HasComp<AugmentBrainDeactivatedComponent>(ent.Owner))
-        {
-            _popup.PopupEntity(Loc.GetString("augment-brain-disabled"), args.Performer, args.Performer, PopupType.SmallCaution);
-            return;
-        }
-
-        if (HasComp<AugmentNeuroManuallyDisabledComponent>(ent.Owner))
-        {
-            _popup.PopupEntity(Loc.GetString("augment-disabled-manually"), args.Performer, args.Performer, PopupType.SmallCaution);
-            return;
-        }
 
         _ui.TryToggleUi(ent.Owner, PdaUiKey.Key, args.Performer);
         args.Handled = true;
@@ -171,11 +149,10 @@ public sealed class AugmentHoloPdaSystem : EntitySystem
         if (args.Handled)
             return;
 
-        var body = _augment.GetBody(ent);
-        if (body == null || body != args.Performer)
+        if (!TryGetOwningBody(ent, args.Performer, out var body))
             return;
 
-        if (!CanUseHoloPda(ent, body.Value))
+        if (!CanUseHoloPda(ent, body))
             return;
 
         if (!TryComp<HealthAnalyzerComponent>(ent, out var analyzer)
@@ -279,18 +256,15 @@ public sealed class AugmentHoloPdaSystem : EntitySystem
             if (TryComp<PdaComponent>(ent, out var pda))
                 pda.ContainedId = null;
         }
-        else if (args.Container.ID == CartridgeLoaderComponent.CartridgeSlotId)
-        {
-            var body = _augment.GetBody(ent);
-            if (body != null)
-                _hands.TryPickupAnyHand(body.Value, args.Entity);
-        }
 
         if (args.Container.ID == CartridgeLoaderComponent.CartridgeSlotId)
         {
             var body = _augment.GetBody(ent);
             if (body != null)
+            {
+                _hands.TryPickupAnyHand(body.Value, args.Entity);
                 UpdateMedTekScanAction(ent, body.Value);
+            }
         }
     }
 
@@ -505,31 +479,55 @@ public sealed class AugmentHoloPdaSystem : EntitySystem
 
     private bool CanUseHoloPda(Entity<AugmentHoloPdaComponent> ent, EntityUid body)
     {
-        if (HasComp<AugmentSuppressedByProjectorsComponent>(ent.Owner))
+        if (TryGetBlockedPopupLocKey(ent.Owner, out var popupLocKey))
         {
-            _popup.PopupEntity(Loc.GetString("augment-suppression-disabled"), body, body, PopupType.SmallCaution);
-            return false;
-        }
-
-        if (HasComp<AugmentEmpDisabledComponent>(ent.Owner))
-        {
-            _popup.PopupEntity(Loc.GetString("augment-emp-disabled"), body, body, PopupType.SmallCaution);
-            return false;
-        }
-
-        if (HasComp<AugmentBrainDeactivatedComponent>(ent.Owner))
-        {
-            _popup.PopupEntity(Loc.GetString("augment-brain-disabled"), body, body, PopupType.SmallCaution);
-            return false;
-        }
-
-        if (HasComp<AugmentNeuroManuallyDisabledComponent>(ent.Owner))
-        {
-            _popup.PopupEntity(Loc.GetString("augment-disabled-manually"), body, body, PopupType.SmallCaution);
+            _popup.PopupEntity(Loc.GetString(popupLocKey), body, body, PopupType.SmallCaution);
             return false;
         }
 
         return true;
+    }
+
+    private bool TryGetOwningBody(Entity<AugmentHoloPdaComponent> ent, EntityUid performer, out EntityUid body)
+    {
+        if (_augment.GetBody(ent) is { } ownerBody && ownerBody == performer)
+        {
+            body = ownerBody;
+            return true;
+        }
+
+        body = default;
+        return false;
+    }
+
+    private bool TryGetBlockedPopupLocKey(EntityUid augment, out string popupLocKey)
+    {
+        if (HasComp<AugmentSuppressedByProjectorsComponent>(augment))
+        {
+            popupLocKey = "augment-suppression-disabled";
+            return true;
+        }
+
+        if (HasComp<AugmentEmpDisabledComponent>(augment))
+        {
+            popupLocKey = "augment-emp-disabled";
+            return true;
+        }
+
+        if (HasComp<AugmentBrainDeactivatedComponent>(augment))
+        {
+            popupLocKey = "augment-brain-disabled";
+            return true;
+        }
+
+        if (HasComp<AugmentNeuroManuallyDisabledComponent>(augment))
+        {
+            popupLocKey = "augment-disabled-manually";
+            return true;
+        }
+
+        popupLocKey = string.Empty;
+        return false;
     }
 
     private void UpdateMedTekScanAction(Entity<AugmentHoloPdaComponent> ent, EntityUid body)

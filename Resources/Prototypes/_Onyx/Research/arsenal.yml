@@ -10,8 +10,24 @@
   recipeUnlocks:
     - AugmentStunnerPanel
     - AugmentStunbatonPanel
-    - AugmentLaserPistolPanel
   position: 4,4
   technologyPrerequisites:
     - AdvancedRiotControl
     - BasicAugmentation
+
+- type: technology
+  id: IntegratedAdvancedWeaponAugments
+  name: research-technology-integrated-advanced-weapon-augments
+  icon:
+    sprite: Objects/Weapons/Guns/Battery/advancedlasergun.rsi
+    state: icon
+  discipline: Arsenal
+  tier: 3
+  cost: 15000
+  recipeUnlocks:
+    - AugmentLaserPistolPanel
+    - AugmentSubdermalArmorCasing
+  position: 6,4
+  technologyPrerequisites:
+    - IntegratedWeaponAugments
+    - PortableMicrofusionWeaponry

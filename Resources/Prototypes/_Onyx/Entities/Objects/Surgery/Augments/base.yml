@@ -10,6 +10,7 @@
     visible: true
   - type: AugmentEmp
   - type: AugmentPowerConfig
+  - type: AugmentBehaviorPolicy
   - type: Tag
     tags:
     - Augment

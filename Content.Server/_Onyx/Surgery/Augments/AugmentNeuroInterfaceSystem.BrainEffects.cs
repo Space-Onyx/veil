@@ -66,10 +66,12 @@ public sealed partial class AugmentNeuroInterfaceSystem
     {
         foreach (var (partUid, partComp) in _body.GetBodyChildren(body))
         {
-            if (IsControllablePart(partUid))
+            var canBrainDeactivatePart = IsControllablePart(partUid)
+                                         && AugmentBehaviorPolicyHelpers.IsAffectedByBrainDeactivation(partUid, EntityManager);
+            if (canBrainDeactivatePart)
                 EnsureComp<AugmentBrainDeactivatedComponent>(partUid);
 
-            if (IsControllablePart(partUid) && partComp.CanEnable && partComp.Enabled)
+            if (canBrainDeactivatePart && partComp.CanEnable && partComp.Enabled)
             {
                 var partDisable = new BodyPartEnableChangedEvent(false);
                 RaiseLocalEvent(partUid, ref partDisable);
@@ -77,10 +79,7 @@ public sealed partial class AugmentNeuroInterfaceSystem
 
             foreach (var (organUid, organComp) in _body.GetPartOrgans(partUid, partComp))
             {
-                if (!IsControllableOrgan(organUid))
-                    continue;
-
-                if (HasComp<AugmentNeuroInterfaceComponent>(organUid))
+                if (!IsBrainManagedOrgan(organUid))
                     continue;
 
                 EnsureComp<AugmentBrainDeactivatedComponent>(organUid);
@@ -100,7 +99,8 @@ public sealed partial class AugmentNeuroInterfaceSystem
     {
         foreach (var (partUid, partComp) in _body.GetBodyChildren(body))
         {
-            if (IsControllablePart(partUid))
+            if (IsControllablePart(partUid)
+                && AugmentBehaviorPolicyHelpers.IsAffectedByBrainDeactivation(partUid, EntityManager))
             {
                 if (deactivated)
                     EnsureComp<AugmentBrainDeactivatedComponent>(partUid);
@@ -110,7 +110,7 @@ public sealed partial class AugmentNeuroInterfaceSystem
 
             foreach (var (organUid, _) in _body.GetPartOrgans(partUid, partComp))
             {
-                if (!IsControllableOrgan(organUid) || HasComp<AugmentNeuroInterfaceComponent>(organUid))
+                if (!IsBrainManagedOrgan(organUid))
                     continue;
 
                 if (deactivated)
@@ -138,23 +138,28 @@ public sealed partial class AugmentNeuroInterfaceSystem
 
     private float GetAdjustedMaxNeuroLoad(EntityUid body, EntityUid neuroInterfaceUid, float baseMaxLoad)
     {
-        var moduleDelta = GetUniversalModuleMaxNeuroLoadDelta(neuroInterfaceUid);
-        var adjustedBase = baseMaxLoad + moduleDelta;
-        if (moduleDelta < 0f && baseMaxLoad > 0f)
+        var moduleMaxNeuroLoad = GetUniversalModuleMaxNeuroLoad(neuroInterfaceUid);
+        var adjustedBase = baseMaxLoad + moduleMaxNeuroLoad;
+        if (moduleMaxNeuroLoad < 0f && baseMaxLoad > 0f)
             adjustedBase = MathF.Max(1f, adjustedBase);
         else
             adjustedBase = MathF.Max(0f, adjustedBase);
 
-        if (GetBrainPenaltyStage(body) < BrainPenaltyStage.Below80)
-            return adjustedBase;
+        if (GetBrainPenaltyStage(body) >= BrainPenaltyStage.Below80)
+            adjustedBase = MathF.Max(0f, adjustedBase - BrainNeuroLoadPenalty);
 
-        return MathF.Max(0f, adjustedBase - BrainNeuroLoadPenalty);
+        return adjustedBase + GetBodyNeuroLoadLimit(body);
     }
 
-    private float GetUniversalModuleMaxNeuroLoadDelta(EntityUid neuroInterfaceUid)
+    private float GetUniversalModuleMaxNeuroLoad(EntityUid neuroInterfaceUid)
     {
-        return TryComp<AugmentUniversalModuleAccumulatorComponent>(neuroInterfaceUid, out var accumulator)
-            ? accumulator.MaxNeuroLoadDelta
+        return AugmentModuleModifierHelpers.GetMaxNeuroLoad(neuroInterfaceUid, EntityManager);
+    }
+
+    private float GetBodyNeuroLoadLimit(EntityUid body)
+    {
+        return TryComp<NeuroLoadLimitModifierComponent>(body, out var modifier)
+            ? modifier.MaxNeuroLoad
             : 0f;
     }
 
@@ -287,5 +292,16 @@ public sealed partial class AugmentNeuroInterfaceSystem
         }
 
         return builder.ToString();
+    }
+
+    private bool IsBrainManagedOrgan(EntityUid organUid)
+    {
+        if (!IsControllableOrgan(organUid))
+            return false;
+
+        if (!AugmentBehaviorPolicyHelpers.IsAffectedByBrainDeactivation(organUid, EntityManager))
+            return false;
+
+        return !HasComp<AugmentNeuroInterfaceComponent>(organUid);
     }
 }

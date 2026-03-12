@@ -8,6 +8,24 @@
     event: !type:AugmentActionEvent
 
 - type: entity
+  parent: BaseAugmentAction
+  id: ActionAugmentToggleItemPanelLeft
+  name: Toggle item panel (left arm)
+  description: Deploy or retract the built-in item from your left arm.
+  components:
+  - type: InstantAction
+    event: !type:AugmentActionEvent
+
+- type: entity
+  parent: BaseAugmentAction
+  id: ActionAugmentToggleItemPanelRight
+  name: Toggle item panel (right arm)
+  description: Deploy or retract the built-in item from your right arm.
+  components:
+  - type: InstantAction
+    event: !type:AugmentActionEvent
+
+- type: entity
   abstract: true
   parent: BaseArmAugment
   id: BaseAugmentItemPanel

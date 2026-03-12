@@ -1,6 +1,10 @@
 # ItemPanel Action
 ent-ActionAugmentToggleItemPanel = Toggle item panel
     .desc = Deploy or retract the built-in item
+ent-ActionAugmentToggleItemPanelLeft = Toggle item panel (left arm)
+    .desc = Deploy or retract the built-in item from your left arm.
+ent-ActionAugmentToggleItemPanelRight = Toggle item panel (right arm)
+    .desc = Deploy or retract the built-in item from your right arm.
 
 ent-BaseAugmentItemPanel = { ent-BaseArmAugment }
     .desc = { ent-BaseArmAugment.desc }

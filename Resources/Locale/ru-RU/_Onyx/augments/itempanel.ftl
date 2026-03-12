@@ -31,3 +31,7 @@ ent-WeaponDisablerAugmentSelfCharging = { ent-WeaponDisabler }
     .desc = { ent-WeaponDisabler.desc }
 ent-StunbatonAugmentSelfCharging = { ent-Stunbaton }
     .desc = { ent-Stunbaton.desc }
+ent-ActionAugmentToggleItemPanelLeft = Переключить панель предмета (левая рука)
+    .desc = Извлечь или втянуть встроенный предмет из левой руки.
+ent-ActionAugmentToggleItemPanelRight = Переключить панель предмета (правая рука)
+    .desc = Извлечь или втянуть встроенный предмет из правой руки.

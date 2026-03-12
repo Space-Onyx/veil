@@ -114,3 +114,23 @@
     Plastic: 400
     Silver: 100
     Plasma: 500
+
+- type: latheRecipe
+  parent: BaseAugmentRecipe
+  id: AugmentSubdermalArmorCasing
+  result: AugmentSubdermalArmorCasing
+
+
+
+- type: latheRecipe
+  parent: BaseAugmentRecipe
+  id: AugmentModuleVisionMedical
+  result: AugmentModuleVisionMedical
+  completetime: 9
+  materials:
+    Steel: 300
+    Glass: 350
+    Plastic: 450
+    Silver: 300
+    Gold: 100
+

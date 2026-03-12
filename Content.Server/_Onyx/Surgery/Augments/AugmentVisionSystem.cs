@@ -8,6 +8,7 @@ using Content.Shared._Onyx.Surgery.Augments;
 using Content.Shared.Body.Events;
 using Content.Shared.Body.Organ;
 using Content.Shared.Chemistry.Components;
+using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Flash.Components;
 using Content.Shared.Overlays;
 using Content.Shared.PowerCell;
@@ -19,6 +20,7 @@ public sealed class AugmentVisionSystem : EntitySystem
 {
     [Dependency] private readonly SharedAugmentPowerCellSystem _augmentPower = default!;
     [Dependency] private readonly SharedPowerCellSystem _powerCell = default!;
+    [Dependency] private readonly ItemSlotsSystem _itemSlots = default!;
 
     public override void Initialize()
     {
@@ -35,6 +37,18 @@ public sealed class AugmentVisionSystem : EntitySystem
         SubscribeLocalEvent<AugmentVisionComponent, GetAugmentsPowerDrawEvent>(OnGetPowerDraw);
         SubscribeLocalEvent<AugmentVisionComponent, CollectAugmentNeuroInterfaceMetricsEvent>(OnCollectMetrics);
 
+        SubscribeLocalEvent<AugmentNeuroInterfaceComponent, OrganAddedToBodyEvent>(OnModuleHostAddedToBody);
+        SubscribeLocalEvent<AugmentNeuroInterfaceComponent, OrganRemovedFromBodyEvent>(OnModuleHostRemovedFromBody);
+        SubscribeLocalEvent<AugmentNeuroInterfaceComponent, AugmentModuleInsertedEvent>(OnModuleInserted);
+        SubscribeLocalEvent<AugmentNeuroInterfaceComponent, AugmentModuleRemovedEvent>(OnModuleRemoved);
+        SubscribeLocalEvent<AugmentNeuroInterfaceComponent, AugmentEmpDisabledEvent>(OnModuleHostEmpDisabled);
+        SubscribeLocalEvent<AugmentNeuroInterfaceComponent, AugmentEmpRestoredEvent>(OnModuleHostEmpRestored);
+        SubscribeLocalEvent<AugmentNeuroInterfaceComponent, AugmentManuallyDisabledEvent>(OnModuleHostManuallyDisabled);
+        SubscribeLocalEvent<AugmentNeuroInterfaceComponent, AugmentManuallyRestoredEvent>(OnModuleHostManuallyRestored);
+        SubscribeLocalEvent<AugmentNeuroInterfaceComponent, AugmentLostPowerEvent>(OnModuleHostLostPower);
+        SubscribeLocalEvent<AugmentNeuroInterfaceComponent, AugmentGainedPowerEvent>(OnModuleHostGainedPower);
+        SubscribeLocalEvent<AugmentNeuroInterfaceComponent, GetAugmentsPowerDrawEvent>(OnModuleHostGetPowerDraw);
+
         SubscribeLocalEvent<InstalledAugmentsComponent, SwitchableOverlayToggledEvent>(OnVisionToggled);
     }
 
@@ -45,8 +59,7 @@ public sealed class AugmentVisionSystem : EntitySystem
 
     private void OnEmpRestored(EntityUid uid, AugmentVisionComponent component, ref AugmentEmpRestoredEvent args)
     {
-        if (HasComp<AugmentNeuroManuallyDisabledComponent>(uid)
-            || HasComp<AugmentBrainDeactivatedComponent>(uid))
+        if (IsNeuroDisabled(uid))
             return;
 
         if (!RequiresPower(uid, component) || HasAugmentPower(args.Body))
@@ -60,7 +73,7 @@ public sealed class AugmentVisionSystem : EntitySystem
 
     private void OnManuallyRestored(EntityUid uid, AugmentVisionComponent component, ref AugmentManuallyRestoredEvent args)
     {
-        if (HasComp<AugmentEmpDisabledComponent>(uid) || HasComp<AugmentBrainDeactivatedComponent>(uid))
+        if (IsHardDisabled(uid, includeManual: false))
             return;
 
         if (!RequiresPower(uid, component) || HasAugmentPower(args.Body))
@@ -94,9 +107,7 @@ public sealed class AugmentVisionSystem : EntitySystem
         if (!RequiresPower(uid, component))
             return;
 
-        if (HasComp<AugmentEmpDisabledComponent>(uid)
-            || HasComp<AugmentBrainDeactivatedComponent>(uid)
-            || HasComp<AugmentNeuroManuallyDisabledComponent>(uid))
+        if (IsHardDisabled(uid))
             return;
 
         ApplyVision(args.Body, component, true);
@@ -107,11 +118,45 @@ public sealed class AugmentVisionSystem : EntitySystem
         if (!RequiresPower(uid, component))
             return;
 
-        if (HasComp<AugmentEmpDisabledComponent>(uid)
-            || HasComp<AugmentBrainDeactivatedComponent>(uid)
-            || HasComp<AugmentNeuroManuallyDisabledComponent>(uid))
+        if (IsHardDisabled(uid))
             return;
 
+        AddVisionPowerDraw(uid, component, ref args);
+    }
+
+    private void OnModuleHostGetPowerDraw(Entity<AugmentNeuroInterfaceComponent> ent, ref GetAugmentsPowerDrawEvent args)
+    {
+        if (IsHardDisabled(ent.Owner))
+        {
+            return;
+        }
+
+        if (TryComp<OrganComponent>(ent.Owner, out var hostOrgan) && !hostOrgan.Enabled)
+            return;
+
+        if (!TryComp<AugmentModuleSlotsComponent>(ent, out var moduleSlots)
+            || !TryComp<ItemSlotsComponent>(ent, out var itemSlots))
+            return;
+
+        var hasPower = HasAugmentPower(args.Body);
+        foreach (var definition in moduleSlots.Slots)
+        {
+            if (!_itemSlots.TryGetSlot(ent, definition.Id, out var slot, itemSlots)
+                || slot.Item is not { } moduleUid
+                || !TryComp<AugmentVisionComponent>(moduleUid, out var vision))
+            {
+                continue;
+            }
+
+            if (RequiresPower(ent.Owner, vision) && !hasPower)
+                continue;
+
+            AddVisionPowerDraw(ent.Owner, vision, ref args);
+        }
+    }
+
+    private void AddVisionPowerDraw(EntityUid modifierSource, AugmentVisionComponent component, ref GetAugmentsPowerDrawEvent args)
+    {
         var hasPassiveVision = false;
         var hasActiveToggleableVision = false;
         var activeDraw = 0f;
@@ -143,10 +188,10 @@ public sealed class AugmentVisionSystem : EntitySystem
             var activePower = component.ActivePowerDrawByType.Count > 0
                 ? activeDraw
                 : component.PowerDraw;
-            args.TotalDraw += ApplyActiveModifiersWithFloor(
+            args.TotalDraw += AugmentModuleModifierHelpers.ApplyActiveModifiersWithFloor(
                 activePower,
-                GetVisionActivePowerMultiplier(uid),
-                GetVisionActivePowerDelta(uid));
+                AugmentModuleModifierHelpers.GetVisionActivePowerMultiplier(modifierSource, EntityManager),
+                AugmentModuleModifierHelpers.GetVisionActivePower(modifierSource, EntityManager));
         }
     }
 
@@ -178,19 +223,19 @@ public sealed class AugmentVisionSystem : EntitySystem
                 var draw = component.ActivePowerDrawByType.Count > 0
                     ? component.GetActivePowerDraw(type)
                     : component.PowerDraw;
-                draw = ApplyActiveModifiersWithFloor(
+                draw = AugmentModuleModifierHelpers.ApplyActiveModifiersWithFloor(
                     draw,
-                    GetVisionActivePowerMultiplier(uid),
-                    GetVisionActivePowerDelta(uid));
+                    AugmentModuleModifierHelpers.GetVisionActivePowerMultiplier(uid, EntityManager),
+                    AugmentModuleModifierHelpers.GetVisionActivePower(uid, EntityManager));
                 if (draw > 0f)
                     args.ActivePowerEntries.Add(new NeuroInterfaceMetricEntry(GetVisionActivePowerLocKey(type), draw));
             }
 
             var neuro = component.GetActiveNeuroLoad(type);
-            neuro = ApplyActiveModifiersWithFloor(
+            neuro = AugmentModuleModifierHelpers.ApplyActiveModifiersWithFloor(
                 neuro,
-                GetVisionActiveNeuroMultiplier(uid),
-                GetVisionActiveNeuroDelta(uid));
+                AugmentModuleModifierHelpers.GetVisionActiveNeuroMultiplier(uid, EntityManager),
+                AugmentModuleModifierHelpers.GetVisionActiveNeuro(uid, EntityManager));
             if (neuro > 0f)
                 args.ActiveNeuroLoadEntries.Add(new NeuroInterfaceMetricEntry(GetVisionActiveNeuroLocKey(type), neuro));
         }
@@ -199,6 +244,122 @@ public sealed class AugmentVisionSystem : EntitySystem
     private void OnVisionToggled(EntityUid uid, InstalledAugmentsComponent component, ref SwitchableOverlayToggledEvent args)
     {
         UpdateBodyDrawRate(uid);
+    }
+
+    private void OnModuleHostAddedToBody(Entity<AugmentNeuroInterfaceComponent> ent, ref OrganAddedToBodyEvent args)
+    {
+        ApplyVisionForHostModules(ent, args.Body, true);
+    }
+
+    private void OnModuleHostRemovedFromBody(Entity<AugmentNeuroInterfaceComponent> ent, ref OrganRemovedFromBodyEvent args)
+    {
+        ApplyVisionForHostModules(ent, args.OldBody, false);
+    }
+
+    private void OnModuleInserted(Entity<AugmentNeuroInterfaceComponent> ent, ref AugmentModuleInsertedEvent args)
+    {
+        if (args.Body is not { } body || !TryComp<AugmentVisionComponent>(args.Module, out var vision))
+            return;
+
+        if (CanEnableModuleVision(ent.Owner, body, vision))
+            ApplyVision(body, vision, true);
+
+        UpdateBodyDrawRate(body);
+    }
+
+    private void OnModuleRemoved(Entity<AugmentNeuroInterfaceComponent> ent, ref AugmentModuleRemovedEvent args)
+    {
+        if (args.Body is not { } body || !TryComp<AugmentVisionComponent>(args.Module, out var vision))
+            return;
+
+        ApplyVision(body, vision, false);
+        UpdateBodyDrawRate(body);
+    }
+
+    private void OnModuleHostEmpDisabled(Entity<AugmentNeuroInterfaceComponent> ent, ref AugmentEmpDisabledEvent args)
+    {
+        ApplyVisionForHostModules(ent, args.Body, false);
+    }
+
+    private void OnModuleHostEmpRestored(Entity<AugmentNeuroInterfaceComponent> ent, ref AugmentEmpRestoredEvent args)
+    {
+        ApplyVisionForHostModules(ent, args.Body, true);
+    }
+
+    private void OnModuleHostManuallyDisabled(Entity<AugmentNeuroInterfaceComponent> ent, ref AugmentManuallyDisabledEvent args)
+    {
+        ApplyVisionForHostModules(ent, args.Body, false);
+    }
+
+    private void OnModuleHostManuallyRestored(Entity<AugmentNeuroInterfaceComponent> ent, ref AugmentManuallyRestoredEvent args)
+    {
+        ApplyVisionForHostModules(ent, args.Body, true);
+    }
+
+    private void OnModuleHostLostPower(Entity<AugmentNeuroInterfaceComponent> ent, ref AugmentLostPowerEvent args)
+    {
+        ApplyVisionForHostModules(ent, args.Body, false);
+    }
+
+    private void OnModuleHostGainedPower(Entity<AugmentNeuroInterfaceComponent> ent, ref AugmentGainedPowerEvent args)
+    {
+        ApplyVisionForHostModules(ent, args.Body, true);
+    }
+
+    private void ApplyVisionForHostModules(Entity<AugmentNeuroInterfaceComponent> ent, EntityUid body, bool enable)
+    {
+        ForEachVisionModule(ent, (moduleUid, vision) =>
+        {
+            var shouldEnable = enable && CanEnableModuleVision(ent.Owner, body, vision);
+            ApplyVision(body, vision, shouldEnable);
+        });
+
+        UpdateBodyDrawRate(body);
+    }
+
+    private bool CanEnableModuleVision(EntityUid hostAugment, EntityUid body, AugmentVisionComponent component)
+    {
+        if (IsHardDisabled(hostAugment))
+        {
+            return false;
+        }
+
+        if (TryComp<OrganComponent>(hostAugment, out var organ) && !organ.Enabled)
+            return false;
+
+        return !RequiresPower(hostAugment, component) || HasAugmentPower(body);
+    }
+
+    private bool IsNeuroDisabled(EntityUid uid)
+    {
+        return HasComp<AugmentBrainDeactivatedComponent>(uid)
+               || HasComp<AugmentNeuroManuallyDisabledComponent>(uid);
+    }
+
+    private bool IsHardDisabled(EntityUid uid, bool includeManual = true)
+    {
+        if (HasComp<AugmentEmpDisabledComponent>(uid) || HasComp<AugmentBrainDeactivatedComponent>(uid))
+            return true;
+
+        return includeManual && HasComp<AugmentNeuroManuallyDisabledComponent>(uid);
+    }
+
+    private void ForEachVisionModule(Entity<AugmentNeuroInterfaceComponent> ent, Action<EntityUid, AugmentVisionComponent> action)
+    {
+        if (!TryComp<AugmentModuleSlotsComponent>(ent, out var moduleSlots)
+            || !TryComp<ItemSlotsComponent>(ent, out var itemSlots))
+            return;
+
+        foreach (var definition in moduleSlots.Slots)
+        {
+            if (!_itemSlots.TryGetSlot(ent, definition.Id, out var slot, itemSlots))
+                continue;
+
+            if (slot.Item is not { } moduleUid || !TryComp<AugmentVisionComponent>(moduleUid, out var moduleVision))
+                continue;
+
+            action(moduleUid, moduleVision);
+        }
     }
 
     private void ApplyVision(EntityUid body, AugmentVisionComponent component, bool enable)
@@ -224,10 +385,7 @@ public sealed class AugmentVisionSystem : EntitySystem
                 break;
 
             case AugmentVisionType.FlashProtection:
-                if (enable)
-                    EnsureComp<FlashImmunityComponent>(body);
-                else
-                    RemComp<FlashImmunityComponent>(body);
+                ToggleComponent<FlashImmunityComponent>(body, enable);
                 break;
 
             case AugmentVisionType.MedicalHUD:
@@ -243,17 +401,11 @@ public sealed class AugmentVisionSystem : EntitySystem
                 break;
 
             case AugmentVisionType.MindShieldHUD:
-                if (enable)
-                    EnsureComp<ShowMindShieldIconsComponent>(body);
-                else
-                    RemComp<ShowMindShieldIconsComponent>(body);
+                ToggleComponent<ShowMindShieldIconsComponent>(body, enable);
                 break;
 
             case AugmentVisionType.SolutionScanner:
-                if (enable)
-                    EnsureComp<SolutionScannerComponent>(body);
-                else
-                    RemComp<SolutionScannerComponent>(body);
+                ToggleComponent<SolutionScannerComponent>(body, enable);
                 break;
         }
     }
@@ -297,38 +449,23 @@ public sealed class AugmentVisionSystem : EntitySystem
                 break;
 
             case AugmentVisionOverlayType.DiseaseIcons:
-                if (enable)
-                    EnsureComp<ShowDiseaseIconsComponent>(body);
-                else
-                    RemComp<ShowDiseaseIconsComponent>(body);
+                ToggleComponent<ShowDiseaseIconsComponent>(body, enable);
                 break;
 
             case AugmentVisionOverlayType.JobIcons:
-                if (enable)
-                    EnsureComp<ShowJobIconsComponent>(body);
-                else
-                    RemComp<ShowJobIconsComponent>(body);
+                ToggleComponent<ShowJobIconsComponent>(body, enable);
                 break;
 
             case AugmentVisionOverlayType.CriminalRecordIcons:
-                if (enable)
-                    EnsureComp<ShowCriminalRecordIconsComponent>(body);
-                else
-                    RemComp<ShowCriminalRecordIconsComponent>(body);
+                ToggleComponent<ShowCriminalRecordIconsComponent>(body, enable);
                 break;
 
             case AugmentVisionOverlayType.MindShieldIcons:
-                if (enable)
-                    EnsureComp<ShowMindShieldIconsComponent>(body);
-                else
-                    RemComp<ShowMindShieldIconsComponent>(body);
+                ToggleComponent<ShowMindShieldIconsComponent>(body, enable);
                 break;
 
             case AugmentVisionOverlayType.SyndicateIcons:
-                if (enable)
-                    EnsureComp<ShowSyndicateIconsComponent>(body);
-                else
-                    RemComp<ShowSyndicateIconsComponent>(body);
+                ToggleComponent<ShowSyndicateIconsComponent>(body, enable);
                 break;
         }
     }
@@ -397,13 +534,7 @@ public sealed class AugmentVisionSystem : EntitySystem
 
     private bool HasAugmentPower(EntityUid body)
     {
-        if (_augmentPower.GetBodyAugment(body) is not { } slot)
-            return false;
-
-        if (!TryComp<PowerCellDrawComponent>(slot, out var draw))
-            return false;
-
-        return _powerCell.HasDrawCharge(slot, draw);
+        return AugmentPowerHelpers.HasAugmentPower(body, _augmentPower, _powerCell, EntityManager);
     }
 
     private bool IsToggleableVisionActive(EntityUid body, AugmentVisionType type)
@@ -436,47 +567,11 @@ public sealed class AugmentVisionSystem : EntitySystem
         };
     }
 
-    private float GetVisionActivePowerMultiplier(EntityUid uid)
+    private void ToggleComponent<T>(EntityUid uid, bool enabled) where T : Component, new()
     {
-        if (!TryComp<AugmentUniversalModuleAccumulatorComponent>(uid, out var accumulator))
-            return 1f;
-
-        return MathF.Max(0f, accumulator.VisionActivePowerMultiplier);
-    }
-
-    private float GetVisionActivePowerDelta(EntityUid uid)
-    {
-        if (!TryComp<AugmentUniversalModuleAccumulatorComponent>(uid, out var accumulator))
-            return 0f;
-
-        return accumulator.VisionActivePowerDelta;
-    }
-
-    private float GetVisionActiveNeuroMultiplier(EntityUid uid)
-    {
-        if (!TryComp<AugmentUniversalModuleAccumulatorComponent>(uid, out var accumulator))
-            return 1f;
-
-        return MathF.Max(0f, accumulator.VisionActiveNeuroMultiplier);
-    }
-
-    private float GetVisionActiveNeuroDelta(EntityUid uid)
-    {
-        if (!TryComp<AugmentUniversalModuleAccumulatorComponent>(uid, out var accumulator))
-            return 0f;
-
-        return accumulator.VisionActiveNeuroDelta;
-    }
-
-    private static float ApplyActiveModifiersWithFloor(float baseValue, float multiplier, float delta)
-    {
-        if (baseValue <= 0f)
-            return 0f;
-
-        var value = baseValue * MathF.Max(0f, multiplier) + delta;
-        if (multiplier < 1f || delta < 0f)
-            return MathF.Max(1f, value);
-
-        return MathF.Max(0f, value);
+        if (enabled)
+            EnsureComp<T>(uid);
+        else
+            RemComp<T>(uid);
     }
 }

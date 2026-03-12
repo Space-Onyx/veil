@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using Content.Shared._Onyx.Surgery.Augments;
 using JetBrains.Annotations;
+using Robust.Shared.GameObjects;
 
 namespace Content.Client._Onyx.Surgery.Augments;
 
@@ -19,10 +20,8 @@ public sealed class NeuroInterfaceBui : BoundUserInterface
 
         _window = new NeuroInterfaceWindow();
         _window.OnClose += Close;
-        _window.OnToggleRequested += (augment, enable) =>
-            SendMessage(new NeuroInterfaceToggleAugmentMessage(augment, enable));
-        _window.OnBulkToggleRequested += (target, enable) =>
-            SendMessage(new NeuroInterfaceBulkToggleMessage(target, enable));
+        _window.OnToggleRequested += HandleToggleRequested;
+        _window.OnBulkToggleRequested += HandleBulkToggleRequested;
 
         if (State is NeuroInterfaceBuiState state)
             _window.UpdateState(state);
@@ -46,6 +45,17 @@ public sealed class NeuroInterfaceBui : BoundUserInterface
         _window = null;
         base.Dispose(disposing);
     }
+
+    private void HandleToggleRequested(NetEntity augment, bool enable)
+    {
+        SendMessage(new NeuroInterfaceToggleAugmentMessage(augment, enable));
+    }
+
+    private void HandleBulkToggleRequested(NeuroInterfaceBulkTarget target, bool enable)
+    {
+        SendMessage(new NeuroInterfaceBulkToggleMessage(target, enable));
+    }
 }
+
 
 

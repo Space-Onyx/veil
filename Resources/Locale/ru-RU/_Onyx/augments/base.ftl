@@ -42,3 +42,10 @@ augment-modules-verb-eject-module = Извлечь модуль из {$augment} 
 
 augment-modules-popup-panel-opened = Панель модулей открыта для {$augment}.
 augment-modules-popup-panel-closed = Панель модулей закрыта для {$augment}.
+
+ent-AugmentSubdermalArmor = имплант подкожной брони
+    .desc = Имплантируемая подкожная бронесетка, устанавливаемая в торс и защищающая всё тело.
+ent-AugmentSubdermalArmorCasing = каркас подкожной брони
+    .desc = Каркас для сборки импланта подкожной брони.
+ent-AugmentSubdermalArmorCables = каркас подкожной брони с кабелями
+    .desc = Каркас подкожной брони, подготовленный к финальной сборке.

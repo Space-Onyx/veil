@@ -74,3 +74,21 @@
     painDuration: 60
     painType: TraumaticPain
     sleepModifier: 0
+- type: entity
+  parent: SurgeryStepInsertOrgan
+  id: SurgeryStepInsertAugmentChest
+  name: Add chest augment
+  components:
+  - type: SurgeryStep
+    tool:
+    - type: Organ
+    duration: 6
+  - type: Sprite
+    sprite: _Shitmed/Objects/Specific/Medical/Surgery/manipulation.rsi
+    state: insertion
+  - type: SurgeryAddOrganStep
+  - type: SurgeryStepPainInflicter
+    amount: 90
+    painDuration: 60
+    painType: TraumaticPain
+    sleepModifier: 0

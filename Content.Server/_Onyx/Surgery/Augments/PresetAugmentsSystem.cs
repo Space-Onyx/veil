@@ -4,7 +4,7 @@ using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
 using Robust.Shared.Prototypes;
 using System;
-using System.Linq;
+using System.Collections.Generic;
 
 namespace Content.Server._Onyx.Surgery.Augments;
 
@@ -17,67 +17,92 @@ public sealed class PresetAugmentsSystem : EntitySystem
         base.Initialize();
 
         SubscribeLocalEvent<PresetAugmentsComponent, MapInitEvent>(OnMapInit, after: [typeof(SharedBodySystem)]);
+        SubscribeLocalEvent<JobPresetAugmentsComponent, ComponentStartup>(OnJobPresetStartup);
+        SubscribeLocalEvent<BodyComponent, ComponentStartup>(OnBodyStartup);
     }
 
     private void OnMapInit(Entity<PresetAugmentsComponent> ent, ref MapInitEvent args)
     {
-        if (!HasComp<BodyComponent>(ent))
+        if (!TryApplyPresetAugments(ent.Owner, ent.Comp.Entries, ent.Comp.Augments))
             return;
 
-        var bodyParts = _body.GetBodyChildren(ent).ToList();
+        RemComp<PresetAugmentsComponent>(ent);
+    }
+
+    private void OnJobPresetStartup(Entity<JobPresetAugmentsComponent> ent, ref ComponentStartup args)
+    {
+        if (!TryApplyPresetAugments(ent.Owner, ent.Comp.Entries, ent.Comp.Augments))
+            return;
+
+        RemComp<JobPresetAugmentsComponent>(ent);
+    }
+
+    private void OnBodyStartup(Entity<BodyComponent> ent, ref ComponentStartup args)
+    {
+        if (!TryComp<JobPresetAugmentsComponent>(ent, out var presetComp))
+            return;
+
+        if (!TryApplyPresetAugments(ent.Owner, presetComp.Entries, presetComp.Augments))
+            return;
+
+        RemComp<JobPresetAugmentsComponent>(ent);
+    }
+
+    private bool TryApplyPresetAugments(
+        EntityUid owner,
+        List<PresetAugmentEntry> entries,
+        List<EntProtoId> augments)
+    {
+        if (!HasComp<BodyComponent>(owner))
+            return false;
+
+        var bodyParts = AugmentBodyPartHelpers.CollectBodyParts(owner, _body);
         if (bodyParts.Count == 0)
-            return;
+            return false;
 
-        foreach (var entry in ent.Comp.Entries)
+        foreach (var entry in entries)
         {
-            InstallExplicitEntry(ent, bodyParts, entry);
+            InstallExplicitEntry(owner, bodyParts, entry);
         }
 
-        foreach (var augmentProto in ent.Comp.Augments)
+        foreach (var augmentProto in augments)
         {
-            var augment = Spawn(augmentProto, Transform(ent).Coordinates);
-
-            if (!TryComp<OrganComponent>(augment, out var organ))
+            if (!TrySpawnOrganAugment(owner, augmentProto, out var augment, out var organ))
             {
-                Log.Warning($"Preset augment '{augmentProto}' on {ToPrettyString(ent)} is not an organ, deleting.");
-                QueueDel(augment);
                 continue;
             }
 
             if (!TryInstallAugment(augment, organ, bodyParts))
             {
                 Log.Warning(
-                    $"Could not install preset augment '{augmentProto}' (slot '{organ.SlotId}') on {ToPrettyString(ent)}.");
+                    $"Could not install preset augment '{augmentProto}' (slot '{organ.SlotId}') on {ToPrettyString(owner)}.");
                 QueueDel(augment);
             }
         }
 
-        RemComp<PresetAugmentsComponent>(ent);
+        return true;
     }
 
     private void InstallExplicitEntry(
-        Entity<PresetAugmentsComponent> ent,
+        EntityUid owner,
         List<(EntityUid Id, BodyPartComponent Component)> bodyParts,
         PresetAugmentEntry entry)
     {
         if (string.IsNullOrWhiteSpace(entry.Slot))
         {
-            Log.Warning($"Preset augment entry on {ToPrettyString(ent)} has empty slot.");
+            Log.Warning($"Preset augment entry on {ToPrettyString(owner)} has empty slot.");
             return;
         }
 
-        var augment = Spawn(entry.Prototype, Transform(ent).Coordinates);
-        if (!TryComp<OrganComponent>(augment, out var organ))
+        if (!TrySpawnOrganAugment(owner, entry.Prototype, out var augment, out var organ))
         {
-            Log.Warning($"Preset augment '{entry.Prototype}' on {ToPrettyString(ent)} is not an organ, deleting.");
-            QueueDel(augment);
             return;
         }
 
         if (!string.Equals(organ.SlotId, entry.Slot, StringComparison.Ordinal))
         {
             Log.Warning(
-                $"Preset augment '{entry.Prototype}' slot mismatch on {ToPrettyString(ent)}: organ slot '{organ.SlotId}', configured '{entry.Slot}'.");
+                $"Preset augment '{entry.Prototype}' slot mismatch on {ToPrettyString(owner)}: organ slot '{organ.SlotId}', configured '{entry.Slot}'.");
             QueueDel(augment);
             return;
         }
@@ -85,9 +110,28 @@ public sealed class PresetAugmentsSystem : EntitySystem
         if (!TryInstallExplicit(augment, organ, bodyParts, entry))
         {
             Log.Warning(
-                $"Could not install preset augment '{entry.Prototype}' into slot '{entry.Slot}' on {ToPrettyString(ent)}.");
+                $"Could not install preset augment '{entry.Prototype}' into slot '{entry.Slot}' on {ToPrettyString(owner)}.");
             QueueDel(augment);
         }
+    }
+
+    private bool TrySpawnOrganAugment(
+        EntityUid owner,
+        EntProtoId prototype,
+        out EntityUid augment,
+        out OrganComponent organ)
+    {
+        augment = Spawn(prototype, Transform(owner).Coordinates);
+        if (TryComp<OrganComponent>(augment, out var comp) && comp != null)
+        {
+            organ = comp;
+            return true;
+        }
+
+        Log.Warning($"Preset augment '{prototype}' on {ToPrettyString(owner)} is not an organ, deleting.");
+        QueueDel(augment);
+        organ = default!;
+        return false;
     }
 
     private bool TryInstallAugment(EntityUid augment, OrganComponent organ, List<(EntityUid Id, BodyPartComponent Component)> parts)

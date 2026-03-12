@@ -1,0 +1,6 @@
+- type: damageModifierSet
+  id: AugmentSubdermalArmor
+  coefficients:
+    Blunt: 0.85
+    Slash: 0.9
+    Piercing: 0.9

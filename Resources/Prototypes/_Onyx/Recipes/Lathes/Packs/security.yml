@@ -3,4 +3,9 @@
   recipes:
   - AugmentStunnerPanel
   - AugmentStunbatonPanel
+
+- type: latheRecipePack
+  id: IntegratedAdvancedWeaponAugments
+  recipes:
   - AugmentLaserPistolPanel
+  - AugmentSubdermalArmorCasing

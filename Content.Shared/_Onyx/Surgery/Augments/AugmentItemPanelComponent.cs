@@ -48,27 +48,15 @@ public sealed partial class AugmentItemPanelComponent : Component
     [DataField]
     public SoundSpecifier? RetractSound;
 
-    /// <summary>
-    /// Temporary held prefix applied when deploying an item from the panel.
-    /// Useful for popout animations in in-hand states.
-    /// </summary>
     [DataField]
     public string? ExtendHeldPrefix;
 
-    /// <summary>
-    /// How long the deploy held prefix should stay before resetting.
-    /// </summary>
     [DataField]
     public TimeSpan ExtendHeldPrefixDuration = TimeSpan.FromSeconds(0.3f);
 
-    /// <summary>
-    /// Held prefix to apply after deploy animation finishes.
-    /// Null resets to default in-hand states.
-    /// </summary>
     [DataField]
     public string? ExtendHeldPrefixAfter;
 
-    // Backwards-compatible aliases for existing prototypes.
     [DataField("deploySound")]
     public SoundSpecifier? LegacyDeploySound
     {
@@ -97,7 +85,6 @@ public sealed partial class AugmentItemPanelComponent : Component
         set => ExtendHeldPrefixAfter = value;
     }
 
-    // Backwards-compatible alias for older prototypes that used one shared power cost.
     [DataField("powerCost")]
     public float LegacyPowerCost
     {

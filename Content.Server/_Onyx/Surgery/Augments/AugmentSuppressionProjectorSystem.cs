@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using Content.Goobstation.Shared.Augments;
+using Content.Server.Body.Systems;
 using Content.Shared._Onyx.Surgery.Augments;
+using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Popups;
 using Content.Shared.Body.Events;
 using Content.Shared.Tag;
@@ -23,6 +24,8 @@ public sealed class AugmentSuppressionProjectorSystem : EntitySystem
     private const float SquareLookupMultiplier = 1.4142135f;
 
     [Dependency] private readonly AugmentSystem _augment = default!;
+    [Dependency] private readonly BodySystem _body = default!;
+    [Dependency] private readonly ItemSlotsSystem _itemSlots = default!;
     [Dependency] private readonly EntityLookupSystem _lookup = default!;
     [Dependency] private readonly TransformSystem _transform = default!;
     [Dependency] private readonly TagSystem _tag = default!;
@@ -30,6 +33,9 @@ public sealed class AugmentSuppressionProjectorSystem : EntitySystem
     [Dependency] private readonly SharedPopupSystem _popup = default!;
     private readonly HashSet<ICommonSession> _visualizationObservers = new();
     private readonly HashSet<EntityUid> _dirtyProjectors = new();
+    private readonly List<EntityUid> _dirtyProjectorBuffer = new();
+    private readonly List<EntityUid> _affectedBodyBuffer = new();
+    private readonly List<ICommonSession> _observerBuffer = new();
     private readonly Dictionary<EntityUid, HashSet<EntityUid>> _bodyProjectorLinks = new();
     private readonly HashSet<Entity<InstalledAugmentsComponent>> _bodyCandidates = new();
     private readonly HashSet<Entity<AugmentSuppressionProjectorComponent>> _projectorCandidates = new();
@@ -79,14 +85,7 @@ public sealed class AugmentSuppressionProjectorSystem : EntitySystem
     private void OnProjectorShutdown(Entity<AugmentSuppressionProjectorComponent> ent, ref ComponentShutdown args)
     {
         _dirtyProjectors.Remove(ent.Owner);
-
-        foreach (var body in ent.Comp.AffectedBodies.ToArray())
-        {
-            RemoveSuppressionFromBody(ent, body);
-            UnlinkBodyProjector(body, ent.Owner);
-        }
-
-        ent.Comp.AffectedBodies.Clear();
+        ClearAffectedBodies(ent);
         RecalculateMaxProjectorLookupRadius();
     }
 
@@ -128,16 +127,21 @@ public sealed class AugmentSuppressionProjectorSystem : EntitySystem
         if (_dirtyProjectors.Count == 0)
             return;
 
-        var dirty = _dirtyProjectors.ToArray();
+        _dirtyProjectorBuffer.Clear();
+        foreach (var projectorUid in _dirtyProjectors)
+        {
+            _dirtyProjectorBuffer.Add(projectorUid);
+        }
+
         _dirtyProjectors.Clear();
 
-        foreach (var projectorUid in dirty)
+        foreach (var projectorUid in _dirtyProjectorBuffer)
         {
             if (!TryComp<AugmentSuppressionProjectorComponent>(projectorUid, out var comp))
                 continue;
 
             comp.NextUpdateAt = _timing.CurTime + TimeSpan.FromSeconds(MathF.Max(MinProjectorUpdateInterval, comp.UpdateInterval));
-            UpdateProjector((projectorUid, comp));
+            UpdateProjector(projectorUid, comp!);
             UpdateMaxProjectorLookupRadius(comp);
         }
     }
@@ -186,13 +190,7 @@ public sealed class AugmentSuppressionProjectorSystem : EntitySystem
             if (ent.Comp.AffectedBodies.Count == 0)
                 return;
 
-            foreach (var body in ent.Comp.AffectedBodies.ToArray())
-            {
-                RemoveSuppressionFromBody(ent, body);
-                UnlinkBodyProjector(body, ent.Owner);
-            }
-
-            ent.Comp.AffectedBodies.Clear();
+            ClearAffectedBodies(ent);
             return;
         }
 
@@ -218,7 +216,7 @@ public sealed class AugmentSuppressionProjectorSystem : EntitySystem
             if (!IsBodyInsideShape(center, projectorRotation, radius, body, ent.Comp.Shape))
                 continue;
 
-            var suppressedAny = ApplySuppressionToBody(ent, body, candidate.Comp);
+            var suppressedAny = ApplySuppressionToBody(ent, body);
             if (!suppressedAny)
                 continue;
 
@@ -244,6 +242,11 @@ public sealed class AugmentSuppressionProjectorSystem : EntitySystem
         ent.Comp.AffectedBodies = currentlyAffected;
     }
 
+    private void UpdateProjector(EntityUid uid, AugmentSuppressionProjectorComponent comp)
+    {
+        UpdateProjector((uid, comp));
+    }
+
     private void UpdateRelevantProjectorsForBody(EntityUid body)
     {
         if (_bodyProjectorLinks.TryGetValue(body, out var linkedProjectors))
@@ -251,7 +254,7 @@ public sealed class AugmentSuppressionProjectorSystem : EntitySystem
             foreach (var projectorUid in linkedProjectors)
             {
                 if (TryComp<AugmentSuppressionProjectorComponent>(projectorUid, out var linkedComp))
-                    UpdateProjector((projectorUid, linkedComp));
+                    UpdateProjector(projectorUid, linkedComp!);
             }
         }
 
@@ -294,27 +297,26 @@ public sealed class AugmentSuppressionProjectorSystem : EntitySystem
 
     private static bool IsInsideRotatedSquare(Vector2 delta, Angle projectorRotation, float radius)
     {
-        var localDelta = (-projectorRotation).RotateVec(delta);
-        return MathF.Abs(localDelta.X) <= radius && MathF.Abs(localDelta.Y) <= radius;
+        var localOffset = (-projectorRotation).RotateVec(delta);
+        return MathF.Abs(localOffset.X) <= radius && MathF.Abs(localOffset.Y) <= radius;
     }
 
-    private bool ApplySuppressionToBody(Entity<AugmentSuppressionProjectorComponent> projector, EntityUid body, InstalledAugmentsComponent installed)
+    private bool ApplySuppressionToBody(Entity<AugmentSuppressionProjectorComponent> projector, EntityUid body)
     {
         var suppressedAny = false;
 
-        foreach (var netEnt in installed.InstalledAugments)
+        foreach (var enhancement in AugmentEnhancementHelpers.EnumerateEnhancements(body, _body, _itemSlots, EntityManager))
         {
-            var augmentUid = GetEntity(netEnt);
-            if (!Exists(augmentUid))
+            if (!Exists(enhancement))
                 continue;
 
-            if (ShouldSuppressAugment(projector.Comp, augmentUid))
+            if (ShouldSuppressAugment(projector.Comp, enhancement))
             {
-                AddOrMaintainSuppression(projector.Owner, augmentUid, body);
+                AddOrMaintainSuppression(projector.Owner, enhancement, body);
                 suppressedAny = true;
             }
             else
-                RemoveSuppressionSource(projector.Owner, augmentUid);
+                RemoveSuppressionSource(projector.Owner, enhancement);
         }
 
         return suppressedAny;
@@ -322,21 +324,20 @@ public sealed class AugmentSuppressionProjectorSystem : EntitySystem
 
     private void RemoveSuppressionFromBody(Entity<AugmentSuppressionProjectorComponent> projector, EntityUid body)
     {
-        if (!TryComp<InstalledAugmentsComponent>(body, out var installed))
-            return;
-
-        foreach (var netEnt in installed.InstalledAugments)
+        foreach (var enhancement in AugmentEnhancementHelpers.EnumerateEnhancements(body, _body, _itemSlots, EntityManager))
         {
-            var augmentUid = GetEntity(netEnt);
-            if (!Exists(augmentUid))
+            if (!Exists(enhancement))
                 continue;
 
-            RemoveSuppressionSource(projector.Owner, augmentUid);
+            RemoveSuppressionSource(projector.Owner, enhancement);
         }
     }
 
     private bool ShouldSuppressAugment(AugmentSuppressionProjectorComponent projector, EntityUid augmentUid)
     {
+        if (!AugmentBehaviorPolicyHelpers.IsAffectedBySuppression(augmentUid, EntityManager))
+            return false;
+
         if (projector.TargetTags.Count == 0)
             return true;
 
@@ -451,6 +452,64 @@ public sealed class AugmentSuppressionProjectorSystem : EntitySystem
         _maxProjectorLookupRadius = maxLookupRadius;
     }
 
+    private bool IsEnhancementInstalled(EntityUid body, EntityUid enhancement, out string error)
+    {
+        error = string.Empty;
+
+        if (!Exists(body))
+        {
+            error = "Body entity does not exist.";
+            return false;
+        }
+
+        if (!Exists(enhancement))
+        {
+            error = "Target enhancement entity does not exist.";
+            return false;
+        }
+
+        if (!AugmentBehaviorPolicyHelpers.IsAffectedBySuppression(enhancement, EntityManager))
+        {
+            error = "Target enhancement ignores suppression by configuration.";
+            return false;
+        }
+
+        if (!IsEnhancementInstalledInBody(body, enhancement))
+        {
+            error = "Target is not an installed augmentation/cybernetic enhancement in this body.";
+            return false;
+        }
+
+        return true;
+    }
+
+    public bool TryToggleAdminSuppression(EntityUid body, EntityUid enhancement, out bool suppressed, out string error)
+    {
+        suppressed = false;
+
+        if (!IsEnhancementInstalled(body, enhancement, out error))
+            return false;
+
+        if (HasAdminSuppression(body, enhancement))
+        {
+            RemoveSuppressionSource(body, enhancement);
+            return true;
+        }
+
+        AddOrMaintainSuppression(body, enhancement, body);
+        suppressed = true;
+        return true;
+    }
+
+    public bool TryApplyAdminSuppression(EntityUid body, EntityUid enhancement, out string error)
+    {
+        if (!IsEnhancementInstalled(body, enhancement, out error))
+            return false;
+
+        AddOrMaintainSuppression(body, enhancement, body);
+        return true;
+    }
+
     public bool ToggleVisualization(ICommonSession session)
     {
         if (_visualizationObservers.Contains(session))
@@ -480,8 +539,13 @@ public sealed class AugmentSuppressionProjectorSystem : EntitySystem
             return;
 
         var ev = BuildVisualizationEvent();
-        var snapshot = _visualizationObservers.ToArray();
-        foreach (var session in snapshot)
+        _observerBuffer.Clear();
+        foreach (var session in _visualizationObservers)
+        {
+            _observerBuffer.Add(session);
+        }
+
+        foreach (var session in _observerBuffer)
         {
             if (session.Status != SessionStatus.InGame)
             {
@@ -513,4 +577,44 @@ public sealed class AugmentSuppressionProjectorSystem : EntitySystem
 
         return new AugmentSuppressionZoneVisualizationEvent(zones);
     }
+
+    private void ClearAffectedBodies(Entity<AugmentSuppressionProjectorComponent> ent)
+    {
+        _affectedBodyBuffer.Clear();
+        foreach (var body in ent.Comp.AffectedBodies)
+        {
+            _affectedBodyBuffer.Add(body);
+        }
+
+        foreach (var body in _affectedBodyBuffer)
+        {
+            RemoveSuppressionFromBody(ent, body);
+            UnlinkBodyProjector(body, ent.Owner);
+        }
+
+        ent.Comp.AffectedBodies.Clear();
+    }
+
+    private bool IsEnhancementInstalledInBody(EntityUid body, EntityUid enhancement)
+    {
+        foreach (var installedEnhancement in AugmentEnhancementHelpers.EnumerateEnhancements(body, _body, _itemSlots, EntityManager))
+        {
+            if (installedEnhancement == enhancement)
+                return true;
+        }
+
+        return false;
+    }
+
+    private bool HasAdminSuppression(EntityUid body, EntityUid enhancement)
+    {
+        return TryComp<AugmentSuppressedByProjectorsComponent>(enhancement, out var suppress)
+               && suppress.Sources.Contains(body);
+    }
 }
+
+
+
+
+
+

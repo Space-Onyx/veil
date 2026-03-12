@@ -102,3 +102,36 @@
           state: mainboard
   - node: augment
     entity: AugmentNeuroInterface
+- type: constructionGraph
+  id: AugmentSubdermalArmor
+  start: start
+  graph:
+  - node: start
+    edges:
+    - to: casing
+      steps:
+      - tag: AugmentSubdermalArmorCasing
+        name: construction-graph-tag-casing
+        icon:
+          sprite: _Shitmed/Objects/Augments/power.rsi
+          state: incomplete_charger
+  - node: casing
+    entity: AugmentSubdermalArmorCasing
+    edges:
+    - to: cables
+      steps:
+      - material: Cable
+        amount: 2
+  - node: cables
+    entity: AugmentSubdermalArmorCables
+    edges:
+    - to: armor
+      steps:
+      - material: Plasteel
+        amount: 5
+      - material: Steel
+        amount: 5
+      - material: Silver
+        amount: 4
+  - node: armor
+    entity: AugmentSubdermalArmor

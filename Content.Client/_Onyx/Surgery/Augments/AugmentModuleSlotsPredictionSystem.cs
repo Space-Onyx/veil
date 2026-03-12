@@ -2,6 +2,7 @@ using System;
 using Content.Goobstation.Shared.Augments;
 using Content.Shared._Onyx.Surgery.Augments;
 using Content.Shared.Containers.ItemSlots;
+using Content.Shared.Hands.Components;
 using Content.Shared.Verbs;
 
 namespace Content.Client._Onyx.Surgery.Augments;
@@ -47,52 +48,9 @@ public sealed class AugmentModuleSlotsPredictionSystem : EntitySystem
                 continue;
 
             if (args.Using is { } usingEnt)
-            {
-                foreach (var def in modules.Slots)
-                {
-                    if (!def.VisibleInVerbs
-                        || !def.AllowInsertWhenInstalled
-                        || !_itemSlots.TryGetSlot(augment, def.Id, out var slot)
-                        || slot.Item != null
-                        || !_itemSlots.CanInsert(augment, usingEnt, user, slot))
-                    {
-                        continue;
-                    }
+                AddInsertVerbs(ref args, augment, modules, Name(augment), usingEnt, user, installed: true);
 
-                    var slotLabel = GetSlotLabel(def);
-                    args.Verbs.Add(new AlternativeVerb
-                    {
-                        Text = Loc.GetString("augment-modules-verb-insert-module-short",
-                            ("slot", slotLabel)),
-                        Message = Loc.GetString("augment-modules-verb-insert-module",
-                            ("augment", Name(augment)),
-                            ("slot", slotLabel)),
-                        Category = AugmentationsCategory,
-                        Act = () => _itemSlots.TryInsert(augment, def.Id, usingEnt, user),
-                    });
-                }
-            }
-
-            foreach (var def in modules.Slots)
-            {
-                if (!def.VisibleInVerbs
-                    || !_itemSlots.TryGetSlot(augment, def.Id, out var slot)
-                    || slot.Item is not { } item)
-                {
-                    continue;
-                }
-
-                var slotLabel = GetSlotLabel(def);
-                args.Verbs.Add(new AlternativeVerb
-                {
-                    Text = Loc.GetString("augment-modules-verb-eject-module",
-                        ("augment", Name(augment)),
-                        ("slot", slotLabel),
-                        ("module", Name(item))),
-                    Category = AugmentationsCategory,
-                    Act = () => _itemSlots.TryEjectToHands(augment, slot, user, doAfter: false),
-                });
-            }
+            AddEjectVerbs(ref args, augment, modules, Name(augment), user);
         }
     }
 
@@ -107,36 +65,80 @@ public sealed class AugmentModuleSlotsPredictionSystem : EntitySystem
         var user = args.User;
 
         if (args.Using is { } usingEnt)
-        {
-            foreach (var def in ent.Comp.Slots)
-            {
-                if (!def.VisibleInVerbs
-                    || !def.AllowInsertWhenUninstalled
-                    || !_itemSlots.TryGetSlot(ent, def.Id, out var slot)
-                    || slot.Item != null
-                    || !_itemSlots.CanInsert(ent, usingEnt, user, slot))
-                {
-                    continue;
-                }
+            AddInsertVerbs(ref args, ent.Owner, ent.Comp, Name(ent), usingEnt, user, installed: false);
 
-                var slotLabel = GetSlotLabel(def);
-                args.Verbs.Add(new AlternativeVerb
-                {
-                    Text = Loc.GetString("augment-modules-verb-insert-module-short",
-                        ("slot", slotLabel)),
-                    Message = Loc.GetString("augment-modules-verb-insert-module",
-                        ("augment", Name(ent)),
-                        ("slot", slotLabel)),
-                    Category = AugmentationsCategory,
-                    Act = () => _itemSlots.TryInsert(ent, def.Id, usingEnt, user),
-                });
-            }
+        AddEjectVerbs(ref args, ent.Owner, ent.Comp, Name(ent), user);
+    }
+
+    private string GetSlotLabel(AugmentModuleSlotDefinition def)
+    {
+        return def.Name.StartsWith("augment-", StringComparison.Ordinal)
+            ? Loc.GetString(def.Name)
+            : def.Name;
+    }
+
+    private void TryInsertModuleNoDelay(EntityUid augment, string slotId, EntityUid module, EntityUid user)
+    {
+        if (_itemSlots.TryGetSlot(augment, slotId, out var slot)
+            && TryComp<HandsComponent>(user, out var hands))
+        {
+            _itemSlots.TryInsertOrDoAfter(augment, (user, hands), module, slot, doAfter: false);
+            return;
         }
 
-        foreach (var def in ent.Comp.Slots)
+        _itemSlots.TryInsert(augment, slotId, module, user);
+    }
+
+    private void AddInsertVerbs(
+        ref GetVerbsEvent<AlternativeVerb> args,
+        EntityUid augment,
+        AugmentModuleSlotsComponent modules,
+        string augmentName,
+        EntityUid usingEnt,
+        EntityUid user,
+        bool installed)
+    {
+        foreach (var def in modules.Slots)
+        {
+            if (!def.VisibleInVerbs)
+                continue;
+
+            var canInsert = installed ? def.AllowInsertWhenInstalled : def.AllowInsertWhenUninstalled;
+            if (!canInsert)
+                continue;
+
+            if (!_itemSlots.TryGetSlot(augment, def.Id, out var slot)
+                || slot.Item != null
+                || !_itemSlots.CanInsert(augment, usingEnt, user, slot))
+            {
+                continue;
+            }
+
+            var slotLabel = GetSlotLabel(def);
+            args.Verbs.Add(new AlternativeVerb
+            {
+                Text = Loc.GetString("augment-modules-verb-insert-module-short",
+                    ("slot", slotLabel)),
+                Message = Loc.GetString("augment-modules-verb-insert-module",
+                    ("augment", augmentName),
+                    ("slot", slotLabel)),
+                Category = AugmentationsCategory,
+                Act = () => TryInsertModuleNoDelay(augment, def.Id, usingEnt, user),
+            });
+        }
+    }
+
+    private void AddEjectVerbs(
+        ref GetVerbsEvent<AlternativeVerb> args,
+        EntityUid augment,
+        AugmentModuleSlotsComponent modules,
+        string augmentName,
+        EntityUid user)
+    {
+        foreach (var def in modules.Slots)
         {
             if (!def.VisibleInVerbs
-                || !_itemSlots.TryGetSlot(ent, def.Id, out var slot)
+                || !_itemSlots.TryGetSlot(augment, def.Id, out var slot)
                 || slot.Item is not { } item)
             {
                 continue;
@@ -146,19 +148,12 @@ public sealed class AugmentModuleSlotsPredictionSystem : EntitySystem
             args.Verbs.Add(new AlternativeVerb
             {
                 Text = Loc.GetString("augment-modules-verb-eject-module",
-                    ("augment", Name(ent)),
+                    ("augment", augmentName),
                     ("slot", slotLabel),
                     ("module", Name(item))),
                 Category = AugmentationsCategory,
-                Act = () => _itemSlots.TryEjectToHands(ent, slot, user, doAfter: false),
+                Act = () => _itemSlots.TryEjectToHands(augment, slot, user, doAfter: false),
             });
         }
-    }
-
-    private string GetSlotLabel(AugmentModuleSlotDefinition def)
-    {
-        return def.Name.StartsWith("augment-", StringComparison.Ordinal)
-            ? Loc.GetString(def.Name)
-            : def.Name;
     }
 }

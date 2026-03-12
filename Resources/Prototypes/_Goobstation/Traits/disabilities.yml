@@ -64,3 +64,16 @@
     - BorgChassis
   components:
     - type: Deaf
+
+# <Onyx Surgery>
+- type: trait
+  id: NeuralFragility
+  name: trait-neural-fragility-name
+  description: trait-neural-fragility-desc
+  category: Disabilities
+  blacklist:
+    components:
+    - BorgChassis
+  components:
+    - type: NeuroLoadLimitModifier
+      maxNeuroLoad: -10

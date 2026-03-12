@@ -78,3 +78,6 @@
 
 - type: Tag
   id: AugmentNeuroInterface
+
+- type: Tag
+  id: AugmentSubdermalArmorCasing

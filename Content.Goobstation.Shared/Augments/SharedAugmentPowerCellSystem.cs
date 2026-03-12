@@ -61,7 +61,6 @@ public abstract class SharedAugmentPowerCellSystem : EntitySystem
 
     public float GetBodyDraw(EntityUid body)
     {
-        // <Onyx-Augment-Tweak Edited>
         if (!TryComp<InstalledAugmentsComponent>(body, out var installed))
             return 0f;
 
@@ -69,14 +68,10 @@ public abstract class SharedAugmentPowerCellSystem : EntitySystem
         foreach (var netAugment in installed.InstalledAugments)
         {
             var augment = GetEntity(netAugment);
-            var ev = new GetAugmentsPowerDrawEvent(body);
-            RaiseLocalEvent(augment, ref ev);
-
-            total += ApplyUniversalModulePowerDelta(augment, ev.TotalDraw);
+            total += GetAugmentPowerDraw(body, augment); // <Onyx-Augment-Tweak>
         }
 
         return total;
-        // <Onyx-Augment-Tweak Edited>
     }
 
     /// <summary>
@@ -111,19 +106,27 @@ public abstract class SharedAugmentPowerCellSystem : EntitySystem
     }
 
     // <Onyx-Augment-Tweak>
+    private float GetAugmentPowerDraw(EntityUid body, EntityUid augment)
+    {
+        var ev = new GetAugmentsPowerDrawEvent(body);
+        RaiseLocalEvent(augment, ref ev);
+
+        return ApplyUniversalModulePowerDelta(augment, ev.TotalDraw);
+    }
+
     private float ApplyUniversalModulePowerDelta(EntityUid augment, float baseDraw)
     {
         if (!TryComp<AugmentUniversalModuleAccumulatorComponent>(augment, out var accumulator)
-            || accumulator.PassivePowerDrawDelta == 0f)
+            || accumulator.PassivePowerDraw == 0f)
         {
             return MathF.Max(0f, baseDraw);
         }
 
-        var modified = baseDraw + accumulator.PassivePowerDrawDelta;
-        if (accumulator.PassivePowerDrawDelta < 0f && baseDraw > 0f)
+        var modified = baseDraw + accumulator.PassivePowerDraw;
+        if (accumulator.PassivePowerDraw < 0f && baseDraw > 0f)
             return MathF.Max(1f, modified);
 
         return MathF.Max(0f, modified);
     }
-    // <Onyx-Augment-Tweak>
+    // </Onyx-Augment-Tweak>
 }

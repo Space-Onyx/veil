@@ -2,12 +2,16 @@ using Content.Shared._Onyx.Surgery.Augments;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
 using Content.Goobstation.Shared.Augments;
+using Content.Server.Body.Systems;
+using Content.Shared.Containers.ItemSlots;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server._Onyx.Surgery.Augments;
 
 public sealed class AugmentDamageResistanceSystem : EntitySystem
 {
+    [Dependency] private readonly BodySystem _body = default!;
+    [Dependency] private readonly ItemSlotsSystem _itemSlots = default!;
     [Dependency] private readonly IPrototypeManager _proto = default!;
 
     public override void Initialize()
@@ -19,19 +23,12 @@ public sealed class AugmentDamageResistanceSystem : EntitySystem
 
     private void OnDamageModify(EntityUid uid, InstalledAugmentsComponent component, DamageModifyEvent args)
     {
-        foreach (var netEnt in component.InstalledAugments)
+        foreach (var enhancement in AugmentEnhancementHelpers.EnumerateEnhancements(uid, _body, _itemSlots, EntityManager))
         {
-            var augUid = GetEntity(netEnt);
-            if (!TryComp<AugmentDamageResistanceComponent>(augUid, out var resist))
+            if (!TryComp<AugmentDamageResistanceComponent>(enhancement, out var resist))
                 continue;
 
-            if (HasComp<AugmentEmpDisabledComponent>(augUid))
-                continue;
-
-            if (HasComp<AugmentBrainDeactivatedComponent>(augUid))
-                continue;
-
-            if (HasComp<AugmentNeuroManuallyDisabledComponent>(augUid))
+            if (!CanApplyResistance(enhancement))
                 continue;
 
             if (!_proto.TryIndex<DamageModifierSetPrototype>(resist.DamageModifierSetId, out var modifierSet))
@@ -40,4 +37,19 @@ public sealed class AugmentDamageResistanceSystem : EntitySystem
             args.Damage = DamageSpecifier.ApplyModifierSet(args.Damage, modifierSet);
         }
     }
+
+    private bool CanApplyResistance(EntityUid enhancement)
+    {
+        var empBlocked = AugmentBehaviorPolicyHelpers.IsAffectedByEmp(enhancement, EntityManager)
+                         && HasComp<AugmentEmpDisabledComponent>(enhancement);
+        var brainBlocked = AugmentBehaviorPolicyHelpers.IsAffectedByBrainDeactivation(enhancement, EntityManager)
+                           && HasComp<AugmentBrainDeactivatedComponent>(enhancement);
+        var manuallyDisabled = AugmentBehaviorPolicyHelpers.CanToggle(enhancement, EntityManager)
+                               && HasComp<AugmentNeuroManuallyDisabledComponent>(enhancement);
+
+        return !empBlocked
+               && !brainBlocked
+               && !manuallyDisabled;
+    }
 }
+

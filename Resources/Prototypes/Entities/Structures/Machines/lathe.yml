@@ -809,6 +809,7 @@
     - WorkBeltsSecDynamic # WorkBelts-Techfab
     # <Onyx Packs>
     - IntegratedWeaponAugments
+    - IntegratedAdvancedWeaponAugments
   - type: EmagLatheRecipes # Goobstation
     emagStaticPacks:
     - SyndicateAmmoLightStatic
