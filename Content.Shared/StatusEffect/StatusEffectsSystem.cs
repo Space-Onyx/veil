@@ -25,6 +25,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Content.Shared.Alert;
 using Content.Shared.Rejuvenate;
 using Content.Shared.StatusEffectNew;
@@ -98,12 +99,24 @@ namespace Content.Shared.StatusEffect
             component.AllowedEffects.Clear();
             component.AllowedEffects.AddRange(state.AllowedEffects);
 
-            // Remove non-existent effects.
-            foreach (var key in component.ActiveEffects.Keys)
+            // <Onyx edited>
+            // Remove non-existent effects and their attached components.
+            var removedKeys = component.ActiveEffects.Keys
+                .Where(key => !state.ActiveEffects.ContainsKey(key))
+                .ToList();
+
+            foreach (var key in removedKeys)
             {
-                if (!state.ActiveEffects.ContainsKey(key))
-                    component.ActiveEffects.Remove(key);
+                if (component.ActiveEffects.TryGetValue(key, out var existing)
+                    && existing.RelevantComponent != null
+                    && Factory.TryGetRegistration(existing.RelevantComponent, out var registration))
+                {
+                    RemComp(uid, registration.Type);
+                }
+
+                component.ActiveEffects.Remove(key);
             }
+            // </Onyx edited>
 
             foreach (var (key, effect) in state.ActiveEffects)
             {
