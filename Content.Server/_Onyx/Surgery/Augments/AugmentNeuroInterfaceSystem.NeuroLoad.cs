@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Content.Goobstation.Maths.FixedPoint;
 using Content.Goobstation.Shared.Overlays;
 using Content.Server.Body.Components;
@@ -208,7 +209,10 @@ public sealed partial class AugmentNeuroInterfaceSystem
 
         var overload = currentLoad - maxLoad;
         if (overload <= 0f)
+        {
+            ClearOverloadDamageModifiers(body);
             return;
+        }
 
         if (!TryComp<BodyComponent>(body, out var bodyComp)
             || !_body.TryGetBodyOrganEntityComps<BrainComponent>((body, bodyComp), out var brains))
@@ -218,7 +222,10 @@ public sealed partial class AugmentNeuroInterfaceSystem
 
         var damage = (FixedPoint2)(overload * NeuroOverloadDamagePerSecond * (float)OverloadDamageInterval.TotalSeconds);
         if (damage <= 0)
+        {
+            ClearOverloadDamageModifiers(body);
             return;
+        }
 
         var effectOwner = GetNeuroLoadEffectOwner(body);
         foreach (var brain in brains)
@@ -230,6 +237,33 @@ public sealed partial class AugmentNeuroInterfaceSystem
         {
             _nextBrainOverloadPopup[body] = now + BrainOverloadPopupInterval;
             _popup.PopupEntity(Loc.GetString("neuro-interface-popup-brain-overload-damage"), body, body, PopupType.SmallCaution);
+        }
+    }
+
+    private void ClearOverloadDamageModifiers(EntityUid body)
+    {
+        if (!TryComp<BodyComponent>(body, out var bodyComp)
+            || !_body.TryGetBodyOrganEntityComps<BrainComponent>((body, bodyComp), out var brains))
+        {
+            return;
+        }
+
+        foreach (var brain in brains)
+        {
+            if (brain.Comp2.IntegrityModifiers.Count == 0)
+                continue;
+
+            var toRemove = new List<EntityUid>();
+            foreach (var (key, _) in brain.Comp2.IntegrityModifiers)
+            {
+                if (key.Item1 == NeuroLoadOverloadIdentifier)
+                    toRemove.Add(key.Item2);
+            }
+
+            foreach (var effectOwner in toRemove)
+            {
+                _trauma.TryRemoveOrganDamageModifier(brain.Owner, effectOwner, NeuroLoadOverloadIdentifier, brain.Comp2);
+            }
         }
     }
 
