@@ -76,4 +76,4 @@
     - BorgChassis
   components:
     - type: NeuroLoadLimitModifier
-      maxNeuroLoad: -10
+      maxNeuroLoad: -7
