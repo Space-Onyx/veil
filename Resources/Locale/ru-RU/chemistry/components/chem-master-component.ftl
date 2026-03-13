@@ -34,3 +34,8 @@ chem-master-window-sort-type-none = Сорт. по: Сначала старые
 chem-master-window-sort-type-alphabetical = Сорт. по: По алфавиту
 chem-master-window-sort-type-quantity = Сорт. по: Количество
 chem-master-window-sort-type-latest = Сорт. по: Сначала новые
+
+chem-master-window-search-reagent-label = Поиск:
+chem-master-window-search-reagent-placeholder = Название реагента
+chem-master-window-search-no-results-text = Реагенты по запросу не найдены.
+chem-master-window-search-in-containers = В контейнерах
