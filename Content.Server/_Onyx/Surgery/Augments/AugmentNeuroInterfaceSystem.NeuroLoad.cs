@@ -206,7 +206,7 @@ public sealed partial class AugmentNeuroInterfaceSystem
         var currentLoad = GetCurrentNeuroLoad(body);
         TryGetNeuroLoadLimit(body, out var maxLoad);
 
-        var overload = currentLoad - maxLoad;
+        var overload = currentLoad - MathF.Max(0f, maxLoad);
         if (overload <= 0f)
         {
             ClearOverloadDamageModifiers(body);

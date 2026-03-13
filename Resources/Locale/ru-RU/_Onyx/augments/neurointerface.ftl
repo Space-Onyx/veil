@@ -78,7 +78,7 @@ neuro-interface-info-label = Информация
 neuro-interface-popup-cannot-toggle = Эту аугментацию нельзя переключать.
 neuro-interface-popup-emp-blocked = Аугментация временно отключена ЭМИ.
 neuro-interface-popup-brain-blocked = Аугментация принудительно деактивирована из-за критического повреждения мозга.
-neuro-interface-popup-brain-overload-damage = Ваш мозг перегружается от аугментаций и получает повреждения.
+neuro-interface-popup-brain-overload-damage = Ваш разум начинает плыть. Мозг перегружен!
 
 neuro-interface-augments-label = Управление аугментациями
 

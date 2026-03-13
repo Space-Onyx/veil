@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using Content.Goobstation.Shared.Augments;
+using Content.Shared.Access.Components;
+using Content.Shared.Access.Systems;
 using Content.Server.Body.Systems;
 using Content.Shared._Onyx.Surgery.Augments;
 using Content.Shared.Containers.ItemSlots;
@@ -24,6 +26,7 @@ public sealed class AugmentSuppressionProjectorSystem : EntitySystem
     private const float SquareLookupMultiplier = 1.4142135f;
 
     [Dependency] private readonly AugmentSystem _augment = default!;
+    [Dependency] private readonly AccessReaderSystem _accessReader = default!;
     [Dependency] private readonly BodySystem _body = default!;
     [Dependency] private readonly ItemSlotsSystem _itemSlots = default!;
     [Dependency] private readonly EntityLookupSystem _lookup = default!;
@@ -216,6 +219,14 @@ public sealed class AugmentSuppressionProjectorSystem : EntitySystem
             if (!IsBodyInsideShape(center, projectorRotation, radius, body, ent.Comp.Shape))
                 continue;
 
+            if (ShouldBypassSuppression(ent, body))
+            {
+                if (affectedBefore.Contains(body))
+                    RemoveSuppressionFromBody(ent, body);
+
+                continue;
+            }
+
             var suppressedAny = ApplySuppressionToBody(ent, body);
             if (!suppressedAny)
                 continue;
@@ -352,6 +363,27 @@ public sealed class AugmentSuppressionProjectorSystem : EntitySystem
         }
 
         return projector.InvertTags ? !matched : matched;
+    }
+
+    private bool ShouldBypassSuppression(Entity<AugmentSuppressionProjectorComponent> projector, EntityUid body)
+    {
+        if (!TryComp<AccessReaderComponent>(projector.Owner, out var reader))
+            return false;
+
+        if (!reader.Enabled)
+            return false;
+
+        if (reader.AccessLists.Count == 0 && reader.AccessKeys.Count == 0)
+            return false;
+
+        var accessItems = _accessReader.FindPotentialAccessItems(body);
+        var accessTags = _accessReader.FindAccessTags(body, accessItems);
+        _accessReader.FindStationRecordKeys(body, out var stationKeys, accessItems);
+
+        if (accessTags.Count == 0 && stationKeys.Count == 0)
+            return false;
+
+        return _accessReader.IsAllowed(accessTags, stationKeys, projector.Owner, reader);
     }
 
     private void AddOrMaintainSuppression(EntityUid projectorUid, EntityUid augmentUid, EntityUid body)
