@@ -94,12 +94,16 @@ public sealed class CloningPodSystem : EntitySystem
         // find first mob this player is meant to use and doesn't already have a mind via alternate means
         var query = EntityQueryEnumerator<BeingClonedComponent, MindContainerComponent>();
         var found = false;
+        // <Onyx-Memory-Tweak Edited>
         EntityUid mob;
+        EntityUid? sourceBody = null;
+        // </Onyx-Memory-Tweak Edited>
         while (query.MoveNext(out mob, out var cloned, out var mc))
         {
             if (cloned.Mind == mind && mc.Mind == null)
             {
                 found = true;
+                sourceBody = cloned.Original; // <Onyx-Memory-Tweak>
                 break;
             }
         }
@@ -107,8 +111,36 @@ public sealed class CloningPodSystem : EntitySystem
         if (!found)
             return;
 
+        // <Onyx-Memory-Tweak>
+        NetEntity? sourceNetEntity = null;
+        if (sourceBody is { } sourceUid && TryGetNetEntity(sourceUid, out var sourceBodyNetEntity))
+        {
+            sourceNetEntity = sourceBodyNetEntity;
+        }
+        else if (mind.OwnedEntity is { } ownedEntity && TryGetNetEntity(ownedEntity, out var ownedNetEntity))
+        {
+            sourceNetEntity = ownedNetEntity;
+        }
+        // </Onyx-Memory-Tweak>
+
         _mindSystem.TransferTo(mindId, mob, ghostCheckOverride: true, mind: mind);
         _mindSystem.UnVisit(mindId, mind);
+
+        // <Onyx-Memory-Tweak>
+        if (sourceNetEntity == null)
+            return;
+
+        if (!TryGetNetEntity(mob, out var cloneNetEntity))
+            return;
+
+        foreach (var memory in mind.Memories)
+        {
+            if (memory.EntityId != sourceNetEntity)
+                continue;
+
+            memory.EntityId = cloneNetEntity;
+        }
+        // <Onyx-Memory-Tweak>
     }
     // <Goobstation>
 
