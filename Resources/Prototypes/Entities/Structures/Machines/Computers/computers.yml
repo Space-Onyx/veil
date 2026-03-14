@@ -893,6 +893,28 @@
   components:
   - type: ApcPowerReceiver
     powerLoad: 500
+  # <Onyx-Surgery>
+  - type: DeviceList
+  - type: DeviceNetwork
+    deviceNetId: Wired
+  - type: DeviceLinkSink
+    ports:
+      - OperatingTableReceiver
+  - type: BodyScannerConsole
+  - type: HealthAnalyzer
+    maxScanRange: null
+    scanDelay: 0
+    silent: true
+  - type: ActivatableUI
+    key: enum.HealthAnalyzerUiKey.Key
+  - type: ActivatableUIRequiresPower
+  - type: UserInterface
+    interfaces:
+      enum.HealthAnalyzerUiKey.Key:
+        type: HealthAnalyzerBoundUserInterface
+      enum.WiresUiKey.Key:
+        type: WiresBoundUserInterface
+    # </Onyx-Surgery>
   - type: Computer
     board: BodyScannerComputerCircuitboard
   - type: PointLight

@@ -112,3 +112,7 @@
     guides:
     - MedicalDoctor
   - type: PowerSwitch
+  - type: DeviceLinkSource # <Onyx-Surgery>
+    range: 2
+    ports:
+      - OperatingTable

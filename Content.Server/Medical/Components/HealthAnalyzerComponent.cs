@@ -24,6 +24,7 @@
 
 using Robust.Shared.Audio;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom;
+using Content.Server._Onyx.Medical;
 using Content.Shared._Shitmed.Medical.HealthAnalyzer;
 
 namespace Content.Server.Medical.Components;
@@ -35,7 +36,7 @@ namespace Content.Server.Medical.Components;
 /// Requires <c>ItemToggleComponent</c>.
 /// </remarks>
 [RegisterComponent, AutoGenerateComponentPause]
-[Access(typeof(HealthAnalyzerSystem), typeof(CryoPodSystem))]
+[Access(typeof(HealthAnalyzerSystem), typeof(CryoPodSystem), typeof(BodyScannerConsoleSystem))] // <Onyx-Surgery Edited>
 public sealed partial class HealthAnalyzerComponent : Component
 {
     /// <summary>
