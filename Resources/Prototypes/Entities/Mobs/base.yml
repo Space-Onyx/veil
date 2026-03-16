@@ -139,6 +139,11 @@
     penetrateDamage: 15 # Kill million mices
     damagePenalty: 0.05
   - type: StunVisuals
+  # ECHO-Tweak-start
+  - type: CEZPhysics
+  - type: CEZLevelViewer
+    lookUp: true
+  # ECHO-Tweak-end
 
 - type: entity
   save: false

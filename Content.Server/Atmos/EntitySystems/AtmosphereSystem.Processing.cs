@@ -21,6 +21,7 @@
 
 using Content.Server.Atmos.Components;
 using Content.Server.Atmos.Piping.Components;
+using Content.Server._Onyx.ZLevels.Atmos;
 using Content.Shared.Atmos;
 using Content.Shared.Atmos.Components;
 using Content.Shared.Maps;
@@ -36,6 +37,7 @@ namespace Content.Server.Atmos.EntitySystems
     {
         [Dependency] private readonly IGameTiming _gameTiming = default!;
 
+        private ZLevelGridAtmosSystem? _zLevelGridAtmos; // <Onyx-ZLevelAtmos>
         private readonly Stopwatch _simulationStopwatch = new();
 
         /// <summary>
@@ -178,6 +180,12 @@ namespace Content.Server.Atmos.EntitySystems
 
                 if (!connected)
                 {
+                    // <Onyx-ZLevelAtmos>
+                    _zLevelGridAtmos ??= EntityManager.System<ZLevelGridAtmosSystem>();
+                    if (_zLevelGridAtmos.IsVerticalHoleTile(ent.Owner, tile.GridIndices))
+                        continue;
+                    // </Onyx-ZLevelAtmos>
+
                     RemoveActiveTile(atmos, tile);
                     atmos.Tiles.Remove(tile.GridIndices);
                 }
@@ -201,13 +209,25 @@ namespace Content.Server.Atmos.EntitySystems
             {
                 var contentDef = (ContentTileDefinition) _tileDefinitionManager[gTile.TypeId];
                 mapAtmosphere = contentDef.MapAtmosphere;
+                // <Onyx-ZLevelAtmos>
+                if (mapAtmosphere)
+                {
+                    _zLevelGridAtmos ??= EntityManager.System<ZLevelGridAtmosSystem>();
+                    if (_zLevelGridAtmos.IsVerticalHoleTile(ent.Owner, idx))
+                        mapAtmosphere = false;
+                }
+                // </Onyx-ZLevelAtmos>
                 tile.ThermalConductivity = contentDef.ThermalConductivity;
                 tile.HeatCapacity = contentDef.HeatCapacity;
                 tile.NoGridTile = false;
             }
             else
             {
-                mapAtmosphere = true;
+                // <Onyx-ZLevelAtmos>
+                _zLevelGridAtmos ??= EntityManager.System<ZLevelGridAtmosSystem>();
+                mapAtmosphere = !_zLevelGridAtmos.IsVerticalHoleTile(ent.Owner, idx);
+                // </Onyx-ZLevelAtmos>
+
                 tile.ThermalConductivity =  0.5f;
                 tile.HeatCapacity = float.PositiveInfinity;
 
