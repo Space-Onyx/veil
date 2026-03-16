@@ -29,7 +29,6 @@ namespace Content.Server.Power.EntitySystems
     {
         [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
         [Dependency] private readonly NodeContainerSystem _nodeContainer = default!;
-        [Dependency] private readonly SharedMapSystem _map = default!;
 
         public override void Initialize()
         {
@@ -56,14 +55,7 @@ namespace Content.Server.Power.EntitySystems
                     continue;
 
                 var otherTransform = Transform(reachable.Owner);
-
-                // ECHO-Tweak-start
-                if (!TryComp<MapGridComponent>(otherTransform.GridUid, out var otherGrid))
-                    continue;
-
-                var otherTile = _map.TileIndicesFor((otherTransform.GridUid.Value, otherGrid), otherTransform.Coordinates);
-                // ECHO-Tweak-end
-
+                var otherTile = grid.TileIndicesFor(otherTransform.Coordinates);
                 var diff = otherTile - tile;
 
                 mask |= diff switch

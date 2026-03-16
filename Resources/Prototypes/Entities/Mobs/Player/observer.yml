@@ -149,7 +149,6 @@
         density: 15
         layer:
         - GhostImpassable
-  - type: CEZLevelGhostMover  # ECHO-Tweak
 
 # shared parent between aghosts, replay spectators and normal observers
 - type: entity
@@ -210,10 +209,6 @@
         type: RevivalContractBoundUserInterface
         requireInputValidation: false
   - type: Sprinter # Goob Change
-  # ECHO-Tweak-start: better ghost movement
-  - type: CEZPhysics
-    ignoreHighGround: true
-  # ECHO-Tweak-end
 
 # proto for player ghosts specifically
 - type: entity
