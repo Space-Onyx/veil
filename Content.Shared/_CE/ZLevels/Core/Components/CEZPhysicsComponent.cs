@@ -50,6 +50,14 @@ public sealed partial class CEZPhysicsComponent : Component
     [DataField]
     public bool CurrentStickyGround = false;
 
+    // <Onyx-Tweak>
+    [ViewVariables]
+    public Vector2i CachedTilePos;
+
+    [ViewVariables]
+    public EntityUid CachedGridUid;
+    // </Onyx-Tweak>
+
     // Physics
 
     [DataField, AutoNetworkedField]
@@ -69,6 +77,11 @@ public sealed partial class CEZPhysicsComponent : Component
     /// </summary>
     [DataField, AutoNetworkedField]
     public bool IgnoreHighGround = false;
+
+    // <Onyx-Tweak>
+    [ViewVariables]
+    public float LastVisualLocalPosition = float.NaN;
+    // </Onyx-Tweak>
 
     // Visuals
 

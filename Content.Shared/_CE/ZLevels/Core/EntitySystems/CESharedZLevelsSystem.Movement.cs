@@ -114,10 +114,8 @@ public abstract partial class CESharedZLevelsSystem
         }
     }
 
-    public override void Update(float frameTime)
+    private void UpdateMovement(float frameTime) // <Onyx-Tweak Edited>
     {
-        base.Update(frameTime);
-
         _queuedLandings.Clear();    // ECHO-Tweak
 
         var query = EntityQueryEnumerator<CEZPhysicsComponent, CEActiveZPhysicsComponent, TransformComponent, PhysicsComponent>();

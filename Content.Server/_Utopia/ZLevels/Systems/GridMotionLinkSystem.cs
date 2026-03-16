@@ -9,14 +9,12 @@ public sealed class GridMotionLinkSystem : SharedGridMotionLinkSystem
     {
         base.Initialize();
 
-        SubscribeLocalEvent<GridMotionLinkComponent, MapInitEvent>(OnMapInit);
         SubscribeLocalEvent<GridMotionLinkComponent, GridFixtureChangeEvent>(OnGridFixtureChange);
     }
 
-    private void OnMapInit(Entity<GridMotionLinkComponent> ent, ref MapInitEvent args)
+    protected override void OnGridMotionLinkMapInit(Entity<GridMotionLinkComponent> ent, ref MapInitEvent args)
     {
         UpdateOffset(ent);
-        Dirty(ent);
     }
 
     private void OnGridFixtureChange(Entity<GridMotionLinkComponent> ent, ref GridFixtureChangeEvent args)

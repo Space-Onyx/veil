@@ -26,7 +26,6 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
 
     private readonly Dictionary<string, List<(int Depth, EntityUid Grid)>> _groupCache = new();
     private bool _groupCacheDirty = true;
-    private int _periodicRebuildCounter;
 
     private readonly Dictionary<(EntityUid Below, EntityUid Above), List<VerticalLink>> _verticalLinks = new();
     private bool _linksDirty = true;
@@ -169,12 +168,6 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
         base.Update(frameTime);
 
         _dynamicHoleCache.Clear();
-
-        if (++_periodicRebuildCounter >= 60)
-        {
-            _periodicRebuildCounter = 0;
-            _groupCacheDirty = true;
-        }
 
         if (_groupCacheDirty)
             RebuildGroupCache();

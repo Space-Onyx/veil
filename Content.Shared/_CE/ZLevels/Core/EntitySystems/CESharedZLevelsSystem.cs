@@ -4,7 +4,7 @@
  */
 
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
+
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared.ActionBlocker;
 using Content.Shared.Damage;
@@ -42,6 +42,11 @@ public abstract partial class CESharedZLevelsSystem : EntitySystem
     private EntityQuery<MapGridComponent> _gridQuery;
 
     protected EntityQuery<CEZPhysicsComponent> ZPhyzQuery = default!;
+    // <Onyx-Tweak>
+    private readonly Dictionary<EntityUid, EntityUid> _mapToNetwork = new();
+    private readonly Dictionary<EntityUid, List<(int Depth, EntityUid MapUid)>> _sortedMaps = new();
+    private bool _networkCacheDirty = true;
+    // </Onyx-Tweak>
 
     public override void Initialize()
     {
@@ -51,11 +56,60 @@ public abstract partial class CESharedZLevelsSystem : EntitySystem
         _zMapQuery = GetEntityQuery<CEZLevelMapComponent>();
         _gridQuery = GetEntityQuery<MapGridComponent>();
         ZPhyzQuery = GetEntityQuery<CEZPhysicsComponent>();
+        // <Onyx-Tweak>
+        SubscribeLocalEvent<CEZLevelsNetworkComponent, ComponentStartup>(OnNetworkStartup);
+        SubscribeLocalEvent<CEZLevelsNetworkComponent, ComponentShutdown>(OnNetworkShutdown);
+        // </Onyx-Tweak>
 
         InitMovement();
         InitView();
         InitializeActivation();
     }
+
+    // <Onyx-Tweak>
+    private void OnNetworkStartup(Entity<CEZLevelsNetworkComponent> ent, ref ComponentStartup args)
+    {
+        _networkCacheDirty = true;
+    }
+
+    private void OnNetworkShutdown(Entity<CEZLevelsNetworkComponent> ent, ref ComponentShutdown args)
+    {
+        _networkCacheDirty = true;
+    }
+
+    public void InvalidateNetworkCache()
+    {
+        _networkCacheDirty = true;
+    }
+
+    private void EnsureNetworkCache()
+    {
+        if (!_networkCacheDirty)
+            return;
+
+        _networkCacheDirty = false;
+        _mapToNetwork.Clear();
+        _sortedMaps.Clear();
+
+        var query = EntityQueryEnumerator<CEZLevelsNetworkComponent>();
+        while (query.MoveNext(out var uid, out var comp))
+        {
+            var sorted = new List<(int Depth, EntityUid MapUid)>();
+
+            foreach (var (depth, mapUid) in comp.ZLevels)
+            {
+                if (!mapUid.HasValue)
+                    continue;
+
+                _mapToNetwork[mapUid.Value] = uid;
+                sorted.Add((depth, mapUid.Value));
+            }
+
+            sorted.Sort((a, b) => a.Depth.CompareTo(b.Depth));
+            _sortedMaps[uid] = sorted;
+        }
+    }
+    // </Onyx-Tweak>
 
     /// <summary>
     /// Checks whether the map is in the zLevels network. If so, returns true and the current depth + Entity of the current zLevels network.
@@ -63,18 +117,19 @@ public abstract partial class CESharedZLevelsSystem : EntitySystem
     [PublicAPI]
     public bool TryGetZNetwork(EntityUid mapUid, [NotNullWhen(true)] out Entity<CEZLevelsNetworkComponent>? zLevel)
     {
+        // <Onyx-Tweak Edited>
         zLevel = null;
-        var query = EntityQueryEnumerator<CEZLevelsNetworkComponent>();
-        while (query.MoveNext(out var uid, out var zLevelComp))
-        {
-            if (!zLevelComp.ZLevels.ContainsValue(mapUid))
-                continue;
+        EnsureNetworkCache();
 
-            zLevel = (uid, zLevelComp);
-            return true;
-        }
+        if (!_mapToNetwork.TryGetValue(mapUid, out var networkUid))
+            return false;
 
-        return false;
+        if (!TryComp<CEZLevelsNetworkComponent>(networkUid, out var comp))
+            return false;
+
+        zLevel = (networkUid, comp);
+        return true;
+        // <Onyx-Tweak Edited>
     }
 
     [PublicAPI]
@@ -86,23 +141,24 @@ public abstract partial class CESharedZLevelsSystem : EntitySystem
         if (!Resolve(inputMapUid, ref inputMapUid.Comp, false))
             return false;
 
-        var query = EntityQueryEnumerator<CEZLevelsNetworkComponent>();
-        while (query.MoveNext(out var network))
-        {
-            if (!network.ZLevels.ContainsValue(inputMapUid))
-                continue;
+        // <Onyx-Tweak Edited>
+        EnsureNetworkCache();
 
-            if (!network.ZLevels.TryGetValue(inputMapUid.Comp.Depth + offset, out var targetMapUid))
-                continue;
+        if (!_mapToNetwork.TryGetValue(inputMapUid, out var networkUid))
+            return false;
 
-            if (!_zMapQuery.TryComp(targetMapUid, out var targetZLevelComp))
-                continue;
+        if (!TryComp<CEZLevelsNetworkComponent>(networkUid, out var networkComp))
+            return false;
 
-            outputMapUid = (targetMapUid.Value, targetZLevelComp);
-            return true;
-        }
+        if (!networkComp.ZLevels.TryGetValue(inputMapUid.Comp.Depth + offset, out var targetMapUid))
+            return false;
 
-        return false;
+        if (!_zMapQuery.TryComp(targetMapUid, out var targetZLevelComp))
+            return false;
+
+        outputMapUid = (targetMapUid.Value, targetZLevelComp);
+        return true;
+        // </Onyx-Tweak Edited>
     }
 
     [PublicAPI]
@@ -126,21 +182,25 @@ public abstract partial class CESharedZLevelsSystem : EntitySystem
     public List<EntityUid> GetAllMapsAbove(Entity<CEZLevelMapComponent> inputMapUid)
     {
         var result = new List<EntityUid>();
+        // <Onyx-Tweak>
+        EnsureNetworkCache();
 
+        if (!_mapToNetwork.TryGetValue(inputMapUid, out var networkUid))
+            return result;
+
+        if (!_sortedMaps.TryGetValue(networkUid, out var sorted))
+            return result;
+        // </Onyx-Tweak>
+
+        // <Onyx-Tweak Edited>
         var inputDepth = inputMapUid.Comp.Depth;
-        var query = EntityQueryEnumerator<CEZLevelsNetworkComponent>();
-        while (query.MoveNext(out var network))
+        foreach (var (depth, mapUid) in sorted)
         {
-            if (!network.ZLevels.ContainsValue(inputMapUid))
-                continue;
-
-            result.AddRange(
-                network.ZLevels
-                    .Where(kv => kv.Value.HasValue && kv.Key > inputDepth)
-                    .OrderBy(kv => kv.Key)
-                    .Select(kv => kv.Value!.Value)
-            );
+            if (depth > inputDepth)
+                result.Add(mapUid);
         }
+        // </Onyx-Tweak Edited>
+
         return result;
     }
 
@@ -151,22 +211,25 @@ public abstract partial class CESharedZLevelsSystem : EntitySystem
     public List<EntityUid> GetAllMapsBelow(Entity<CEZLevelMapComponent> inputMapUid)
     {
         var result = new List<EntityUid>();
+        // <Onyx-Tweak>
+        EnsureNetworkCache();
+
+        if (!_mapToNetwork.TryGetValue(inputMapUid, out var networkUid))
+            return result;
+
+        if (!_sortedMaps.TryGetValue(networkUid, out var sorted))
+            return result;
+        // </Onyx-Tweak>
 
         var inputDepth = inputMapUid.Comp.Depth;
-        var query = EntityQueryEnumerator<CEZLevelsNetworkComponent>();
-        while (query.MoveNext(out var network))
+        // <Onyx-Tweak Edited>
+        for (var i = sorted.Count - 1; i >= 0; i--)
         {
-            if (!network.ZLevels.ContainsValue(inputMapUid))
-                continue;
-
-            foreach (var zLevelEnt in network.ZLevels
-                         .Where(kv => kv.Value.HasValue && kv.Key < inputDepth)
-                         .OrderByDescending(kv => kv.Key)
-                         .Select(kv => kv.Value!.Value))
-            {
-                result.Add(zLevelEnt);
-            }
+            var (depth, mapUid) = sorted[i];
+            if (depth < inputDepth)
+                result.Add(mapUid);
         }
+        // </Onyx-Tweak Edited>
 
         return result;
     }

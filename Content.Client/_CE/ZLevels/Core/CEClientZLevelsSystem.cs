@@ -68,6 +68,13 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
         {
             var localPosition = GetVisualsLocalPosition((uid, zPhys), xform);
 
+            // <Onyx-Tweak>
+            if (localPosition == zPhys.LastVisualLocalPosition)
+                continue;
+
+            zPhys.LastVisualLocalPosition = localPosition;
+            // </Onyx-Tweak>
+
             sprite.NoRotation = localPosition != 0 || zPhys.NoRotDefault;
 
             _sprite.SetOffset((uid, sprite), zPhys.SpriteOffsetDefault + new Vector2(0, localPosition * _cfg.GetCVar(CCVars.ZLevelOffset)));    // <Onyx-Tweak>

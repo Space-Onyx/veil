@@ -1,10 +1,10 @@
 using Content.Shared._Utopia.ZLevels.Components;
+using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Systems;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Numerics;
 
 namespace Content.Shared._Utopia.ZLevels.Systems;
@@ -16,13 +16,88 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
     [Dependency] private readonly SharedMapSystem _map = default!;
 
     private const string GlobalGroupId = "ZZZ";
-
+    // <Onyx-Tweak>
+    private readonly Dictionary<EntityUid, int> _gridTileCountCache = new();
+    private readonly Dictionary<string, EntityUid> _biggestGridCache = new();
+    private bool _biggestGridCacheDirty = true;
+    private readonly List<Entity<GridMotionLinkComponent, MapGridComponent, PhysicsComponent>> _groupMatchBuffer = new();
+    private readonly HashSet<string> _groupsMovedSet = new();
+    // </Onyx-Tweak>
     public override void Initialize()
     {
         base.Initialize();
 
         UpdatesAfter.Add(typeof(SharedPhysicsSystem));
+        // <Onyx-Tweak>
+        SubscribeLocalEvent<GridMotionLinkComponent, MapInitEvent>(OnGridMotionLinkInit);
+        SubscribeLocalEvent<GridMotionLinkComponent, ComponentRemove>(OnGridMotionLinkRemove);
+        SubscribeLocalEvent<TileChangedEvent>(OnTileChangedGridMotion);
+        // </Onyx-Tweak>
     }
+    // <Onyx-Tweak Edited>
+
+    private void OnGridMotionLinkInit(Entity<GridMotionLinkComponent> ent, ref MapInitEvent args)
+    {
+        if (TryComp<MapGridComponent>(ent, out var grid))
+        {
+            var count = 0;
+            var enumerator = _map.GetAllTilesEnumerator(ent, grid, true);
+            while (enumerator.MoveNext(out _))
+                count++;
+            _gridTileCountCache[ent] = count;
+        }
+        _biggestGridCacheDirty = true;
+        OnGridMotionLinkMapInit(ent, ref args);
+    }
+
+    private void OnGridMotionLinkRemove(Entity<GridMotionLinkComponent> ent, ref ComponentRemove args)
+    {
+        _gridTileCountCache.Remove(ent);
+        _biggestGridCacheDirty = true;
+    }
+
+    protected virtual void OnGridMotionLinkMapInit(Entity<GridMotionLinkComponent> ent, ref MapInitEvent args)
+    {
+    }
+
+    private void OnTileChangedGridMotion(ref TileChangedEvent ev)
+    {
+        if (!HasComp<GridMotionLinkComponent>(ev.Entity))
+            return;
+
+        foreach (var change in ev.Changes)
+        {
+            var wasEmpty = change.OldTile.IsEmpty;
+            var isNowEmpty = change.NewTile.IsEmpty;
+
+            if (wasEmpty && !isNowEmpty)
+            {
+                _gridTileCountCache.TryGetValue(ev.Entity, out var count);
+                _gridTileCountCache[ev.Entity] = count + 1;
+            }
+            else if (!wasEmpty && isNowEmpty)
+            {
+                if (_gridTileCountCache.TryGetValue(ev.Entity, out var count))
+                    _gridTileCountCache[ev.Entity] = Math.Max(0, count - 1);
+            }
+        }
+
+        _biggestGridCacheDirty = true;
+    }
+
+    private int GetCachedTileCount(EntityUid uid, MapGridComponent grid)
+    {
+        if (_gridTileCountCache.TryGetValue(uid, out var cached))
+            return cached;
+
+        var count = 0;
+        var enumerator = _map.GetAllTilesEnumerator(uid, grid, true);
+        while (enumerator.MoveNext(out _))
+            count++;
+        _gridTileCountCache[uid] = count;
+        return count;
+    }
+    // </Onyx-Tweak Edited>
 
 
     public void UpdateOffset(Entity<GridMotionLinkComponent> ent)
@@ -86,25 +161,22 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
                                  [NotNullWhen(true)] out Vector2? linearSpeed,
                                  [NotNullWhen(true)] out float? angularSpeed,
                                  [NotNullWhen(true)] out EntityUid? biggestGrid,
-                                  out List<Entity<GridMotionLinkComponent, MapGridComponent, PhysicsComponent>> matches,
                                   GridMotionLinkComponent? comp = null)
     {
         linearSpeed = Vector2.Zero;
         angularSpeed = 0f;
         biggestGrid = null;
-        matches = new();
 
         if (!Resolve(uid, ref comp))
             return false;
 
-        matches = GetGridsOfGroup(comp.GroupId);
+        GetGridsOfGroup(comp.GroupId); // <Onyx-Tweak Edited>
 
-        if (matches.Count == 0)
+        if (_groupMatchBuffer.Count == 0) // <Onyx-Tweak Edited>
             return false;
 
-
         var biggest = new KeyValuePair<int, EntityUid>(0, EntityUid.Invalid);
-        foreach (var (targetUid, link, grid, phys) in matches)
+        foreach (var (targetUid, link, grid, phys) in _groupMatchBuffer) // <Onyx-Tweak Edited>
         {
             if (link.GroupId != comp.GroupId)
                 continue;
@@ -112,21 +184,23 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
             linearSpeed += phys.LinearVelocity;
             angularSpeed += phys.AngularVelocity;
 
-            var tilesCount = _map.GetAllTiles(targetUid, grid, true).Count();
+            var tilesCount = GetCachedTileCount(targetUid, grid); // <Onyx-Tweak Edited>
 
             if (biggest.Key < tilesCount)
                 biggest = new(tilesCount, targetUid);
         }
 
-        linearSpeed /= matches.Count;
-        angularSpeed /= matches.Count;
+        // <Onyx-Tweak Edited>
+        linearSpeed /= _groupMatchBuffer.Count;
+        angularSpeed /= _groupMatchBuffer.Count;
+        // </Onyx-Tweak Edited>
         biggestGrid = biggest.Value;
         return true;
     }
 
-    private List<Entity<GridMotionLinkComponent, MapGridComponent, PhysicsComponent>> GetGridsOfGroup(string groupId)
+    private void GetGridsOfGroup(string groupId) // <Onyx-Tweak Edited>
     {
-        var matches = new List<Entity<GridMotionLinkComponent, MapGridComponent, PhysicsComponent>>();
+        _groupMatchBuffer.Clear(); // <Onyx-Tweak>
 
         var query = EntityQueryEnumerator<GridMotionLinkComponent, MapGridComponent, PhysicsComponent>();
         while (query.MoveNext(out var targetUid, out var link, out var grid, out var phys))
@@ -134,29 +208,33 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
             if (link.GroupId != groupId)
                 continue;
 
-            matches.Add((targetUid, link, grid, phys));
+            _groupMatchBuffer.Add((targetUid, link, grid, phys)); // <Onyx-Tweak Edited>
         }
-
-        return matches;
     }
 
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
+        // <Onyx-Tweak>
+        if (_biggestGridCacheDirty)
+        {
+            _biggestGridCache.Clear();
+            _biggestGridCacheDirty = false;
+        }
+        // </Onyx-Tweak>
 
         var query = EntityQueryEnumerator<GridMotionLinkComponent, PhysicsComponent>();
-        List<string> groupsMoved = new();
+        _groupsMovedSet.Clear(); // <Onyx-Tweak>
 
         while (query.MoveNext(out var uid, out var comp, out var phys))
         {
-            if (groupsMoved.Contains(comp.GroupId))
+            if (!_groupsMovedSet.Add(comp.GroupId)) // <Onyx-Tweak Edited>
                 continue;
 
-            if (!TryGetMotionData(uid, out var linear, out var angular, out var biggest, out var group, comp))
+            if (!TryGetMotionData(uid, out var linear, out var angular, out var biggest, comp)) // <Onyx-Tweak Edited>
                 continue;
 
-            RelayMotion(linear.Value, angular.Value, biggest.Value, group);
-            groupsMoved.Add(comp.GroupId);
+            RelayMotion(linear.Value, angular.Value, biggest.Value, _groupMatchBuffer); // <Onyx-Tweak Edited>
         }
     }
 
@@ -184,20 +262,25 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
 
     private EntityUid GetBiggestGridOfGroup(string group)
     {
-        var ents = EntityManager.AllEntities<GridMotionLinkComponent>().Where(x => x.Comp.GroupId == group);
+        // <Onyx-Tweak Edited>
+        if (!_biggestGridCacheDirty && _biggestGridCache.TryGetValue(group, out var cachedBiggest))
+            return cachedBiggest;
 
         var biggest = new KeyValuePair<int, EntityUid>(0, EntityUid.Invalid);
-        foreach (var ent in ents)
+        var query = EntityQueryEnumerator<GridMotionLinkComponent, MapGridComponent>();
+        while (query.MoveNext(out var uid, out var link, out var grid))
         {
-            if (!TryComp<MapGridComponent>(ent.Owner, out var grid))
+            if (link.GroupId != group)
                 continue;
 
-            var tilesCount = _map.GetAllTiles(ent.Owner, grid, true).Count();
+            var tilesCount = GetCachedTileCount(uid, grid);
 
             if (biggest.Key < tilesCount)
-                biggest = new(tilesCount, ent.Owner);
+                biggest = new(tilesCount, uid);
         }
 
+        _biggestGridCache[group] = biggest.Value;
         return biggest.Value;
+        // </Onyx-Tweak Edited>
     }
 }

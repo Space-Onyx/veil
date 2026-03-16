@@ -36,13 +36,7 @@ public sealed partial class CEZLevelsSystem
             return false;
         }
 
-        if (TryGetZNetwork(mapUid, out var otherNetwork))
-        {
-            Log.Error($"Failed attempt to add map {mapUid} to ZLevelNetwork {network}: This map is already in another network {otherNetwork}.");
-            return false;
-        }
-
-        if (network.Comp.ZLevels.ContainsValue(mapUid))
+        if (TryGetZNetwork(mapUid, out _)) // <Onyx-Tweak Edited>
         {
             Log.Error($"Failed attempt to add map {mapUid} to ZLevelNetwork {network} at depth {depth}: This map is already in this network.");
             return false;
@@ -63,6 +57,7 @@ public sealed partial class CEZLevelsSystem
                 success = false;
         }
 
+        InvalidateNetworkCache(); // <Onyx-Tweak>
         RaiseLocalEvent(network, new CEZLevelNetworkUpdatedEvent());
         // Backward compatibility for older CE mapping systems still listening to the legacy event.
         RaiseLocalEvent(network, new CEMapAddedIntoZNetworkEvent());

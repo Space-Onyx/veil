@@ -17,7 +17,28 @@ public abstract partial class CESharedZLevelsSystem
     {
         SubscribeLocalEvent<CEZLevelViewerComponent, MoveEvent>(OnViewerMove);
         SubscribeLocalEvent<CEZLevelViewerComponent, CEToggleZLevelLookUpAction>(OnToggleLookUp);
+        SubscribeLocalEvent<TileChangedEvent>(OnViewTileChanged); // <Onyx-Tweak>
     }
+
+    // <Onyx-Tweak>
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+        UpdateView();
+        UpdateMovement(frameTime);
+    }
+
+    private void UpdateView()
+    {
+        _opaqueAboveCache.Clear();
+        _opaqueAboveCacheDirty = false;
+    }
+
+    private void OnViewTileChanged(ref TileChangedEvent ev)
+    {
+        _opaqueAboveCacheDirty = true;
+    }
+    // </Onyx-Tweak>
 
     protected virtual void OnViewerMove(Entity<CEZLevelViewerComponent> ent, ref MoveEvent args)
     {
@@ -48,6 +69,10 @@ public abstract partial class CESharedZLevelsSystem
         DirtyField(ent, ent.Comp, nameof(CEZLevelViewerComponent.LookUp));
     }
 
+    // <Onyx-Tweak>
+    private readonly Dictionary<(EntityUid MapAbove, Vector2i TilePos), bool> _opaqueAboveCache = new();
+    private bool _opaqueAboveCacheDirty;
+    // </Onyx-Tweak>
     public bool HasOpaqueAbove(EntityUid ent, Entity<CEZLevelMapComponent?>? currentMapUid = null)
     {
         currentMapUid ??= Transform(ent).MapUid;
@@ -61,8 +86,15 @@ public abstract partial class CESharedZLevelsSystem
         if (!_mapQuery.TryComp(mapAboveUid.Value, out var mapComp)) // <Onyx-Tweak>
             return false;
 
-        // <Onyx-Tweak>
         var worldPosition = _transform.GetWorldPosition(ent);
+        // </Onyx-Tweak>
+        var approxTile = new Vector2i((int)MathF.Floor(worldPosition.X), (int)MathF.Floor(worldPosition.Y));
+        var cacheKey = (mapAboveUid.Value.Owner, approxTile);
+
+        if (!_opaqueAboveCacheDirty && _opaqueAboveCache.TryGetValue(cacheKey, out var cached))
+            return cached;
+
+        var result = false;
         foreach (var grid in _mapManager.GetAllGrids(mapComp.MapId))
         {
             if (!_map.TryGetTileRef(grid.Owner, grid.Comp, worldPosition, out var tileRef))
@@ -73,10 +105,14 @@ public abstract partial class CESharedZLevelsSystem
 
             var tileDef = (ContentTileDefinition)TilDefMan[tileRef.Tile.TypeId];
             if (!tileDef.Transparent)
-                return true;
+            {
+                result = true;
+                break;
+            }
         }
 
-        return false;
+        _opaqueAboveCache[cacheKey] = result;
+        return result;
         // </Onyx-Tweak>
     }
 }
