@@ -60,6 +60,7 @@
   - type: Organ
     slotId: neckImplant
     toolName: surgery-tool-augment-target-neck
+    hiddenFromAnalyzer: true
   - type: AugmentNeuroInterface
     maxNeuroLoad: 10
   - type: AugmentNeuroLoad

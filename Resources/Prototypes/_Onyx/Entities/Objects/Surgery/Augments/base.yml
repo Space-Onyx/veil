@@ -27,6 +27,7 @@
   - type: Organ
     slotId: legImplant
     toolName: surgery-tool-augment-target-leg
+    hiddenFromAnalyzer: true
   - type: Tag
     tags:
     - LegAugment
@@ -44,6 +45,7 @@
   - type: Organ
     slotId: footImplant
     toolName: surgery-tool-augment-target-foot
+    hiddenFromAnalyzer: true
   - type: Tag
     tags:
     - footAugment
@@ -61,6 +63,7 @@
   - type: Organ
     slotId: chestImplant
     toolName: surgery-tool-augment-target-chest
+    hiddenFromAnalyzer: true
   - type: Tag
     tags:
     - chestAugment
@@ -78,6 +81,7 @@
   - type: Organ
     slotId: headImplant
     toolName: surgery-tool-augment-target-head
+    hiddenFromAnalyzer: true
   - type: Tag
     tags:
     - headAugment
@@ -95,6 +99,7 @@
   - type: Organ
     slotId: eyeImplant
     toolName: surgery-tool-augment-target-eye
+    hiddenFromAnalyzer: true
   - type: Tag
     tags:
     - eyeAugment
@@ -112,6 +117,7 @@
   - type: Organ
     slotId: brainImplant
     toolName: surgery-tool-augment-target-brain
+    hiddenFromAnalyzer: true
   - type: Tag
     tags:
     - brainAugment
@@ -129,6 +135,7 @@
   - type: Organ
     slotId: armImplant
     toolName: surgery-tool-augment-target-arm
+    hiddenFromAnalyzer: true
   - type: Tag
     tags:
     - armAugment
@@ -146,6 +153,7 @@
   - type: Organ
     slotId: handImplant
     toolName: surgery-tool-augment-target-hand
+    hiddenFromAnalyzer: true
   - type: Tag
     tags:
     - handAugment
@@ -163,6 +171,7 @@
   - type: Organ
     slotId: neckImplant
     toolName: surgery-tool-augment-target-neck
+    hiddenFromAnalyzer: true
   - type: Tag
     tags:
     - neckAugment

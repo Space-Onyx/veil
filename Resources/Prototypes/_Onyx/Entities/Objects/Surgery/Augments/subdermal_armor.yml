@@ -44,6 +44,7 @@
     slotId: chestImplant
     toolName: surgery-tool-augment-target-chest
     canEnable: false
+    hiddenFromAnalyzer: true
   - type: AugmentBehaviorPolicy
     canToggle: false
     affectedByBrainDeactivation: false

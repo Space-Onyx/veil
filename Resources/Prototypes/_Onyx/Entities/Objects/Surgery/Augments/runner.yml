@@ -30,6 +30,7 @@
   - type: Organ
     slotId: legImplant
     toolName: surgery-tool-augment-target-leg
+    hiddenFromAnalyzer: true
   - type: AugmentExamine
     color: "#974cf9"
     examineText: augment-examine-runner
@@ -58,6 +59,7 @@
   - type: Organ
     slotId: legImplant
     toolName: surgery-tool-augment-target-leg
+    hiddenFromAnalyzer: true
   - type: AugmentExamine
     examineText: augment-examine-runner-advanced
     visible: true
