@@ -4,13 +4,11 @@
 * @KillanGenifer
 
 # Locale
-/Resources/Locale @Ko4ergaPunk
-/Resources/ServerInfo @Ko4ergaPunk
+#/Resources/Locale @
+#/Resources/ServerInfo @
 
 # Textures
-/Resources/Textures @RedTerrorDark
-/Resources/Prototypes/Maps/** @Emisse @ArtisticRoomba
-/Resources/Maps/** @Emisse @ArtisticRoomba
+#/Resources/Textures @
 
 # Map files
 /Resources/Prototypes/_CorvaxGoob/Entities/Stations @kvant8

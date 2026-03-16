@@ -216,7 +216,7 @@ public abstract partial class SharedMartialArtsSystem
             dir.Normalized() * args.ThrowRange * power,
             proto.ThrownSpeed,
             behavior: proto.DropItems);
-        ComboPopup(ent, target, proto.Name);
+        ComboPopup(ent, target, proto.ID); // CorvaxGoob-Localization // proto.Name -> proto.ID
         ent.Comp.LastAttacks.Clear();
     }
 

@@ -357,7 +357,7 @@
   - CaptainCloak
   - CaptainCloakFormal
   - CaptainMantle
-  # - VeteranCaptainCloak # goob # <Onyx-Commented>
+  - VeteranCaptainCloak # goob
   # - CaptainEnsemble # goob # <Onyx-Commented>
 
 - type: loadoutGroup
