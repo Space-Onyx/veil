@@ -6,7 +6,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 - type: entity
-  id: Stairs
+  id: StairsZLevel
   name: stairs
   suffix: Steel
   description: The greatest invention since rocket-propelled grenades.
@@ -42,11 +42,42 @@
             max: 4
       - !type:DoActsBehavior
         acts: [ "Destruction" ]
+  - type: Physics
+    bodyType: Static
+  - type: CEZLevelHighGround
+    heightCurve:
+    - 1.05
+    - 1.05
+    - 1.05
+    - 0.5
+    - 0.1
+  - type: Fixtures
+    fixtures:
+      hard:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "1.6,0.4,1.7,0.5"
+        layer:
+          - SlipLayer
+        mask:
+          - ItemMask
+        density: 1000
+        hard: false
+      slowdown:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-1.5,-0.4,1.5,0.4"
+        layer:
+          - SlipLayer
+        mask:
+          - ItemMask
+        density: 1000
+        hard: false
 
 - type: entity
-  id: StairStage
+  id: StairStageZLevel
   parent: Stairs
-  suffix: Steel, stage
+  suffix: Steel, stage, ZLevel
   components:
   - type: Sprite
     sprite: Structures/stairs.rsi
@@ -54,8 +85,8 @@
     drawdepth: FloorTiles
 
 - type: entity
-  id: StairWhite
-  parent: Stairs
+  id: StairWhiteZLevel
+  parent: Stairs, ZLevel
   suffix: White
   components:
   - type: Sprite
@@ -64,9 +95,9 @@
     drawdepth: FloorTiles
 
 - type: entity
-  id: StairStageWhite
+  id: StairStageWhiteZLevel
   parent: Stairs
-  suffix: White, stage
+  suffix: White, stage, ZLevel
   components:
   - type: Sprite
     sprite: Structures/stairs.rsi
@@ -74,9 +105,9 @@
     drawdepth: FloorTiles
 
 - type: entity
-  id: StairDark
+  id: StairDarkZLevel
   parent: Stairs
-  suffix: Dark
+  suffix: Dark, ZLevel
   components:
   - type: Sprite
     sprite: Structures/stairs.rsi
@@ -84,9 +115,9 @@
     drawdepth: FloorTiles
 
 - type: entity
-  id: StairStageDark
+  id: StairStageDarkZLevel
   parent: Stairs
-  suffix: Dark, stage
+  suffix: Dark, stage, ZLevel
   components:
   - type: Sprite
     sprite: Structures/stairs.rsi
@@ -94,9 +125,9 @@
     drawdepth: FloorTiles
 
 - type: entity
-  id: StairWood
+  id: StairWoodZLevel
   parent: Stairs
-  suffix: Wood
+  suffix: Wood, ZLevel
   components:
   - type: Sprite
     sprite: Structures/stairs.rsi
@@ -104,9 +135,9 @@
     drawdepth: FloorTiles
 
 - type: entity
-  id: StairStageWood
+  id: StairStageWoodZLevel
   parent: Stairs
-  suffix: Wood, stage
+  suffix: Wood, stage, ZLevel
   components:
   - type: Sprite
     sprite: Structures/stairs.rsi
