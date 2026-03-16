@@ -86,8 +86,8 @@
 
 - type: entity
   id: StairWhiteZLevel
-  parent: Stairs, ZLevel
-  suffix: White
+  parent: Stairs
+  suffix: White, ZLevel
   components:
   - type: Sprite
     sprite: Structures/stairs.rsi
