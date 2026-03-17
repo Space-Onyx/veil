@@ -18,6 +18,22 @@ public abstract partial class CESharedZLevelsSystem
                                 PhysicsComponent physics,
                                 float frameTime)
     {
+        // <Onyx-Tweak>
+        if (!zPhys.GroundCacheValid || zPhys.GroundCacheGeneration != _groundCacheGeneration)
+        {
+            CacheMovement((uid, zPhys));
+        }
+
+        if (zPhys.IsGrounded && Math.Abs(zPhys.Velocity) < 0.001f &&
+            Math.Abs(zPhys.LocalPosition - zPhys.CurrentGroundHeight) < 0.05f)
+        {
+            // <Onyx-Tweak> 
+            RemComp<CEActiveZPhysicsComponent>(uid);
+            // </Onyx-Tweak>
+            return;
+        }
+        // </Onyx-Tweak>
+
         var oldVelocity = zPhys.Velocity;
         var oldHeight = zPhys.LocalPosition;
 
@@ -25,7 +41,7 @@ public abstract partial class CESharedZLevelsSystem
         {
             //Velocity application
             var velocityEv = new CEGetZVelocityEvent((uid, zPhys));
-            RaiseLocalEvent(uid, velocityEv);
+            RaiseLocalEvent(uid, ref velocityEv); // <Onyx-Tweak Edited>
 
             zPhys.Velocity += velocityEv.VelocityDelta * frameTime;
         }
@@ -57,6 +73,10 @@ public abstract partial class CESharedZLevelsSystem
         if (currentlyGrounded)
         {
             zPhys.LocalPosition -= distanceToGround; //Sticky move
+            // <Onyx-Tweak>
+            if (zPhys.Velocity < 0)
+                zPhys.Velocity = 0;
+            // </Onyx-Tweak>
         }
 
         if (currentlyGrounded == zPhys.IsGrounded)
@@ -74,7 +94,7 @@ public abstract partial class CESharedZLevelsSystem
     {
         if (MathF.Abs(zPhys.Velocity) >= Cfg.GetCVar(CCVars.ZImpactVelocityLimit))
         {
-            _queuedLandings.Add(uid, -zPhys.Velocity);
+            _queuedLandings.Add((uid, -zPhys.Velocity)); // <Onyx-Tweak Edited>
         }
 
         zPhys.Velocity = -zPhys.Velocity * zPhys.Bounciness;
@@ -98,6 +118,7 @@ public abstract partial class CESharedZLevelsSystem
             // <Onyx-Tweak>
 
             zPhys.LocalPosition += 1;
+            zPhys.GroundCacheValid = false; // <Onyx-Tweak>
 
             if (zPhys.CurrentStickyGround)
                 return;
@@ -112,7 +133,7 @@ public abstract partial class CESharedZLevelsSystem
             {
                 if (MathF.Abs(zPhys.Velocity) >= Cfg.GetCVar(CCVars.ZImpactVelocityLimit)) // <Onyx-Tweak>
                 {
-                    _queuedLandings.Add(uid, zPhys.Velocity);
+                    _queuedLandings.Add((uid, zPhys.Velocity)); // <Onyx-Tweak Edited>
                 }
 
                 zPhys.LocalPosition = 1;
@@ -121,7 +142,10 @@ public abstract partial class CESharedZLevelsSystem
             else //Move up
             {
                 if (TryMoveUp(uid))
+                {
                     zPhys.LocalPosition -= 1;
+                    zPhys.GroundCacheValid = false; // <Onyx-Tweak>
+                }
             }
         }
     }
@@ -163,7 +187,7 @@ public abstract partial class CESharedZLevelsSystem
             var mapCoords = new MapCoordinates(worldPos, checkingMapComp.MapId);
 
             // Check all grids on this map (map grid + linked grids)
-            foreach (var grid in _mapManager.GetAllGrids(checkingMapComp.MapId))
+            foreach (var grid in GetCachedGrids(checkingMapComp.MapId)) // <Onyx-Tweak Edited>
             {
                 var tilePos = _map.CoordinatesToTile(grid.Owner, grid.Comp, mapCoords);
 
@@ -181,9 +205,11 @@ public abstract partial class CESharedZLevelsSystem
                     if (fix == null || fix.Shape is not PolygonShape shape)
                         continue;
 
-                    var transform = new Transform(0f);
-                    var bottom = shape.ComputeAABB(transform, 0).Bottom;
-                    var top = shape.ComputeAABB(transform, 0).Top;
+                    // <Onyx-Tweak Edited>
+                    var aabb = shape.ComputeAABB(new Transform(0f), 0);
+                    var bottom = aabb.Bottom;
+                    var top = aabb.Top;
+                    // </Onyx-Tweak Edited>
                     var length = Math.Abs(top - bottom);
 
                     var (pos, rot) = _transform.GetWorldPositionRotation(uid);

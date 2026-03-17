@@ -21,22 +21,47 @@ public abstract partial class CESharedZLevelsSystem
     }
 
     // <Onyx-Tweak>
+    private int _debugTickCounter;
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
+
+        var sw = System.Diagnostics.Stopwatch.StartNew();
         UpdateView();
+        var viewMs = sw.Elapsed.TotalMilliseconds;
+
+        sw.Restart();
         UpdateMovement(frameTime);
+        var moveMs = sw.Elapsed.TotalMilliseconds;
+
+        if (++_debugTickCounter % 60 == 0)
+        {
+            var activeCount = 0;
+            var q = EntityQueryEnumerator<Components.CEActiveZPhysicsComponent>();
+            while (q.MoveNext(out _)) activeCount++;
+            Log.Info($"[ZLevel Perf] View={viewMs:F2}ms Move={moveMs:F2}ms ActiveEntities={activeCount}");
+        }
     }
 
     private void UpdateView()
     {
-        _opaqueAboveCache.Clear();
-        _opaqueAboveCacheDirty = false;
+        if (_opaqueAboveCacheDirty)
+        {
+            _opaqueAboveCache.Clear();
+            _opaqueAboveCacheDirty = false;
+        }
     }
 
     private void OnViewTileChanged(ref TileChangedEvent ev)
     {
         _opaqueAboveCacheDirty = true;
+        _groundCacheGeneration++;
+        // <Onyx-Tweak>
+        foreach (var change in ev.Changes)
+        {
+            WakeEntitiesOnTile(ev.Entity, change.GridIndices);
+        }
+        // </Onyx-Tweak>
     }
     // </Onyx-Tweak>
 
@@ -87,7 +112,7 @@ public abstract partial class CESharedZLevelsSystem
             return false;
 
         var worldPosition = _transform.GetWorldPosition(ent);
-        // </Onyx-Tweak>
+        // <Onyx-Tweak>
         var approxTile = new Vector2i((int)MathF.Floor(worldPosition.X), (int)MathF.Floor(worldPosition.Y));
         var cacheKey = (mapAboveUid.Value.Owner, approxTile);
 
@@ -95,7 +120,7 @@ public abstract partial class CESharedZLevelsSystem
             return cached;
 
         var result = false;
-        foreach (var grid in _mapManager.GetAllGrids(mapComp.MapId))
+        foreach (var grid in GetCachedGrids(mapComp.MapId))
         {
             if (!_map.TryGetTileRef(grid.Owner, grid.Comp, worldPosition, out var tileRef))
                 continue;

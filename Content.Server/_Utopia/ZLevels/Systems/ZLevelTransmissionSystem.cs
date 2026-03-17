@@ -35,7 +35,14 @@ public sealed class ZLevelTransmissionSystem : EntitySystem
         => Refresh(uid, comp);
 
     private void OnMove(EntityUid uid, ZLevelTransmitterComponent comp, ref MoveEvent args)
-        => Refresh(uid, comp);
+    {
+        // <Onyx-Tweak>
+        if (Transform(uid).Anchored)
+            return;
+        // </Onyx-Tweak>
+
+        Refresh(uid, comp);
+    }
 
     #region Refresh
     private void Refresh(EntityUid uid, ZLevelTransmitterComponent transmitter)

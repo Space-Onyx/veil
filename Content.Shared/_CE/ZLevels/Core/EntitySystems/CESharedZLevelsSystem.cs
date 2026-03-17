@@ -46,6 +46,8 @@ public abstract partial class CESharedZLevelsSystem : EntitySystem
     private readonly Dictionary<EntityUid, EntityUid> _mapToNetwork = new();
     private readonly Dictionary<EntityUid, List<(int Depth, EntityUid MapUid)>> _sortedMaps = new();
     private bool _networkCacheDirty = true;
+    private readonly Dictionary<MapId, List<Entity<MapGridComponent>>> _gridsPerMapCache = new();
+    private bool _gridsPerMapDirty = true;
     // </Onyx-Tweak>
 
     public override void Initialize()
@@ -59,6 +61,8 @@ public abstract partial class CESharedZLevelsSystem : EntitySystem
         // <Onyx-Tweak>
         SubscribeLocalEvent<CEZLevelsNetworkComponent, ComponentStartup>(OnNetworkStartup);
         SubscribeLocalEvent<CEZLevelsNetworkComponent, ComponentShutdown>(OnNetworkShutdown);
+        SubscribeLocalEvent<GridAddEvent>(OnGridAdded);
+        SubscribeLocalEvent<GridRemovalEvent>(OnGridRemoved);
         // </Onyx-Tweak>
 
         InitMovement();
@@ -82,6 +86,44 @@ public abstract partial class CESharedZLevelsSystem : EntitySystem
         _networkCacheDirty = true;
     }
 
+    private void OnGridAdded(GridAddEvent ev)
+    {
+        _gridsPerMapDirty = true;
+    }
+
+    private void OnGridRemoved(GridRemovalEvent ev)
+    {
+        _gridsPerMapDirty = true;
+    }
+
+    // <Onyx-Tweak>
+    protected List<Entity<MapGridComponent>> GetCachedGrids(MapId mapId)
+    {
+        if (_gridsPerMapDirty)
+        {
+            _gridsPerMapDirty = false;
+            foreach (var list in _gridsPerMapCache.Values)
+                list.Clear();
+
+            var gridQuery = EntityQueryEnumerator<MapGridComponent, TransformComponent>();
+            while (gridQuery.MoveNext(out var uid, out var grid, out var xform))
+            {
+                var gridMapId = xform.MapID;
+                if (!_gridsPerMapCache.TryGetValue(gridMapId, out var list))
+                {
+                    list = new List<Entity<MapGridComponent>>();
+                    _gridsPerMapCache[gridMapId] = list;
+                }
+                list.Add((uid, grid));
+            }
+        }
+
+        if (_gridsPerMapCache.TryGetValue(mapId, out var cached))
+            return cached;
+
+        return [];
+    }
+    // </Onyx-Tweak>
     private void EnsureNetworkCache()
     {
         if (!_networkCacheDirty)

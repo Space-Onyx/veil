@@ -17,6 +17,10 @@ public sealed partial class CEZLevelViewerComponent : Component
 {
     public HashSet<EntityUid> Eyes = new();
 
+    // <Onyx-Tweak>
+    public System.Numerics.Vector2 LastEyeUpdatePosition = new(float.NaN, float.NaN);
+    // </Onyx-Tweak>
+
     /// <summary>
     /// We can look at 1 z-level up.
     /// </summary>

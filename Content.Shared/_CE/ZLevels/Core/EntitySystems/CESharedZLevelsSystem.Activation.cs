@@ -62,6 +62,14 @@ public abstract partial class CESharedZLevelsSystem
             return;
         }
 
+        // <Onyx-Tweak> Don't activate entities on uninitialized maps
+        if (xform.MapUid is { } mapUid && _mapQuery.TryComp(mapUid, out var mapComp) && !mapComp.MapInitialized)
+        {
+            SetActiveStatus(ent, false);
+            return;
+        }
+        // </Onyx-Tweak>
+
         if (xform.Anchored)
         {
             SetActiveStatus(ent, false);

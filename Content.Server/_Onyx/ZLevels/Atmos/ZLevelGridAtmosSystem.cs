@@ -26,12 +26,14 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
 
     private readonly Dictionary<string, List<(int Depth, EntityUid Grid)>> _groupCache = new();
     private bool _groupCacheDirty = true;
+    private int _periodicRebuildCounter;
 
     private readonly Dictionary<(EntityUid Below, EntityUid Above), List<VerticalLink>> _verticalLinks = new();
     private bool _linksDirty = true;
     private readonly HashSet<(EntityUid Grid, Vector2i Tile)> _managedHoleTiles = new();
-
-    private readonly HashSet<(EntityUid Grid, Vector2i Tile)> _dynamicHoleCache = new();
+    private readonly Dictionary<EntityUid, HashSet<Vector2i>> _holeTilesPerGrid = new();
+    private readonly HashSet<EntityUid> _linkedGrids = new();
+    private readonly List<(EntityUid Grid, Vector2i Tile)> _pendingTileUpdates = new();
 
     private record struct VerticalLink(
         EntityUid HoleGrid,
@@ -57,63 +59,9 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
         SubscribeLocalEvent<TileChangedEvent>(OnTileChanged);
         SubscribeLocalEvent<MapGridComponent, GridFixtureChangeEvent>(OnGridFixtureChanged);
     }
-
     public bool IsVerticalHoleTile(EntityUid grid, Vector2i pos)
     {
-        if (_managedHoleTiles.Contains((grid, pos)) || _dynamicHoleCache.Contains((grid, pos)))
-            return true;
-
-        if (!TryComp<GridMotionLinkComponent>(grid, out var link))
-            return false;
-
-        if (string.IsNullOrEmpty(link.GroupId))
-            return false;
-
-        if (!_gridQuery.TryComp(grid, out var gridComp))
-            return false;
-
-        if (_mapSystem.TryGetTileRef(grid, gridComp, pos, out var selfTile) && !selfTile.Tile.IsEmpty)
-        {
-            var selfDef = (ContentTileDefinition) _tileDefManager[selfTile.Tile.TypeId];
-            if (!selfDef.MapAtmosphere)
-                return false;
-        }
-
-        var xform = Transform(grid);
-        if (xform.MapUid is not { } mapUid)
-            return false;
-
-        if (!_zMapQuery.TryComp(mapUid, out var zMap))
-            return false;
-
-        var myDepth = zMap.Depth;
-        var worldPos = _mapSystem.GridTileToWorldPos(grid, gridComp, pos);
-
-        var query = EntityQueryEnumerator<GridMotionLinkComponent, MapGridComponent, TransformComponent>();
-        while (query.MoveNext(out var otherUid, out var otherLink, out var otherGrid, out var otherXform))
-        {
-            if (otherUid == grid)
-                continue;
-
-            if (!SameGroup(link, otherLink))
-                continue;
-
-            if (otherXform.MapUid is not { } otherMapUid)
-                continue;
-
-            if (!_zMapQuery.TryComp(otherMapUid, out var otherZMap))
-                continue;
-
-            if (otherZMap.Depth != myDepth - 1)
-                continue;
-
-            if (IsSolidDeckTileAtWorld(otherUid, otherGrid, worldPos))
-            {
-                _dynamicHoleCache.Add((grid, pos));
-                return true;
-            }
-        }
-        return false;
+        return _managedHoleTiles.Contains((grid, pos));
     }
 
     public bool IsEntityOnVerticalHole(EntityUid uid)
@@ -129,30 +77,34 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
         return IsVerticalHoleTile(gridUid, pos);
     }
 
-    private static bool SameGroup(GridMotionLinkComponent a, GridMotionLinkComponent b)
-    {
-        return !string.IsNullOrEmpty(a.GroupId) && a.GroupId == b.GroupId;
-    }
+    // <Onyx-Tweak> Defer cache rebuild to next tick so all components are ready
+    private bool _groupCachePendingDirty;
 
     private void OnLinkChanged<T>(Entity<GridMotionLinkComponent> ent, ref T args)
     {
-        _groupCacheDirty = true;
+        _groupCachePendingDirty = true;
     }
 
     private void OnLinkParentChanged(Entity<GridMotionLinkComponent> ent, ref EntParentChangedMessage args)
     {
-        _groupCacheDirty = true;
+        _groupCachePendingDirty = true;
     }
 
     private void OnZMapChanged<T>(Entity<CEZLevelMapComponent> ent, ref T args)
     {
-        _groupCacheDirty = true;
+        _groupCachePendingDirty = true;
     }
+    // </Onyx-Tweak>
 
     private void OnTileChanged(ref TileChangedEvent ev)
     {
-        if (HasComp<GridMotionLinkComponent>(ev.Entity))
-            _linksDirty = true;
+        if (!_linkedGrids.Contains(ev.Entity))
+            return;
+
+        foreach (var change in ev.Changes)
+        {
+            _pendingTileUpdates.Add((ev.Entity, change.GridIndices));
+        }
     }
 
     private void OnGridFixtureChanged(Entity<MapGridComponent> ent, ref GridFixtureChangeEvent args)
@@ -163,19 +115,225 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
         _linksDirty = true;
     }
 
+    private int _debugTickCounter2;
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
 
-        _dynamicHoleCache.Clear();
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+
+        // <Onyx-Tweak> Apply deferred dirty flag from previous tick's events
+        if (_groupCachePendingDirty)
+        {
+            _groupCachePendingDirty = false;
+            _groupCacheDirty = true;
+        }
+        // </Onyx-Tweak>
+
+        if (++_periodicRebuildCounter >= 1000)
+        {
+            _periodicRebuildCounter = 0;
+            _groupCacheDirty = true;
+        }
 
         if (_groupCacheDirty)
             RebuildGroupCache();
 
         if (_linksDirty)
+        {
             RebuildVerticalLinks();
+        }
+        else if (_pendingTileUpdates.Count > 0)
+        {
+            ProcessIncrementalTileUpdates();
+        }
 
         ProcessVerticalAtmos();
+
+        var totalMs = sw.Elapsed.TotalMilliseconds;
+        if (++_debugTickCounter2 % 60 == 0)
+        {
+            Log.Info($"[ZAtmos Perf] Total={totalMs:F2}ms Links={_verticalLinks.Count} Groups={_groupCache.Count} LinkedGrids={_linkedGrids.Count} Holes={_managedHoleTiles.Count}");
+        }
+    }
+
+    private void ProcessIncrementalTileUpdates()
+    {
+        foreach (var (gridUid, tilePos) in _pendingTileUpdates)
+        {
+            UpdateSingleTileHoleStatus(gridUid, tilePos);
+        }
+
+        _pendingTileUpdates.Clear();
+    }
+
+    private void UpdateSingleTileHoleStatus(EntityUid gridUid, Vector2i tilePos)
+    {
+        if (!TryComp<GridMotionLinkComponent>(gridUid, out var link) || string.IsNullOrEmpty(link.GroupId))
+            return;
+
+        if (!_gridQuery.TryComp(gridUid, out var gridComp))
+            return;
+
+        var xform = Transform(gridUid);
+        if (xform.MapUid is not { } mapUid || !_zMapQuery.TryComp(mapUid, out var zMap))
+            return;
+
+        var myDepth = zMap.Depth;
+
+        if (!_groupCache.TryGetValue(link.GroupId, out var groupGrids))
+            return;
+
+        var wasHole = _managedHoleTiles.Contains((gridUid, tilePos));
+        var worldPos = _mapSystem.GridTileToWorldPos(gridUid, gridComp, tilePos);
+
+        var isCurrentlyHole = IsHoleTileOnGrid(gridUid, gridComp, tilePos);
+
+        if (isCurrentlyHole)
+        {
+            var hasSolidBelow = false;
+            foreach (var (depth, otherUid) in groupGrids)
+            {
+                if (depth != myDepth - 1 || otherUid == gridUid)
+                    continue;
+
+                if (!_gridQuery.TryComp(otherUid, out var otherGrid))
+                    continue;
+
+                if (IsSolidDeckTileAtWorld(otherUid, otherGrid, worldPos))
+                {
+                    hasSolidBelow = true;
+                    break;
+                }
+            }
+
+            if (hasSolidBelow && !wasHole)
+            {
+                AddHoleTile(gridUid, tilePos);
+                RebuildLinksForTile(gridUid, tilePos, worldPos, myDepth, groupGrids);
+            }
+            else if (!hasSolidBelow && wasHole)
+            {
+                RemoveHoleTile(gridUid, tilePos);
+                RemoveLinksForTile(gridUid, tilePos);
+            }
+        }
+        else if (wasHole)
+        {
+            RemoveHoleTile(gridUid, tilePos);
+            RemoveLinksForTile(gridUid, tilePos);
+        }
+
+        foreach (var (depth, otherUid) in groupGrids)
+        {
+            if (depth != myDepth + 1 || otherUid == gridUid)
+                continue;
+
+            if (!_gridQuery.TryComp(otherUid, out var otherGrid))
+                continue;
+
+            var otherPos = _mapSystem.WorldToTile(otherUid, otherGrid, worldPos);
+            var otherIsHole = IsHoleTileOnGrid(otherUid, otherGrid, otherPos);
+            var otherWasManaged = _managedHoleTiles.Contains((otherUid, otherPos));
+            var currentIsSolid = IsSolidDeckTile(gridUid, gridComp, tilePos);
+
+            if (otherIsHole && currentIsSolid && !otherWasManaged)
+            {
+                AddHoleTile(otherUid, otherPos);
+                RebuildLinksForTile(otherUid, otherPos, worldPos, myDepth + 1, groupGrids);
+            }
+            else if ((!otherIsHole || !currentIsSolid) && otherWasManaged)
+            {
+                RemoveHoleTile(otherUid, otherPos);
+                RemoveLinksForTile(otherUid, otherPos);
+            }
+        }
+    }
+
+    private bool IsHoleTileOnGrid(EntityUid gridUid, MapGridComponent grid, Vector2i tilePos)
+    {
+        if (!_mapSystem.TryGetTileRef(gridUid, grid, tilePos, out var tileRef))
+            return true;
+
+        return IsHoleTile(tileRef.Tile);
+    }
+
+    private void AddHoleTile(EntityUid grid, Vector2i tile)
+    {
+        _managedHoleTiles.Add((grid, tile));
+
+        if (!_holeTilesPerGrid.TryGetValue(grid, out var set))
+        {
+            set = new HashSet<Vector2i>();
+            _holeTilesPerGrid[grid] = set;
+        }
+        set.Add(tile);
+
+        if (_atmosQuery.TryComp(grid, out var atmos))
+            atmos.InvalidatedCoords.Add(tile);
+    }
+
+    private void RemoveHoleTile(EntityUid grid, Vector2i tile)
+    {
+        _managedHoleTiles.Remove((grid, tile));
+
+        if (_holeTilesPerGrid.TryGetValue(grid, out var set))
+            set.Remove(tile);
+
+        if (_atmosQuery.TryComp(grid, out var atmos))
+            atmos.InvalidatedCoords.Add(tile);
+    }
+
+    private void RebuildLinksForTile(EntityUid holeGrid, Vector2i holeTile, Vector2 worldPos, int holeDepth,
+        List<(int Depth, EntityUid Grid)> groupGrids)
+    {
+        foreach (var (depth, targetUid) in groupGrids)
+        {
+            if (depth != holeDepth - 1 || targetUid == holeGrid)
+                continue;
+
+            if (!_gridQuery.TryComp(targetUid, out var targetGrid))
+                continue;
+
+            var targetPos = _mapSystem.WorldToTile(targetUid, targetGrid, worldPos);
+
+            if (!IsSolidDeckTile(targetUid, targetGrid, targetPos))
+                continue;
+
+            var key = (targetUid, holeGrid);
+            if (!_verticalLinks.TryGetValue(key, out var links))
+            {
+                links = new List<VerticalLink>();
+                _verticalLinks[key] = links;
+            }
+
+            var newLink = new VerticalLink(holeGrid, holeTile, targetUid, targetPos);
+            if (!links.Contains(newLink))
+                links.Add(newLink);
+
+            if (_atmosQuery.TryComp(targetUid, out var targetAtmos))
+                targetAtmos.InvalidatedCoords.Add(targetPos);
+
+            break;
+        }
+    }
+
+    private void RemoveLinksForTile(EntityUid holeGrid, Vector2i holeTile)
+    {
+        foreach (var (key, links) in _verticalLinks)
+        {
+            for (var i = links.Count - 1; i >= 0; i--)
+            {
+                var link = links[i];
+                if (link.HoleGrid == holeGrid && link.HoleTile == holeTile)
+                {
+                    if (_atmosQuery.TryComp(link.TargetGrid, out var targetAtmos))
+                        targetAtmos.InvalidatedCoords.Add(link.TargetTile);
+
+                    links.RemoveAt(i);
+                }
+            }
+        }
     }
 
     private void RebuildGroupCache()
@@ -183,6 +341,7 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
         _groupCacheDirty = false;
         _linksDirty = true;
         _groupCache.Clear();
+        _linkedGrids.Clear();
 
         var query = EntityQueryEnumerator<GridMotionLinkComponent, MapGridComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var link, out _, out var xform))
@@ -203,6 +362,7 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
             }
 
             list.Add((zMap.Depth, uid));
+            _linkedGrids.Add(uid);
         }
 
         foreach (var list in _groupCache.Values)
@@ -215,6 +375,7 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
 
         _linksDirty = false;
         _verticalLinks.Clear();
+        _pendingTileUpdates.Clear();
 
         foreach (var grids in _groupCache.Values)
         {
@@ -351,9 +512,16 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
             return;
 
         links.Add(new VerticalLink(holeGrid, holeTile, targetGrid, targetTile));
+
         _managedHoleTiles.Add((holeGrid, holeTile));
 
-        // Ensure both sides get processed by atmos revalidation even if one side has no grid tile.
+        if (!_holeTilesPerGrid.TryGetValue(holeGrid, out var set))
+        {
+            set = new HashSet<Vector2i>();
+            _holeTilesPerGrid[holeGrid] = set;
+        }
+        set.Add(holeTile);
+
         if (_atmosQuery.TryComp(holeGrid, out var holeAtmos))
             holeAtmos.InvalidatedCoords.Add(holeTile);
 
@@ -467,5 +635,6 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
         }
 
         _managedHoleTiles.Clear();
+        _holeTilesPerGrid.Clear();
     }
 }

@@ -56,6 +56,12 @@ public sealed partial class CEZPhysicsComponent : Component
 
     [ViewVariables]
     public EntityUid CachedGridUid;
+
+    [ViewVariables]
+    public bool GroundCacheValid;
+
+    [ViewVariables]
+    public uint GroundCacheGeneration;
     // </Onyx-Tweak>
 
     // Physics

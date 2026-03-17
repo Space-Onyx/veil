@@ -50,9 +50,16 @@ public sealed partial class CEZLevelsSystem
         var query = EntityQueryEnumerator<CEZLevelViewerComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var viewer, out var xform))
         {
+            // <Onyx-Tweak>
+            var worldPos = _transform.GetWorldPosition(xform);
+            if (worldPos == viewer.LastEyeUpdatePosition)
+                continue;
+            viewer.LastEyeUpdatePosition = worldPos;
+            // </Onyx-Tweak>
+
             foreach (var eye in viewer.Eyes)
             {
-                _transform.SetWorldPosition(eye, _transform.GetWorldPosition(xform));
+                _transform.SetWorldPosition(eye, worldPos); // <Onyx-Tweak Edied>
             }
         }
     }

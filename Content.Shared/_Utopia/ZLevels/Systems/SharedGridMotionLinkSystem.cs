@@ -22,6 +22,9 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
     private bool _biggestGridCacheDirty = true;
     private readonly List<Entity<GridMotionLinkComponent, MapGridComponent, PhysicsComponent>> _groupMatchBuffer = new();
     private readonly HashSet<string> _groupsMovedSet = new();
+    // <Onyx-Tweak>
+    private readonly Dictionary<string, List<Entity<GridMotionLinkComponent, MapGridComponent, PhysicsComponent>>> _groupDictionary = new();
+    private bool _groupDictionaryBuilt;
     // </Onyx-Tweak>
     public override void Initialize()
     {
@@ -198,23 +201,48 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
         return true;
     }
 
-    private void GetGridsOfGroup(string groupId) // <Onyx-Tweak Edited>
+    // <Onyx-Tweak>
+    private void EnsureGroupDictionary()
     {
-        _groupMatchBuffer.Clear(); // <Onyx-Tweak>
+        if (_groupDictionaryBuilt)
+            return;
+        _groupDictionaryBuilt = true;
+
+        foreach (var list in _groupDictionary.Values)
+            list.Clear();
 
         var query = EntityQueryEnumerator<GridMotionLinkComponent, MapGridComponent, PhysicsComponent>();
         while (query.MoveNext(out var targetUid, out var link, out var grid, out var phys))
         {
-            if (link.GroupId != groupId)
+            if (string.IsNullOrEmpty(link.GroupId))
                 continue;
 
-            _groupMatchBuffer.Add((targetUid, link, grid, phys)); // <Onyx-Tweak Edited>
+            if (!_groupDictionary.TryGetValue(link.GroupId, out var list))
+            {
+                list = new List<Entity<GridMotionLinkComponent, MapGridComponent, PhysicsComponent>>();
+                _groupDictionary[link.GroupId] = list;
+            }
+            list.Add((targetUid, link, grid, phys));
         }
     }
+
+    private void GetGridsOfGroup(string groupId)
+    {
+        _groupMatchBuffer.Clear();
+
+        EnsureGroupDictionary();
+
+        if (_groupDictionary.TryGetValue(groupId, out var cached))
+        {
+            _groupMatchBuffer.AddRange(cached);
+        }
+    }
+    // </Onyx-Tweak>
 
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
+        _groupDictionaryBuilt = false; // <Onyx-Tweak>
         // <Onyx-Tweak>
         if (_biggestGridCacheDirty)
         {

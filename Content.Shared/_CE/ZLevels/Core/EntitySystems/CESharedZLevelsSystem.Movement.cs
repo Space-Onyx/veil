@@ -3,7 +3,6 @@
  * https://github.com/space-wizards/space-station-14/blob/master/LICENSE.TXT
  */
 
-using System.Linq;
 using System.Numerics;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared.CCVar;
@@ -40,7 +39,11 @@ public abstract partial class CESharedZLevelsSystem
     private const float ImpactVelocityLimit = 0.75f;
 
     private EntityQuery<CEZLevelHighGroundComponent> _highgroundQuery;
-    private Dictionary<EntityUid, float> _queuedLandings = new();   // ECHO-Tweak
+    private List<(EntityUid Uid, float Velocity)> _queuedLandings = new();   // ECHO-Tweak, Onyx-Tweak: List instead of Dictionary to avoid O(n2) ElementAt
+
+    // <Onyx-Tweak>
+    private uint _groundCacheGeneration;
+    // </Onyx-Tweak>
 
     private void InitMovement()
     {
@@ -52,7 +55,40 @@ public abstract partial class CESharedZLevelsSystem
 
         SubscribeLocalEvent<DamageableComponent, CEZLevelHitEvent>(OnFallDamage);
         SubscribeLocalEvent<PhysicsComponent, CEZLevelHitEvent>(OnFallAreaImpact);
+
+        // <Onyx-Tweak>
+        SubscribeLocalEvent<CEZLevelHighGroundComponent, AnchorStateChangedEvent>(OnHighGroundAnchorChanged);
+        // </Onyx-Tweak>
     }
+
+    // <Onyx-Tweak>
+    private void OnHighGroundAnchorChanged(Entity<CEZLevelHighGroundComponent> ent, ref AnchorStateChangedEvent args)
+    {
+        _groundCacheGeneration++;
+        var xform = Transform(ent);
+        if (xform.GridUid is { } gridUid && _gridQuery.TryComp(gridUid, out var grid))
+        {
+            var tilePos = _map.CoordinatesToTile(gridUid, grid,
+                new MapCoordinates(_transform.GetWorldPosition(xform), xform.MapID));
+            WakeEntitiesOnTile(gridUid, tilePos);
+        }
+    }
+
+    private void WakeEntitiesOnTile(EntityUid gridUid, Vector2i tilePos)
+    {
+        if (!_gridQuery.TryComp(gridUid, out var grid))
+            return;
+
+        var worldPos = _map.GridTileToWorldPos(gridUid, grid, tilePos);
+        var box = new Box2(worldPos, worldPos + new Vector2(1f, 1f));
+
+        foreach (var uid in _lookup.GetEntitiesIntersecting(Transform(gridUid).MapID, box, LookupFlags.Dynamic | LookupFlags.Sundries))
+        {
+            if (ZPhyzQuery.HasComp(uid) && !HasComp<CEActiveZPhysicsComponent>(uid))
+                EnsureComp<CEActiveZPhysicsComponent>(uid);
+        }
+    }
+    // </Onyx-Tweak>
 
     private void CacheMovement(Entity<CEZPhysicsComponent> ent)
     {
@@ -61,18 +97,44 @@ public abstract partial class CESharedZLevelsSystem
 
         ent.Comp.CurrentGroundHeight = ComputeGroundHeightInternal((ent, ent), out var sticky);
         ent.Comp.CurrentStickyGround = sticky;
+        ent.Comp.GroundCacheValid = true;
+        ent.Comp.GroundCacheGeneration = _groundCacheGeneration; // <Onyx-Tweak>
     }
 
     private void OnMoveEvent(Entity<CEZPhysicsComponent> ent, ref MoveEvent args)
     {
+        // <Onyx-Tweak>
+        var xform = Transform(ent);
+        var gridUid = xform.GridUid ?? EntityUid.Invalid;
+        var tilePos = Vector2i.Zero;
+
+        if (gridUid != EntityUid.Invalid && _gridQuery.TryComp(gridUid, out var grid))
+        {
+            var worldPos = _transform.GetWorldPosition(xform);
+            tilePos = _map.CoordinatesToTile(gridUid, grid, new MapCoordinates(worldPos, xform.MapID));
+        }
+
+        if (gridUid == ent.Comp.CachedGridUid && tilePos == ent.Comp.CachedTilePos)
+            return;
+
+        ent.Comp.CachedGridUid = gridUid;
+        ent.Comp.CachedTilePos = tilePos;
+        // </Onyx-Tweak>
+
+        var oldGround = ent.Comp.CurrentGroundHeight;
         CacheMovement(ent);
+
+        // <Onyx-Tweak>
+        if (_timing.IsFirstTimePredicted && Math.Abs(ent.Comp.CurrentGroundHeight - oldGround) > 0.01f)
+            EnsureComp<CEActiveZPhysicsComponent>(ent);
+        // </Onyx-Tweak>
     }
 
     private void OnZPhysicsMove(Entity<CEZPhysicsComponent> ent, ref CEZLevelMapMoveEvent args)
     {
         ent.Comp.CurrentZLevel = args.CurrentZLevel;
         DirtyField(ent, ent.Comp, nameof(CEZPhysicsComponent.CurrentZLevel));
-        // Update cached ground height when entity moves between Z-level maps
+        ent.Comp.CachedGridUid = EntityUid.Invalid;
         CacheMovement(ent);
     }
 
@@ -116,25 +178,28 @@ public abstract partial class CESharedZLevelsSystem
 
     private void UpdateMovement(float frameTime) // <Onyx-Tweak Edited>
     {
+
         _queuedLandings.Clear();    // ECHO-Tweak
 
-        var query = EntityQueryEnumerator<CEZPhysicsComponent, CEActiveZPhysicsComponent, TransformComponent, PhysicsComponent>();
-        while (query.MoveNext(out var uid, out var zPhys, out _, out var xform, out var physics))
+        // <Onyx-Tweak Edited>
+        var query = EntityQueryEnumerator<CEActiveZPhysicsComponent, CEZPhysicsComponent, TransformComponent, PhysicsComponent>();
+        while (query.MoveNext(out var uid, out _, out var zPhys, out var xform, out var physics))
+        // </Onyx-Tweak Edited>
         {
             // ECHO-Tweak: Removed old logic
             UpdateMovement(uid, zPhys, xform, physics, frameTime);
         }
 
-        // ECHO-Tweak-start: fix exception issue
+        // <Onyx-Tweak>
         for (var i = _queuedLandings.Count - 1; i >= 0; i--)
         {
-            var landing = _queuedLandings.ElementAt(i);
+            var landing = _queuedLandings[i];
 
-            RaiseLocalEvent(landing.Key, new CEZLevelHitEvent(landing.Value));
+            RaiseLocalEvent(landing.Uid, new CEZLevelHitEvent(landing.Velocity));
             var land = new LandEvent(null, true);
-            RaiseLocalEvent(landing.Key, ref land);
+            RaiseLocalEvent(landing.Uid, ref land);
         }
-        // ECHO-Tweak-end
+        // </Onyx-Tweak>
     }
 
     /// <summary>
@@ -165,12 +230,12 @@ public abstract partial class CESharedZLevelsSystem
         if (!TryMapUp(currentMapUid.Value, out var mapAboveUid))
             return false;
 
-        if (!_mapQuery.TryComp(mapAboveUid.Value, out var mapComp)) // <Onyx-Tweak>
+        if (!_mapQuery.TryComp(mapAboveUid.Value, out var mapComp)) // <Onyx-Tweak Edited>
             return false;
 
         // <Onyx-Tweak>
         var worldPos = _transform.GetWorldPosition(ent);
-        foreach (var grid in _mapManager.GetAllGrids(mapComp.MapId))
+        foreach (var grid in GetCachedGrids(mapComp.MapId)) // <Onyx-Tweak Edited>
         {
             if (_map.TryGetTileRef(grid.Owner, grid.Comp, worldPos, out var tileRef) &&
                 !tileRef.Tile.IsEmpty)
@@ -194,11 +259,11 @@ public abstract partial class CESharedZLevelsSystem
         if (!TryMapUp(map, out var mapAboveUid))
             return false;
 
-        if (!_mapQuery.TryComp(mapAboveUid.Value, out var mapComp)) // <Onyx-Tweak>
+        if (!_mapQuery.TryComp(mapAboveUid.Value, out var mapComp)) // <Onyx-Tweak Edited>
             return false;
 
         // <Onyx-Tweak>
-        foreach (var grid in _mapManager.GetAllGrids(mapComp.MapId))
+        foreach (var grid in GetCachedGrids(mapComp.MapId))
         {
             if (_map.TryGetTileRef(grid.Owner, grid.Comp, indices, out var tileRef) &&
                 !tileRef.Tile.IsEmpty)
@@ -217,6 +282,9 @@ public abstract partial class CESharedZLevelsSystem
 
         ent.Comp.LocalPosition = newPosition;
         DirtyField(ent, ent.Comp, nameof(CEZPhysicsComponent.LocalPosition));
+        // <Onyx-Tweak>
+        EnsureComp<CEActiveZPhysicsComponent>(ent);
+        // </Onyx-Tweak>
     }
 
     [PublicAPI]
@@ -240,6 +308,9 @@ public abstract partial class CESharedZLevelsSystem
 
         ent.Comp.Velocity = newVelocity;
         DirtyField(ent, ent.Comp, nameof(CEZPhysicsComponent.Velocity));
+        // <Onyx-Tweak>
+        EnsureComp<CEActiveZPhysicsComponent>(ent);
+        // </Onyx-Tweak>
     }
 
     /// <summary>
@@ -253,6 +324,9 @@ public abstract partial class CESharedZLevelsSystem
 
         ent.Comp.Velocity += newVelocity;
         DirtyField(ent, ent.Comp, nameof(CEZPhysicsComponent.Velocity));
+        // <Onyx-Tweak>
+        EnsureComp<CEActiveZPhysicsComponent>(ent);
+        // </Onyx-Tweak>
     }
 
     [PublicAPI]
@@ -328,7 +402,7 @@ public abstract partial class CESharedZLevelsSystem
             return false;
 
         var worldPos = _transform.GetWorldPosition(ent);
-        foreach (var grid in _mapManager.GetAllGrids(mapComp.MapId))
+        foreach (var grid in GetCachedGrids(mapComp.MapId)) // <Onyx-Tweak Edited>
         {
             if (!_map.TryGetTileRef(grid.Owner, grid.Comp, worldPos, out var tileRef))
                 continue;
@@ -377,8 +451,11 @@ public sealed class CEZLevelHitEvent(float impactPower) : EntityEventArgs
 /// <summary>
 /// Is called every frame to calculate the current vertical velocity of the object with CEActiveZPhysicsComponent.
 /// </summary>
-public sealed class CEGetZVelocityEvent(Entity<CEZPhysicsComponent> target) : EntityEventArgs
+// <Onyx-Tweak>
+[ByRefEvent]
+public struct CEGetZVelocityEvent(Entity<CEZPhysicsComponent> target)
 {
     public Entity<CEZPhysicsComponent> Target = target;
     public float VelocityDelta = 0;
 }
+// </Onyx-Tweak>
