@@ -21,26 +21,15 @@ public abstract partial class CESharedZLevelsSystem
     }
 
     // <Onyx-Tweak>
-    private int _debugTickCounter;
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
 
         var sw = System.Diagnostics.Stopwatch.StartNew();
         UpdateView();
-        var viewMs = sw.Elapsed.TotalMilliseconds;
 
         sw.Restart();
         UpdateMovement(frameTime);
-        var moveMs = sw.Elapsed.TotalMilliseconds;
-
-        if (++_debugTickCounter % 60 == 0)
-        {
-            var activeCount = 0;
-            var q = EntityQueryEnumerator<Components.CEActiveZPhysicsComponent>();
-            while (q.MoveNext(out _)) activeCount++;
-            Log.Info($"[ZLevel Perf] View={viewMs:F2}ms Move={moveMs:F2}ms ActiveEntities={activeCount}");
-        }
     }
 
     private void UpdateView()

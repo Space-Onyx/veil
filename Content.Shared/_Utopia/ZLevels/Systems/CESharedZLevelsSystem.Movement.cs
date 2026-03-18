@@ -24,13 +24,19 @@ public abstract partial class CESharedZLevelsSystem
             CacheMovement((uid, zPhys));
         }
 
-        if (zPhys.IsGrounded && Math.Abs(zPhys.Velocity) < 0.001f &&
-            Math.Abs(zPhys.LocalPosition - zPhys.CurrentGroundHeight) < 0.05f)
+        // <Onyx-Tweak>
+        if (Math.Abs(zPhys.Velocity) < 0.001f && Math.Abs(zPhys.LocalPosition) < 0.05f)
         {
-            // <Onyx-Tweak> 
-            RemComp<CEActiveZPhysicsComponent>(uid);
-            // </Onyx-Tweak>
-            return;
+            if (zPhys.IsGrounded && Math.Abs(zPhys.CurrentGroundHeight) < 0.001f)
+            {
+                RemComp<CEActiveZPhysicsComponent>(uid);
+                return;
+            }
+            if (!zPhys.IsGrounded && zPhys.CurrentGroundHeight < -0.5f)
+            {
+                RemComp<CEActiveZPhysicsComponent>(uid);
+                return;
+            }
         }
         // </Onyx-Tweak>
 
@@ -50,11 +56,12 @@ public abstract partial class CESharedZLevelsSystem
         zPhys.LocalPosition += zPhys.Velocity * frameTime;
         zPhys.Velocity = Math.Clamp(zPhys.Velocity, -ZVelocityLimit, ZVelocityLimit);
 
+        var preGroundVelocity = zPhys.Velocity; // <Onyx-Tweak>
         UpdateGrounded(uid, zPhys, out var landed);
         HandleLevelChange(uid, zPhys);
 
         if (landed) //Just landed
-            HandleFalling(uid, zPhys);
+            HandleFalling(uid, zPhys, preGroundVelocity);
 
         if (Math.Abs(oldVelocity - zPhys.Velocity) > 0.01f)
             DirtyField(uid, zPhys, nameof(CEZPhysicsComponent.Velocity));
@@ -68,11 +75,13 @@ public abstract partial class CESharedZLevelsSystem
         landed = false;
 
         var distanceToGround = zPhys.LocalPosition - zPhys.CurrentGroundHeight;
-        var currentlyGrounded = (distanceToGround <= 0.05f || zPhys.CurrentStickyGround) && distanceToGround <= MaxStepHeight;
+        // <Onyx-Tweak>
+        var currentlyGrounded = distanceToGround <= MaxStepHeight || zPhys.CurrentStickyGround;
 
         if (currentlyGrounded)
         {
             zPhys.LocalPosition -= distanceToGround; //Sticky move
+
             // <Onyx-Tweak>
             if (zPhys.Velocity < 0)
                 zPhys.Velocity = 0;
@@ -90,14 +99,16 @@ public abstract partial class CESharedZLevelsSystem
             DirtyField(uid, zPhys, nameof(CEZPhysicsComponent.IsGrounded));
     }
 
-    private void HandleFalling(EntityUid uid, CEZPhysicsComponent zPhys)
+    // <Onyx-Tweak>
+    private void HandleFalling(EntityUid uid, CEZPhysicsComponent zPhys, float impactVelocity)
     {
-        if (MathF.Abs(zPhys.Velocity) >= Cfg.GetCVar(CCVars.ZImpactVelocityLimit))
+        var limit = Cfg.GetCVar(CCVars.ZImpactVelocityLimit);
+        if (MathF.Abs(impactVelocity) >= limit)
         {
-            _queuedLandings.Add((uid, -zPhys.Velocity)); // <Onyx-Tweak Edited>
+            _queuedLandings.Add((uid, -impactVelocity));
         }
 
-        zPhys.Velocity = -zPhys.Velocity * zPhys.Bounciness;
+        zPhys.Velocity = -impactVelocity * zPhys.Bounciness;
     }
 
     private void HandleLevelChange(EntityUid uid, CEZPhysicsComponent zPhys)
@@ -118,7 +129,23 @@ public abstract partial class CESharedZLevelsSystem
             // <Onyx-Tweak>
 
             zPhys.LocalPosition += 1;
-            zPhys.GroundCacheValid = false; // <Onyx-Tweak>
+
+            // <Onyx-Tweak>
+            if (zPhys.CurrentGroundHeight > 0)
+            {
+                zPhys.LocalPosition = 0;
+                zPhys.CurrentGroundHeight = 0;
+                zPhys.IsGrounded = true;
+                zPhys.Velocity = 0;
+                zPhys.GroundCacheValid = true;
+                zPhys.GroundCacheGeneration = _groundCacheGeneration;
+                DirtyField(uid, zPhys, nameof(CEZPhysicsComponent.LocalPosition));
+                DirtyField(uid, zPhys, nameof(CEZPhysicsComponent.Velocity));
+                DirtyField(uid, zPhys, nameof(CEZPhysicsComponent.IsGrounded));
+                return;
+            }
+            zPhys.GroundCacheValid = false;
+            // </Onyx-Tweak>
 
             if (zPhys.CurrentStickyGround)
                 return;
@@ -129,7 +156,9 @@ public abstract partial class CESharedZLevelsSystem
 
         else if (zPhys.LocalPosition >= 1) //Need teleport to ZLevel up
         {
-            if (HasTileAbove(uid)) //Hit roof
+            var hasTile = HasTileAbove(uid);
+
+            if (hasTile) //Hit roof
             {
                 if (MathF.Abs(zPhys.Velocity) >= Cfg.GetCVar(CCVars.ZImpactVelocityLimit)) // <Onyx-Tweak>
                 {
@@ -145,6 +174,18 @@ public abstract partial class CESharedZLevelsSystem
                 {
                     zPhys.LocalPosition -= 1;
                     zPhys.GroundCacheValid = false; // <Onyx-Tweak>
+
+                    // <Onyx-Tweak>
+                    zPhys.LocalPosition = 0;
+                    zPhys.CurrentGroundHeight = 0;
+                    zPhys.IsGrounded = true;
+                    zPhys.Velocity = 0;
+                    zPhys.GroundCacheValid = true;
+                    zPhys.GroundCacheGeneration = _groundCacheGeneration;
+                    DirtyField(uid, zPhys, nameof(CEZPhysicsComponent.LocalPosition));
+                    DirtyField(uid, zPhys, nameof(CEZPhysicsComponent.Velocity));
+                    DirtyField(uid, zPhys, nameof(CEZPhysicsComponent.IsGrounded));
+                    // </Onyx-Tweak>
                 }
             }
         }
@@ -222,8 +263,8 @@ public abstract partial class CESharedZLevelsSystem
 
                     if (curve.Count == 1)
                     {
-                        var groundY = curve[0];
-                        return -floor + groundY;
+                        var groundY = -floor + curve[0];
+                        return groundY;
                     }
 
                     var worldDir = rot.RotateVec(new Vector2(0, length));
@@ -234,8 +275,8 @@ public abstract partial class CESharedZLevelsSystem
                     stickyGround = heightComp.Stick;
 
                     var relPos = worldPos - bottomPos;
-                    var t = Vector2.Dot(relPos, worldDir) / (lengthWorld * lengthWorld);
-                    t = Math.Clamp(t, 0f, 1f);
+                    var tRaw = Vector2.Dot(relPos, worldDir) / (lengthWorld * lengthWorld);
+                    var t = Math.Clamp(tRaw, 0f, 1f);
                     t = 1f - t;
 
                     float index = t * (curve.Count - 1);

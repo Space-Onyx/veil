@@ -77,24 +77,20 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
         return IsVerticalHoleTile(gridUid, pos);
     }
 
-    // <Onyx-Tweak> Defer cache rebuild to next tick so all components are ready
-    private bool _groupCachePendingDirty;
-
     private void OnLinkChanged<T>(Entity<GridMotionLinkComponent> ent, ref T args)
     {
-        _groupCachePendingDirty = true;
+        _groupCacheDirty = true;
     }
 
     private void OnLinkParentChanged(Entity<GridMotionLinkComponent> ent, ref EntParentChangedMessage args)
     {
-        _groupCachePendingDirty = true;
+        _groupCacheDirty = true;
     }
 
     private void OnZMapChanged<T>(Entity<CEZLevelMapComponent> ent, ref T args)
     {
-        _groupCachePendingDirty = true;
+        _groupCacheDirty = true;
     }
-    // </Onyx-Tweak>
 
     private void OnTileChanged(ref TileChangedEvent ev)
     {
@@ -115,26 +111,19 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
         _linksDirty = true;
     }
 
-    private int _debugTickCounter2;
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
 
         var sw = System.Diagnostics.Stopwatch.StartNew();
 
-        // <Onyx-Tweak> Apply deferred dirty flag from previous tick's events
-        if (_groupCachePendingDirty)
-        {
-            _groupCachePendingDirty = false;
-            _groupCacheDirty = true;
-        }
-        // </Onyx-Tweak>
-
-        if (++_periodicRebuildCounter >= 1000)
+        // <Onyx-Tweak>
+        if (++_periodicRebuildCounter >= 60)
         {
             _periodicRebuildCounter = 0;
             _groupCacheDirty = true;
         }
+        // </Onyx-Tweak>
 
         if (_groupCacheDirty)
             RebuildGroupCache();
@@ -149,12 +138,6 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
         }
 
         ProcessVerticalAtmos();
-
-        var totalMs = sw.Elapsed.TotalMilliseconds;
-        if (++_debugTickCounter2 % 60 == 0)
-        {
-            Log.Info($"[ZAtmos Perf] Total={totalMs:F2}ms Links={_verticalLinks.Count} Groups={_groupCache.Count} LinkedGrids={_linkedGrids.Count} Holes={_managedHoleTiles.Count}");
-        }
     }
 
     private void ProcessIncrementalTileUpdates()

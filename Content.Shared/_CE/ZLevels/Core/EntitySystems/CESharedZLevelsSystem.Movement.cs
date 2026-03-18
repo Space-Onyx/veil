@@ -104,21 +104,27 @@ public abstract partial class CESharedZLevelsSystem
     private void OnMoveEvent(Entity<CEZPhysicsComponent> ent, ref MoveEvent args)
     {
         // <Onyx-Tweak>
-        var xform = Transform(ent);
-        var gridUid = xform.GridUid ?? EntityUid.Invalid;
-        var tilePos = Vector2i.Zero;
+        var groundH = ent.Comp.CurrentGroundHeight;
+        var isOnHighGround = Math.Abs(groundH) > 0.001f && Math.Abs(groundH - (-1f)) > 0.001f;
 
-        if (gridUid != EntityUid.Invalid && _gridQuery.TryComp(gridUid, out var grid))
+        if (!isOnHighGround)
         {
-            var worldPos = _transform.GetWorldPosition(xform);
-            tilePos = _map.CoordinatesToTile(gridUid, grid, new MapCoordinates(worldPos, xform.MapID));
+            var xform = Transform(ent);
+            var gridUid = xform.GridUid ?? EntityUid.Invalid;
+            var tilePos = Vector2i.Zero;
+
+            if (gridUid != EntityUid.Invalid && _gridQuery.TryComp(gridUid, out var grid))
+            {
+                var worldPos = _transform.GetWorldPosition(xform);
+                tilePos = _map.CoordinatesToTile(gridUid, grid, new MapCoordinates(worldPos, xform.MapID));
+            }
+
+            if (gridUid == ent.Comp.CachedGridUid && tilePos == ent.Comp.CachedTilePos)
+                return;
+
+            ent.Comp.CachedGridUid = gridUid;
+            ent.Comp.CachedTilePos = tilePos;
         }
-
-        if (gridUid == ent.Comp.CachedGridUid && tilePos == ent.Comp.CachedTilePos)
-            return;
-
-        ent.Comp.CachedGridUid = gridUid;
-        ent.Comp.CachedTilePos = tilePos;
         // </Onyx-Tweak>
 
         var oldGround = ent.Comp.CurrentGroundHeight;
@@ -191,13 +197,16 @@ public abstract partial class CESharedZLevelsSystem
         }
 
         // <Onyx-Tweak>
-        for (var i = _queuedLandings.Count - 1; i >= 0; i--)
+        if (_net.IsServer)
         {
-            var landing = _queuedLandings[i];
+            for (var i = _queuedLandings.Count - 1; i >= 0; i--)
+            {
+                var landing = _queuedLandings[i];
 
-            RaiseLocalEvent(landing.Uid, new CEZLevelHitEvent(landing.Velocity));
-            var land = new LandEvent(null, true);
-            RaiseLocalEvent(landing.Uid, ref land);
+                RaiseLocalEvent(landing.Uid, new CEZLevelHitEvent(landing.Velocity));
+                var land = new LandEvent(null, true);
+                RaiseLocalEvent(landing.Uid, ref land);
+            }
         }
         // </Onyx-Tweak>
     }
