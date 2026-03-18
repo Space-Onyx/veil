@@ -18,6 +18,7 @@ using Robust.Shared.Graphics;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Maths;
+using Robust.Shared.Timing;
 
 namespace Content.Client.Viewport;
 
@@ -28,6 +29,7 @@ public sealed partial class ScalingViewport
     [Dependency] private readonly IPlayerManager _player = default!;
     [Dependency] private readonly ITileDefinitionManager _tile = default!;
     [Dependency] private readonly IConfigurationManager _cfg = default!;    // <Onyx-Tweak>
+    [Dependency] private readonly IGameTiming _timing = default!;
 
     private CEClientZLevelsSystem? _zLevels;
     private SharedMapSystem? _mapSystem;
@@ -36,6 +38,31 @@ public sealed partial class ScalingViewport
     private EntityQuery<MapComponent>? _mapQuery;
 
     private IEye? _fallbackEye;
+
+    // <Onyx-Tweak> 
+    private Overlay? _cachedPlacementOverlay;
+    private bool _placementOverlayCached;
+    private readonly List<Entity<MapGridComponent>> _visibleGridsBuffer = new();
+    private const float EmptyTileCacheLifetime = 0.5f;
+    private readonly Dictionary<EntityUid, bool> _emptyTileCache = new();
+    private TimeSpan _emptyTileCacheExpiry;
+    // </Onyx-Tweak>
+
+    private bool TryFindEmptyTilesCached(EntityUid mapUid)
+    {
+        if (_timing.CurTime >= _emptyTileCacheExpiry)
+        {
+            _emptyTileCache.Clear();
+            _emptyTileCacheExpiry = _timing.CurTime + TimeSpan.FromSeconds(EmptyTileCacheLifetime);
+        }
+
+        if (_emptyTileCache.TryGetValue(mapUid, out var cached))
+            return cached;
+
+        var result = TryFindEmptyTiles(mapUid);
+        _emptyTileCache[mapUid] = result;
+        return result;
+    }
 
     /// <summary>
     /// We are looking for at least one empty tile on the screen.
@@ -49,55 +76,36 @@ public sealed partial class ScalingViewport
         var drawBox = GetDrawBox();
         var mapId = xform.MapID;
 
-        var corners = new[]
-        {
-            _eyeManager.ScreenToMap(drawBox.BottomLeft).Position,
-            _eyeManager.ScreenToMap(drawBox.BottomRight).Position,
-            _eyeManager.ScreenToMap(drawBox.TopLeft).Position,
-            _eyeManager.ScreenToMap(drawBox.TopRight).Position
-        };
+        // <Onyx-Tweak Edited>
+        var bl = _eyeManager.ScreenToMap(drawBox.BottomLeft).Position;
+        var br = _eyeManager.ScreenToMap(drawBox.BottomRight).Position;
+        var tl = _eyeManager.ScreenToMap(drawBox.TopLeft).Position;
+        var tr = _eyeManager.ScreenToMap(drawBox.TopRight).Position;
 
-        float minX = float.MaxValue, minY = float.MaxValue;
-        float maxX = float.MinValue, maxY = float.MinValue;
-
-        foreach (var c in corners)
-        {
-            if (c.X < minX)
-                minX = c.X;
-            if (c.Y < minY)
-                minY = c.Y;
-            if (c.X > maxX)
-                maxX = c.X;
-            if (c.Y > maxY)
-                maxY = c.Y;
-        }
-
-        var mapCoordsBottomLeft = new MapCoordinates(new Vector2(minX, minY), mapId);
-        var mapCoordsTopRight = new MapCoordinates(new Vector2(maxX, maxY), mapId);
-        var samplePoints = new[]
-        {
-            new Vector2(minX, minY),
-            new Vector2(maxX, minY),
-            new Vector2(minX, maxY),
-            new Vector2(maxX, maxY),
-            new Vector2((minX + maxX) * 0.5f, (minY + maxY) * 0.5f)
-        };
+        var minX = MathF.Min(MathF.Min(bl.X, br.X), MathF.Min(tl.X, tr.X));
+        var minY = MathF.Min(MathF.Min(bl.Y, br.Y), MathF.Min(tl.Y, tr.Y));
+        var maxX = MathF.Max(MathF.Max(bl.X, br.X), MathF.Max(tl.X, tr.X));
+        var maxY = MathF.Max(MathF.Max(bl.Y, br.Y), MathF.Max(tl.Y, tr.Y));
+        // </Onyx-Tweak Edited>
 
         // Handle gaps between disconnected grids: if any important screen point is not covered by a solid tile,
         // we should render lower z-levels.
-        foreach (var sample in samplePoints)
-        {
-            if (!_mapManager.TryFindGridAt(mapUid, sample, out _, out var sampleGrid))
-                return true;
+        // <Onyx-Tweak Edited>
+        if (CheckSamplePoint(mapUid, new Vector2(minX, minY), mapId)
+            || CheckSamplePoint(mapUid, new Vector2(maxX, minY), mapId)
+            || CheckSamplePoint(mapUid, new Vector2(minX, maxY), mapId)
+            || CheckSamplePoint(mapUid, new Vector2(maxX, maxY), mapId)
+            || CheckSamplePoint(mapUid, new Vector2((minX + maxX) * 0.5f, (minY + maxY) * 0.5f), mapId))
+            return true;
 
-            var sampleTile = sampleGrid.GetTileRef(sampleGrid.TileIndicesFor(new MapCoordinates(sample, mapId)));
-            var sampleTileDef = (ContentTileDefinition)_tile[sampleTile.Tile.TypeId];
-            if (sampleTileDef.Transparent || sampleTile.Tile.IsEmpty)
-                return true;
-        }
+        var worldBounds = new Box2(minX, minY, maxX, maxY);
+        var mapCoordsBottomLeft = new MapCoordinates(new Vector2(minX, minY), mapId);
+        var mapCoordsTopRight = new MapCoordinates(new Vector2(maxX, maxY), mapId);
 
-        var visibleGrids = new List<Entity<MapGridComponent>>();
-        _mapManager.FindGridsIntersecting(mapId, new Box2(minX, minY, maxX, maxY), ref visibleGrids, approx: true, includeMap: false);
+        var visibleGrids = _visibleGridsBuffer;
+        visibleGrids.Clear();
+        _mapManager.FindGridsIntersecting(mapId, worldBounds, ref visibleGrids, approx: true, includeMap: false);
+        // </Onyx-Tweak Edited>
 
         if (visibleGrids.Count == 0)
             return true;
@@ -113,15 +121,35 @@ public sealed partial class ScalingViewport
                 for (var y = tileBottomLeft.Y - 1; y <= tileTopRight.Y + 1; y++)
                 {
                     var tile = mapGrid.GetTileRef(new Vector2i(x, y));
-                    var tileDef = (ContentTileDefinition)_tile[tile.Tile.TypeId];
-                    if (tileDef.Transparent || tile.Tile.IsEmpty)
+                    // <Onyx-Tweak Edited>
+                    if (tile.Tile.IsEmpty)
                         return true;
+
+                    var tileDef = (ContentTileDefinition)_tile[tile.Tile.TypeId];
+                    if (tileDef.Transparent)
+                        return true;
+                    // </Onyx-Tweak Edited>
                 }
             }
         }
 
         return false;
     }
+
+    // <Onyx-Tweak>
+    private bool CheckSamplePoint(EntityUid mapUid, Vector2 sample, MapId mapId)
+    {
+        if (!_mapManager.TryFindGridAt(mapUid, sample, out _, out var sampleGrid))
+            return true;
+
+        var sampleTile = sampleGrid.GetTileRef(sampleGrid.TileIndicesFor(new MapCoordinates(sample, mapId)));
+        if (sampleTile.Tile.IsEmpty)
+            return true;
+
+        var sampleTileDef = (ContentTileDefinition)_tile[sampleTile.Tile.TypeId];
+        return sampleTileDef.Transparent;
+    }
+    // </Onyx-Tweak>
 
     private void RenderZLevels(IClydeViewport viewport)
     {
@@ -155,8 +183,9 @@ public sealed partial class ScalingViewport
         var forceRenderBelow = playerXform.GridUid.HasValue
             && _entityManager.HasComponent<GridMotionLinkComponent>(playerXform.GridUid.Value);
 
+        var maxBelow = _cfg.GetCVar(CCVars.MaxZLevelsBelowRendering); // <Onyx-Tweak>
         var lowestDepth = 0;
-        for (var i = 0; i >= -_cfg.GetCVar(CCVars.MaxZLevelsBelowRendering); i--)   // <Onyx-Tweak>
+        for (var i = 0; i >= -maxBelow; i--)   // <Onyx-Tweak>
         {
             var checkingMap = playerXform.MapUid.Value;
 
@@ -170,26 +199,33 @@ public sealed partial class ScalingViewport
 
             lowestDepth = i;
 
-            if (!forceRenderBelow && !TryFindEmptyTiles(checkingMap))
+            if (!forceRenderBelow && !TryFindEmptyTilesCached(checkingMap)) // <Onyx-Tweak Edited>
                 break;
         }
 
 
-        // Try to locate the placement overlay so we can temporarily disable it while rendering z-levels.
-        var overlayMgr = IoCManager.Resolve<IOverlayManager>();
-        Overlay? placementOverlay = null;
-
-        // Search for placement overlay by type name
-        foreach (var overlay in overlayMgr.AllOverlays)
+        // <Onyx-Tweak>
+        if (!_placementOverlayCached)
         {
-            if (overlay.GetType().Name == "PlacementOverlay")   // i know this is junky af but i don't have any better solutions
+            var overlayMgr = IoCManager.Resolve<IOverlayManager>();
+            _cachedPlacementOverlay = null;
+            foreach (var overlay in overlayMgr.AllOverlays)
             {
-                placementOverlay = overlay;
-                break;
+                if (overlay.GetType().Name == "PlacementOverlay")
+                {
+                    _cachedPlacementOverlay = overlay;
+                    break;
+                }
             }
+            _placementOverlayCached = true;
         }
+        // </Onyx-Tweak>
 
+        var placementOverlay = _cachedPlacementOverlay;
         var placementRemoved = false;
+        var overlayManager = IoCManager.Resolve<IOverlayManager>();
+
+        var zLevelOffset = _cfg.GetCVar(CCVars.ZLevelOffset);
 
         //From the lowest depth to the highest, render each level
         for (var depth = lowestDepth; depth <= lookUp; depth++)
@@ -203,7 +239,7 @@ public sealed partial class ScalingViewport
                 {
                     try
                     {
-                        overlayMgr.AddOverlay(placementOverlay);
+                        overlayManager.AddOverlay(placementOverlay); // <Onyx-Tweak Edited>
                         placementRemoved = false;
                     }
                     catch { }
@@ -217,7 +253,7 @@ public sealed partial class ScalingViewport
                 {
                     try
                     {
-                        overlayMgr.RemoveOverlay(placementOverlay);
+                        overlayManager.RemoveOverlay(placementOverlay); // <Onyx-Tweak Edited>
                         placementRemoved = true;
                     }
                     catch { }
@@ -230,7 +266,7 @@ public sealed partial class ScalingViewport
                     continue;
 
                 Angle rotation = _fallbackEye.Rotation * -1;
-                var offset = rotation.ToWorldVec() * _cfg.GetCVar(CCVars.ZLevelOffset) * depth;
+                var offset = rotation.ToWorldVec() * zLevelOffset * depth; // <Onyx-Tweak Edited>
 
                 viewport.Eye = new ZEye(lowestDepth, depth, lookUp)
                 {
@@ -253,7 +289,7 @@ public sealed partial class ScalingViewport
         {
             try
             {
-                overlayMgr.AddOverlay(placementOverlay);
+                overlayManager.AddOverlay(placementOverlay); // <Onyx-Tweak Edited>
             }
             catch { }
         }

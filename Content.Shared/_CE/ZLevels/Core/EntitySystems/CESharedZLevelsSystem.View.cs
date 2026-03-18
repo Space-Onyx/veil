@@ -45,12 +45,10 @@ public abstract partial class CESharedZLevelsSystem
     {
         _opaqueAboveCacheDirty = true;
         _groundCacheGeneration++;
-        // <Onyx-Tweak>
         foreach (var change in ev.Changes)
         {
             WakeEntitiesOnTile(ev.Entity, change.GridIndices);
         }
-        // </Onyx-Tweak>
     }
     // </Onyx-Tweak>
 

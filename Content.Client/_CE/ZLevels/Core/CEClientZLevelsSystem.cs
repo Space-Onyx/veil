@@ -63,6 +63,11 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
     {
         base.Update(frameTime);
 
+        // <Onyx-Tweak Edited>
+        var zLevelOffset = _cfg.GetCVar(CCVars.ZLevelOffset); 
+        var overMobs = (int)Shared.DrawDepth.DrawDepth.OverMobs;
+        // </Onyx-Tweak Edited>
+
         var query = EntityQueryEnumerator<CEZPhysicsComponent, SpriteComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var zPhys, out var sprite, out var xform))
         {
@@ -77,8 +82,10 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
 
             sprite.NoRotation = localPosition != 0 || zPhys.NoRotDefault;
 
-            _sprite.SetOffset((uid, sprite), zPhys.SpriteOffsetDefault + new Vector2(0, localPosition * _cfg.GetCVar(CCVars.ZLevelOffset)));    // <Onyx-Tweak>
-            _sprite.SetDrawDepth((uid, sprite), localPosition > 0 ? (int)Shared.DrawDepth.DrawDepth.OverMobs : zPhys.DrawDepthDefault);
+            // <Onyx-Tweak Edited>
+            _sprite.SetOffset((uid, sprite), zPhys.SpriteOffsetDefault + new Vector2(0, localPosition * zLevelOffset));
+            _sprite.SetDrawDepth((uid, sprite), localPosition > 0 ? overMobs : zPhys.DrawDepthDefault);
+            // </Onyx-Tweak Edited>
         }
 
         // Update StartOffset for entities with running fatigue animations
