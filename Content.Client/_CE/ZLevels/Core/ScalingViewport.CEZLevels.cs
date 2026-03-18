@@ -28,8 +28,9 @@ public sealed partial class ScalingViewport
     [Dependency] private readonly IEyeManager _eyeManager = default!;
     [Dependency] private readonly IPlayerManager _player = default!;
     [Dependency] private readonly ITileDefinitionManager _tile = default!;
-    [Dependency] private readonly IConfigurationManager _cfg = default!;    // <Onyx-Tweak>
+    [Dependency] private readonly IConfigurationManager _cfg = default!; // <Onyx-Tweak>
     [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private readonly IOverlayManager _overlayManager = default!; // <Onyx-Tweak>
 
     private CEClientZLevelsSystem? _zLevels;
     private SharedMapSystem? _mapSystem;
@@ -38,8 +39,9 @@ public sealed partial class ScalingViewport
     private EntityQuery<MapComponent>? _mapQuery;
 
     private IEye? _fallbackEye;
-
     // <Onyx-Tweak> 
+    private readonly Dictionary<int, EntityUid> _depthMapCache = new();
+
     private Overlay? _cachedPlacementOverlay;
     private bool _placementOverlayCached;
     private readonly List<Entity<MapGridComponent>> _visibleGridsBuffer = new();
@@ -178,6 +180,11 @@ public sealed partial class ScalingViewport
         if (playerXform.MapUid is null)
             return;
 
+        // <Onyx-Tweak> 
+        _depthMapCache.Clear();
+        _depthMapCache[0] = playerXform.MapUid.Value;
+        // </Onyx-Tweak> 
+
         var lookUp = zLevelViewer.LookUp ? 1 : 0;
 
         var forceRenderBelow = playerXform.GridUid.HasValue
@@ -195,6 +202,7 @@ public sealed partial class ScalingViewport
                     continue;
 
                 checkingMap = mapUidBelow.Value;
+                _depthMapCache[i] = checkingMap; // <Onyx-Tweak> 
             }
 
             lowestDepth = i;
@@ -207,9 +215,8 @@ public sealed partial class ScalingViewport
         // <Onyx-Tweak>
         if (!_placementOverlayCached)
         {
-            var overlayMgr = IoCManager.Resolve<IOverlayManager>();
             _cachedPlacementOverlay = null;
-            foreach (var overlay in overlayMgr.AllOverlays)
+            foreach (var overlay in _overlayManager.AllOverlays) // <Onyx-Tweak Edited>
             {
                 if (overlay.GetType().Name == "PlacementOverlay")
                 {
@@ -223,7 +230,6 @@ public sealed partial class ScalingViewport
 
         var placementOverlay = _cachedPlacementOverlay;
         var placementRemoved = false;
-        var overlayManager = IoCManager.Resolve<IOverlayManager>();
 
         var zLevelOffset = _cfg.GetCVar(CCVars.ZLevelOffset);
 
@@ -239,7 +245,7 @@ public sealed partial class ScalingViewport
                 {
                     try
                     {
-                        overlayManager.AddOverlay(placementOverlay); // <Onyx-Tweak Edited>
+                        _overlayManager.AddOverlay(placementOverlay); // <Onyx-Tweak Edited>
                         placementRemoved = false;
                     }
                     catch { }
@@ -247,23 +253,31 @@ public sealed partial class ScalingViewport
             }
             else
             {
+                // <Onyx-Tweak> 
+                if (!_depthMapCache.TryGetValue(depth, out var depthMapUid))
+                {
+                    if (!_zLevels.TryMapOffset(playerXform.MapUid.Value, depth, out var mapUidDepth))
+                        continue;
+
+                    depthMapUid = mapUidDepth.Value;
+                    _depthMapCache[depth] = depthMapUid;
+                }
+
+                if (!_mapQuery.Value.TryComp(depthMapUid, out var mapComp))
+                    continue;
+                // </Onyx-Tweak> 
+
                 // Remove placement overlay before rendering z-levels so it
                 // doesn't call PixelToMap with this z-level's eye.
                 if (!placementRemoved && placementOverlay is not null)
                 {
                     try
                     {
-                        overlayManager.RemoveOverlay(placementOverlay); // <Onyx-Tweak Edited>
+                        _overlayManager.RemoveOverlay(placementOverlay); // <Onyx-Tweak Edited>
                         placementRemoved = true;
                     }
                     catch { }
                 }
-
-                if (!_zLevels.TryMapOffset(playerXform.MapUid.Value, depth, out var mapUidBelow))
-                    continue;
-
-                if (!_mapQuery.Value.TryComp(mapUidBelow.Value, out var mapComp))
-                    continue;
 
                 Angle rotation = _fallbackEye.Rotation * -1;
                 var offset = rotation.ToWorldVec() * zLevelOffset * depth; // <Onyx-Tweak Edited>
@@ -289,7 +303,7 @@ public sealed partial class ScalingViewport
         {
             try
             {
-                overlayManager.AddOverlay(placementOverlay); // <Onyx-Tweak Edited>
+                _overlayManager.AddOverlay(placementOverlay); // <Onyx-Tweak Edited>
             }
             catch { }
         }

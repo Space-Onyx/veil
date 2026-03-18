@@ -3,6 +3,7 @@
  * https://github.com/space-wizards/space-station-14/blob/master/LICENSE.TXT
  */
 
+using System.Collections.Generic;
 using System.Numerics;
 using Content.Client.Damage.Systems;
 using Content.Shared._CE.ZLevels.Core.Components;
@@ -27,6 +28,11 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
     [Dependency] private readonly AnimationPlayerSystem _animation = default!;
     [Dependency] private readonly IConfigurationManager _cfg = default!;    // <Onyx-Tweak>
 
+    // <Onyx-Tweak>
+    private readonly HashSet<EntityUid> _dirtyVisuals = new();
+    private readonly List<EntityUid> _dirtyVisualsBuffer = new();
+    // </Onyx-Tweak>
+
     public static float ZLevelOffset = 0.7f;
 
     public override void Initialize()
@@ -36,7 +42,22 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
 
         SubscribeLocalEvent<CEZPhysicsComponent, ComponentStartup>(OnStartup);
         SubscribeLocalEvent<CEZPhysicsComponent, GetEyeOffsetEvent>(OnEyeOffset);
+    // <Onyx-Tweak>
+        SubscribeLocalEvent<CEZPhysicsComponent, ComponentShutdown>(OnShutdown);
+        SubscribeLocalEvent<CEActiveZPhysicsComponent, ComponentStartup>(OnActiveStartup);
+        SubscribeLocalEvent<CEActiveZPhysicsComponent, ComponentShutdown>(OnActiveShutdown);
     }
+
+    private void OnActiveStartup(Entity<CEActiveZPhysicsComponent> ent, ref ComponentStartup args)
+    {
+        _dirtyVisuals.Add(ent);
+    }
+
+    private void OnActiveShutdown(Entity<CEActiveZPhysicsComponent> ent, ref ComponentShutdown args)
+    {
+        _dirtyVisuals.Add(ent);
+    }
+    // </Onyx-Tweak>
 
     private void OnEyeOffset(Entity<CEZPhysicsComponent> ent, ref GetEyeOffsetEvent args)
     {
@@ -49,15 +70,29 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
     private void OnStartup(Entity<CEZPhysicsComponent> ent, ref ComponentStartup args)
     {
         if (!TryComp<SpriteComponent>(ent, out var sprite))
+        {
+            _dirtyVisuals.Add(ent); // <Onyx-Tweak>
             return;
+        }
 
         if (sprite.SnapCardinals)
+        {
+            _dirtyVisuals.Add(ent); // <Onyx-Tweak>
             return;
+        }
 
         ent.Comp.NoRotDefault = sprite.NoRotation;
         ent.Comp.DrawDepthDefault = sprite.DrawDepth;
         ent.Comp.SpriteOffsetDefault = sprite.Offset;
+        _dirtyVisuals.Add(ent); // <Onyx-Tweak>
     }
+
+    // <Onyx-Tweak>
+    private void OnShutdown(Entity<CEZPhysicsComponent> ent, ref ComponentShutdown args)
+    {
+        _dirtyVisuals.Remove(ent);
+    }
+    // </Onyx-Tweak>
 
     public override void Update(float frameTime)
     {
@@ -66,41 +101,72 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
         // <Onyx-Tweak Edited>
         var zLevelOffset = _cfg.GetCVar(CCVars.ZLevelOffset); 
         var overMobs = (int)Shared.DrawDepth.DrawDepth.OverMobs;
-        // </Onyx-Tweak Edited>
 
-        var query = EntityQueryEnumerator<CEZPhysicsComponent, SpriteComponent, TransformComponent>();
-        while (query.MoveNext(out var uid, out var zPhys, out var sprite, out var xform))
+        var query = EntityQueryEnumerator<CEActiveZPhysicsComponent, CEZPhysicsComponent, SpriteComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out _, out var zPhys, out var sprite, out var xform))
         {
-            var localPosition = GetVisualsLocalPosition((uid, zPhys), xform);
-
-            // <Onyx-Tweak>
-            if (localPosition == zPhys.LastVisualLocalPosition)
-                continue;
-
-            zPhys.LastVisualLocalPosition = localPosition;
-            // </Onyx-Tweak>
-
-            sprite.NoRotation = localPosition != 0 || zPhys.NoRotDefault;
-
-            // <Onyx-Tweak Edited>
-            _sprite.SetOffset((uid, sprite), zPhys.SpriteOffsetDefault + new Vector2(0, localPosition * zLevelOffset));
-            _sprite.SetDrawDepth((uid, sprite), localPosition > 0 ? overMobs : zPhys.DrawDepthDefault);
-            // </Onyx-Tweak Edited>
+            ApplyVisuals(uid, zPhys, sprite, xform, zLevelOffset, overMobs);
         }
 
-        // Update StartOffset for entities with running fatigue animations
-        // This allows animations to follow dynamic offset changes (e.g., from Z-levels system)
-        var query2 = EntityQueryEnumerator<StaminaComponent, SpriteComponent, CEZPhysicsComponent>();
-        while (query2.MoveNext(out var uid, out var stamina, out var sprite, out var zPhys))
+        if (_dirtyVisuals.Count > 0)
         {
-            // Only update if animation is running
+            _dirtyVisualsBuffer.Clear();
+            foreach (var uid in _dirtyVisuals)
+            {
+                _dirtyVisualsBuffer.Add(uid);
+            }
+            _dirtyVisuals.Clear();
+
+            foreach (var uid in _dirtyVisualsBuffer)
+            {
+                if (TerminatingOrDeleted(uid))
+                    continue;
+
+                if (!TryComp(uid, out CEZPhysicsComponent? zPhys) ||
+                    !TryComp(uid, out SpriteComponent? sprite) ||
+                    !TryComp(uid, out TransformComponent? xform))
+                {
+                    continue;
+                }
+
+                if (HasComp<CEActiveZPhysicsComponent>(uid))
+                    continue;
+
+                ApplyVisuals(uid, zPhys, sprite, xform, zLevelOffset, overMobs);
+            }
+        }
+
+        var query2 = EntityQueryEnumerator<CEActiveZPhysicsComponent, StaminaComponent, SpriteComponent, CEZPhysicsComponent>();
+        while (query2.MoveNext(out var uid, out _, out var stamina, out _, out var zPhys))
+        {
             if (!_animation.HasRunningAnimation(uid, StaminaSystem.StaminaAnimationKey))
                 continue;
 
-            // Update the base offset to track changes made by other systems
             stamina.StartOffset = zPhys.SpriteOffsetDefault;
         }
     }
+    // </Onyx-Tweak Edited>
+
+    // <Onyx-Tweak>
+    private void ApplyVisuals(EntityUid uid,
+        CEZPhysicsComponent zPhys,
+        SpriteComponent sprite,
+        TransformComponent xform,
+        float zLevelOffset,
+        int overMobs)
+    {
+        var localPosition = GetVisualsLocalPosition((uid, zPhys), xform);
+
+        if (localPosition == zPhys.LastVisualLocalPosition)
+            return;
+
+        zPhys.LastVisualLocalPosition = localPosition;
+
+        sprite.NoRotation = localPosition != 0 || zPhys.NoRotDefault;
+        _sprite.SetOffset((uid, sprite), zPhys.SpriteOffsetDefault + new Vector2(0, localPosition * zLevelOffset));
+        _sprite.SetDrawDepth((uid, sprite), localPosition > 0 ? overMobs : zPhys.DrawDepthDefault);
+    }
+    // </Onyx-Tweak>
 
 
     public float GetVisualsLocalPosition(Entity<CEZPhysicsComponent?> ent, TransformComponent? xform = null)
