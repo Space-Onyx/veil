@@ -43,6 +43,11 @@ public abstract partial class CESharedZLevelsSystem
 
     private void OnParentChanged(Entity<CEZPhysicsComponent> ent, ref EntParentChangedMessage args)
     {
+        // <Onyx-Tweak> Don't modify components during state application — causes collection modified exception
+        if (_timing.ApplyingState)
+            return;
+        // </Onyx-Tweak>
+
         CheckActivation(ent);
 
         if (ZPhyzQuery.TryComp(args.OldParent, out var oldParentZPhys))
@@ -92,6 +97,11 @@ public abstract partial class CESharedZLevelsSystem
     {
         if (!_timing.IsFirstTimePredicted)
             return;
+
+        // <Onyx-Tweak> Don't modify components during state application
+        if (_timing.ApplyingState)
+            return;
+        // </Onyx-Tweak>
 
         if (active)
             EnsureComp<CEActiveZPhysicsComponent>(ent);

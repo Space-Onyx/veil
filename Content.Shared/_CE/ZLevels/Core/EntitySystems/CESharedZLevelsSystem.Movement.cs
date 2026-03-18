@@ -292,7 +292,8 @@ public abstract partial class CESharedZLevelsSystem
         ent.Comp.LocalPosition = newPosition;
         DirtyField(ent, ent.Comp, nameof(CEZPhysicsComponent.LocalPosition));
         // <Onyx-Tweak>
-        EnsureComp<CEActiveZPhysicsComponent>(ent);
+        if (!_timing.ApplyingState)
+            EnsureComp<CEActiveZPhysicsComponent>(ent);
         // </Onyx-Tweak>
     }
 
