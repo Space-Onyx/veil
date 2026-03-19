@@ -9,6 +9,7 @@ using Content.Shared.CCVar;
 using Content.Shared.Chasm;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
+using Content.Shared.Gravity;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.Maps;
 using Content.Shared.Movement.Components;
@@ -58,10 +59,28 @@ public abstract partial class CESharedZLevelsSystem
 
         // <Onyx-Tweak>
         SubscribeLocalEvent<CEZLevelHighGroundComponent, AnchorStateChangedEvent>(OnHighGroundAnchorChanged);
+        SubscribeLocalEvent<CEZPhysicsComponent, IsWeightlessEvent>(OnZPhysicsWeightless);
         // </Onyx-Tweak>
     }
 
     // <Onyx-Tweak>
+    private void OnZPhysicsWeightless(Entity<CEZPhysicsComponent> ent, ref IsWeightlessEvent args)
+    {
+        if (args.Handled)
+            return;
+
+        var xform = Transform(ent);
+
+        if (xform.GridUid != null)
+            return;
+
+        if (!HasZNetworkGravity(xform))
+            return;
+
+        args.IsWeightless = false;
+        args.Handled = true;
+    }
+
     private void OnHighGroundAnchorChanged(Entity<CEZLevelHighGroundComponent> ent, ref AnchorStateChangedEvent args)
     {
         _groundCacheGeneration++;

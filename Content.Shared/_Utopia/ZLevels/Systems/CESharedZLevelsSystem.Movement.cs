@@ -2,6 +2,7 @@ using System.Numerics;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared.CCVar;
 using Content.Shared.Chasm;
+using Content.Shared.Gravity;
 using Content.Shared.Maps;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
@@ -33,25 +34,29 @@ public abstract partial class CESharedZLevelsSystem
                 RemComp<CEActiveZPhysicsComponent>(uid);
                 return;
             }
-            if (!zPhys.IsGrounded && zPhys.CurrentGroundHeight < -0.5f)
+            // <Onyx-Tweak>
+            if (!zPhys.IsGrounded && zPhys.CurrentGroundHeight < -0.5f && !HasZNetworkGravity(xform))
             {
                 RemComp<CEActiveZPhysicsComponent>(uid);
                 return;
             }
+            // </Onyx-Tweak>
         }
         // </Onyx-Tweak>
 
         var oldVelocity = zPhys.Velocity;
         var oldHeight = zPhys.LocalPosition;
 
-        if (physics.BodyStatus == BodyStatus.OnGround)
+        // <Onyx-Tweak>
+        if (physics.BodyStatus == BodyStatus.OnGround || HasZNetworkGravity(xform))
         {
             //Velocity application
             var velocityEv = new CEGetZVelocityEvent((uid, zPhys));
-            RaiseLocalEvent(uid, ref velocityEv); // <Onyx-Tweak Edited>
+            RaiseLocalEvent(uid, ref velocityEv);
 
             zPhys.Velocity += velocityEv.VelocityDelta * frameTime;
         }
+        // </Onyx-Tweak>
 
         //Movement application
         zPhys.LocalPosition += zPhys.Velocity * frameTime;
@@ -174,15 +179,14 @@ public abstract partial class CESharedZLevelsSystem
                 if (TryMoveUp(uid))
                 {
                     zPhys.LocalPosition -= 1;
-                    zPhys.GroundCacheValid = false; // <Onyx-Tweak>
 
                     // <Onyx-Tweak>
                     zPhys.LocalPosition = 0;
                     zPhys.CurrentGroundHeight = 0;
                     zPhys.IsGrounded = true;
                     zPhys.Velocity = 0;
-                    zPhys.GroundCacheValid = true;
-                    zPhys.GroundCacheGeneration = _groundCacheGeneration;
+                    zPhys.CurrentStickyGround = true;
+                    zPhys.GroundCacheValid = false;
                     DirtyField(uid, zPhys, nameof(CEZPhysicsComponent.LocalPosition));
                     DirtyField(uid, zPhys, nameof(CEZPhysicsComponent.Velocity));
                     DirtyField(uid, zPhys, nameof(CEZPhysicsComponent.IsGrounded));
@@ -292,22 +296,40 @@ public abstract partial class CESharedZLevelsSystem
                 //No ZEntities found on this grid, check floor tiles
                 if (_map.TryGetTileRef(grid.Owner, grid.Comp, tilePos, out var tileRef) &&
                     !tileRef.Tile.IsEmpty)
-                {
-                    // <Onyx-Tweak>
-                    if (floor > 0)
-                    {
-                        var tileDef = (ContentTileDefinition) TilDefMan[tileRef.Tile.TypeId];
-                        if (tileDef.HasZRoof)
-                            return -(floor - 1);
-                    }
-                    // </Onyx-Tweak>
-
                     return -floor;
-                }
             }
             // </Onyx-Tweak Edited>
         }
 
         return -maxFloors;
     }
+
+    // <Onyx-Tweak>
+    private bool HasZNetworkGravity(TransformComponent xform)
+    {
+        if (xform.MapUid is not { } mapUid)
+            return false;
+
+        if (!_zMapQuery.HasComp(mapUid) || !_mapQuery.TryComp(mapUid, out var mapComp))
+            return false;
+
+        foreach (var grid in GetCachedGrids(mapComp.MapId))
+        {
+            if (_gravityQuery.TryComp(grid.Owner, out var gravity) && gravity.Enabled)
+                return true;
+        }
+
+        if (TryMapUp(mapUid, out var mapAbove) &&
+            _mapQuery.TryComp(mapAbove.Value.Owner, out var aboveMapComp))
+        {
+            foreach (var grid in GetCachedGrids(aboveMapComp.MapId))
+            {
+                if (_gravityQuery.TryComp(grid.Owner, out var gravAbove) && gravAbove.Enabled)
+                    return true;
+            }
+        }
+
+        return false;
+    }
+    // </Onyx-Tweak>
 }

@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared.ActionBlocker;
 using Content.Shared.Damage;
+using Content.Shared.Gravity;
 using Content.Shared.Popups;
 using Content.Shared.Stunnable;
 using JetBrains.Annotations;
@@ -44,6 +45,7 @@ public abstract partial class CESharedZLevelsSystem : EntitySystem
     private EntityQuery<MapGridComponent> _gridQuery;
 
     protected EntityQuery<CEZPhysicsComponent> ZPhyzQuery = default!;
+    private EntityQuery<GravityComponent> _gravityQuery; // <Onyx-Tweak>
     // <Onyx-Tweak>
     private readonly Dictionary<EntityUid, EntityUid> _mapToNetwork = new();
     private readonly Dictionary<EntityUid, List<(int Depth, EntityUid MapUid)>> _sortedMaps = new();
@@ -60,6 +62,7 @@ public abstract partial class CESharedZLevelsSystem : EntitySystem
         _zMapQuery = GetEntityQuery<CEZLevelMapComponent>();
         _gridQuery = GetEntityQuery<MapGridComponent>();
         ZPhyzQuery = GetEntityQuery<CEZPhysicsComponent>();
+        _gravityQuery = GetEntityQuery<GravityComponent>(); // <Onyx-Tweak>
         // <Onyx-Tweak>
         SubscribeLocalEvent<CEZLevelsNetworkComponent, ComponentStartup>(OnNetworkStartup);
         SubscribeLocalEvent<CEZLevelsNetworkComponent, ComponentShutdown>(OnNetworkShutdown);
