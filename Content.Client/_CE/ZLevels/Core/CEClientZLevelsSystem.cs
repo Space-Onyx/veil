@@ -40,7 +40,10 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
     {
         base.Initialize();
         _overlay.AddOverlay(new CEZLevelBlurOverlay());
-        _overlay.AddOverlay(new OnyxZLevelRoofOverlay()); // <Onyx-Tweak>
+        // <Onyx-Tweak>
+        _overlay.AddOverlay(new OnyxZLevelHoleShadowOverlay());
+        _overlay.AddOverlay(new OnyxZLevelRoofOverlay());
+        // </Onyx-Tweak>
 
         SubscribeLocalEvent<CEZPhysicsComponent, ComponentStartup>(OnStartup);
         SubscribeLocalEvent<CEZPhysicsComponent, GetEyeOffsetEvent>(OnEyeOffset);
@@ -192,6 +195,9 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
     {
         base.Shutdown();
         _overlay.RemoveOverlay<CEZLevelBlurOverlay>();
-        _overlay.RemoveOverlay<OnyxZLevelRoofOverlay>(); // <Onyx-Tweak>
+        // <Onyx-Tweak>
+        _overlay.RemoveOverlay<OnyxZLevelHoleShadowOverlay>();
+        _overlay.RemoveOverlay<OnyxZLevelRoofOverlay>();
+        // </Onyx-Tweak>
     }
 }
