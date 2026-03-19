@@ -2,6 +2,7 @@ using System.Numerics;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared.CCVar;
 using Content.Shared.Chasm;
+using Content.Shared.Maps;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Physics;
@@ -291,7 +292,18 @@ public abstract partial class CESharedZLevelsSystem
                 //No ZEntities found on this grid, check floor tiles
                 if (_map.TryGetTileRef(grid.Owner, grid.Comp, tilePos, out var tileRef) &&
                     !tileRef.Tile.IsEmpty)
+                {
+                    // <Onyx-Tweak>
+                    if (floor > 0)
+                    {
+                        var tileDef = (ContentTileDefinition) TilDefMan[tileRef.Tile.TypeId];
+                        if (tileDef.HasZRoof)
+                            return -(floor - 1);
+                    }
+                    // </Onyx-Tweak>
+
                     return -floor;
+                }
             }
             // </Onyx-Tweak Edited>
         }

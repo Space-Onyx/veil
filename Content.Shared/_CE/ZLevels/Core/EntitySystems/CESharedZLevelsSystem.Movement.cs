@@ -246,8 +246,12 @@ public abstract partial class CESharedZLevelsSystem
         var worldPos = _transform.GetWorldPosition(ent);
         foreach (var grid in GetCachedGrids(mapComp.MapId)) // <Onyx-Tweak Edited>
         {
-            if (_map.TryGetTileRef(grid.Owner, grid.Comp, worldPos, out var tileRef) &&
-                !tileRef.Tile.IsEmpty)
+            if (!_map.TryGetTileRef(grid.Owner, grid.Comp, worldPos, out var tileRef) ||
+                tileRef.Tile.IsEmpty)
+                continue;
+
+            var tileDef = (ContentTileDefinition) TilDefMan[tileRef.Tile.TypeId];
+            if (tileDef.HasZRoof)
                 return true;
         }
         // </Onyx-Tweak>
@@ -274,8 +278,12 @@ public abstract partial class CESharedZLevelsSystem
         // <Onyx-Tweak>
         foreach (var grid in GetCachedGrids(mapComp.MapId))
         {
-            if (_map.TryGetTileRef(grid.Owner, grid.Comp, indices, out var tileRef) &&
-                !tileRef.Tile.IsEmpty)
+            if (!_map.TryGetTileRef(grid.Owner, grid.Comp, indices, out var tileRef) ||
+                tileRef.Tile.IsEmpty)
+                continue;
+
+            var tileDef = (ContentTileDefinition) TilDefMan[tileRef.Tile.TypeId];
+            if (tileDef.HasZRoof)
                 return true;
         }
         // </Onyx-Tweak>
