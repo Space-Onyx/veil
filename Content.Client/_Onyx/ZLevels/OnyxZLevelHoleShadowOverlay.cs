@@ -48,7 +48,7 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
     private readonly Queue<Vector2i> _floodQueue = new();
     private readonly HashSet<Vector2i> _projectedHoleTiles = new();
 
-    public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowEntities;
+    public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
 
     public OnyxZLevelHoleShadowOverlay()
     {
