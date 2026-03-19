@@ -155,6 +155,21 @@ public abstract partial class CESharedZLevelsSystem : EntitySystem
     }
     // </Onyx-Tweak>
 
+    // <Onyx-Tweak>
+    [PublicAPI]
+    public bool AreOnSameZNetwork(EntityUid mapUidA, EntityUid mapUidB)
+    {
+        if (mapUidA == mapUidB)
+            return true;
+
+        EnsureNetworkCache();
+
+        return _mapToNetwork.TryGetValue(mapUidA, out var netA)
+            && _mapToNetwork.TryGetValue(mapUidB, out var netB)
+            && netA == netB;
+    }
+    // </Onyx-Tweak>
+
     /// <summary>
     /// Checks whether the map is in the zLevels network. If so, returns true and the current depth + Entity of the current zLevels network.
     /// </summary>

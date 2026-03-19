@@ -66,6 +66,7 @@ using Robust.Shared.Replays;
 using Robust.Shared.Utility;
 using Content.Shared.Whitelist;
 using Robust.Shared.Configuration;
+using Content.Shared._CE.ZLevels.Core.EntitySystems;
 
 namespace Content.Server.Radio.EntitySystems;
 
@@ -84,6 +85,7 @@ public sealed partial class RadioSystem : EntitySystem
     [Dependency] private readonly EntityWhitelistSystem _whitelist = default!; // Goobstation - Whitelisted radio channels
     [Dependency] private readonly InventorySystem _inventory = default!;
     [Dependency] private readonly IConfigurationManager _cfg = default!;
+    [Dependency] private readonly CESharedZLevelsSystem _zLevels = default!; // <Onyx-Tweak>
 
     // set used to prevent radio feedback loops.
     private readonly HashSet<string> _messages = new();
@@ -259,8 +261,10 @@ public sealed partial class RadioSystem : EntitySystem
                     continue;
             }
 
+            // <Onyx-Tweak>
             if (!channel.LongRange && transform.MapID != sourceMapId && !radio.GlobalReceive
-                && !(HasActiveTransmitter(transform.MapID) && HasActiveTransmitter(sourceMapId))) // goob - intermap transmitters
+                && !(HasActiveTransmitter(transform.MapID) && HasActiveTransmitter(sourceMapId)) // goob - intermap transmitters
+                && !AreOnSameZNetwork(transform, radioSource)) // <Onyx-Tweak>
                 continue;
 
             // don't need telecom server for long range channels or handheld radios and intercoms
@@ -432,4 +436,17 @@ public sealed partial class RadioSystem : EntitySystem
             .Any(server => server.Item3.MapID == mapId && server.Item2.Powered);
     }
     // goob end
+
+    // <Onyx-Tweak>
+    private bool AreOnSameZNetwork(TransformComponent receiverXform, EntityUid sourceUid)
+    {
+        var sourceMapUid = Transform(sourceUid).MapUid;
+        var receiverMapUid = receiverXform.MapUid;
+
+        if (sourceMapUid == null || receiverMapUid == null)
+            return false;
+
+        return _zLevels.AreOnSameZNetwork(sourceMapUid.Value, receiverMapUid.Value);
+    }
+    // </Onyx-Tweak>
 }
