@@ -135,6 +135,7 @@
   heatCapacity: 10000
   mass: 200
   transparent: true # ECHO-Tweak: Прозрачные тайлы
+  hasZRoof: false # <Onyx-Tweak>
 
 - type: tile
   id: TrainLattice
@@ -153,3 +154,4 @@
   heatCapacity: 10000
   mass: 200
   transparent: true # ECHO-Tweak: Прозрачные тайлы
+  hasZRoof: false # <Onyx-Tweak>

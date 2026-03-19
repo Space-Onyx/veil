@@ -14,6 +14,7 @@ using Content.Shared.Damage.Components;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Shared.Configuration;
+using Content.Client._Onyx.ZLevels;
 
 namespace Content.Client._CE.ZLevels.Core;
 
@@ -39,14 +40,17 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
     {
         base.Initialize();
         _overlay.AddOverlay(new CEZLevelBlurOverlay());
+        _overlay.AddOverlay(new OnyxZLevelRoofOverlay()); // <Onyx-Tweak>
 
         SubscribeLocalEvent<CEZPhysicsComponent, ComponentStartup>(OnStartup);
         SubscribeLocalEvent<CEZPhysicsComponent, GetEyeOffsetEvent>(OnEyeOffset);
-    // <Onyx-Tweak>
+        // <Onyx-Tweak>
         SubscribeLocalEvent<CEZPhysicsComponent, ComponentShutdown>(OnShutdown);
         SubscribeLocalEvent<CEActiveZPhysicsComponent, ComponentStartup>(OnActiveStartup);
         SubscribeLocalEvent<CEActiveZPhysicsComponent, ComponentShutdown>(OnActiveShutdown);
+        // </Onyx-Tweak>
     }
+    // <Onyx-Tweak>
 
     private void OnActiveStartup(Entity<CEActiveZPhysicsComponent> ent, ref ComponentStartup args)
     {
@@ -99,7 +103,7 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
         base.Update(frameTime);
 
         // <Onyx-Tweak Edited>
-        var zLevelOffset = _cfg.GetCVar(CCVars.ZLevelOffset); 
+        var zLevelOffset = _cfg.GetCVar(CCVars.ZLevelOffset);
         var overMobs = (int)Shared.DrawDepth.DrawDepth.OverMobs;
 
         var query = EntityQueryEnumerator<CEActiveZPhysicsComponent, CEZPhysicsComponent, SpriteComponent, TransformComponent>();
@@ -188,5 +192,6 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
     {
         base.Shutdown();
         _overlay.RemoveOverlay<CEZLevelBlurOverlay>();
+        _overlay.RemoveOverlay<OnyxZLevelRoofOverlay>(); // <Onyx-Tweak>
     }
 }

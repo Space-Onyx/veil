@@ -191,5 +191,11 @@ namespace Content.Shared.Maps
         /// </summary>
         [DataField]
         public bool Transparent = false;
+
+        /// <summary>
+        /// Onyx: Whether this tile renders a Z-level roof overlay when viewed from above.
+        /// </summary>
+        [DataField]
+        public bool HasZRoof = true;
     }
 }

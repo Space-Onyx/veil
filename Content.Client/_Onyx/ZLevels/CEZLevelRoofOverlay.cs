@@ -1,0 +1,291 @@
+using System.Numerics;
+using Content.Client.Viewport;
+using Content.Shared._CE.ZLevels.Core.Components;
+using Content.Shared._CE.ZLevels.Core.EntitySystems;
+using Content.Shared._Utopia.ZLevels.Components;
+using Content.Shared.Maps;
+using Robust.Client.Graphics;
+using Robust.Shared.Enums;
+using Robust.Shared.Map;
+using Robust.Shared.Map.Components;
+using Robust.Shared.Timing;
+
+namespace Content.Client._Onyx.ZLevels;
+
+public sealed class OnyxZLevelRoofOverlay : Overlay
+{
+    [Dependency] private readonly IMapManager _mapManager = default!;
+    [Dependency] private readonly IEntityManager _entManager = default!;
+    [Dependency] private readonly ITileDefinitionManager _tileDef = default!;
+    [Dependency] private readonly IGameTiming _timing = default!;
+
+    private readonly SharedMapSystem _mapSystem;
+    private readonly SharedTransformSystem _xformSystem;
+    private readonly EntityLookupSystem _lookup;
+    private readonly CESharedZLevelsSystem _zLevels;
+
+    private EntityQuery<GridMotionLinkComponent> _motionLinkQuery;
+    private EntityQuery<CEZLevelMapComponent> _zMapQuery;
+    private EntityQuery<MapComponent> _mapQuery;
+
+    private List<Entity<MapGridComponent>> _lowerGrids = new();
+
+    private readonly List<Entity<MapGridComponent>> _linkedUpperGrids = new();
+    private readonly HashSet<Vector2i> _excludedTiles = new();
+
+    private readonly Dictionary<(EntityUid, MapId), HashSet<Vector2i>> _exclusionCache = new();
+    private TimeSpan _lastCacheRebuild;
+    private static readonly TimeSpan CacheLifetime = TimeSpan.FromSeconds(0.5);
+    private readonly Dictionary<MapId, EntityUid> _mapIdCache = new();
+    private TimeSpan _lastMapIdCacheRebuild;
+
+    private static readonly Color RoofColor = new(0.1f, 0.1f, 0.1f, 1.0f);
+
+    public override OverlaySpace Space => OverlaySpace.WorldSpace;
+
+    public OnyxZLevelRoofOverlay()
+    {
+        IoCManager.InjectDependencies(this);
+
+        _mapSystem = _entManager.System<SharedMapSystem>();
+        _xformSystem = _entManager.System<SharedTransformSystem>();
+        _lookup = _entManager.System<EntityLookupSystem>();
+        _zLevels = _entManager.System<CESharedZLevelsSystem>();
+
+        _motionLinkQuery = _entManager.GetEntityQuery<GridMotionLinkComponent>();
+        _zMapQuery = _entManager.GetEntityQuery<CEZLevelMapComponent>();
+        _mapQuery = _entManager.GetEntityQuery<MapComponent>();
+
+        ZIndex = 1;
+    }
+
+    protected override bool BeforeDraw(in OverlayDrawArgs args)
+    {
+        if (args.Viewport.Eye is not ScalingViewport.ZEye zeye)
+            return false;
+
+        if (zeye.Depth >= 0)
+            return false;
+
+        if (args.MapId == MapId.Nullspace)
+            return false;
+
+        return true;
+    }
+
+    protected override void Draw(in OverlayDrawArgs args)
+    {
+        if (args.Viewport.Eye is not ScalingViewport.ZEye)
+            return;
+
+        var worldHandle = args.WorldHandle;
+        var bounds = args.WorldBounds;
+        var lowerMapId = args.MapId;
+
+        if (!TryGetMapUid(lowerMapId, out var lowerMapUid) || !_zMapQuery.HasComp(lowerMapUid))
+            return;
+
+        MapId? upperMapId = null;
+        if (_zLevels.TryMapUp(lowerMapUid, out var upperMapEntity) &&
+            _mapQuery.TryComp(upperMapEntity.Value, out var upperMapComp))
+        {
+            upperMapId = upperMapComp.MapId;
+        }
+
+        _lowerGrids.Clear();
+        _mapManager.FindGridsIntersecting(lowerMapId, bounds, ref _lowerGrids, approx: true, includeMap: false);
+
+        if (_lowerGrids.Count == 0)
+            return;
+
+        var now = _timing.RealTime;
+        var cacheExpired = now - _lastCacheRebuild > CacheLifetime;
+
+        foreach (var lowerGrid in _lowerGrids)
+        {
+            HashSet<Vector2i>? excluded = null;
+
+            if (upperMapId != null)
+            {
+                var cacheKey = (lowerGrid.Owner, upperMapId.Value);
+
+                if (cacheExpired || !_exclusionCache.TryGetValue(cacheKey, out excluded))
+                {
+                    _linkedUpperGrids.Clear();
+                    _excludedTiles.Clear();
+                    FindLinkedUpperGrids(lowerGrid.Owner, upperMapId.Value);
+                    if (_linkedUpperGrids.Count > 0)
+                        BuildExclusionSet(lowerGrid);
+
+                    excluded = new HashSet<Vector2i>(_excludedTiles);
+                    _exclusionCache[cacheKey] = excluded;
+                }
+            }
+
+            if (cacheExpired)
+                _lastCacheRebuild = now;
+
+            var gridMatrix = _xformSystem.GetWorldMatrix(lowerGrid.Owner);
+            worldHandle.SetTransform(gridMatrix);
+
+            var tileEnumerator = _mapSystem.GetAllTilesEnumerator(lowerGrid.Owner, lowerGrid.Comp, ignoreEmpty: true);
+            while (tileEnumerator.MoveNext(out var tileRefNullable))
+            {
+                var tileRef = tileRefNullable.Value;
+
+                var def = (ContentTileDefinition) _tileDef[tileRef.Tile.TypeId];
+                if (!def.HasZRoof)
+                    continue;
+
+                if (excluded != null && excluded.Contains(tileRef.GridIndices))
+                    continue;
+
+                var local = _lookup.GetLocalBounds(tileRef, lowerGrid.Comp.TileSize);
+                worldHandle.DrawRect(local, RoofColor);
+            }
+        }
+
+        worldHandle.SetTransform(Matrix3x2.Identity);
+    }
+
+    private bool TryGetMapUid(MapId mapId, out EntityUid uid)
+    {
+        var now = _timing.RealTime;
+        if (now - _lastMapIdCacheRebuild > CacheLifetime)
+        {
+            _mapIdCache.Clear();
+            _lastMapIdCacheRebuild = now;
+        }
+
+        if (_mapIdCache.TryGetValue(mapId, out uid))
+            return true;
+
+        var query = _entManager.EntityQueryEnumerator<MapComponent>();
+        while (query.MoveNext(out var eid, out var mapComp))
+        {
+            if (mapComp.MapId == mapId)
+            {
+                _mapIdCache[mapId] = eid;
+                uid = eid;
+                return true;
+            }
+        }
+
+        uid = default;
+        return false;
+    }
+
+    private void FindLinkedUpperGrids(EntityUid lowerGridUid, MapId upperMapId)
+    {
+        if (!_motionLinkQuery.TryComp(lowerGridUid, out var lowerLink) || string.IsNullOrEmpty(lowerLink.GroupId))
+            return;
+
+        var query = _entManager.EntityQueryEnumerator<GridMotionLinkComponent, MapGridComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out var link, out var grid, out var xform))
+        {
+            if (xform.MapID != upperMapId)
+                continue;
+
+            if (link.GroupId != lowerLink.GroupId)
+                continue;
+
+            _linkedUpperGrids.Add((uid, grid));
+        }
+    }
+
+    private readonly HashSet<Vector2i> _solidTiles = new();
+    private readonly HashSet<Vector2i> _outerEmpty = new();
+    private readonly Queue<Vector2i> _floodQueue = new();
+
+    private void BuildExclusionSet(Entity<MapGridComponent> lowerGrid)
+    {
+        foreach (var upperGrid in _linkedUpperGrids)
+        {
+            _solidTiles.Clear();
+            _outerEmpty.Clear();
+            _floodQueue.Clear();
+
+            var enumerator = _mapSystem.GetAllTilesEnumerator(upperGrid.Owner, upperGrid.Comp, ignoreEmpty: true);
+            while (enumerator.MoveNext(out var upperTileRef))
+            {
+                var gridPos = upperTileRef.Value.GridIndices;
+                _solidTiles.Add(gridPos);
+
+                var worldPos = _mapSystem.GridTileToWorldPos(upperGrid.Owner, upperGrid.Comp, gridPos);
+                var lowerTilePos = _mapSystem.WorldToTile(lowerGrid.Owner, lowerGrid.Comp, worldPos);
+                _excludedTiles.Add(lowerTilePos);
+            }
+
+            if (_solidTiles.Count == 0)
+                continue;
+
+            var minX = int.MaxValue;
+            var minY = int.MaxValue;
+            var maxX = int.MinValue;
+            var maxY = int.MinValue;
+            foreach (var pos in _solidTiles)
+            {
+                if (pos.X < minX) minX = pos.X;
+                if (pos.Y < minY) minY = pos.Y;
+                if (pos.X > maxX) maxX = pos.X;
+                if (pos.Y > maxY) maxY = pos.Y;
+            }
+
+            minX--;
+            minY--;
+            maxX++;
+            maxY++;
+
+            for (var x = minX; x <= maxX; x++)
+            {
+                TryEnqueueFlood(new Vector2i(x, minY));
+                TryEnqueueFlood(new Vector2i(x, maxY));
+            }
+            for (var y = minY + 1; y < maxY; y++)
+            {
+                TryEnqueueFlood(new Vector2i(minX, y));
+                TryEnqueueFlood(new Vector2i(maxX, y));
+            }
+
+            while (_floodQueue.Count > 0)
+            {
+                var current = _floodQueue.Dequeue();
+
+                if (current.X < minX || current.X > maxX || current.Y < minY || current.Y > maxY)
+                    continue;
+
+                TryEnqueueFlood(new Vector2i(current.X + 1, current.Y));
+                TryEnqueueFlood(new Vector2i(current.X - 1, current.Y));
+                TryEnqueueFlood(new Vector2i(current.X, current.Y + 1));
+                TryEnqueueFlood(new Vector2i(current.X, current.Y - 1));
+            }
+
+            for (var x = minX + 1; x < maxX; x++)
+            {
+                for (var y = minY + 1; y < maxY; y++)
+                {
+                    var pos = new Vector2i(x, y);
+                    if (_solidTiles.Contains(pos))
+                        continue;
+                    if (_outerEmpty.Contains(pos))
+                        continue;
+
+                    var worldPos = _mapSystem.GridTileToWorldPos(upperGrid.Owner, upperGrid.Comp, pos);
+                    var lowerTilePos = _mapSystem.WorldToTile(lowerGrid.Owner, lowerGrid.Comp, worldPos);
+                    _excludedTiles.Add(lowerTilePos);
+                }
+            }
+        }
+    }
+
+    private void TryEnqueueFlood(Vector2i pos)
+    {
+        if (_solidTiles.Contains(pos))
+            return;
+
+        if (!_outerEmpty.Add(pos))
+            return;
+
+        _floodQueue.Enqueue(pos);
+    }
+}
