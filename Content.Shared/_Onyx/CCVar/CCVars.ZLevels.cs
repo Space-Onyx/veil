@@ -14,7 +14,10 @@ public sealed partial class CCVars
         CVarDef.Create("zlevels.z_level_offset", 0f, CVar.SERVER | CVar.REPLICATED | CVar.ARCHIVE);
 
     public static readonly CVarDef<float> ZLevelHoleShadowOpacity =
-        CVarDef.Create("zlevels.hole_shadow_opacity", 0.65f, CVar.SERVER | CVar.REPLICATED | CVar.ARCHIVE);
+        CVarDef.Create("zlevels.hole_shadow_opacity", 0.6f, CVar.SERVER | CVar.REPLICATED | CVar.ARCHIVE);
+
+    public static readonly CVarDef<string> ZLevelHoleShadowColor =
+        CVarDef.Create("zlevels.hole_shadow_color", "#000000", CVar.SERVER | CVar.REPLICATED | CVar.ARCHIVE);
 
     public static readonly CVarDef<float> ZLevelsAtmosTransferSpeed =
         CVarDef.Create("zlevels.atmos_transfer_speed", 1f, CVar.SERVERONLY | CVar.ARCHIVE);

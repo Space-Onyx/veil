@@ -137,7 +137,8 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
         var worldHandle = args.WorldHandle;
         var transparency = Math.Clamp(_cfg.GetCVar(CCVars.ZLevelHoleShadowOpacity), 0f, 1f);
         var alpha = 1f - transparency;
-        var holeShadowFillColor = new Color(0f, 0f, 0f, alpha);
+        var shadowBaseColor = Color.FromHex(_cfg.GetCVar(CCVars.ZLevelHoleShadowColor), Color.Black);
+        var holeShadowFillColor = shadowBaseColor.WithAlpha(alpha);
 
         foreach (var lowerGrid in _lowerGrids)
         {
