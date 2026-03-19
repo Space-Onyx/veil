@@ -25,10 +25,7 @@ public abstract partial class CESharedZLevelsSystem
     {
         base.Update(frameTime);
 
-        var sw = System.Diagnostics.Stopwatch.StartNew();
         UpdateView();
-
-        sw.Restart();
         UpdateMovement(frameTime);
     }
 

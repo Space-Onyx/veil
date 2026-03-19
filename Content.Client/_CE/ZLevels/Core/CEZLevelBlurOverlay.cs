@@ -18,6 +18,7 @@ public sealed class CEZLevelBlurOverlay : Overlay
     [Dependency] private readonly IPrototypeManager _proto = default!;
     [Dependency] private readonly IEntityManager _entity = default!;
     private readonly ShaderInstance? _blurShader;
+    private EntityQuery<MapLightComponent>? _mapLightQuery; // <Onyx-Tweak>
 
     public override bool RequestScreenTexture => true;
     public override OverlaySpace Space => OverlaySpace.WorldSpace;
@@ -51,7 +52,10 @@ public sealed class CEZLevelBlurOverlay : Overlay
 
         var ambientColor = new Vector3(0.5f, 0.5f, 0.5f); // <Onyx-Tweak: Gray color>
 
-        if (_entity.TryGetComponent<MapLightComponent>(args.MapUid, out var mapLight))
+        // <Onyx-Tweak Edited>
+        _mapLightQuery ??= _entity.GetEntityQuery<MapLightComponent>();
+        if (_mapLightQuery.Value.TryComp(args.MapUid, out var mapLight))
+        // </Onyx-Tweak Edited>
         {
             ambientColor = new Vector3(
                 mapLight.AmbientLightColor.R,

@@ -27,6 +27,8 @@ public abstract class CESharedRoofSystem : EntitySystem
     protected EntityQuery<MapGridComponent> GridQuery;
     protected EntityQuery<RoofComponent> RoofQuery;
 
+    private readonly Dictionary<Vector2i, bool> _roofMapBuffer = new(); // <Onyx-Tweak>
+
     public override void Initialize()
     {
         base.Initialize();
@@ -50,7 +52,10 @@ public abstract class CESharedRoofSystem : EntitySystem
         if (args.Changes.Length == 0)
             return;
 
-        Dictionary<Vector2i, bool> roofMap = new();
+        // <Onyx-Tweak>
+        _roofMapBuffer.Clear();
+        var roofMap = _roofMapBuffer;
+        // </Onyx-Tweak>
         foreach (var change in args.Changes)
         {
             var tileDef = (ContentTileDefinition)TilDefMan[change.NewTile.TypeId];

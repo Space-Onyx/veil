@@ -115,8 +115,6 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
     {
         base.Update(frameTime);
 
-        var sw = System.Diagnostics.Stopwatch.StartNew();
-
         // <Onyx-Tweak>
         if (++_periodicRebuildCounter >= 60)
         {
