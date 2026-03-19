@@ -6,6 +6,7 @@ using Content.Shared.Gravity;
 using Content.Shared.Maps;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
+using Content.Shared._Utopia.ZLevels.Components;
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Collision.Shapes;
 using Robust.Shared.Physics.Components;
@@ -213,6 +214,8 @@ public abstract partial class CESharedZLevelsSystem
 
         var worldPos = _transform.GetWorldPosition(target);
 
+        // </Onyx-Tweak>
+
         //Select current map by default
         Entity<CEZLevelMapComponent> checkingMap = (xform.MapUid.Value, zMapComp);
 
@@ -251,11 +254,9 @@ public abstract partial class CESharedZLevelsSystem
                     if (fix == null || fix.Shape is not PolygonShape shape)
                         continue;
 
-                    // <Onyx-Tweak Edited>
                     var aabb = shape.ComputeAABB(new Transform(0f), 0);
                     var bottom = aabb.Bottom;
                     var top = aabb.Top;
-                    // </Onyx-Tweak Edited>
                     var length = Math.Abs(top - bottom);
 
                     var (pos, rot) = _transform.GetWorldPositionRotation(uid);
@@ -296,7 +297,16 @@ public abstract partial class CESharedZLevelsSystem
                 //No ZEntities found on this grid, check floor tiles
                 if (_map.TryGetTileRef(grid.Owner, grid.Comp, tilePos, out var tileRef) &&
                     !tileRef.Tile.IsEmpty)
+                {
+                    if (floor > 0)
+                    {
+                        var tileDef = (ContentTileDefinition) TilDefMan[tileRef.Tile.TypeId];
+                        if (tileDef.HasZRoof && !IsOverInteriorHole(checkingMap, worldPos))
+                            return -(floor - 1);
+                    }
+
                     return -floor;
+                }
             }
             // </Onyx-Tweak Edited>
         }
@@ -305,6 +315,134 @@ public abstract partial class CESharedZLevelsSystem
     }
 
     // <Onyx-Tweak>
+    private readonly Dictionary<(EntityUid, EntityUid), HashSet<Vector2i>> _upperGridCoverageCache = new();
+    private uint _coverageCacheGeneration;
+    private bool IsOverInteriorHole(EntityUid lowerMapUid, Vector2 worldPos)
+    {
+        if (!_zMapQuery.HasComp(lowerMapUid))
+            return false;
+
+        if (!_mapQuery.TryComp(lowerMapUid, out var mapComp))
+            return false;
+
+        foreach (var grid in GetCachedGrids(mapComp.MapId))
+        {
+            if (!_motionLinkQuery.TryComp(grid.Owner, out var link) || string.IsNullOrEmpty(link.GroupId))
+                continue;
+
+            if (!TryMapUp(lowerMapUid, out var upperMap) ||
+                !_mapQuery.TryComp(upperMap.Value.Owner, out var upperMapComp))
+                return false;
+
+            foreach (var upperGrid in GetCachedGrids(upperMapComp.MapId))
+            {
+                if (!_motionLinkQuery.TryComp(upperGrid.Owner, out var upperLink))
+                    continue;
+
+                if (upperLink.GroupId != link.GroupId)
+                    continue;
+
+                var holes = GetUpperGridInteriorHoles(grid, upperGrid);
+                var lowerTilePos = _map.WorldToTile(grid.Owner, grid.Comp, worldPos);
+                if (holes.Contains(lowerTilePos))
+                    return true;
+            }
+
+            break;
+        }
+
+        return false;
+    }
+    private HashSet<Vector2i> GetUpperGridInteriorHoles(Entity<MapGridComponent> lowerGrid, Entity<MapGridComponent> upperGrid)
+    {
+        if (_coverageCacheGeneration != _groundCacheGeneration)
+        {
+            _upperGridCoverageCache.Clear();
+            _coverageCacheGeneration = _groundCacheGeneration;
+        }
+
+        var key = (lowerGrid.Owner, upperGrid.Owner);
+        if (_upperGridCoverageCache.TryGetValue(key, out var cached))
+            return cached;
+
+        var interiorHoles = new HashSet<Vector2i>();
+        var solidTiles = new HashSet<Vector2i>();
+
+        var enumerator = _map.GetAllTilesEnumerator(upperGrid.Owner, upperGrid.Comp, ignoreEmpty: true);
+        while (enumerator.MoveNext(out var upperTileRef))
+        {
+            solidTiles.Add(upperTileRef.Value.GridIndices);
+        }
+
+        if (solidTiles.Count == 0)
+        {
+            _upperGridCoverageCache[key] = interiorHoles;
+            return interiorHoles;
+        }
+
+        var minX = int.MaxValue;
+        var minY = int.MaxValue;
+        var maxX = int.MinValue;
+        var maxY = int.MinValue;
+        foreach (var pos in solidTiles)
+        {
+            if (pos.X < minX) minX = pos.X;
+            if (pos.Y < minY) minY = pos.Y;
+            if (pos.X > maxX) maxX = pos.X;
+            if (pos.Y > maxY) maxY = pos.Y;
+        }
+        minX--; minY--; maxX++; maxY++;
+
+        var outerEmpty = new HashSet<Vector2i>();
+        var queue = new Queue<Vector2i>();
+
+        void TryEnqueue(Vector2i p)
+        {
+            if (solidTiles.Contains(p)) return;
+            if (!outerEmpty.Add(p)) return;
+            queue.Enqueue(p);
+        }
+
+        for (var x = minX; x <= maxX; x++)
+        {
+            TryEnqueue(new Vector2i(x, minY));
+            TryEnqueue(new Vector2i(x, maxY));
+        }
+        for (var y = minY + 1; y < maxY; y++)
+        {
+            TryEnqueue(new Vector2i(minX, y));
+            TryEnqueue(new Vector2i(maxX, y));
+        }
+
+        while (queue.Count > 0)
+        {
+            var current = queue.Dequeue();
+            if (current.X < minX || current.X > maxX || current.Y < minY || current.Y > maxY)
+                continue;
+            TryEnqueue(new Vector2i(current.X + 1, current.Y));
+            TryEnqueue(new Vector2i(current.X - 1, current.Y));
+            TryEnqueue(new Vector2i(current.X, current.Y + 1));
+            TryEnqueue(new Vector2i(current.X, current.Y - 1));
+        }
+
+        for (var x = minX + 1; x < maxX; x++)
+        {
+            for (var y = minY + 1; y < maxY; y++)
+            {
+                var pos = new Vector2i(x, y);
+                if (solidTiles.Contains(pos)) continue;
+                if (outerEmpty.Contains(pos)) continue;
+
+                var wp = _map.GridTileToWorldPos(upperGrid.Owner, upperGrid.Comp, pos);
+                var lowerTilePos = _map.WorldToTile(lowerGrid.Owner, lowerGrid.Comp, wp);
+                interiorHoles.Add(lowerTilePos);
+            }
+        }
+
+        _upperGridCoverageCache[key] = interiorHoles;
+        return interiorHoles;
+    }
+
     private bool HasZNetworkGravity(TransformComponent xform)
     {
         if (xform.MapUid is not { } mapUid)

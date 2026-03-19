@@ -18,6 +18,7 @@ using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Prototypes;
+using Content.Shared._Utopia.ZLevels.Components;
 using Robust.Shared.Network;
 using Robust.Shared.Timing;
 
@@ -46,6 +47,7 @@ public abstract partial class CESharedZLevelsSystem : EntitySystem
 
     protected EntityQuery<CEZPhysicsComponent> ZPhyzQuery = default!;
     private EntityQuery<GravityComponent> _gravityQuery; // <Onyx-Tweak>
+    private EntityQuery<GridMotionLinkComponent> _motionLinkQuery; // <Onyx-Tweak>
     // <Onyx-Tweak>
     private readonly Dictionary<EntityUid, EntityUid> _mapToNetwork = new();
     private readonly Dictionary<EntityUid, List<(int Depth, EntityUid MapUid)>> _sortedMaps = new();
@@ -63,6 +65,7 @@ public abstract partial class CESharedZLevelsSystem : EntitySystem
         _gridQuery = GetEntityQuery<MapGridComponent>();
         ZPhyzQuery = GetEntityQuery<CEZPhysicsComponent>();
         _gravityQuery = GetEntityQuery<GravityComponent>(); // <Onyx-Tweak>
+        _motionLinkQuery = GetEntityQuery<GridMotionLinkComponent>(); // <Onyx-Tweak>
         // <Onyx-Tweak>
         SubscribeLocalEvent<CEZLevelsNetworkComponent, ComponentStartup>(OnNetworkStartup);
         SubscribeLocalEvent<CEZLevelsNetworkComponent, ComponentShutdown>(OnNetworkShutdown);
