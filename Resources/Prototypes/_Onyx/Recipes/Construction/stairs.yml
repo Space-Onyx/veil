@@ -65,3 +65,71 @@
     state: stairs_wood
   conditions:
   - !type:TileNotBlocked
+
+- type: construction
+  id: StairsStageZLevelSteel
+  name: construction-recipe-stairs-stage-zlevel-steel
+  description: construction-recipe-stairs-stage-zlevel-steel-desc
+  graph: StairsStageZLevelSteel
+  startNode: start
+  targetNode: stairs
+  category: construction-category-structures
+  objectType: Structure
+  placementMode: SnapgridCenter
+  canBuildInImpassable: false
+  icon:
+    sprite: Structures/stairs.rsi
+    state: stairs_stage_steel
+  conditions:
+  - !type:TileNotBlocked
+
+- type: construction
+  id: StairsStageZLevelDark
+  name: construction-recipe-stairs-stage-zlevel-dark
+  description: construction-recipe-stairs-stage-zlevel-dark-desc
+  graph: StairsStageZLevelDark
+  startNode: start
+  targetNode: stairs
+  category: construction-category-structures
+  objectType: Structure
+  placementMode: SnapgridCenter
+  canBuildInImpassable: false
+  icon:
+    sprite: Structures/stairs.rsi
+    state: stairs_stage_dark
+  conditions:
+  - !type:TileNotBlocked
+
+- type: construction
+  id: StairsStageZLevelWhite
+  name: construction-recipe-stairs-stage-zlevel-white
+  description: construction-recipe-stairs-stage-zlevel-white-desc
+  graph: StairsStageZLevelWhite
+  startNode: start
+  targetNode: stairs
+  category: construction-category-structures
+  objectType: Structure
+  placementMode: SnapgridCenter
+  canBuildInImpassable: false
+  icon:
+    sprite: Structures/stairs.rsi
+    state: stairs_stage_white
+  conditions:
+  - !type:TileNotBlocked
+
+- type: construction
+  id: StairsStageZLevelWood
+  name: construction-recipe-stairs-stage-zlevel-wood
+  description: construction-recipe-stairs-stage-zlevel-wood-desc
+  graph: StairsStageZLevelWood
+  startNode: start
+  targetNode: stairs
+  category: construction-category-structures
+  objectType: Structure
+  placementMode: SnapgridCenter
+  canBuildInImpassable: false
+  icon:
+    sprite: Structures/stairs.rsi
+    state: stairs_stage_wood
+  conditions:
+  - !type:TileNotBlocked
