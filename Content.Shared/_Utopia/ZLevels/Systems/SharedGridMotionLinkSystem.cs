@@ -105,10 +105,27 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
 
     public void UpdateOffset(Entity<GridMotionLinkComponent> ent)
     {
+        // <Onyx-Tweak>
+        var oldRoot = ent.Comp.Root;
+        var oldOffset = ent.Comp.Offset;
+        // <Onyx-Tweak>
+
         ent.Comp.Root = GetBiggestGridOfGroup(ent.Comp.GroupId);
 
         if (ent.Comp.Root is not { Valid: true })
             ent.Comp.Root = ent.Owner;
+
+        // <Onyx-Tweak>
+        if (!ent.Comp.AutoCalculateOffset)
+        {
+            if (ent.Comp.Root != ent.Owner)
+                SetOffsetPos(ent.Comp.Root, ent);
+
+            if (oldRoot != ent.Comp.Root)
+                Dirty(ent);
+            return;
+        }
+        // <Onyx-Tweak>
 
         if (ent.Comp.Root == ent.Owner)
             ent.Comp.Offset = Vector2.Zero;
@@ -124,7 +141,8 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
             _transformSystem.SetWorldRotation(ent.Owner, rootRot);
         }
 
-        Dirty(ent);
+        if (oldRoot != ent.Comp.Root || oldOffset != ent.Comp.Offset) // <Onyx-Tweak>
+            Dirty(ent);
     }
 
     public void InitializeGrid(EntityUid gridUid)
@@ -264,6 +282,17 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
 
             RelayMotion(linear.Value, angular.Value, biggest.Value, _groupMatchBuffer); // <Onyx-Tweak Edited>
         }
+
+        // <Onyx-Tweak>
+        var linkQuery = EntityQueryEnumerator<GridMotionLinkComponent>();
+        while (linkQuery.MoveNext(out var uid, out var link))
+        {
+            if (link.AutoCalculateOffset)
+                continue;
+
+            UpdateOffset((uid, link));
+        }
+        // <Onyx-Tweak>
     }
 
     public void SetGridPosition(EntityUid origin, Vector2 position, GridMotionLinkComponent? link = null)
@@ -285,6 +314,22 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
             var targetPos = _transformSystem.GetWorldPosition(uid) + diff;
             _transformSystem.SetWorldPosition(uid, targetPos);
             _physics.SetLinearVelocity(uid, Vector2.Zero);
+        }
+    }
+
+    public void RecalculateOffsetsForMaps(HashSet<EntityUid> mapUids)
+    {
+        if (mapUids.Count == 0)
+            return;
+
+        var query = EntityQueryEnumerator<GridMotionLinkComponent>();
+        while (query.MoveNext(out var uid, out var link))
+        {
+            var mapUid = Transform(uid).MapUid;
+            if (mapUid is null || !mapUids.Contains(mapUid.Value))
+                continue;
+
+            UpdateOffset((uid, link));
         }
     }
 

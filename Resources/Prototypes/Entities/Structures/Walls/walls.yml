@@ -231,11 +231,9 @@
   - type: ExaminableDamage
     messages: WindowMessages
   # </Goobstation>
-  # ECHO-Tweak-start: Z-levels
+  # <Onyx-Tweak>
   - type: CEZPhysics
-  - type: CEZLevelHighGround
-    fixtureId: fix1
-  # ECHO-Tweak-end
+  # </Onyx-Tweak>
 
 - type: entity
   abstract: true
@@ -1945,4 +1943,3 @@
     base: card
   - type: Occluder 
   - type: BlockWeather
-  - type: SunShadowCast
