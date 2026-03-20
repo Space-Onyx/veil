@@ -1,3 +1,5 @@
+using Content.Shared.Maps;
+using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Maths;
 
@@ -5,6 +7,24 @@ namespace Content.Shared._Onyx.ZLevels;
 
 public static class ZLevelFloodFillHelper
 {
+    public static HashSet<Vector2i> FindInteriorHoles(
+        SharedMapSystem mapSystem,
+        Entity<MapGridComponent> grid,
+        ITileDefinitionManager tileDef)
+    {
+        var solidTiles = new HashSet<Vector2i>();
+
+        var enumerator = mapSystem.GetAllTilesEnumerator(grid.Owner, grid.Comp, ignoreEmpty: true);
+        while (enumerator.MoveNext(out var tileRef))
+        {
+            var def = (ContentTileDefinition) tileDef[tileRef.Value.Tile.TypeId];
+            if (!def.MapAtmosphere)
+                solidTiles.Add(tileRef.Value.GridIndices);
+        }
+
+        return FindInteriorHolesFromSolid(solidTiles);
+    }
+
     public static HashSet<Vector2i> FindInteriorHoles(
         SharedMapSystem mapSystem,
         Entity<MapGridComponent> grid)

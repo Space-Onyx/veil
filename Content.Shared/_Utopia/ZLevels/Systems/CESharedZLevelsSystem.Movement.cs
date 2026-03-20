@@ -374,6 +374,12 @@ public abstract partial class CESharedZLevelsSystem
         var enumerator = _map.GetAllTilesEnumerator(upperGrid.Owner, upperGrid.Comp, ignoreEmpty: true);
         while (enumerator.MoveNext(out var upperTileRef))
         {
+            // <Onyx-Tweak>
+            var def = (ContentTileDefinition) TilDefMan[upperTileRef.Value.Tile.TypeId];
+            if (def.MapAtmosphere)
+                continue;
+            // </Onyx-Tweak>
+
             solidTiles.Add(upperTileRef.Value.GridIndices);
         }
 

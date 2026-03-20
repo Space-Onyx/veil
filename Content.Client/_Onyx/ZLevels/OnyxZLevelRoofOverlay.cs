@@ -209,6 +209,10 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
             while (enumerator.MoveNext(out var upperTileRef))
             {
                 var gridPos = upperTileRef.Value.GridIndices;
+                var def = (ContentTileDefinition) _tileDef[upperTileRef.Value.Tile.TypeId];
+                if (def.MapAtmosphere)
+                    continue;
+
                 solidTiles.Add(gridPos);
 
                 var worldPos = _mapSystem.GridTileToWorldPos(upperGrid.Owner, upperGrid.Comp, gridPos);

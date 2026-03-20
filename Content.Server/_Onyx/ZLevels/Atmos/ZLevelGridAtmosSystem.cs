@@ -490,7 +490,7 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
         if (_interiorHolesCache.TryGetValue(gridUid, out var cached))
             return cached;
 
-        var holes = ZLevelFloodFillHelper.FindInteriorHoles(_mapSystem, (gridUid, grid));
+        var holes = ZLevelFloodFillHelper.FindInteriorHoles(_mapSystem, (gridUid, grid), _tileDefManager);
         _interiorHolesCache[gridUid] = holes;
         return holes;
     }

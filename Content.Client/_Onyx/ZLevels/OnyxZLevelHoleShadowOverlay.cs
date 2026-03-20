@@ -21,6 +21,7 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
     [Dependency] private readonly IMapManager _mapManager = default!;
     [Dependency] private readonly IEntityManager _entManager = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private readonly ITileDefinitionManager _tileDef = default!;
 
     private readonly CESharedZLevelsSystem _zLevels;
     private readonly SharedMapSystem _mapSystem;
@@ -217,7 +218,7 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
         if (_upperInteriorHoleCache.TryGetValue(upperGrid.Owner, out var cachedHoles))
             return cachedHoles;
 
-        var holes = ZLevelFloodFillHelper.FindInteriorHoles(_mapSystem, upperGrid);
+        var holes = ZLevelFloodFillHelper.FindInteriorHoles(_mapSystem, upperGrid, _tileDef);
         _upperInteriorHoleCache[upperGrid.Owner] = holes;
         return holes;
     }
