@@ -105,10 +105,27 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
 
     public void UpdateOffset(Entity<GridMotionLinkComponent> ent)
     {
+        // <Onyx-Tweak>
+        var oldRoot = ent.Comp.Root;
+        var oldOffset = ent.Comp.Offset;
+        // <Onyx-Tweak>
+
         ent.Comp.Root = GetBiggestGridOfGroup(ent.Comp.GroupId);
 
         if (ent.Comp.Root is not { Valid: true })
             ent.Comp.Root = ent.Owner;
+
+        // <Onyx-Tweak>
+        if (!ent.Comp.AutoCalculateOffset)
+        {
+            if (ent.Comp.Root != ent.Owner)
+                SetOffsetPos(ent.Comp.Root, ent);
+
+            if (oldRoot != ent.Comp.Root)
+                Dirty(ent);
+            return;
+        }
+        // <Onyx-Tweak>
 
         if (ent.Comp.Root == ent.Owner)
             ent.Comp.Offset = Vector2.Zero;
@@ -124,7 +141,8 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
             _transformSystem.SetWorldRotation(ent.Owner, rootRot);
         }
 
-        Dirty(ent);
+        if (oldRoot != ent.Comp.Root || oldOffset != ent.Comp.Offset) // <Onyx-Tweak>
+            Dirty(ent);
     }
 
     public void InitializeGrid(EntityUid gridUid)
@@ -178,7 +196,7 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
         if (_groupMatchBuffer.Count == 0) // <Onyx-Tweak Edited>
             return false;
 
-        var biggest = new KeyValuePair<int, EntityUid>(0, EntityUid.Invalid);
+        var biggest = new KeyValuePair<int, EntityUid>(int.MinValue, EntityUid.Invalid); // <Onyx-Tweak>
         foreach (var (targetUid, link, grid, phys) in _groupMatchBuffer) // <Onyx-Tweak Edited>
         {
             if (link.GroupId != comp.GroupId)
@@ -189,7 +207,7 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
 
             var tilesCount = GetCachedTileCount(targetUid, grid); // <Onyx-Tweak Edited>
 
-            if (biggest.Key < tilesCount)
+            if (!biggest.Value.Valid || biggest.Key < tilesCount) // <Onyx-Tweak>
                 biggest = new(tilesCount, targetUid);
         }
 
@@ -264,6 +282,17 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
 
             RelayMotion(linear.Value, angular.Value, biggest.Value, _groupMatchBuffer); // <Onyx-Tweak Edited>
         }
+
+        // <Onyx-Tweak>
+        var linkQuery = EntityQueryEnumerator<GridMotionLinkComponent>();
+        while (linkQuery.MoveNext(out var uid, out var link))
+        {
+            if (link.AutoCalculateOffset)
+                continue;
+
+            UpdateOffset((uid, link));
+        }
+        // </Onyx-Tweak>
     }
 
     public void SetGridPosition(EntityUid origin, Vector2 position, GridMotionLinkComponent? link = null)
@@ -291,10 +320,14 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
     private EntityUid GetBiggestGridOfGroup(string group)
     {
         // <Onyx-Tweak Edited>
-        if (!_biggestGridCacheDirty && _biggestGridCache.TryGetValue(group, out var cachedBiggest))
+        if (!_biggestGridCacheDirty &&
+            _biggestGridCache.TryGetValue(group, out var cachedBiggest) &&
+            cachedBiggest.Valid)
+        {
             return cachedBiggest;
+        }
 
-        var biggest = new KeyValuePair<int, EntityUid>(0, EntityUid.Invalid);
+        var biggest = new KeyValuePair<int, EntityUid>(int.MinValue, EntityUid.Invalid);
         var query = EntityQueryEnumerator<GridMotionLinkComponent, MapGridComponent>();
         while (query.MoveNext(out var uid, out var link, out var grid))
         {
@@ -303,7 +336,7 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
 
             var tilesCount = GetCachedTileCount(uid, grid);
 
-            if (biggest.Key < tilesCount)
+            if (!biggest.Value.Valid || biggest.Key < tilesCount)
                 biggest = new(tilesCount, uid);
         }
 

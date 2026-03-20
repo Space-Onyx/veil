@@ -3,6 +3,7 @@
  * https://github.com/space-wizards/space-station-14/blob/master/LICENSE.TXT
  */
 
+using System;
 using Content.Server._CE.PVS;
 using Content.Shared._CE.ZLevels.Core.Components;
 using JetBrains.Annotations;
@@ -11,6 +12,8 @@ namespace Content.Server._CE.ZLevels.Core;
 
 public sealed partial class CEZLevelsSystem
 {
+    private static readonly TimeSpan PostInitFallSuppressionDuration = TimeSpan.FromSeconds(2.0); // <Onyx-Tweak>
+
     /// <summary>
     /// Creates a new entity zLevelNetwork
     /// </summary>
@@ -64,6 +67,43 @@ public sealed partial class CEZLevelsSystem
 
         return success;
     }
+
+    // <Onyx-Tweak>
+    public void MarkMapPostInitFallSuppression(EntityUid mapUid)
+    {
+        if (!TryComp<CEZLevelMapComponent>(mapUid, out var zMap))
+            return;
+
+        zMap.SuppressFallsUntil = _timing.CurTime + PostInitFallSuppressionDuration;
+    }
+
+    public void StabilizeZPhysicsAfterMapInit(HashSet<EntityUid> initializedMaps)
+    {
+        if (initializedMaps.Count == 0)
+            return;
+
+        foreach (var mapUid in initializedMaps)
+        {
+            MarkMapPostInitFallSuppression(mapUid);
+        }
+
+        var query = EntityQueryEnumerator<CEZPhysicsComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out var zPhys, out var xform))
+        {
+            if (xform.MapUid is not { } mapUid || !initializedMaps.Contains(mapUid))
+                continue;
+
+            if (Math.Abs(zPhys.Velocity) > 0.001f)
+            {
+                zPhys.Velocity = 0f;
+                DirtyField(uid, zPhys, nameof(CEZPhysicsComponent.Velocity));
+            }
+            zPhys.GroundCacheValid = false;
+
+            RemComp<CEActiveZPhysicsComponent>(uid);
+        }
+    }
+    // <Onyx-Tweak>
 }
 
 /// <summary>
