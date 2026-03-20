@@ -43,9 +43,10 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
     private static readonly TimeSpan MapCacheLifetime = TimeSpan.FromSeconds(0.5);
     private static readonly TimeSpan HoleCacheLifetime = TimeSpan.FromSeconds(0.25);
 
-    private readonly HashSet<Vector2i> _solidTiles = new();
-    private readonly HashSet<Vector2i> _outerEmpty = new();
-    private readonly Queue<Vector2i> _floodQueue = new();
+    private float _cachedOpacity;
+    private Color _cachedShadowBaseColor = Color.Black;
+    private Color _cachedFillColor = Color.Black;
+
     private readonly HashSet<Vector2i> _projectedHoleTiles = new();
 
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
@@ -64,6 +65,17 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
         _motionLinkQuery = _entManager.GetEntityQuery<GridMotionLinkComponent>();
 
         ZIndex = 100;
+
+        UpdateCachedColors();
+        _cfg.OnValueChanged(CCVars.ZLevelHoleShadowOpacity, _ => UpdateCachedColors());
+        _cfg.OnValueChanged(CCVars.ZLevelHoleShadowColor, _ => UpdateCachedColors());
+    }
+
+    private void UpdateCachedColors()
+    {
+        _cachedOpacity = Math.Clamp(_cfg.GetCVar(CCVars.ZLevelHoleShadowOpacity), 0f, 1f);
+        _cachedShadowBaseColor = Color.FromHex(_cfg.GetCVar(CCVars.ZLevelHoleShadowColor), Color.Black);
+        _cachedFillColor = _cachedShadowBaseColor.WithAlpha(1f - _cachedOpacity);
     }
 
     protected override bool BeforeDraw(in OverlayDrawArgs args)
@@ -135,10 +147,7 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
         }
 
         var worldHandle = args.WorldHandle;
-        var transparency = Math.Clamp(_cfg.GetCVar(CCVars.ZLevelHoleShadowOpacity), 0f, 1f);
-        var alpha = 1f - transparency;
-        var shadowBaseColor = Color.FromHex(_cfg.GetCVar(CCVars.ZLevelHoleShadowColor), Color.Black);
-        var holeShadowFillColor = shadowBaseColor.WithAlpha(alpha);
+        var holeShadowFillColor = _cachedFillColor;
 
         foreach (var lowerGrid in _lowerGrids)
         {
@@ -208,93 +217,9 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
         if (_upperInteriorHoleCache.TryGetValue(upperGrid.Owner, out var cachedHoles))
             return cachedHoles;
 
-        var holes = new HashSet<Vector2i>();
-        _solidTiles.Clear();
-        _outerEmpty.Clear();
-        _floodQueue.Clear();
-
-        var upperEnum = _mapSystem.GetAllTilesEnumerator(upperGrid.Owner, upperGrid.Comp, ignoreEmpty: true);
-        while (upperEnum.MoveNext(out var upperTile))
-        {
-            _solidTiles.Add(upperTile.Value.GridIndices);
-        }
-
-        if (_solidTiles.Count == 0)
-        {
-            _upperInteriorHoleCache[upperGrid.Owner] = holes;
-            return holes;
-        }
-
-        var minX = int.MaxValue;
-        var minY = int.MaxValue;
-        var maxX = int.MinValue;
-        var maxY = int.MinValue;
-
-        foreach (var pos in _solidTiles)
-        {
-            if (pos.X < minX) minX = pos.X;
-            if (pos.Y < minY) minY = pos.Y;
-            if (pos.X > maxX) maxX = pos.X;
-            if (pos.Y > maxY) maxY = pos.Y;
-        }
-
-        minX--;
-        minY--;
-        maxX++;
-        maxY++;
-
-        for (var x = minX; x <= maxX; x++)
-        {
-            TryEnqueueFlood(new Vector2i(x, minY));
-            TryEnqueueFlood(new Vector2i(x, maxY));
-        }
-
-        for (var y = minY + 1; y < maxY; y++)
-        {
-            TryEnqueueFlood(new Vector2i(minX, y));
-            TryEnqueueFlood(new Vector2i(maxX, y));
-        }
-
-        while (_floodQueue.Count > 0)
-        {
-            var current = _floodQueue.Dequeue();
-
-            if (current.X < minX || current.X > maxX || current.Y < minY || current.Y > maxY)
-                continue;
-
-            TryEnqueueFlood(new Vector2i(current.X + 1, current.Y));
-            TryEnqueueFlood(new Vector2i(current.X - 1, current.Y));
-            TryEnqueueFlood(new Vector2i(current.X, current.Y + 1));
-            TryEnqueueFlood(new Vector2i(current.X, current.Y - 1));
-        }
-
-        for (var x = minX + 1; x < maxX; x++)
-        {
-            for (var y = minY + 1; y < maxY; y++)
-            {
-                var pos = new Vector2i(x, y);
-                if (_solidTiles.Contains(pos))
-                    continue;
-                if (_outerEmpty.Contains(pos))
-                    continue;
-
-                holes.Add(pos);
-            }
-        }
-
+        var holes = ZLevelFloodFillHelper.FindInteriorHoles(_mapSystem, upperGrid);
         _upperInteriorHoleCache[upperGrid.Owner] = holes;
         return holes;
-    }
-
-    private void TryEnqueueFlood(Vector2i pos)
-    {
-        if (_solidTiles.Contains(pos))
-            return;
-
-        if (!_outerEmpty.Add(pos))
-            return;
-
-        _floodQueue.Enqueue(pos);
     }
 
     private bool TryGetMapUid(MapId mapId, out EntityUid uid)

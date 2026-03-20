@@ -21,6 +21,15 @@
     allowUp: true
   - type: ZLevelEntityLink
   - type: AtmosDevice
+  # <Onyx-Tweak>
+  - type: Sprite
+    sprite: Structures/Piping/Atmospherics/gascanisterport.rsi
+    layers:
+      - sprite: Structures/Piping/Atmospherics/pipe.rsi
+        state: pipeBinaryConnectors
+        map: [ "enum.PipeVisualLayers.Pipe" ]
+      - state: gasCanisterPort
+  # </Onyx-Tweak>
 
 - type: entity
   parent: GasPipeBase
@@ -45,3 +54,12 @@
     allowDown: true
   - type: ZLevelEntityLink
   - type: AtmosDevice
+  # <Onyx-Tweak>
+  - type: Sprite
+    sprite: Structures/Piping/Atmospherics/gascanisterport.rsi
+    layers:
+      - sprite: Structures/Piping/Atmospherics/pipe.rsi
+        state: pipeBinaryConnectors
+        map: [ "enum.PipeVisualLayers.Pipe" ]
+      - state: gasCanisterPort
+  # </Onyx-Tweak>

@@ -29,6 +29,7 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
     private EntityQuery<MapComponent> _mapQuery;
 
     private List<Entity<MapGridComponent>> _lowerGrids = new();
+    private List<Entity<MapGridComponent>> _upperGridsBuffer = new();
 
     private readonly List<Entity<MapGridComponent>> _linkedUpperGrids = new();
     private readonly HashSet<Vector2i> _excludedTiles = new();
@@ -101,6 +102,12 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
         var now = _timing.RealTime;
         var cacheExpired = now - _lastCacheRebuild > CacheLifetime;
 
+        if (upperMapId != null)
+        {
+            _upperGridsBuffer.Clear();
+            _mapManager.FindGridsIntersecting(upperMapId.Value, bounds, ref _upperGridsBuffer, approx: true, includeMap: false);
+        }
+
         foreach (var lowerGrid in _lowerGrids)
         {
             HashSet<Vector2i>? excluded = null;
@@ -113,7 +120,7 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
                 {
                     _linkedUpperGrids.Clear();
                     _excludedTiles.Clear();
-                    FindLinkedUpperGrids(lowerGrid.Owner, upperMapId.Value);
+                    FindLinkedUpperGrids(lowerGrid.Owner, _upperGridsBuffer);
                     if (_linkedUpperGrids.Count > 0)
                         BuildExclusionSet(lowerGrid);
 
@@ -128,10 +135,11 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
             var gridMatrix = _xformSystem.GetWorldMatrix(lowerGrid.Owner);
             worldHandle.SetTransform(gridMatrix);
 
-            var tileEnumerator = _mapSystem.GetAllTilesEnumerator(lowerGrid.Owner, lowerGrid.Comp, ignoreEmpty: true);
-            while (tileEnumerator.MoveNext(out var tileRefNullable))
+            var tileEnumerator = _mapSystem.GetTilesEnumerator(lowerGrid.Owner, lowerGrid, bounds);
+            while (tileEnumerator.MoveNext(out var tileRef))
             {
-                var tileRef = tileRefNullable.Value;
+                if (tileRef.Tile.IsEmpty)
+                    continue;
 
                 var def = (ContentTileDefinition) _tileDef[tileRef.Tile.TypeId];
                 if (!def.HasZRoof)
@@ -175,117 +183,46 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
         return false;
     }
 
-    private void FindLinkedUpperGrids(EntityUid lowerGridUid, MapId upperMapId)
+    private void FindLinkedUpperGrids(EntityUid lowerGridUid, List<Entity<MapGridComponent>> upperGrids)
     {
         if (!_motionLinkQuery.TryComp(lowerGridUid, out var lowerLink) || string.IsNullOrEmpty(lowerLink.GroupId))
             return;
 
-        var query = _entManager.EntityQueryEnumerator<GridMotionLinkComponent, MapGridComponent, TransformComponent>();
-        while (query.MoveNext(out var uid, out var link, out var grid, out var xform))
+        foreach (var upperGrid in upperGrids)
         {
-            if (xform.MapID != upperMapId)
+            if (!_motionLinkQuery.TryComp(upperGrid.Owner, out var upperLink))
                 continue;
 
-            if (link.GroupId != lowerLink.GroupId)
+            if (upperLink.GroupId != lowerLink.GroupId)
                 continue;
 
-            _linkedUpperGrids.Add((uid, grid));
+            _linkedUpperGrids.Add(upperGrid);
         }
     }
-
-    private readonly HashSet<Vector2i> _solidTiles = new();
-    private readonly HashSet<Vector2i> _outerEmpty = new();
-    private readonly Queue<Vector2i> _floodQueue = new();
 
     private void BuildExclusionSet(Entity<MapGridComponent> lowerGrid)
     {
         foreach (var upperGrid in _linkedUpperGrids)
         {
-            _solidTiles.Clear();
-            _outerEmpty.Clear();
-            _floodQueue.Clear();
-
+            var solidTiles = new HashSet<Vector2i>();
             var enumerator = _mapSystem.GetAllTilesEnumerator(upperGrid.Owner, upperGrid.Comp, ignoreEmpty: true);
             while (enumerator.MoveNext(out var upperTileRef))
             {
                 var gridPos = upperTileRef.Value.GridIndices;
-                _solidTiles.Add(gridPos);
+                solidTiles.Add(gridPos);
 
                 var worldPos = _mapSystem.GridTileToWorldPos(upperGrid.Owner, upperGrid.Comp, gridPos);
                 var lowerTilePos = _mapSystem.WorldToTile(lowerGrid.Owner, lowerGrid.Comp, worldPos);
                 _excludedTiles.Add(lowerTilePos);
             }
 
-            if (_solidTiles.Count == 0)
-                continue;
-
-            var minX = int.MaxValue;
-            var minY = int.MaxValue;
-            var maxX = int.MinValue;
-            var maxY = int.MinValue;
-            foreach (var pos in _solidTiles)
+            var interiorHoles = ZLevelFloodFillHelper.FindInteriorHolesFromSolid(solidTiles);
+            foreach (var pos in interiorHoles)
             {
-                if (pos.X < minX) minX = pos.X;
-                if (pos.Y < minY) minY = pos.Y;
-                if (pos.X > maxX) maxX = pos.X;
-                if (pos.Y > maxY) maxY = pos.Y;
-            }
-
-            minX--;
-            minY--;
-            maxX++;
-            maxY++;
-
-            for (var x = minX; x <= maxX; x++)
-            {
-                TryEnqueueFlood(new Vector2i(x, minY));
-                TryEnqueueFlood(new Vector2i(x, maxY));
-            }
-            for (var y = minY + 1; y < maxY; y++)
-            {
-                TryEnqueueFlood(new Vector2i(minX, y));
-                TryEnqueueFlood(new Vector2i(maxX, y));
-            }
-
-            while (_floodQueue.Count > 0)
-            {
-                var current = _floodQueue.Dequeue();
-
-                if (current.X < minX || current.X > maxX || current.Y < minY || current.Y > maxY)
-                    continue;
-
-                TryEnqueueFlood(new Vector2i(current.X + 1, current.Y));
-                TryEnqueueFlood(new Vector2i(current.X - 1, current.Y));
-                TryEnqueueFlood(new Vector2i(current.X, current.Y + 1));
-                TryEnqueueFlood(new Vector2i(current.X, current.Y - 1));
-            }
-
-            for (var x = minX + 1; x < maxX; x++)
-            {
-                for (var y = minY + 1; y < maxY; y++)
-                {
-                    var pos = new Vector2i(x, y);
-                    if (_solidTiles.Contains(pos))
-                        continue;
-                    if (_outerEmpty.Contains(pos))
-                        continue;
-
-                    var worldPos = _mapSystem.GridTileToWorldPos(upperGrid.Owner, upperGrid.Comp, pos);
-                    var lowerTilePos = _mapSystem.WorldToTile(lowerGrid.Owner, lowerGrid.Comp, worldPos);
-                    _excludedTiles.Add(lowerTilePos);
-                }
+                var worldPos = _mapSystem.GridTileToWorldPos(upperGrid.Owner, upperGrid.Comp, pos);
+                var lowerTilePos = _mapSystem.WorldToTile(lowerGrid.Owner, lowerGrid.Comp, worldPos);
+                _excludedTiles.Add(lowerTilePos);
             }
         }
-    }
-
-    private void TryEnqueueFlood(Vector2i pos)
-    {
-        if (_solidTiles.Contains(pos))
-            return;
-
-        if (!_outerEmpty.Add(pos))
-            return;
-
-        _floodQueue.Enqueue(pos);
     }
 }

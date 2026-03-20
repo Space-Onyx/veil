@@ -23,6 +23,7 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
     private EntityQuery<CEZLevelMapComponent> _zMapQuery;
     private EntityQuery<GridAtmosphereComponent> _atmosQuery;
     private EntityQuery<MapGridComponent> _gridQuery;
+    private EntityQuery<GridMotionLinkComponent> _motionLinkQuery;
 
     private readonly Dictionary<string, List<(int Depth, EntityUid Grid)>> _groupCache = new();
     private bool _groupCacheDirty = true;
@@ -50,6 +51,7 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
         _zMapQuery = GetEntityQuery<CEZLevelMapComponent>();
         _atmosQuery = GetEntityQuery<GridAtmosphereComponent>();
         _gridQuery = GetEntityQuery<MapGridComponent>();
+        _motionLinkQuery = GetEntityQuery<GridMotionLinkComponent>();
 
         SubscribeLocalEvent<GridMotionLinkComponent, ComponentStartup>(OnLinkChanged);
         SubscribeLocalEvent<GridMotionLinkComponent, ComponentShutdown>(OnLinkChanged);
@@ -105,7 +107,7 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
 
     private void OnGridFixtureChanged(Entity<MapGridComponent> ent, ref GridFixtureChangeEvent args)
     {
-        if (!HasComp<GridMotionLinkComponent>(ent))
+        if (!_motionLinkQuery.HasComp(ent))
             return;
 
         _linksDirty = true;
@@ -115,13 +117,11 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
     {
         base.Update(frameTime);
 
-        // <Onyx-Tweak>
         if (++_periodicRebuildCounter >= 60)
         {
             _periodicRebuildCounter = 0;
             _groupCacheDirty = true;
         }
-        // </Onyx-Tweak>
 
         if (_groupCacheDirty)
             RebuildGroupCache();
@@ -150,7 +150,7 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
 
     private void UpdateSingleTileHoleStatus(EntityUid gridUid, Vector2i tilePos)
     {
-        if (!TryComp<GridMotionLinkComponent>(gridUid, out var link) || string.IsNullOrEmpty(link.GroupId))
+        if (!_motionLinkQuery.TryComp(gridUid, out var link) || string.IsNullOrEmpty(link.GroupId))
             return;
 
         if (!_gridQuery.TryComp(gridUid, out var gridComp))
