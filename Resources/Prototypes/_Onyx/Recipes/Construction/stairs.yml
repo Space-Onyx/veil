@@ -1,0 +1,67 @@
+- type: construction
+  id: StairsZLevelSteel
+  name: construction-recipe-stairs-zlevel-steel
+  description: construction-recipe-stairs-zlevel-steel-desc
+  graph: StairsZLevelSteel
+  startNode: start
+  targetNode: stairs
+  category: construction-category-structures
+  objectType: Structure
+  placementMode: SnapgridCenter
+  canBuildInImpassable: false
+  icon:
+    sprite: Structures/stairs.rsi
+    state: stairs_steel
+  conditions:
+  - !type:TileNotBlocked
+
+- type: construction
+  id: StairsZLevelDark
+  name: construction-recipe-stairs-zlevel-dark
+  description: construction-recipe-stairs-zlevel-dark-desc
+  graph: StairsZLevelDark
+  startNode: start
+  targetNode: stairs
+  category: construction-category-structures
+  objectType: Structure
+  placementMode: SnapgridCenter
+  canBuildInImpassable: false
+  icon:
+    sprite: Structures/stairs.rsi
+    state: stairs_dark
+  conditions:
+  - !type:TileNotBlocked
+
+- type: construction
+  id: StairsZLevelWhite
+  name: construction-recipe-stairs-zlevel-white
+  description: construction-recipe-stairs-zlevel-white-desc
+  graph: StairsZLevelWhite
+  startNode: start
+  targetNode: stairs
+  category: construction-category-structures
+  objectType: Structure
+  placementMode: SnapgridCenter
+  canBuildInImpassable: false
+  icon:
+    sprite: Structures/stairs.rsi
+    state: stairs_white
+  conditions:
+  - !type:TileNotBlocked
+
+- type: construction
+  id: StairsZLevelWood
+  name: construction-recipe-stairs-zlevel-wood
+  description: construction-recipe-stairs-zlevel-wood-desc
+  graph: StairsZLevelWood
+  startNode: start
+  targetNode: stairs
+  category: construction-category-structures
+  objectType: Structure
+  placementMode: SnapgridCenter
+  canBuildInImpassable: false
+  icon:
+    sprite: Structures/stairs.rsi
+    state: stairs_wood
+  conditions:
+  - !type:TileNotBlocked

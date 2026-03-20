@@ -35,6 +35,9 @@
             max: 4
       - !type:DoActsBehavior
         acts: [ "Destruction" ]
+  - type: Construction
+    graph: StairsZLevelSteel
+    node: stairs
   - type: Physics
     bodyType: Static
   - type: CEZLevelHighGround
@@ -86,6 +89,9 @@
     sprite: Structures/stairs.rsi
     state: stairs_white
     drawdepth: FloorTiles
+  - type: Construction
+    graph: StairsZLevelWhite
+    node: stairs
 
 - type: entity
   id: StairStageWhiteZLevel
@@ -106,6 +112,9 @@
     sprite: Structures/stairs.rsi
     state: stairs_dark
     drawdepth: FloorTiles
+  - type: Construction
+    graph: StairsZLevelDark
+    node: stairs
 
 - type: entity
   id: StairStageDarkZLevel
@@ -126,6 +135,28 @@
     sprite: Structures/stairs.rsi
     state: stairs_wood
     drawdepth: FloorTiles
+  - type: Construction
+    graph: StairsZLevelWood
+    node: stairs
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 500
+      behaviors:
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+    - trigger:
+        !type:DamageTrigger
+        damage: 50
+      behaviors:
+      - !type:SpawnEntitiesBehavior
+        spawn:
+          MaterialWoodPlank1:
+            min: 3
+            max: 6
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
 
 - type: entity
   id: StairStageWoodZLevel

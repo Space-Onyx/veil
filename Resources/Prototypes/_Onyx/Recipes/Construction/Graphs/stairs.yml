@@ -1,0 +1,107 @@
+- type: constructionGraph
+  id: StairsZLevelSteel
+  start: start
+  graph:
+    - node: start
+      edges:
+        - to: stairs
+          completed:
+            - !type:SnapToGrid { }
+          steps:
+            - material: Steel
+              amount: 4
+              doAfter: 4
+
+    - node: stairs
+      entity: StairsZLevel
+      edges:
+        - to: start
+          completed:
+            - !type:SpawnPrototype
+              prototype: SheetSteel1
+              amount: 4
+            - !type:DeleteEntity
+          steps:
+            - tool: Welding
+              doAfter: 3
+
+- type: constructionGraph
+  id: StairsZLevelDark
+  start: start
+  graph:
+    - node: start
+      edges:
+        - to: stairs
+          completed:
+            - !type:SnapToGrid { }
+          steps:
+            - material: Steel
+              amount: 4
+              doAfter: 4
+
+    - node: stairs
+      entity: StairDarkZLevel
+      edges:
+        - to: start
+          completed:
+            - !type:SpawnPrototype
+              prototype: SheetSteel1
+              amount: 4
+            - !type:DeleteEntity
+          steps:
+            - tool: Welding
+              doAfter: 3
+
+- type: constructionGraph
+  id: StairsZLevelWhite
+  start: start
+  graph:
+    - node: start
+      edges:
+        - to: stairs
+          completed:
+            - !type:SnapToGrid { }
+          steps:
+            - material: Steel
+              amount: 4
+              doAfter: 4
+
+    - node: stairs
+      entity: StairWhiteZLevel
+      edges:
+        - to: start
+          completed:
+            - !type:SpawnPrototype
+              prototype: SheetSteel1
+              amount: 4
+            - !type:DeleteEntity
+          steps:
+            - tool: Welding
+              doAfter: 3
+
+- type: constructionGraph
+  id: StairsZLevelWood
+  start: start
+  graph:
+    - node: start
+      edges:
+        - to: stairs
+          completed:
+            - !type:SnapToGrid { }
+          steps:
+            - material: WoodPlank
+              amount: 6
+              doAfter: 4
+
+    - node: stairs
+      entity: StairWoodZLevel
+      edges:
+        - to: start
+          completed:
+            - !type:SpawnPrototype
+              prototype: MaterialWoodPlank1
+              amount: 6
+            - !type:DeleteEntity
+          steps:
+            - tool: Prying
+              doAfter: 3
