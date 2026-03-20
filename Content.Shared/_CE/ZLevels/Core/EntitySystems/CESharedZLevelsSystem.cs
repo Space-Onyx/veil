@@ -127,9 +127,37 @@ public abstract partial class CESharedZLevelsSystem : EntitySystem
         }
 
         if (_gridsPerMapCache.TryGetValue(mapId, out var cached))
+        {
+            if (cached.Count == 0)
+                return RebuildSingleMapGridCache(mapId);
             return cached;
+        }
 
-        return [];
+        return RebuildSingleMapGridCache(mapId);
+    }
+
+    private List<Entity<MapGridComponent>> RebuildSingleMapGridCache(MapId mapId)
+    {
+        if (!_gridsPerMapCache.TryGetValue(mapId, out var list))
+        {
+            list = new List<Entity<MapGridComponent>>();
+            _gridsPerMapCache[mapId] = list;
+        }
+        else
+        {
+            list.Clear();
+        }
+
+        var gridQuery = EntityQueryEnumerator<MapGridComponent, TransformComponent>();
+        while (gridQuery.MoveNext(out var uid, out var grid, out var xform))
+        {
+            if (xform.MapID != mapId)
+                continue;
+
+            list.Add((uid, grid));
+        }
+
+        return list;
     }
     // </Onyx-Tweak>
     private void EnsureNetworkCache()

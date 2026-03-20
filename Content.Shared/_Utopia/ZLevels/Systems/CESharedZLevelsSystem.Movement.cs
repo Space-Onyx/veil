@@ -123,6 +123,22 @@ public abstract partial class CESharedZLevelsSystem
         if (zPhys.LocalPosition < 0) //Need teleport to ZLevel down
         {
             // <Onyx-Tweak>
+            if (_net.IsServer)
+            {
+                var xform = Transform(uid);
+                if (xform.MapUid is { } mapUid &&
+                    _zMapQuery.TryComp(mapUid, out var zMap) &&
+                    _timing.CurTime < zMap.SuppressFallsUntil)
+                {
+                    zPhys.LocalPosition = 0;
+                    if (zPhys.Velocity < 0)
+                        zPhys.Velocity = 0;
+                    return;
+                }
+            }
+            // </Onyx-Tweak>
+
+            // <Onyx-Tweak>
             if (!TryMoveDownOrChasm(uid))
             {
                 if (!HasComp<ChasmFallingComponent>(uid))

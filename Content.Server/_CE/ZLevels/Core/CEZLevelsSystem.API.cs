@@ -64,6 +64,45 @@ public sealed partial class CEZLevelsSystem
 
         return success;
     }
+
+    // <Onyx-Tweak>
+    private static readonly TimeSpan PostInitFallSuppressionDuration = TimeSpan.FromSeconds(2.0);
+
+    public void StabilizeZPhysicsAfterMapInit(HashSet<EntityUid> initializedMaps)
+    {
+        if (initializedMaps.Count == 0)
+            return;
+
+        foreach (var mapUid in initializedMaps)
+        {
+            if (!TryComp<CEZLevelMapComponent>(mapUid, out var zMap))
+                continue;
+
+            zMap.SuppressFallsUntil = _timing.CurTime + PostInitFallSuppressionDuration;
+        }
+
+        var query = EntityQueryEnumerator<CEZPhysicsComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out var zPhys, out var xform))
+        {
+            if (xform.MapUid is not { } mapUid || !initializedMaps.Contains(mapUid))
+                continue;
+
+            if (Math.Abs(zPhys.Velocity) > 0.001f)
+            {
+                zPhys.Velocity = 0f;
+                Dirty(uid, zPhys);
+            }
+
+            if (Math.Abs(zPhys.LocalPosition) > 0.001f)
+            {
+                zPhys.LocalPosition = 0f;
+                Dirty(uid, zPhys);
+            }
+
+            RemCompDeferred<CEActiveZPhysicsComponent>(uid);
+        }
+    }
+    // </Onyx-Tweak>
 }
 
 /// <summary>

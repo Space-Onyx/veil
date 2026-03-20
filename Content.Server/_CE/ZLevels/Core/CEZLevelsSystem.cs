@@ -11,6 +11,7 @@ using Content.Server.Station.Components;
 using Content.Server.Station.Systems;
 using Content.Server.Station.Events;
 using Robust.Shared.EntitySerialization.Systems;
+using Robust.Shared.Timing;
 
 namespace Content.Server._CE.ZLevels.Core;
 
@@ -122,6 +123,7 @@ public sealed partial class CEZLevelsSystem : CESharedZLevelsSystem
         }
 
         TryAddMapsIntoZNetwork(stationNetwork, dict);
+        StabilizeZPhysicsAfterMapInit(new HashSet<EntityUid>(dict.Keys)); // <Onyx-Tweak>
     }
 
     private void OnGameMapLoad(PostGameMapLoad ev)
@@ -175,5 +177,6 @@ public sealed partial class CEZLevelsSystem : CESharedZLevelsSystem
         }
 
         TryAddMapsIntoZNetwork(stationNetwork, dict);
+        StabilizeZPhysicsAfterMapInit(new HashSet<EntityUid>(dict.Keys)); // <Onyx-Tweak>
     }
 }

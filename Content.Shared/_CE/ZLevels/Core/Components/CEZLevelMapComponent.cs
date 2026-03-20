@@ -15,4 +15,9 @@ public sealed partial class CEZLevelMapComponent : Component
 {
     [DataField, AutoNetworkedField]
     public int Depth = 0;
+
+    // <Onyx-Tweak>
+    [ViewVariables]
+    public TimeSpan SuppressFallsUntil = TimeSpan.Zero;
+    // </Onyx-Tweak>
 }
