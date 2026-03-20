@@ -139,6 +139,10 @@
     penetrateDamage: 15 # Kill million mices
     damagePenalty: 0.05
   - type: StunVisuals
+  # <Onyx-Tweak>
+  - type: CEZPhysics
+  - type: CEZLevelViewer
+  # </Onyx-Tweak>
 
 - type: entity
   save: false

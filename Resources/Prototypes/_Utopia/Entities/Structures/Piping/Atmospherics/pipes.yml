@@ -1,0 +1,65 @@
+- type: entity
+  parent: GasPipeBase
+  id: UtopiaGasZPipeStraightUp
+  name: UP
+  suffix: Straight
+  placement:
+    mode: AlignAtmosPipeLayers
+  components:
+  - type: NodeContainer
+    nodes:
+      pipe:
+        !type:PipeNode
+        nodeGroupID: Pipe
+        pipeDirection: Longitudinal
+      zUp:
+        !type:ZPipeNode
+        nodeGroupID: Pipe
+        zDirection: Up
+  - type: ZPipe
+  - type: ZLevelTransmitter
+    allowUp: true
+  - type: ZLevelEntityLink
+  - type: AtmosDevice
+  # <Onyx-Tweak>
+  - type: Sprite
+    sprite: Structures/Piping/Atmospherics/gascanisterport.rsi
+    layers:
+      - sprite: Structures/Piping/Atmospherics/pipe.rsi
+        state: pipeBinaryConnectors
+        map: [ "enum.PipeVisualLayers.Pipe" ]
+      - state: gasCanisterPort
+  # </Onyx-Tweak>
+
+- type: entity
+  parent: GasPipeBase
+  id: UtopiaGasZPipeStraightDown
+  name: DOWN
+  suffix: Straight
+  placement:
+    mode: AlignAtmosPipeLayers
+  components:
+  - type: NodeContainer
+    nodes:
+      pipe:
+        !type:PipeNode
+        nodeGroupID: Pipe
+        pipeDirection: Longitudinal
+      zDown:
+        !type:ZPipeNode
+        nodeGroupID: Pipe
+        zDirection: Down
+  - type: ZPipe
+  - type: ZLevelTransmitter
+    allowDown: true
+  - type: ZLevelEntityLink
+  - type: AtmosDevice
+  # <Onyx-Tweak>
+  - type: Sprite
+    sprite: Structures/Piping/Atmospherics/gascanisterport.rsi
+    layers:
+      - sprite: Structures/Piping/Atmospherics/pipe.rsi
+        state: pipeBinaryConnectors
+        map: [ "enum.PipeVisualLayers.Pipe" ]
+      - state: gasCanisterPort
+  # </Onyx-Tweak>

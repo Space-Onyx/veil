@@ -14,6 +14,7 @@
   itemDrop: PartRodMetal1
   heatCapacity: 10000
   mass: 200
+  hasZRoof: false # <Onyx-Tweak>
 
 - type: tile
   id: LatticeDiagonalNE
@@ -31,6 +32,7 @@
   itemDrop: PartRodMetal1
   heatCapacity: 10000
   mass: 200
+  hasZRoof: false # <Onyx-Tweak>
 
 - type: tile
   id: LatticeDiagonalSW
@@ -48,6 +50,7 @@
   itemDrop: PartRodMetal1
   heatCapacity: 10000
   mass: 200
+  hasZRoof: false # <Onyx-Tweak>
 
 - type: tile
   id: LatticeDiagonalSE
@@ -65,3 +68,4 @@
   itemDrop: PartRodMetal1
   heatCapacity: 10000
   mass: 200
+  hasZRoof: false # <Onyx-Tweak>
