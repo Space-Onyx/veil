@@ -150,7 +150,7 @@ public abstract partial class CESharedZLevelsSystem
         CacheMovement(ent);
 
         // <Onyx-Tweak>
-        if (_timing.IsFirstTimePredicted && Math.Abs(ent.Comp.CurrentGroundHeight - oldGround) > 0.01f)
+        if (!_timing.ApplyingState && Math.Abs(ent.Comp.CurrentGroundHeight - oldGround) > 0.01f)
             EnsureComp<CEActiveZPhysicsComponent>(ent);
         // </Onyx-Tweak>
     }

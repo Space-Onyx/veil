@@ -28,7 +28,7 @@ public abstract partial class CESharedZLevelsSystem
         }
 
         // <Onyx-Tweak>
-        if (Math.Abs(zPhys.Velocity) < 0.001f && Math.Abs(zPhys.LocalPosition) < 0.05f)
+        if (!_timing.ApplyingState && Math.Abs(zPhys.Velocity) < 0.001f && Math.Abs(zPhys.LocalPosition) < 0.05f)
         {
             if (zPhys.IsGrounded && Math.Abs(zPhys.CurrentGroundHeight) < 0.001f)
             {
@@ -163,7 +163,10 @@ public abstract partial class CESharedZLevelsSystem
 
         else if (zPhys.LocalPosition >= 1) //Need teleport to ZLevel up
         {
-            var hasTile = HasTileAbove(uid);
+            // <Onyx-Tweak edited>
+            var onHighGround = zPhys.CurrentGroundHeight >= 0.85f;
+            var hasTile = !onHighGround && HasTileAbove(uid);
+            // </Onyx-Tweak edited>
 
             if (hasTile) //Hit roof
             {
