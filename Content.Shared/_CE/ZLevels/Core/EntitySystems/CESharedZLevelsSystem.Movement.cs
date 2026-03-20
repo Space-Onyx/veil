@@ -18,7 +18,6 @@ using JetBrains.Annotations;
 using Robust.Shared.Audio;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
-using Robust.Shared.Physics;
 using Robust.Shared.Physics.Components;
 
 namespace Content.Shared._CE.ZLevels.Core.EntitySystems;
@@ -102,19 +101,10 @@ public abstract partial class CESharedZLevelsSystem
         var worldPos = _map.GridTileToWorldPos(gridUid, grid, tilePos);
         var box = new Box2(worldPos, worldPos + new Vector2(1f, 1f));
 
-        foreach (var uid in _lookup.GetEntitiesIntersecting(Transform(gridUid).MapID, box, LookupFlags.Dynamic | LookupFlags.Sundries | LookupFlags.Uncontained))
+        foreach (var uid in _lookup.GetEntitiesIntersecting(Transform(gridUid).MapID, box, LookupFlags.Dynamic | LookupFlags.Sundries))
         {
-            if (!ZPhyzQuery.HasComp(uid) || HasComp<CEActiveZPhysicsComponent>(uid))
-                continue;
-
-            var xform = Transform(uid);
-            if (xform.Anchored)
-                continue;
-
-            if (TryComp<PhysicsComponent>(uid, out var phys) && phys.BodyType == BodyType.Static)
-                continue;
-
-            EnsureComp<CEActiveZPhysicsComponent>(uid);
+            if (ZPhyzQuery.HasComp(uid) && !HasComp<CEActiveZPhysicsComponent>(uid))
+                EnsureComp<CEActiveZPhysicsComponent>(uid);
         }
     }
     // </Onyx-Tweak>
@@ -161,14 +151,7 @@ public abstract partial class CESharedZLevelsSystem
 
         // <Onyx-Tweak>
         if (!_timing.ApplyingState && Math.Abs(ent.Comp.CurrentGroundHeight - oldGround) > 0.01f)
-        {
-            var xform = Transform(ent);
-            if (!xform.Anchored &&
-                (!TryComp<PhysicsComponent>(ent, out var physics) || physics.BodyType != BodyType.Static))
-            {
-                EnsureComp<CEActiveZPhysicsComponent>(ent);
-            }
-        }
+            EnsureComp<CEActiveZPhysicsComponent>(ent);
         // </Onyx-Tweak>
     }
 

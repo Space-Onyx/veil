@@ -4,7 +4,6 @@
  */
 
 using Content.Server.Administration;
-using Content.Server._CE.ZLevels.Core;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared.Administration;
 using Robust.Server.GameObjects;
@@ -18,7 +17,6 @@ public sealed class CEInitializeZNetworkCommand : LocalizedEntityCommands
 {
     [Dependency] private readonly IEntityManager _entities = default!;
     [Dependency] private readonly MapSystem _map = default!;
-    [Dependency] private readonly CEZLevelsSystem _zLevels = default!; // <Onyx-Tweak>
 
     public override string Command => "znetwork-initialize";
     public override string Description => "Initialize all zNetwork maps. Warning! This will not add all components, that writed in gamemap prototype! So i think this command is useless, because all maps dont have lightning or even atmos :(";
@@ -59,15 +57,8 @@ public sealed class CEInitializeZNetworkCommand : LocalizedEntityCommands
             return;
         }
 
-        var initializedMaps = new HashSet<EntityUid>(); // <Onyx-Tweak>
-
-        foreach (var (_, mapUidNullable) in levelComp.ZLevels) // <Onyx-Tweak edied>
+        foreach (var (_, mapUid) in levelComp.ZLevels)
         {
-            // <Onyx-Tweak>
-            if (mapUidNullable is not { } mapUid)
-                continue;
-            // <Onyx-Tweak>
-
             if (!_entities.TryGetComponent<MapComponent>(mapUid, out var mapComp))
             {
                 shell.WriteError($"Map entity {mapUid} doesnt have MapComponent.");
@@ -85,13 +76,8 @@ public sealed class CEInitializeZNetworkCommand : LocalizedEntityCommands
                 shell.WriteLine($"Map with ID {mapComp.MapId} is already initialized.");
                 continue;
             }
-
-            _zLevels.MarkMapPostInitFallSuppression(mapUid); // <Onyx-Tweak>
             _map.InitializeMap(mapComp.MapId);
-            initializedMaps.Add(mapUid); // <Onyx-Tweak>
             shell.WriteLine($"Map with ID {mapComp.MapId} has been initialized.");
         }
-
-        _zLevels.StabilizeZPhysicsAfterMapInit(initializedMaps); // <Onyx-Tweak>
     }
 }
