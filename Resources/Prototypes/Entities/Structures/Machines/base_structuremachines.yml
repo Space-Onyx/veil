@@ -114,6 +114,7 @@
   - type: LightningTarget
     priority: 1
   - type: TogglePower
+  - type: CEZPhysics # <Onyx-Tweak>
 
 - type: entity
   abstract: true

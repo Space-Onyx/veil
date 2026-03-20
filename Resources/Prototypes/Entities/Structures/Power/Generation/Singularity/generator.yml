@@ -58,3 +58,4 @@
     guides:
     - SingularityEngine
     - Power
+  - type: CEZPhysics # <Onyx-Tweak>

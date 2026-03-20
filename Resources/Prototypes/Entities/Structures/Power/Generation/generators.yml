@@ -120,6 +120,7 @@
   - type: GuideHelp
     guides:
     - ShuttleCraft
+  - type: CEZPhysics # <Onyx-Tweak>
 
 # Base Wallmount Generator
 

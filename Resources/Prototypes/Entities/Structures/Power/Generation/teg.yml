@@ -121,6 +121,7 @@
       - Power
     - type: StealTarget
       stealGroup: Teg
+    - type: CEZPhysics # <Onyx-Tweak>
 
 - type: entity
   id: TegCirculator
@@ -203,6 +204,7 @@
     - type: TegCirculator
     - type: StealTarget
       stealGroup: Teg
+    - type: CEZPhysics # <Onyx-Tweak>
 
 - # Spawned by the client-side circulator examine code to indicate the inlet/outlet direction.
   type: entity
@@ -222,3 +224,4 @@
     - type: Tag
       tags:
         - HideContextMenu
+  - type: CEZPhysics # <Onyx-Tweak>

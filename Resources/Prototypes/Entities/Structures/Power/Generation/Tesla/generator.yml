@@ -42,3 +42,4 @@
     guides:
     - TeslaEngine
     - Power
+  - type: CEZPhysics # <Onyx-Tweak>

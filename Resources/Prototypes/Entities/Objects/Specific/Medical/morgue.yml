@@ -156,6 +156,7 @@
       - !type:PlaySoundBehavior
         sound:
           path: /Audio/Effects/poster_broken.ogg
+  - type: CEZPhysics # <Onyx-Tweak>
 
 - type: entity
   id: BodyBagFolded
@@ -166,6 +167,7 @@
   components:
   - type: Foldable
     folded: true
+  - type: CEZPhysics # <Onyx-Tweak>
 #  - type: BodyBagItem #TODO: we need some kind of generic placable, like thus:
 # - type: Placeable
 #   prototype: someId

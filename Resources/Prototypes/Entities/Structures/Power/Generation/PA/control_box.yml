@@ -93,6 +93,7 @@
         ghostProto: ParticleAcceleratorEmitterStarboard
         graph: ParticleAcceleratorEmitterStarboard
         expectedNode: completed
+  - type: CEZPhysics # <Onyx-Tweak>
 
 # Unfinished
 

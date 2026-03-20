@@ -193,6 +193,7 @@
     price: 450
   - type: DragDropTargetable
   # Goobstation Change End
+  - type: CEZPhysics # <Onyx-Tweak>
 
 - type: entity
   id: MechRipley
