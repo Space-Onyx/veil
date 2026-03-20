@@ -16,6 +16,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using Content.Server.Atmos.Components;
+using Content.Server._Onyx.ZLevels.Atmos;
 using Content.Shared.Atmos;
 using Content.Shared.Atmos.Components;
 using Content.Shared.Atmos.Reactions;
@@ -27,6 +28,8 @@ namespace Content.Server.Atmos.EntitySystems;
 
 public sealed partial class AtmosphereSystem
 {
+    private ZLevelGridAtmosSystem? _zLevelGridAtmosGA; // <Onyx-ZLevelAtmos>
+
     private void InitializeGridAtmosphere()
     {
         SubscribeLocalEvent<GridAtmosphereComponent, ComponentInit>(OnGridAtmosphereInit);
@@ -204,6 +207,21 @@ public sealed partial class AtmosphereSystem
                 tile.AdjacentTiles[i] = null;
                 continue;
             }
+
+            // <Onyx-ZLevelAtmos>
+            _zLevelGridAtmosGA ??= EntityManager.System<ZLevelGridAtmosSystem>();
+            var tileIsHole = _zLevelGridAtmosGA.IsVerticalHoleTile(uid, tile.GridIndices);
+            var adjIsHole = _zLevelGridAtmosGA.IsVerticalHoleTile(uid, adjacent.GridIndices);
+            if ((tileIsHole && adjacent.MapAtmosphere) || (adjIsHole && tile.MapAtmosphere))
+            {
+                tile.AdjacentBits &= ~direction;
+                var oIdx = i.ToOppositeIndex();
+                adjacent.AdjacentBits &= ~(AtmosDirection)(1 << oIdx);
+                tile.AdjacentTiles[i] = null;
+                adjacent.AdjacentTiles[oIdx] = null;
+                continue;
+            }
+            // </Onyx-ZLevelAtmos>
 
             var adjBlockDirs = adjacent.AirtightData.BlockedDirections;
             if (activate)

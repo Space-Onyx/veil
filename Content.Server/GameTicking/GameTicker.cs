@@ -56,6 +56,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Server._Utopia.ZLevels;
 using Content.Server.Administration.Logs;
 using Content.Server.Administration.Managers;
 using Content.Server.Chat.Managers;
@@ -123,6 +124,7 @@ namespace Content.Server.GameTicking
         [Dependency] private readonly MetaDataSystem _metaData = default!;
         [Dependency] private readonly SharedRoleSystem _roles = default!;
         [Dependency] private readonly ServerDbEntryManager _dbEntryManager = default!;
+        [Dependency] private readonly ZNetworkMappingSystem _zMapping = default!;   // ECHO-Tweak: for map loading support in the game ticker, specifically for ZLevels mapping
 
         [ViewVariables] private bool _initialized;
         [ViewVariables] private bool _postInitialized;

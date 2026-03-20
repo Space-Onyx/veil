@@ -231,6 +231,11 @@
   - type: ExaminableDamage
     messages: WindowMessages
   # </Goobstation>
+  # ECHO-Tweak-start: Z-levels
+  - type: CEZPhysics
+  - type: CEZLevelHighGround
+    fixtureId: fix1
+  # ECHO-Tweak-end
 
 - type: entity
   abstract: true

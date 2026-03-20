@@ -1605,6 +1605,7 @@
   itemDrop: SheetGlass1
   heatCapacity: 10000
   tileRipResistance: 150
+  transparent: true # ECHO-Tweak: Прозрачные тайлы
 
 - type: tile
   id: FloorRGlass
@@ -1624,6 +1625,7 @@
   itemDrop: SheetRGlass1
   heatCapacity: 10000
   tileRipResistance: 175
+  transparent: true # ECHO-Tweak: Прозрачные тайлы
 
 - type: tile
   id: FloorMetalFoam
