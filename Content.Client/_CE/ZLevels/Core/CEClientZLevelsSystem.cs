@@ -34,6 +34,7 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
     private readonly List<EntityUid> _dirtyVisualsBuffer = new();
     private float _cachedZLevelOffset;
     private const int OverMobsDrawDepth = (int)Shared.DrawDepth.DrawDepth.OverMobs;
+    private const float VisualEpsilon = 0.001f;
     // </Onyx-Tweak>
 
     public static float ZLevelOffset = 0.7f;
@@ -98,9 +99,7 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
             return;
         }
 
-        ent.Comp.NoRotDefault = sprite.NoRotation;
-        ent.Comp.DrawDepthDefault = sprite.DrawDepth;
-        ent.Comp.SpriteOffsetDefault = sprite.Offset;
+        CacheVisualDefaults(ent.Comp, sprite);
         _dirtyVisuals.Add(ent); // <Onyx-Tweak>
     }
 
@@ -170,19 +169,46 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
         int overMobs)
     {
         var localPosition = GetVisualsLocalPositionFast(zPhys, xform);
+        if (MathF.Abs(localPosition) <= VisualEpsilon)
+            localPosition = 0f;
 
-        if (localPosition == zPhys.LastVisualLocalPosition)
+        var last = zPhys.LastVisualLocalPosition;
+        if (!float.IsNaN(last) && MathF.Abs(last) <= VisualEpsilon)
+            last = 0f;
+
+        if (localPosition == 0f)
+        {
+            if (!float.IsNaN(last) && last != 0f)
+            {
+                sprite.NoRotation = zPhys.NoRotDefault;
+                _sprite.SetOffset((uid, sprite), zPhys.SpriteOffsetDefault);
+                _sprite.SetDrawDepth((uid, sprite), zPhys.DrawDepthDefault);
+            }
+
+            CacheVisualDefaults(zPhys, sprite);
+            zPhys.LastVisualLocalPosition = 0f;
+            return;
+        }
+
+        if (!float.IsNaN(last) && localPosition == last)
             return;
 
-        zPhys.LastVisualLocalPosition = localPosition;
+        if (float.IsNaN(last) || last == 0f)
+            CacheVisualDefaults(zPhys, sprite);
 
-        sprite.NoRotation = localPosition != 0 || zPhys.NoRotDefault;
+        zPhys.LastVisualLocalPosition = localPosition;
+        sprite.NoRotation = true;
         _sprite.SetOffset((uid, sprite), zPhys.SpriteOffsetDefault + new Vector2(0, localPosition * zLevelOffset));
         _sprite.SetDrawDepth((uid, sprite), localPosition > 0 ? overMobs : zPhys.DrawDepthDefault);
     }
-    // </Onyx-Tweak>
+>
+    private static void CacheVisualDefaults(CEZPhysicsComponent zPhys, SpriteComponent sprite)
+    {
+        zPhys.NoRotDefault = sprite.NoRotation;
+        zPhys.DrawDepthDefault = sprite.DrawDepth;
+        zPhys.SpriteOffsetDefault = sprite.Offset;
+    }
 
-    // <Onyx-Tweak>
     private float GetVisualsLocalPositionFast(CEZPhysicsComponent zPhys, TransformComponent xform)
     {
         if (xform.ParentUid != xform.MapUid && ZPhyzQuery.TryComp(xform.ParentUid, out var parentZPhys))
