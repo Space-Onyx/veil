@@ -32,6 +32,8 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
     // <Onyx-Tweak>
     private readonly HashSet<EntityUid> _dirtyVisuals = new();
     private readonly List<EntityUid> _dirtyVisualsBuffer = new();
+    private float _cachedZLevelOffset;
+    private const int OverMobsDrawDepth = (int)Shared.DrawDepth.DrawDepth.OverMobs;
     // </Onyx-Tweak>
 
     public static float ZLevelOffset = 0.7f;
@@ -52,6 +54,8 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
         SubscribeLocalEvent<CEActiveZPhysicsComponent, ComponentStartup>(OnActiveStartup);
         SubscribeLocalEvent<CEActiveZPhysicsComponent, ComponentShutdown>(OnActiveShutdown);
         // </Onyx-Tweak>
+
+        _cfg.OnValueChanged(CCVars.ZLevelOffset, value => _cachedZLevelOffset = value, true); // <Onyx-Tweak> 
     }
     // <Onyx-Tweak>
 
@@ -66,13 +70,19 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
     }
     // </Onyx-Tweak>
 
+    // <Onyx-Tweak edited>
     private void OnEyeOffset(Entity<CEZPhysicsComponent> ent, ref GetEyeOffsetEvent args)
     {
+        var xform = Transform(ent);
+        var localPosition = GetVisualsLocalPositionFast(ent.Comp, xform);
+        if (localPosition == 0f)
+            return;
+
         Angle rotation = _eye.CurrentEye.Rotation * -1;
-        var localPosition = GetVisualsLocalPosition((ent, ent), Transform(ent));
-        var offset = rotation.RotateVec(new Vector2(0, localPosition * _cfg.GetCVar(CCVars.ZLevelOffset))); // <Onyx-Tweak>
+        var offset = rotation.RotateVec(new Vector2(0, localPosition * _cachedZLevelOffset)); // <Onyx-Tweak>
         args.Offset += offset;
     }
+    // </Onyx-Tweak edited> 
 
     private void OnStartup(Entity<CEZPhysicsComponent> ent, ref ComponentStartup args)
     {
@@ -106,13 +116,10 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
         base.Update(frameTime);
 
         // <Onyx-Tweak Edited>
-        var zLevelOffset = _cfg.GetCVar(CCVars.ZLevelOffset);
-        var overMobs = (int)Shared.DrawDepth.DrawDepth.OverMobs;
-
         var query = EntityQueryEnumerator<CEActiveZPhysicsComponent, CEZPhysicsComponent, SpriteComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out _, out var zPhys, out var sprite, out var xform))
         {
-            ApplyVisuals(uid, zPhys, sprite, xform, zLevelOffset, overMobs);
+            ApplyVisuals(uid, zPhys, sprite, xform, _cachedZLevelOffset, OverMobsDrawDepth);
         }
 
         if (_dirtyVisuals.Count > 0)
@@ -139,12 +146,12 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
                 if (HasComp<CEActiveZPhysicsComponent>(uid))
                     continue;
 
-                ApplyVisuals(uid, zPhys, sprite, xform, zLevelOffset, overMobs);
+                ApplyVisuals(uid, zPhys, sprite, xform, _cachedZLevelOffset, OverMobsDrawDepth);
             }
         }
 
-        var query2 = EntityQueryEnumerator<CEActiveZPhysicsComponent, StaminaComponent, SpriteComponent, CEZPhysicsComponent>();
-        while (query2.MoveNext(out var uid, out _, out var stamina, out _, out var zPhys))
+        var query2 = EntityQueryEnumerator<CEActiveZPhysicsComponent, StaminaComponent, CEZPhysicsComponent>();
+        while (query2.MoveNext(out var uid, out _, out var stamina, out var zPhys))
         {
             if (!_animation.HasRunningAnimation(uid, StaminaSystem.StaminaAnimationKey))
                 continue;
@@ -162,7 +169,7 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
         float zLevelOffset,
         int overMobs)
     {
-        var localPosition = GetVisualsLocalPosition((uid, zPhys), xform);
+        var localPosition = GetVisualsLocalPositionFast(zPhys, xform);
 
         if (localPosition == zPhys.LastVisualLocalPosition)
             return;
@@ -172,6 +179,16 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
         sprite.NoRotation = localPosition != 0 || zPhys.NoRotDefault;
         _sprite.SetOffset((uid, sprite), zPhys.SpriteOffsetDefault + new Vector2(0, localPosition * zLevelOffset));
         _sprite.SetDrawDepth((uid, sprite), localPosition > 0 ? overMobs : zPhys.DrawDepthDefault);
+    }
+    // </Onyx-Tweak>
+
+    // <Onyx-Tweak>
+    private float GetVisualsLocalPositionFast(CEZPhysicsComponent zPhys, TransformComponent xform)
+    {
+        if (xform.ParentUid != xform.MapUid && ZPhyzQuery.TryComp(xform.ParentUid, out var parentZPhys))
+            return parentZPhys.LocalPosition;
+
+        return zPhys.LocalPosition;
     }
     // </Onyx-Tweak>
 

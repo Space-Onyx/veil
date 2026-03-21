@@ -48,6 +48,10 @@ public sealed partial class ScalingViewport
     private const float EmptyTileCacheLifetime = 0.5f;
     private readonly Dictionary<EntityUid, bool> _emptyTileCache = new();
     private TimeSpan _emptyTileCacheExpiry;
+    private bool _zLevelCvarsSubscribed;
+    private int _cachedMaxZLevelsBelowRendering;
+    private float _cachedZLevelOffset;
+    private readonly ZEye _sharedZEye = new();
     // </Onyx-Tweak>
 
     private bool TryFindEmptyTilesCached(EntityUid mapUid)
@@ -167,6 +171,7 @@ public sealed partial class ScalingViewport
         // Cache systems and components
         _zLevels ??= _entityManager.System<CEClientZLevelsSystem>();
         _mapSystem ??= _entityManager.System<SharedMapSystem>();
+        EnsureZLevelCvarCache();
 
         if (_player.LocalEntity is null)
             return;
@@ -190,7 +195,7 @@ public sealed partial class ScalingViewport
         var forceRenderBelow = playerXform.GridUid.HasValue
             && _entityManager.HasComponent<GridMotionLinkComponent>(playerXform.GridUid.Value);
 
-        var maxBelow = _cfg.GetCVar(CCVars.MaxZLevelsBelowRendering); // <Onyx-Tweak>
+        var maxBelow = _cachedMaxZLevelsBelowRendering; // <Onyx-Tweak>
         var lowestDepth = 0;
         for (var i = 0; i >= -maxBelow; i--)   // <Onyx-Tweak>
         {
@@ -231,7 +236,11 @@ public sealed partial class ScalingViewport
         var placementOverlay = _cachedPlacementOverlay;
         var placementRemoved = false;
 
-        var zLevelOffset = _cfg.GetCVar(CCVars.ZLevelOffset);
+        // <Onyx-Tweak> 
+        var zLevelOffset = _cachedZLevelOffset;
+        Angle rotation = _fallbackEye.Rotation * -1;
+        var rotationVector = rotation.ToWorldVec();
+        // <Onyx-Tweak> 
 
         //From the lowest depth to the highest, render each level
         for (var depth = lowestDepth; depth <= lookUp; depth++)
@@ -279,18 +288,21 @@ public sealed partial class ScalingViewport
                     catch { }
                 }
 
-                Angle rotation = _fallbackEye.Rotation * -1;
-                var offset = rotation.ToWorldVec() * zLevelOffset * depth; // <Onyx-Tweak Edited>
+                var offset = rotationVector * zLevelOffset * depth; // <Onyx-Tweak Edited>
 
-                viewport.Eye = new ZEye(lowestDepth, depth, lookUp)
-                {
-                    Position = new MapCoordinates(_fallbackEye.Position.Position, mapComp.MapId),
-                    DrawFov = _fallbackEye.DrawFov && depth >= 0,
-                    DrawLight = _fallbackEye.DrawLight,
-                    Offset = _fallbackEye.Offset + offset,
-                    Rotation = _fallbackEye.Rotation,
-                    Scale = _fallbackEye.Scale,
-                };
+                // <Onyx-Tweak> 
+                _sharedZEye.LowestDepth = lowestDepth;
+                _sharedZEye.Depth = depth;
+                _sharedZEye.HighestDepth = lookUp;
+                _sharedZEye.Position = new MapCoordinates(_fallbackEye.Position.Position, mapComp.MapId);
+                _sharedZEye.DrawFov = _fallbackEye.DrawFov && depth >= 0;
+                _sharedZEye.DrawLight = _fallbackEye.DrawLight;
+                _sharedZEye.Offset = _fallbackEye.Offset + offset;
+                _sharedZEye.Rotation = _fallbackEye.Rotation;
+                _sharedZEye.Scale = _fallbackEye.Scale;
+
+                viewport.Eye = _sharedZEye;
+                // <Onyx-Tweak> 
             }
 
             viewport.ClearColor = depth == lowestDepth ? Color.Black : null;
@@ -313,10 +325,22 @@ public sealed partial class ScalingViewport
         viewport.Eye = _fallbackEye;
     }
 
-    public sealed class ZEye(int lowest, int depth, int high) : Robust.Shared.Graphics.Eye
+    // <Onyx-Tweak edited> 
+    private void EnsureZLevelCvarCache()
     {
-        public int LowestDepth = lowest;
-        public int Depth = depth;
-        public int HighestDepth = high;
+        if (_zLevelCvarsSubscribed)
+            return;
+
+        _cfg.OnValueChanged(CCVars.MaxZLevelsBelowRendering, value => _cachedMaxZLevelsBelowRendering = value, true);
+        _cfg.OnValueChanged(CCVars.ZLevelOffset, value => _cachedZLevelOffset = value, true);
+        _zLevelCvarsSubscribed = true;
     }
+
+    public sealed class ZEye : Robust.Shared.Graphics.Eye
+    {
+        public int LowestDepth;
+        public int Depth;
+        public int HighestDepth;
+    }
+    // <Onyx-Tweak edited> 
 }
