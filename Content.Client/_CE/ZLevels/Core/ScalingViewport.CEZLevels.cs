@@ -46,15 +46,16 @@ public sealed partial class ScalingViewport
     private bool _placementOverlayCached;
     private readonly List<Entity<MapGridComponent>> _visibleGridsBuffer = new();
     private const float EmptyTileCacheLifetime = 0.5f;
-    private readonly Dictionary<EntityUid, bool> _emptyTileCache = new();
+    private readonly Dictionary<(EntityUid MapUid, int CellX, int CellY, int Radius), bool> _emptyTileCache = new();
     private TimeSpan _emptyTileCacheExpiry;
     private bool _zLevelCvarsSubscribed;
     private int _cachedMaxZLevelsBelowRendering;
     private float _cachedZLevelOffset;
+    private int _cachedLowerRenderRadius;
     private readonly ZEye _sharedZEye = new();
     // </Onyx-Tweak>
 
-    private bool TryFindEmptyTilesCached(EntityUid mapUid)
+    private bool TryFindEmptyTilesCached(EntityUid mapUid, Vector2 centerPosition, float searchRadius)
     {
         if (_timing.CurTime >= _emptyTileCacheExpiry)
         {
@@ -62,11 +63,16 @@ public sealed partial class ScalingViewport
             _emptyTileCacheExpiry = _timing.CurTime + TimeSpan.FromSeconds(EmptyTileCacheLifetime);
         }
 
-        if (_emptyTileCache.TryGetValue(mapUid, out var cached))
+        var radius = searchRadius > 0f ? (int) MathF.Ceiling(searchRadius) : 0;
+        var cacheKey = radius > 0
+            ? (mapUid, (int) MathF.Floor(centerPosition.X), (int) MathF.Floor(centerPosition.Y), radius)
+            : (mapUid, int.MinValue, int.MinValue, 0);
+
+        if (_emptyTileCache.TryGetValue(cacheKey, out var cached))
             return cached;
 
-        var result = TryFindEmptyTiles(mapUid);
-        _emptyTileCache[mapUid] = result;
+        var result = TryFindEmptyTiles(mapUid, centerPosition, searchRadius);
+        _emptyTileCache[cacheKey] = result;
         return result;
     }
 
@@ -74,7 +80,7 @@ public sealed partial class ScalingViewport
     /// We are looking for at least one empty tile on the screen.
     /// This is used to ensure that it makes sense to draw the z-planes and that they are visible.
     /// </summary>
-    public bool TryFindEmptyTiles(EntityUid mapUid)
+    public bool TryFindEmptyTiles(EntityUid mapUid, Vector2 centerPosition, float searchRadius)
     {
         if (_xformQuery is null || !_xformQuery.Value.TryComp(mapUid, out var xform))
             return true;
@@ -92,6 +98,17 @@ public sealed partial class ScalingViewport
         var minY = MathF.Min(MathF.Min(bl.Y, br.Y), MathF.Min(tl.Y, tr.Y));
         var maxX = MathF.Max(MathF.Max(bl.X, br.X), MathF.Max(tl.X, tr.X));
         var maxY = MathF.Max(MathF.Max(bl.Y, br.Y), MathF.Max(tl.Y, tr.Y));
+
+        if (searchRadius > 0f)
+        {
+            minX = MathF.Max(minX, centerPosition.X - searchRadius);
+            minY = MathF.Max(minY, centerPosition.Y - searchRadius);
+            maxX = MathF.Min(maxX, centerPosition.X + searchRadius);
+            maxY = MathF.Min(maxY, centerPosition.Y + searchRadius);
+
+            if (minX >= maxX || minY >= maxY)
+                return false;
+        }
         // </Onyx-Tweak Edited>
 
         // Handle gaps between disconnected grids: if any important screen point is not covered by a solid tile,
@@ -196,6 +213,8 @@ public sealed partial class ScalingViewport
             && _entityManager.HasComponent<GridMotionLinkComponent>(playerXform.GridUid.Value);
 
         var maxBelow = _cachedMaxZLevelsBelowRendering; // <Onyx-Tweak>
+        var lowerRenderSearchRadius = GetEffectiveLowerRenderRadius();
+        var playerPosition = playerXform.Coordinates.Position;
         var lowestDepth = 0;
         for (var i = 0; i >= -maxBelow; i--)   // <Onyx-Tweak>
         {
@@ -212,7 +231,7 @@ public sealed partial class ScalingViewport
 
             lowestDepth = i;
 
-            if (!forceRenderBelow && !TryFindEmptyTilesCached(checkingMap)) // <Onyx-Tweak Edited>
+            if (!forceRenderBelow && !TryFindEmptyTilesCached(checkingMap, playerPosition, lowerRenderSearchRadius)) // <Onyx-Tweak Edited>
                 break;
         }
 
@@ -333,7 +352,21 @@ public sealed partial class ScalingViewport
 
         _cfg.OnValueChanged(CCVars.MaxZLevelsBelowRendering, value => _cachedMaxZLevelsBelowRendering = value, true);
         _cfg.OnValueChanged(CCVars.ZLevelOffset, value => _cachedZLevelOffset = value, true);
+        _cfg.OnValueChanged(CCVars.ZLevelLowerRenderProbeRadius, value =>
+        {
+            _cachedLowerRenderRadius = Math.Max(0, value);
+            _emptyTileCache.Clear();
+        }, true);
         _zLevelCvarsSubscribed = true;
+    }
+
+    private float GetEffectiveLowerRenderRadius()
+    {
+        var radius = Math.Max(0, _cachedLowerRenderRadius);
+        if (radius == 0)
+            return 0f;
+
+        return radius;
     }
 
     public sealed class ZEye : Robust.Shared.Graphics.Eye
