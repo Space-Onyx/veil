@@ -201,7 +201,7 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
         _sprite.SetOffset((uid, sprite), zPhys.SpriteOffsetDefault + new Vector2(0, localPosition * zLevelOffset));
         _sprite.SetDrawDepth((uid, sprite), localPosition > 0 ? overMobs : zPhys.DrawDepthDefault);
     }
->
+
     private static void CacheVisualDefaults(CEZPhysicsComponent zPhys, SpriteComponent sprite)
     {
         zPhys.NoRotDefault = sprite.NoRotation;
