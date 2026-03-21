@@ -83,9 +83,15 @@ public abstract partial class CESharedZLevelsSystem
 
     private void OnHighGroundAnchorChanged(Entity<CEZLevelHighGroundComponent> ent, ref AnchorStateChangedEvent args)
     {
+        if (TerminatingOrDeleted(ent))
+            return;
+
         _groundCacheGeneration++;
         var xform = Transform(ent);
-        if (xform.GridUid is { } gridUid && _gridQuery.TryComp(gridUid, out var grid))
+        if (xform.GridUid is not { } gridUid || TerminatingOrDeleted(gridUid))
+            return;
+
+        if (_gridQuery.TryComp(gridUid, out var grid))
         {
             var tilePos = _map.CoordinatesToTile(gridUid, grid,
                 new MapCoordinates(_transform.GetWorldPosition(xform), xform.MapID));
@@ -98,10 +104,14 @@ public abstract partial class CESharedZLevelsSystem
         if (!_gridQuery.TryComp(gridUid, out var grid))
             return;
 
+        var gridXform = Transform(gridUid);
+        if (gridXform.MapID == MapId.Nullspace)
+            return;
+
         var worldPos = _map.GridTileToWorldPos(gridUid, grid, tilePos);
         var box = new Box2(worldPos, worldPos + new Vector2(1f, 1f));
 
-        foreach (var uid in _lookup.GetEntitiesIntersecting(Transform(gridUid).MapID, box, LookupFlags.Dynamic | LookupFlags.Sundries))
+        foreach (var uid in _lookup.GetEntitiesIntersecting(gridXform.MapID, box, LookupFlags.Dynamic | LookupFlags.Sundries))
         {
             if (ZPhyzQuery.HasComp(uid) && !HasComp<CEActiveZPhysicsComponent>(uid))
                 EnsureComp<CEActiveZPhysicsComponent>(uid);
