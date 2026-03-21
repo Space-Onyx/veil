@@ -5,6 +5,7 @@
 
 using Content.Server.Administration;
 using Content.Server._CE.ZLevels.Core;
+using Content.Server._Utopia.ZLevels.Transmission.Systems;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared.Administration;
 using Robust.Server.GameObjects;
@@ -19,6 +20,7 @@ public sealed class CEInitializeZNetworkCommand : LocalizedEntityCommands
     [Dependency] private readonly IEntityManager _entities = default!;
     [Dependency] private readonly MapSystem _map = default!;
     [Dependency] private readonly CEZLevelsSystem _zLevels = default!; // <Onyx-Tweak>
+    [Dependency] private readonly ZLevelTransmissionSystem _zTransmission = default!; // <Onyx-Tweak>
 
     public override string Command => "znetwork-initialize";
     public override string Description => "Initialize all zNetwork maps. Warning! This will not add all components, that writed in gamemap prototype! So i think this command is useless, because all maps dont have lightning or even atmos :(";
@@ -86,5 +88,15 @@ public sealed class CEInitializeZNetworkCommand : LocalizedEntityCommands
         }
 
         _zLevels.StabilizeZPhysicsAfterMapInit(initializedMaps); // <Onyx-Tweak>
+
+        // <Onyx-Tweak>
+        var allNetworkMaps = new HashSet<EntityUid>();
+        foreach (var (_, m) in levelComp.ZLevels)
+        {
+            if (m.HasValue)
+                allNetworkMaps.Add(m.Value);
+        }
+        _zTransmission.RefreshTransmittersOnMaps(allNetworkMaps);
+        // </Onyx-Tweak>
     }
 }

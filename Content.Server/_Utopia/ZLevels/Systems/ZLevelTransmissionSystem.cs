@@ -4,6 +4,8 @@ using Content.Server._Utopia.ZLevels.Power;
 using Content.Shared._Utopia.ZLevels.Cables.Components;
 using Content.Server.Disposal.Tube;
 using Content.Server._Utopia.ZLevels.Disposal.Components;
+using Content.Server.NodeContainer.EntitySystems;
+using Content.Server.NodeContainer.NodeGroups;
 using Content.Server.NodeContainer.Nodes;
 using Content.Shared.NodeContainer;
 using Content.Shared._CE.ZLevels.Core.Components;
@@ -24,6 +26,7 @@ public sealed class ZLevelTransmissionSystem : EntitySystem
     [Dependency] private readonly EntityLookupSystem _lookup = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly ZCableSystem _zCables = default!;
+    [Dependency] private readonly NodeGroupSystem _nodeGroup = default!; // <Onyx-Tweak>
 
     public override void Initialize()
     {
@@ -33,6 +36,33 @@ public sealed class ZLevelTransmissionSystem : EntitySystem
 
     private void OnRefresh(EntityUid uid, ZLevelTransmitterComponent comp, ComponentStartup args)
         => Refresh(uid, comp);
+
+    // <Onyx-Tweak>
+    public void RefreshTransmittersOnMaps(HashSet<EntityUid> maps)
+    {
+        var query = EntityQueryEnumerator<ZLevelTransmitterComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out var comp, out var xform))
+        {
+            if (xform.MapUid is not { } mapUid || !maps.Contains(mapUid))
+                continue;
+
+            Refresh(uid, comp);
+        }
+
+        var cableQuery = EntityQueryEnumerator<ZCableComponent, NodeContainerComponent, TransformComponent>();
+        while (cableQuery.MoveNext(out _, out _, out var container, out var cXform))
+        {
+            if (cXform.MapUid is not { } cMapUid || !maps.Contains(cMapUid))
+                continue;
+
+            foreach (var node in container.Nodes.Values)
+            {
+                if (node is ZCableNode && node.NodeGroup is BaseNodeGroup group)
+                    _nodeGroup.QueueRemakeGroup(group);
+            }
+        }
+    }
+    // </Onyx-Tweak>
 
     private void OnMove(EntityUid uid, ZLevelTransmitterComponent comp, ref MoveEvent args)
     {

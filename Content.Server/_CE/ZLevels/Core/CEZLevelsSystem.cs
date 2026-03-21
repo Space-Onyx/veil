@@ -10,6 +10,7 @@ using Robust.Server.GameObjects;
 using Content.Server.Station.Components;
 using Content.Server.Station.Systems;
 using Content.Server.Station.Events;
+using Content.Server._Utopia.ZLevels.Transmission.Systems;
 using Robust.Shared.EntitySerialization.Systems;
 using Robust.Shared.Timing;
 
@@ -23,6 +24,7 @@ public sealed partial class CEZLevelsSystem : CESharedZLevelsSystem
     [Dependency] private readonly MetaDataSystem _meta = default!;
     [Dependency] private readonly StationSystem _station = default!;
     [Dependency] private readonly CEZLevelsSystem _zLevels = default!;
+    [Dependency] private readonly ZLevelTransmissionSystem _zTransmission = default!; // <Onyx-Tweak>
 
     public override void Initialize()
     {
@@ -123,7 +125,9 @@ public sealed partial class CEZLevelsSystem : CESharedZLevelsSystem
         }
 
         TryAddMapsIntoZNetwork(stationNetwork, dict);
-        StabilizeZPhysicsAfterMapInit(new HashSet<EntityUid>(dict.Keys)); // <Onyx-Tweak>
+        var mapSet = new HashSet<EntityUid>(dict.Keys); // <Onyx-Tweak>
+        StabilizeZPhysicsAfterMapInit(mapSet); // <Onyx-Tweak>
+        _zTransmission.RefreshTransmittersOnMaps(mapSet); // <Onyx-Tweak>
     }
 
     private void OnGameMapLoad(PostGameMapLoad ev)
@@ -177,6 +181,8 @@ public sealed partial class CEZLevelsSystem : CESharedZLevelsSystem
         }
 
         TryAddMapsIntoZNetwork(stationNetwork, dict);
-        StabilizeZPhysicsAfterMapInit(new HashSet<EntityUid>(dict.Keys)); // <Onyx-Tweak>
+        var mapSet = new HashSet<EntityUid>(dict.Keys); // <Onyx-Tweak>
+        StabilizeZPhysicsAfterMapInit(mapSet); // <Onyx-Tweak>
+        _zTransmission.RefreshTransmittersOnMaps(mapSet); // <Onyx-Tweak>
     }
 }

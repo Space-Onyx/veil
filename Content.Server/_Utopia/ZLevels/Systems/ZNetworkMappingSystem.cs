@@ -3,6 +3,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text.Json;
 using Content.Server._CE.ZLevels.Core;
+using Content.Server._Utopia.ZLevels.Transmission.Systems;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._Utopia.ZLevels.Components;
 using Content.Shared._Utopia.ZLevels.Systems;
@@ -25,6 +26,7 @@ public sealed class ZNetworkMappingSystem : EntitySystem
     [Dependency] private readonly CEZLevelsSystem _zLevels = default!;
     [Dependency] private readonly TransformSystem _transform = default!;
     [Dependency] private readonly SharedGridMotionLinkSystem _motionLink = default!;
+    [Dependency] private readonly ZLevelTransmissionSystem _zTransmission = default!; // <Onyx-Tweak>
 
     #region Saving
     public bool TrySaveMap(string path, EntityUid target, [NotNullWhen(false)] out string? error)
@@ -315,7 +317,13 @@ public sealed class ZNetworkMappingSystem : EntitySystem
             }
         }
 
-        return _zLevels.TryAddMapsIntoZNetwork(network, maps);
+        // <Onyx-Tweak edited>
+        if (!_zLevels.TryAddMapsIntoZNetwork(network, maps))
+            return false;
+
+        _zTransmission.RefreshTransmittersOnMaps(new HashSet<EntityUid>(maps.Keys));
+        return true;
+        // </Onyx-Tweak edited>
     }
 
     private bool LoadMap(string path, MapId mapId, SavedZNetworkMapData data,
@@ -350,6 +358,8 @@ public sealed class ZNetworkMappingSystem : EntitySystem
             _motionLink.UpdateOffset(linked);
         foreach (var linked in ents)
             Dirty(linked);
+
+        _zTransmission.RefreshTransmittersOnMaps(new HashSet<EntityUid>(maps.Keys)); // <Onyx-Tweak>
 
         return true;
     }
@@ -411,6 +421,16 @@ public sealed class ZNetworkMappingSystem : EntitySystem
             _motionLink.UpdateOffset(linked);
         foreach (var linked in linkedGrids)
             Dirty(linked);
+
+        // <Onyx-Tweak>
+        var allMaps = new HashSet<EntityUid>(addedMaps.Keys);
+        foreach (var (_, m) in levels)
+        {
+            if (m.HasValue)
+                allMaps.Add(m.Value);
+        }
+        _zTransmission.RefreshTransmittersOnMaps(allMaps);
+        // </Onyx-Tweak>
 
         return true;
     }
