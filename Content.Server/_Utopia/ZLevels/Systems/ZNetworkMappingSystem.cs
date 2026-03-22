@@ -234,16 +234,26 @@ public sealed class ZNetworkMappingSystem : EntitySystem
             return false;
         }
 
-        // <Onyx-Fix>
+        // <Onyx-Tweak>
         var dataPath = new ResPath($"{path}/map-data.json").ToRootedPath();
-        if (!_resMan.UserData.TryReadAllText(dataPath, out var rawData))
-        // </Onyx-Fix>
+        string? rawData = null;
+        if (_resMan.UserData.Exists(dataPath))
+        {
+            rawData = _resMan.UserData.ReadAllText(dataPath);
+        }
+        else if (_resMan.TryContentFileRead(dataPath, out var stream))
+        {
+            using var reader = new System.IO.StreamReader(stream);
+            rawData = reader.ReadToEnd();
+        }
+        else
         {
             error = "Could not find map-data.json file in target directory.";
             return false;
         }
+        // </Onyx-Tweak>
 
-        var data = JsonSerializer.Deserialize<SavedZNetworkMapData>(rawData);
+        var data = JsonSerializer.Deserialize<SavedZNetworkMapData>(rawData!); // <Onyx-Tweak edited>
 
         if (data == null)
         {
@@ -267,14 +277,26 @@ public sealed class ZNetworkMappingSystem : EntitySystem
     {
         error = null;
 
+        // <Onyx-Tweak>
         var dataPath = new ResPath($"{path}/grid-data.json").ToRootedPath();
-        if (!_resMan.UserData.TryReadAllText(dataPath, out var rawData))
+        string? rawData = null;
+        if (_resMan.UserData.Exists(dataPath))
+        {
+            rawData = _resMan.UserData.ReadAllText(dataPath);
+        }
+        else if (_resMan.TryContentFileRead(dataPath, out var gridStream))
+        {
+            using var reader = new System.IO.StreamReader(gridStream);
+            rawData = reader.ReadToEnd();
+        }
+        else
         {
             error = "Could not find grid-data.json file in target directory.";
             return false;
         }
+        // </Onyx-Tweak>
 
-        var data = JsonSerializer.Deserialize<SavedZNetworkGridData>(rawData);
+        var data = JsonSerializer.Deserialize<SavedZNetworkGridData>(rawData!); // <Onyx-Tweak edited>
 
         if (data == null)
         {

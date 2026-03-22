@@ -12,6 +12,8 @@ using Content.Server.Station.Systems;
 using Content.Server.Station.Events;
 using Content.Server._Utopia.ZLevels.Transmission.Systems;
 using Robust.Shared.EntitySerialization.Systems;
+using Robust.Shared.Map;
+using Robust.Shared.Map.Components;
 using Robust.Shared.Timing;
 
 namespace Content.Server._CE.ZLevels.Core;
@@ -52,19 +54,27 @@ public sealed partial class CEZLevelsSystem : CESharedZLevelsSystem
         ent.Comp.ZNetworkEntity = stationNetwork;
         _meta.SetEntityName(ent.Comp.ZNetworkEntity.Value, $"Station z-Network: {stationName}");
 
-        var mainMap =  _station.GetLargestGrid(ent.Owner);
+        var mainGrid =  _station.GetLargestGrid(ent.Owner); // <Onyx-Tweak edited>
 
-        if (mainMap is null)
+        if (mainGrid is null) // <Onyx-Tweak edited>
             throw new Exception("Station has no grids to base z-levels off of!");
 
         // <Onyx-Tweak>
+        var mainMap = Transform(mainGrid.Value).MapUid;
+        if (mainMap is null)
+            throw new Exception("Station grid has no map entity!");
+
         string? stationId = null;
-        if (TryComp<BecomesStationComponent>(mainMap.Value, out var mainBecomes))
+        if (TryComp<BecomesStationComponent>(mainGrid.Value, out var mainBecomes))
             stationId = mainBecomes.Id;
         // </Onyx-Tweak>
 
         Dictionary<EntityUid, int> dict = new();
         dict.Add(mainMap.Value, 0);
+
+        // <Onyx-Tweak>
+        var mapsToInit = new List<MapId>();
+        // </Onyx-Tweak>
 
         //Loading maps below first
         var depth = ent.Comp.MapsBelow.Count * -1;
@@ -77,7 +87,6 @@ public sealed partial class CEZLevelsSystem : CESharedZLevelsSystem
             }
 
             Log.Info($"Created map {mapEnt.Value.Comp.MapId} for Station zNetwork at level {depth}");
-            _map.InitializeMap(mapEnt.Value.Comp.MapId);
             _meta.SetEntityName(mapEnt.Value, $"{stationName} [{depth}]");
 
             // <Onyx-Tweak>
@@ -92,6 +101,7 @@ public sealed partial class CEZLevelsSystem : CESharedZLevelsSystem
             // </Onyx-Tweak>
 
             dict.Add(mapEnt.Value, depth);
+            mapsToInit.Add(mapEnt.Value.Comp.MapId); // <Onyx-Tweak>
             depth++;
         }
 
@@ -106,7 +116,6 @@ public sealed partial class CEZLevelsSystem : CESharedZLevelsSystem
             }
 
             Log.Info($"Created map {mapEnt.Value.Comp.MapId} for Station zNetwork at level {depth}");
-            _map.InitializeMap(mapEnt.Value.Comp.MapId);
             _meta.SetEntityName(mapEnt.Value, $"{stationName} [{depth}]");
 
             // <Onyx-Tweak>
@@ -121,13 +130,22 @@ public sealed partial class CEZLevelsSystem : CESharedZLevelsSystem
             // </Onyx-Tweak>
 
             dict.Add(mapEnt.Value, depth);
+            mapsToInit.Add(mapEnt.Value.Comp.MapId); // <Onyx-Tweak>
             depth++;
         }
 
+        // <Onyx-Tweak>.
         TryAddMapsIntoZNetwork(stationNetwork, dict);
-        var mapSet = new HashSet<EntityUid>(dict.Keys); // <Onyx-Tweak>
-        StabilizeZPhysicsAfterMapInit(mapSet); // <Onyx-Tweak>
-        _zTransmission.RefreshTransmittersOnMaps(mapSet); // <Onyx-Tweak>
+
+        foreach (var mapId in mapsToInit)
+        {
+            _map.InitializeMap(mapId);
+        }
+
+        var mapSet = new HashSet<EntityUid>(dict.Keys);
+        StabilizeZPhysicsAfterMapInit(mapSet);
+        _zTransmission.RefreshTransmittersOnMaps(mapSet);
+        // </Onyx-Tweak>
     }
 
     private void OnGameMapLoad(PostGameMapLoad ev)

@@ -90,6 +90,8 @@ public sealed class ZLevelTransmissionSystem : EntitySystem
         link.AboveMap = transmitter.AllowUp ? GetNeighborMap(ctx, 1) : null;
         link.BelowMap = transmitter.AllowDown ? GetNeighborMap(ctx, -1) : null;
 
+        Log.Warning($"[ZTransmission] Refresh({uid}): depth={link.Depth}, above={link.AboveMap}, below={link.BelowMap}, hasPipe={HasComp<ZPipeComponent>(uid)}, hasCable={HasComp<ZCableComponent>(uid)}");
+
         if (HasComp<ZPipeComponent>(uid))
             RebuildPipeLinks(uid, link, transmitter);
 
@@ -324,17 +326,11 @@ public sealed class ZLevelTransmissionSystem : EntitySystem
         TransformComponent xform,
         float range)
     {
-        var tile = grid.TileIndicesFor(xform.Coordinates);
-        var tileSize = grid.TileSize;
-
-        var origin =
-            _transform.GetWorldPosition(gridUid) +
-            new Vector2(tile.X * tileSize, tile.Y * tileSize);
-
-        var center = origin + new Vector2(tileSize / 2f, tileSize / 2f);
-
+        // <Onyx-Tweak>
+        var center = _transform.GetWorldPosition(xform);
         var half = new Vector2(range / 2f, range / 2f);
         return new Box2(center - half, center + half);
+        // </Onyx-Tweak>
     }
 
     private bool TryGetContext(EntityUid uid, out ZLevelContext ctx)

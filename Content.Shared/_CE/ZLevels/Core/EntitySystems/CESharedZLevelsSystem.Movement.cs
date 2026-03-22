@@ -133,6 +133,12 @@ public abstract partial class CESharedZLevelsSystem
     private void OnMoveEvent(Entity<CEZPhysicsComponent> ent, ref MoveEvent args)
     {
         // <Onyx-Tweak>
+        var moveXform = Transform(ent);
+        if (moveXform.ParentUid != moveXform.MapUid && !_gridQuery.HasComp(moveXform.ParentUid))
+            return;
+        // </Onyx-Tweak>
+
+        // <Onyx-Tweak>
         var groundH = ent.Comp.CurrentGroundHeight;
         var isOnHighGround = Math.Abs(groundH) > 0.001f && Math.Abs(groundH - (-1f)) > 0.001f;
 

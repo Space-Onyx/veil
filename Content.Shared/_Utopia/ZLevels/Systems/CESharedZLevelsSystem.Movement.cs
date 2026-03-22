@@ -22,12 +22,15 @@ public abstract partial class CESharedZLevelsSystem
                                 float frameTime)
     {
         // <Onyx-Tweak>
+        if (xform.ParentUid != xform.MapUid && !_gridQuery.HasComp(xform.ParentUid))
+        {
+            RemComp<CEActiveZPhysicsComponent>(uid);
+            return;
+        }
         if (!zPhys.GroundCacheValid || zPhys.GroundCacheGeneration != _groundCacheGeneration)
         {
             CacheMovement((uid, zPhys));
         }
-
-        // <Onyx-Tweak>
         if (!_timing.ApplyingState && Math.Abs(zPhys.Velocity) < 0.001f && Math.Abs(zPhys.LocalPosition) < 0.05f)
         {
             if (zPhys.IsGrounded && Math.Abs(zPhys.CurrentGroundHeight) < 0.001f)
@@ -35,13 +38,11 @@ public abstract partial class CESharedZLevelsSystem
                 RemComp<CEActiveZPhysicsComponent>(uid);
                 return;
             }
-            // <Onyx-Tweak>
             if (!zPhys.IsGrounded && zPhys.CurrentGroundHeight < -0.5f && !HasZNetworkGravity(xform))
             {
                 RemComp<CEActiveZPhysicsComponent>(uid);
                 return;
             }
-            // </Onyx-Tweak>
         }
         // </Onyx-Tweak>
 
@@ -51,7 +52,6 @@ public abstract partial class CESharedZLevelsSystem
         // <Onyx-Tweak>
         if (physics.BodyStatus == BodyStatus.OnGround || HasZNetworkGravity(xform))
         {
-            //Velocity application
             var velocityEv = new CEGetZVelocityEvent((uid, zPhys));
             RaiseLocalEvent(uid, ref velocityEv);
 

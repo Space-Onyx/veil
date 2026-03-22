@@ -247,8 +247,11 @@ public sealed partial class RadioSystem : EntitySystem
         RaiseLocalEvent(radioSource, ref sendAttemptEv);
         var canSend = !sendAttemptEv.Cancelled;
 
-        var sourceMapId = Transform(radioSource).MapID;
-        var hasActiveServer = HasActiveServer(sourceMapId, channel.ID);
+        // <Onyx-Tweak edited>
+        var sourceXform = Transform(radioSource);
+        var sourceMapId = sourceXform.MapID;
+        var hasActiveServer = HasActiveServer(sourceMapId, channel.ID, sourceXform.MapUid);
+        // </Onyx-Tweak edited>
         var sourceServerExempt = _exemptQuery.HasComp(radioSource);
 
         var radioQuery = EntityQueryEnumerator<ActiveRadioComponent, TransformComponent>();
@@ -414,20 +417,25 @@ public sealed partial class RadioSystem : EntitySystem
     // Einstein Engines - Language end
 
     /// <inheritdoc cref="TelecomServerComponent"/>
-    private bool HasActiveServer(MapId mapId, string channelId)
+    // <Onyx-Tweak Edited>
+    private bool HasActiveServer(MapId mapId, string channelId, EntityUid? sourceMapUid = null)
     {
         var servers = EntityQuery<TelecomServerComponent, EncryptionKeyHolderComponent, ApcPowerReceiverComponent, TransformComponent>();
         foreach (var (_, keys, power, transform) in servers)
         {
-            if (transform.MapID == mapId &&
-                power.Powered &&
-                keys.Channels.Contains(channelId))
-            {
+            if (!power.Powered || !keys.Channels.Contains(channelId))
+                continue;
+
+            if (transform.MapID == mapId)
                 return true;
-            }
+
+            if (sourceMapUid is { } srcMap && transform.MapUid is { } serverMap
+                && _zLevels.AreOnSameZNetwork(srcMap, serverMap))
+                return true;
         }
         return false;
     }
+    // </Onyx-Tweak Edited>
 
     /// <inheritdoc cref="TelecomServerComponent"/>
     private bool HasActiveTransmitter(MapId mapId)
