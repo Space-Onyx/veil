@@ -1,8 +1,8 @@
 - type: entity
   parent: GasPipeBase
   id: UtopiaGasZPipeStraightUp
-  name: UP
-  suffix: Straight
+  name: gas pipe
+  suffix: Straight, Up
   placement:
     mode: AlignAtmosPipeLayers
   components:
@@ -34,8 +34,8 @@
 - type: entity
   parent: GasPipeBase
   id: UtopiaGasZPipeStraightDown
-  name: DOWN
-  suffix: Straight
+  name: gas pipe
+  suffix: Straight, Down
   placement:
     mode: AlignAtmosPipeLayers
   components:

@@ -1068,3 +1068,11 @@ PlushieLeguia: null
 PlushiePasha: null
 PlushieWachtel: null
 DVSmartFridge: SmartFridge
+
+#2026-3-22 Onyx
+EchoZCableHVUp: ZCableHVUp
+EchoZCableHVDown: ZCableHVDown
+EchoZCableMVUp: ZCableMVUp
+EchoZCableMVDown: ZCableMVDown
+EchoZCableLVUp: ZCableLVUp
+EchoZCableLVDown: ZCableLVDown

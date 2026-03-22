@@ -1,8 +1,9 @@
 - type: entity
   parent: CableHV
-  id: EchoZCableHVUp
+  id: ZCableHVUp
   name: HV power cable
   description: An orange high voltage power cable.
+  suffix: Up
   components:
     - type: NodeContainer
       nodes:
@@ -17,9 +18,10 @@
 
 - type: entity
   parent: CableHV
-  id: EchoZCableHVDown
+  id: ZCableHVDown
   name: HV power cable
   description: An orange high voltage power cable.
+  suffix: Down
   components:
     - type: NodeContainer
       nodes:
@@ -34,9 +36,10 @@
 
 - type: entity
   parent: CableMV
-  id: EchoZCableMVUp
+  id: ZCableMVUp
   name: HV power cable
   description: An orange high voltage power cable.
+  suffix: Up
   components:
     - type: NodeContainer
       nodes:
@@ -51,9 +54,10 @@
 
 - type: entity
   parent: CableMV
-  id: EchoZCableMVDown
+  id: ZCableMVDown
   name: HV power cable
   description: An orange high voltage power cable.
+  suffix: Down
   components:
     - type: NodeContainer
       nodes:
@@ -71,6 +75,7 @@
   id: EchoZCableLVUp
   name: HV power cable
   description: An orange high voltage power cable.
+  suffix: Up
   components:
     - type: NodeContainer
       nodes:
@@ -85,9 +90,10 @@
 
 - type: entity
   parent: CableApcExtension
-  id: EchoZCableLVDown
+  id: ZCableLVDown
   name: HV power cable
   description: An orange high voltage power cable.
+  suffix: Down
   components:
     - type: NodeContainer
       nodes:
