@@ -7,6 +7,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using Content.Shared.Gravity;
+using Content.Shared._Utopia.ZLevels.Components;
 using JetBrains.Annotations;
 using Robust.Shared.Map.Components;
 
@@ -32,16 +33,7 @@ namespace Content.Server.Gravity
             if (gravity.Inherent)
                 return;
 
-            var enabled = false;
-
-            foreach (var (comp, xform) in EntityQuery<GravityGeneratorComponent, TransformComponent>(true))
-            {
-                if (!comp.GravityActive || xform.ParentUid != uid)
-                    continue;
-
-                enabled = true;
-                break;
-            }
+            var enabled = HasActiveGeneratorOnLinkedGrids(uid); // <Onyx-Tweak Edited>
 
             if (enabled != gravity.Enabled)
             {
@@ -85,5 +77,54 @@ namespace Content.Server.Gravity
                 StartGridShake(uid);
             }
         }
+
+        // <Onyx-Tweak>
+        private bool HasActiveGeneratorOnLinkedGrids(EntityUid gridUid)
+        {
+            foreach (var (comp, xform) in EntityQuery<GravityGeneratorComponent, TransformComponent>(true))
+            {
+                if (!comp.GravityActive || xform.ParentUid != gridUid)
+                    continue;
+
+                return true;
+            }
+
+            if (!TryComp<GridMotionLinkComponent>(gridUid, out var link) || string.IsNullOrEmpty(link.GroupId))
+                return false;
+
+            var query = EntityQueryEnumerator<GridMotionLinkComponent, MapGridComponent>();
+            while (query.MoveNext(out var otherGridUid, out var otherLink, out _))
+            {
+                if (otherGridUid == gridUid || otherLink.GroupId != link.GroupId)
+                    continue;
+
+                foreach (var (comp, xform) in EntityQuery<GravityGeneratorComponent, TransformComponent>(true))
+                {
+                    if (!comp.GravityActive || xform.ParentUid != otherGridUid)
+                        continue;
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        public void RefreshLinkedGravity(EntityUid gridUid)
+        {
+            RefreshGravity(gridUid);
+
+            if (!TryComp<GridMotionLinkComponent>(gridUid, out var link) || string.IsNullOrEmpty(link.GroupId))
+                return;
+
+            var query = EntityQueryEnumerator<GridMotionLinkComponent, GravityComponent>();
+            while (query.MoveNext(out var otherUid, out var otherLink, out var otherGravity))
+            {
+                if (otherUid == gridUid || otherLink.GroupId != link.GroupId)
+                    continue;
+
+                RefreshGravity(otherUid, otherGravity);
+            }
+        }
+        // </Onyx-Tweak>
     }
 }

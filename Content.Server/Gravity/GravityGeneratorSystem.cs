@@ -59,10 +59,13 @@ public sealed class GravityGeneratorSystem : EntitySystem
 
         var xform = Transform(ent);
 
+        // <Onyx-Tweak>
         if (TryComp(xform.ParentUid, out GravityComponent? gravity))
         {
             _gravitySystem.EnableGravity(xform.ParentUid, gravity);
+            _gravitySystem.RefreshLinkedGravity(xform.ParentUid);
         }
+        // </Onyx-Tweak>
     }
 
     private void OnDeactivated(Entity<GravityGeneratorComponent> ent, ref ChargedMachineDeactivatedEvent args)
@@ -71,17 +74,21 @@ public sealed class GravityGeneratorSystem : EntitySystem
 
         var xform = Transform(ent);
 
-        if (TryComp(xform.ParentUid, out GravityComponent? gravity))
+        // <Onyx-Tweak>
+        if (HasComp<GravityComponent>(xform.ParentUid))
         {
-            _gravitySystem.RefreshGravity(xform.ParentUid, gravity);
+            _gravitySystem.RefreshLinkedGravity(xform.ParentUid);
         }
+        // </Onyx-Tweak>
     }
 
     private void OnParentChanged(EntityUid uid, GravityGeneratorComponent component, ref EntParentChangedMessage args)
     {
-        if (component.GravityActive && TryComp(args.OldParent, out GravityComponent? gravity))
+        // <Onyx-Tweak>
+        if (component.GravityActive && HasComp<GravityComponent>(args.OldParent))
         {
-            _gravitySystem.RefreshGravity(args.OldParent.Value, gravity);
+            _gravitySystem.RefreshLinkedGravity(args.OldParent.Value);
         }
+        // </Onyx-Tweak>
     }
 }
