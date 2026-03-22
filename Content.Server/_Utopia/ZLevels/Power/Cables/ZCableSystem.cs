@@ -3,6 +3,7 @@ using Content.Server.NodeContainer;
 using Content.Server.NodeContainer.Nodes;
 using Content.Server._Utopia.ZLevels.Nodes;
 using Content.Shared.NodeContainer;
+using Content.Shared._Utopia.ZLevels.Cables.Components;
 using Robust.Shared.GameObjects;
 
 namespace Content.Server._Utopia.ZLevels.Power;
@@ -11,13 +12,32 @@ public sealed class ZCableSystem : EntitySystem
 {
     private readonly Dictionary<ZCableNode, HashSet<ZCableNode>> _connections = new();
 
+    // <Onyx-Tweak>
+    public override void Initialize()
+    {
+        SubscribeLocalEvent<ZCableComponent, ComponentShutdown>(OnShutdown);
+    }
+
+    private void OnShutdown(EntityUid uid, ZCableComponent comp, ComponentShutdown args)
+    {
+        if (TryComp(uid, out NodeContainerComponent? container))
+            ClearAll(container);
+    }
+    // </Onyx-Tweak>
+
+    // <Onyx-Tweak> Filter out nodes from deleted entities
     public IEnumerable<Node> GetZReachable(ZCableNode node)
     {
-        if (_connections.TryGetValue(node, out var set))
-            return set;
+        if (!_connections.TryGetValue(node, out var set))
+            yield break;
 
-        return new List<Node>();
+        foreach (var other in set)
+        {
+            if (!EntityManager.Deleted(other.Owner))
+                yield return other;
+        }
     }
+    // </Onyx-Tweak>
     
     public void AddZConnection(ZCableNode a, ZCableNode b)
     {

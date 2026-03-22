@@ -41,7 +41,7 @@
     - type: NodeContainer
       nodes:
         power: !type:ZCableNode
-          nodeGroupID: HVPower
+          nodeGroupID: MVPower
           zDirection: Up
     - type: ZCable
     - type: ZLevelTransmitter
@@ -58,7 +58,7 @@
     - type: NodeContainer
       nodes:
         power: !type:ZCableNode
-          nodeGroupID: HVPower
+          nodeGroupID: MVPower
           zDirection: Down
     - type: ZCable
     - type: ZLevelTransmitter
@@ -75,7 +75,7 @@
     - type: NodeContainer
       nodes:
         power: !type:ZCableNode
-          nodeGroupID: HVPower
+          nodeGroupID: Apc
           zDirection: Up
     - type: ZCable
     - type: ZLevelTransmitter
@@ -92,7 +92,7 @@
     - type: NodeContainer
       nodes:
         power: !type:ZCableNode
-          nodeGroupID: HVPower
+          nodeGroupID: Apc
           zDirection: Down
     - type: ZCable
     - type: ZLevelTransmitter

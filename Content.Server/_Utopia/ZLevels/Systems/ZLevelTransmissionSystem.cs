@@ -31,8 +31,20 @@ public sealed class ZLevelTransmissionSystem : EntitySystem
     public override void Initialize()
     {
         SubscribeLocalEvent<ZLevelTransmitterComponent, ComponentStartup>(OnRefresh);
+        SubscribeLocalEvent<ZLevelTransmitterComponent, ComponentShutdown>(OnShutdown);
         SubscribeLocalEvent<ZLevelTransmitterComponent, MoveEvent>(OnMove);
     }
+
+    // <Onyx-Tweak>
+    private void OnShutdown(EntityUid uid, ZLevelTransmitterComponent comp, ComponentShutdown args)
+    {
+        if (TryComp(uid, out NodeContainerComponent? container))
+        {
+            _zPipes.ClearAll(container);
+            _zCables.ClearAll(container);
+        }
+    }
+    // </Onyx-Tweak>
 
     private void OnRefresh(EntityUid uid, ZLevelTransmitterComponent comp, ComponentStartup args)
         => Refresh(uid, comp);
