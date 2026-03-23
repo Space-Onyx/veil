@@ -465,29 +465,52 @@ public abstract partial class CESharedZLevelsSystem
         return interiorHoles;
     }
 
-    private bool HasZNetworkGravity(TransformComponent xform)
+    private bool HasGravityOnMap(MapId mapId)
     {
-        if (xform.MapUid is not { } mapUid)
-            return false;
-
-        if (!_zMapQuery.HasComp(mapUid) || !_mapQuery.TryComp(mapUid, out var mapComp))
-            return false;
-
-        foreach (var grid in GetCachedGrids(mapComp.MapId))
+        foreach (var grid in GetCachedGrids(mapId))
         {
             if (_gravityQuery.TryComp(grid.Owner, out var gravity) && gravity.Enabled)
                 return true;
         }
 
-        if (TryMapUp(mapUid, out var mapAbove) &&
-            _mapQuery.TryComp(mapAbove.Value.Owner, out var aboveMapComp))
+        return false;
+    }
+
+    private bool HasZNetworkGravity(TransformComponent xform)
+    {
+        if (xform.MapUid is not { } mapUid ||
+            !_zMapQuery.TryComp(mapUid, out var zMap) ||
+            !_mapQuery.TryComp(mapUid, out var mapComp))
+            return false;
+
+        if (xform.GridUid is { } gridUid)
+            return _gravityQuery.TryComp(gridUid, out var gridGravity) && gridGravity.Enabled;
+
+        var worldPos = _transform.GetWorldPosition(xform);
+        var currentMap = (mapUid, zMap);
+        var inInteriorHole = IsOverInteriorHole(mapUid, worldPos);
+
+        if (!inInteriorHole &&
+            TryMapDown(currentMap, out var belowMap))
         {
-            foreach (var grid in GetCachedGrids(aboveMapComp.MapId))
-            {
-                if (_gravityQuery.TryComp(grid.Owner, out var gravAbove) && gravAbove.Enabled)
-                    return true;
-            }
+            inInteriorHole = IsOverInteriorHole(belowMap.Value.Owner, worldPos);
         }
+
+        if (!inInteriorHole)
+            return false;
+
+        if (HasGravityOnMap(mapComp.MapId))
+            return true;
+
+        if (TryMapUp(currentMap, out var mapAbove) &&
+            _mapQuery.TryComp(mapAbove.Value.Owner, out var aboveMapComp) &&
+            HasGravityOnMap(aboveMapComp.MapId))
+            return true;
+
+        if (TryMapDown(currentMap, out var mapBelow) &&
+            _mapQuery.TryComp(mapBelow.Value.Owner, out var belowMapComp) &&
+            HasGravityOnMap(belowMapComp.MapId))
+            return true;
 
         return false;
     }
