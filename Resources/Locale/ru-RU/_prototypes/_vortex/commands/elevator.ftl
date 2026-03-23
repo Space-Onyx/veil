@@ -86,3 +86,5 @@ elevator-config-ui-save-point = Сохранить настройки точки
 elevator-config-ui-button-type-call = Кнопка вызова
 elevator-config-ui-button-type-down = Отправить лифт вниз
 elevator-config-ui-button-type-up = Отправить лифт вверх
+
+elevator-config-verb-get-data-text = Настройка лифта

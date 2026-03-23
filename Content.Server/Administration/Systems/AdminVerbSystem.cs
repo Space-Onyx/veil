@@ -126,6 +126,7 @@
 using Content.Server.Administration.Logs;
 using Content.Server.Administration.Managers;
 using Content.Server.Administration.UI;
+using Content.Server._Onyx.Elevator;
 using Content.Server.Disposal.Tube;
 using Content.Server.EUI;
 using Content.Server.Ghost.Roles;
@@ -710,6 +711,25 @@ namespace Content.Server.Administration.Systems
                 };
                 args.Verbs.Add(verb);
             }
+
+            // <Onyx-Tweak>
+            if (_adminManager.HasAdminFlag(player, AdminFlags.Mapping) &&
+                (HasComp<ElevatorComponent>(args.Target) ||
+                 HasComp<ElevatorButtonComponent>(args.Target) ||
+                 HasComp<ElevatorDoorComponent>(args.Target) ||
+                 HasComp<ElevatorPointComponent>(args.Target)))
+            {
+                Verb verb = new()
+                {
+                    Text = Loc.GetString("elevator-config-verb-get-data-text"),
+                    Category = VerbCategory.Debug,
+                    Icon = new SpriteSpecifier.Texture(new("/Textures/Interface/VerbIcons/settings.svg.192dpi.png")),
+                    Act = () => _euiManager.OpenEui(new ElevatorConfigEui(args.Target), player),
+                    Impact = LogImpact.Medium
+                };
+                args.Verbs.Add(verb);
+            }
+            // </Onyx-Tweak>
         }
 
         #region SolutionsEui

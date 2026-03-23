@@ -86,3 +86,5 @@ elevator-config-ui-save-point = Save point settings
 elevator-config-ui-button-type-call = Call Button
 elevator-config-ui-button-type-down = Send Elevator Down
 elevator-config-ui-button-type-up = Send Elevator Up
+
+elevator-config-verb-get-data-text = Configure Elevator
