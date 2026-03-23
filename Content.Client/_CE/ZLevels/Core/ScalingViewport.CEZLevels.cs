@@ -55,9 +55,6 @@ public sealed partial class ScalingViewport
     private readonly ZEye _sharedZEye = new();
     // </Onyx-Tweak>
 
-    // <Onyx-Tweak>
-    private const int EmptyTileCacheChunkSize = 3;
-
     private bool TryFindEmptyTilesCached(EntityUid mapUid, Vector2 centerPosition, float searchRadius)
     {
         if (_timing.CurTime >= _emptyTileCacheExpiry)
@@ -67,10 +64,8 @@ public sealed partial class ScalingViewport
         }
 
         var radius = searchRadius > 0f ? (int) MathF.Ceiling(searchRadius) : 0;
-        var chunkX = (int) MathF.Floor(centerPosition.X / EmptyTileCacheChunkSize);
-        var chunkY = (int) MathF.Floor(centerPosition.Y / EmptyTileCacheChunkSize);
         var cacheKey = radius > 0
-            ? (mapUid, chunkX, chunkY, radius)
+            ? (mapUid, (int) MathF.Floor(centerPosition.X), (int) MathF.Floor(centerPosition.Y), radius)
             : (mapUid, int.MinValue, int.MinValue, 0);
 
         if (_emptyTileCache.TryGetValue(cacheKey, out var cached))
@@ -80,7 +75,6 @@ public sealed partial class ScalingViewport
         _emptyTileCache[cacheKey] = result;
         return result;
     }
-    // </Onyx-Tweak>
 
     /// <summary>
     /// We are looking for at least one empty tile on the screen.
@@ -90,26 +84,6 @@ public sealed partial class ScalingViewport
     {
         if (_xformQuery is null || !_xformQuery.Value.TryComp(mapUid, out var xform))
             return true;
-
-        // <Onyx-Tweak>
-        if (searchRadius > 0f)
-        {
-            var playerMapCoords = new MapCoordinates(centerPosition, xform.MapID);
-            if (_mapManager.TryFindGridAt(mapUid, centerPosition, out _, out var playerGrid))
-            {
-                var playerTile = playerGrid.GetTileRef(playerGrid.TileIndicesFor(playerMapCoords));
-                if (playerTile.Tile.IsEmpty)
-                    return true;
-                var playerTileDef = (ContentTileDefinition) _tile[playerTile.Tile.TypeId];
-                if (playerTileDef.Transparent)
-                    return true;
-            }
-            else
-            {
-                return true;
-            }
-        }
-        // </Onyx-Tweak>
 
         var drawBox = GetDrawBox();
         var mapId = xform.MapID;
@@ -281,11 +255,11 @@ public sealed partial class ScalingViewport
         var placementOverlay = _cachedPlacementOverlay;
         var placementRemoved = false;
 
-        // <Onyx-Tweak>
+        // <Onyx-Tweak> 
         var zLevelOffset = _cachedZLevelOffset;
         Angle rotation = _fallbackEye.Rotation * -1;
         var rotationVector = rotation.ToWorldVec();
-        // <Onyx-Tweak>
+        // <Onyx-Tweak> 
 
         //From the lowest depth to the highest, render each level
         for (var depth = lowestDepth; depth <= lookUp; depth++)
@@ -335,7 +309,7 @@ public sealed partial class ScalingViewport
 
                 var offset = rotationVector * zLevelOffset * depth; // <Onyx-Tweak Edited>
 
-                // <Onyx-Tweak>
+                // <Onyx-Tweak> 
                 _sharedZEye.LowestDepth = lowestDepth;
                 _sharedZEye.Depth = depth;
                 _sharedZEye.HighestDepth = lookUp;
@@ -347,7 +321,7 @@ public sealed partial class ScalingViewport
                 _sharedZEye.Scale = _fallbackEye.Scale;
 
                 viewport.Eye = _sharedZEye;
-                // </Onyx-Tweak> 
+                // <Onyx-Tweak> 
             }
 
             viewport.ClearColor = depth == lowestDepth ? Color.Black : null;
