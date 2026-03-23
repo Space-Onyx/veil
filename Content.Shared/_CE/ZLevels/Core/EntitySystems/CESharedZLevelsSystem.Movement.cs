@@ -430,9 +430,10 @@ public abstract partial class CESharedZLevelsSystem
         // <Onyx-Tweak>
         if (IsOpenSpaceAtCurrentLevel(ent))
             return false;
-        // <Onyx-Tweak>
 
-        //welp, that default Chasm behavior. Not really good, but ok for now.
+        if (!Cfg.GetCVar(CCVars.ZLevelChasmFallEnabled))
+            return false;
+        // </Onyx-Tweak>
         if (HasComp<ChasmFallingComponent>(ent))
             return false; //Already falling
 

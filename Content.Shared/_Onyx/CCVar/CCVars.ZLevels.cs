@@ -8,6 +8,9 @@ public sealed partial class CCVars
     public static readonly CVarDef<float> ZImpactVelocityLimit =
         CVarDef.Create("zlevels.impact_velocity_limit", 0.75f, CVar.SERVER | CVar.REPLICATED | CVar.ARCHIVE);
 
+    public static readonly CVarDef<bool> ZLevelChasmFallEnabled =
+        CVarDef.Create("zlevels.chasm_fall_enabled", false, CVar.SERVER | CVar.REPLICATED | CVar.ARCHIVE);
+
     public static readonly CVarDef<int> MaxZLevelsBelowRendering =
         CVarDef.Create("zlevels.max_z_levels_below_rendering", 3, CVar.SERVER | CVar.REPLICATED | CVar.ARCHIVE);
 
