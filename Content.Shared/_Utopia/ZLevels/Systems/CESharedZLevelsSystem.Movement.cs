@@ -179,10 +179,7 @@ public abstract partial class CESharedZLevelsSystem
 
         else if (zPhys.LocalPosition >= 1) //Need teleport to ZLevel up
         {
-            // <Onyx-Tweak edited>
-            var onHighGround = zPhys.CurrentGroundHeight >= 0.85f;
-            var hasTile = !onHighGround && HasTileAbove(uid);
-            // </Onyx-Tweak edited>
+            var hasTile = HasTileAbove(uid);
 
             if (hasTile) //Hit roof
             {

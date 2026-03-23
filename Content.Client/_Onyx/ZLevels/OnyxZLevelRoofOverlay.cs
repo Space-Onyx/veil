@@ -1,8 +1,10 @@
 using System.Numerics;
 using Content.Client.Viewport;
+using Content.Shared.CCVar;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._CE.ZLevels.Core.EntitySystems;
 using Content.Shared._Utopia.ZLevels.Components;
+using Robust.Shared.Configuration;
 using Content.Shared.Maps;
 using Robust.Client.Graphics;
 using Robust.Shared.Enums;
@@ -14,6 +16,7 @@ namespace Content.Client._Onyx.ZLevels;
 
 public sealed class OnyxZLevelRoofOverlay : Overlay
 {
+    [Dependency] private readonly IConfigurationManager _cfg = default!;
     [Dependency] private readonly IMapManager _mapManager = default!;
     [Dependency] private readonly IEntityManager _entManager = default!;
     [Dependency] private readonly ITileDefinitionManager _tileDef = default!;
@@ -40,6 +43,7 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
     private TimeSpan _nextCacheCleanup;
     private readonly Dictionary<int, List<int>> _batchedRows = new();
     private readonly List<int> _usedBatchRows = new();
+    private bool _roofOverlayEnabled = true;
 
     private static readonly Color RoofColor = new(0.1f, 0.1f, 0.1f, 1.0f);
 
@@ -59,10 +63,15 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
         _mapQuery = _entManager.GetEntityQuery<MapComponent>();
 
         ZIndex = 1;
+
+        _cfg.OnValueChanged(CCVars.ZLevelRoofOverlayEnabled, value => _roofOverlayEnabled = value, true);
     }
 
     protected override bool BeforeDraw(in OverlayDrawArgs args)
     {
+        if (!_roofOverlayEnabled)
+            return false;
+
         if (args.Viewport.Eye is not ScalingViewport.ZEye zeye)
             return false;
 

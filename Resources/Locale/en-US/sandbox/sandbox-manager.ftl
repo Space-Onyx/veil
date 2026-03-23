@@ -25,6 +25,7 @@ sandbox-window-ghost-button = Ghost
 sandbox-window-toggle-lights-button = Toggle Lights
 sandbox-window-toggle-fov-button = Toggle FOV
 sandbox-window-toggle-shadows-button = Toggle Shadows
+sandbox-window-toggle-z-roof-overlay-button = Toggle Z Roof Overlay
 sandbox-window-toggle-subfloor-button = Toggle Subfloor
 sandbox-window-toggle-suicide-button = Suicide
 sandbox-window-show-spawns-button = Show Spawns

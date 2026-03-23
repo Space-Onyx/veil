@@ -23,6 +23,9 @@ public sealed partial class CCVars
     public static readonly CVarDef<bool> ZLevelHoleShadowEnabled =
         CVarDef.Create("zlevels.hole_shadow_enabled", true, CVar.CLIENTONLY | CVar.ARCHIVE);
 
+    public static readonly CVarDef<bool> ZLevelRoofOverlayEnabled =
+        CVarDef.Create("zlevels.roof_overlay_enabled", true, CVar.CLIENTONLY);
+
     public static readonly CVarDef<int> ZLevelHoleShadowUpdateRate =
         CVarDef.Create("zlevels.hole_shadow_update_rate", 20, CVar.CLIENTONLY | CVar.ARCHIVE);
 

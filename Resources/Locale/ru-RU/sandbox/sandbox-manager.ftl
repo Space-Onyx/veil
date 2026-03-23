@@ -12,6 +12,7 @@ sandbox-window-ghost-button = Призрак
 sandbox-window-toggle-lights-button = Переключить освещение
 sandbox-window-toggle-fov-button = Переключить FOV
 sandbox-window-toggle-shadows-button = Переключить тени
+sandbox-window-toggle-z-roof-overlay-button = Переключить крышу Z-уровней
 sandbox-window-toggle-subfloor-button = Переключить пол
 sandbox-window-toggle-suicide-button = Самоубийство
 sandbox-window-show-spawns-button = Показать спавны

@@ -22,6 +22,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
         <Button Name="ToggleLightButton" Access="Public" Text="{Loc sandbox-window-toggle-lights-button}" ToggleMode="True"/>
         <Button Name="ToggleFovButton" Access="Public" Text="{Loc sandbox-window-toggle-fov-button}" ToggleMode="True"/>
         <Button Name="ToggleShadowsButton" Access="Public" Text="{Loc sandbox-window-toggle-shadows-button}" ToggleMode="True"/>
+        <Button Name="ToggleRoofOverlayButton" Access="Public" Text="{Loc sandbox-window-toggle-z-roof-overlay-button}" ToggleMode="True"/>
         <Button Name="ToggleSubfloorButton" Access="Public" Text="{Loc sandbox-window-toggle-subfloor-button}" ToggleMode="True"/>
         <Button Name="AiOverlayButton" Access="Public" Text="{Loc sandbox-window-ai-overlay-button}" ToggleMode="True"/>
         <Button Name="ShowMarkersButton" Access="Public" Text="{Loc sandbox-window-show-spawns-button}" ToggleMode="True"/>
