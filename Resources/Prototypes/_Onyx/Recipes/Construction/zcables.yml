@@ -1,0 +1,101 @@
+- type: construction
+  id: ZCableHVUp
+  name: construction-recipe-zcable-hv-up
+  description: construction-recipe-zcable-hv-up-desc
+  graph: ZCableHVUp
+  startNode: start
+  targetNode: cable
+  category: construction-category-utilities
+  objectType: Structure
+  placementMode: SnapgridCenter
+  canBuildInImpassable: false
+  icon:
+    sprite: Structures/Power/Cables/hv_cable.rsi
+    state: hvcable_4
+  conditions:
+  - !type:TileNotBlocked
+
+- type: construction
+  id: ZCableHVDown
+  name: construction-recipe-zcable-hv-down
+  description: construction-recipe-zcable-hv-down-desc
+  graph: ZCableHVDown
+  startNode: start
+  targetNode: cable
+  category: construction-category-utilities
+  objectType: Structure
+  placementMode: SnapgridCenter
+  canBuildInImpassable: false
+  icon:
+    sprite: Structures/Power/Cables/hv_cable.rsi
+    state: hvcable_4
+  conditions:
+  - !type:TileNotBlocked
+
+- type: construction
+  id: ZCableMVUp
+  name: construction-recipe-zcable-mv-up
+  description: construction-recipe-zcable-mv-up-desc
+  graph: ZCableMVUp
+  startNode: start
+  targetNode: cable
+  category: construction-category-utilities
+  objectType: Structure
+  placementMode: SnapgridCenter
+  canBuildInImpassable: false
+  icon:
+    sprite: Structures/Power/Cables/mv_cable.rsi
+    state: mvcable_4
+  conditions:
+  - !type:TileNotBlocked
+
+- type: construction
+  id: ZCableMVDown
+  name: construction-recipe-zcable-mv-down
+  description: construction-recipe-zcable-mv-down-desc
+  graph: ZCableMVDown
+  startNode: start
+  targetNode: cable
+  category: construction-category-utilities
+  objectType: Structure
+  placementMode: SnapgridCenter
+  canBuildInImpassable: false
+  icon:
+    sprite: Structures/Power/Cables/mv_cable.rsi
+    state: mvcable_4
+  conditions:
+  - !type:TileNotBlocked
+
+- type: construction
+  id: ZCableLVUp
+  name: construction-recipe-zcable-lv-up
+  description: construction-recipe-zcable-lv-up-desc
+  graph: ZCableLVUp
+  startNode: start
+  targetNode: cable
+  category: construction-category-utilities
+  objectType: Structure
+  placementMode: SnapgridCenter
+  canBuildInImpassable: false
+  icon:
+    sprite: Structures/Power/Cables/lv_cable.rsi
+    state: lvcable_4
+  conditions:
+  - !type:TileNotBlocked
+
+- type: construction
+  id: ZCableLVDown
+  name: construction-recipe-zcable-lv-down
+  description: construction-recipe-zcable-lv-down-desc
+  graph: ZCableLVDown
+  startNode: start
+  targetNode: cable
+  category: construction-category-utilities
+  objectType: Structure
+  placementMode: SnapgridCenter
+  canBuildInImpassable: false
+  icon:
+    sprite: Structures/Power/Cables/lv_cable.rsi
+    state: lvcable_4
+  conditions:
+  - !type:TileNotBlocked

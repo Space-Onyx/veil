@@ -22,6 +22,9 @@
   - type: ZLevelEntityLink
   - type: AtmosDevice
   # <Onyx-Tweak>
+  - type: Construction
+    graph: ZPipeUp
+    node: pipe
   - type: Sprite
     sprite: Structures/Piping/Atmospherics/gascanisterport.rsi
     layers:
@@ -55,6 +58,9 @@
   - type: ZLevelEntityLink
   - type: AtmosDevice
   # <Onyx-Tweak>
+  - type: Construction
+    graph: ZPipeDown
+    node: pipe
   - type: Sprite
     sprite: Structures/Piping/Atmospherics/gascanisterport.rsi
     layers:
