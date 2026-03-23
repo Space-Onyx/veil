@@ -32,9 +32,12 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
     // <Onyx-Tweak>
     private readonly HashSet<EntityUid> _dirtyVisuals = new();
     private readonly List<EntityUid> _dirtyVisualsBuffer = new();
+    private bool _zLevelOffsetInitialized;
     private float _cachedZLevelOffset;
+    private float _nonActiveReconcileAccumulator;
     private const int OverMobsDrawDepth = (int)Shared.DrawDepth.DrawDepth.OverMobs;
     private const float VisualEpsilon = 0.001f;
+    private const float NonActiveReconcileInterval = 0.10f;
     // </Onyx-Tweak>
 
     public static float ZLevelOffset = 0.7f;
@@ -56,7 +59,7 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
         SubscribeLocalEvent<CEActiveZPhysicsComponent, ComponentShutdown>(OnActiveShutdown);
         // </Onyx-Tweak>
 
-        _cfg.OnValueChanged(CCVars.ZLevelOffset, value => _cachedZLevelOffset = value, true); // <Onyx-Tweak> 
+        _cfg.OnValueChanged(CCVars.ZLevelOffset, OnZLevelOffsetChanged, true); // <Onyx-Tweak> 
     }
     // <Onyx-Tweak>
 
@@ -68,6 +71,23 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
     private void OnActiveShutdown(Entity<CEActiveZPhysicsComponent> ent, ref ComponentShutdown args)
     {
         _dirtyVisuals.Add(ent);
+    }
+
+    private void OnZLevelOffsetChanged(float value)
+    {
+        _cachedZLevelOffset = value;
+
+        if (!_zLevelOffsetInitialized)
+        {
+            _zLevelOffsetInitialized = true;
+            return;
+        }
+
+        var query = EntityQueryEnumerator<CEZPhysicsComponent>();
+        while (query.MoveNext(out var uid, out _))
+        {
+            _dirtyVisuals.Add(uid);
+        }
     }
     // </Onyx-Tweak>
 
@@ -115,10 +135,20 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
         base.Update(frameTime);
 
         // <Onyx-Tweak Edited>
-        var query = EntityQueryEnumerator<CEActiveZPhysicsComponent, CEZPhysicsComponent, SpriteComponent, TransformComponent>();
-        while (query.MoveNext(out var uid, out _, out var zPhys, out var sprite, out var xform))
+        var activeQuery = EntityQueryEnumerator<CEActiveZPhysicsComponent, CEZPhysicsComponent>();
+        while (activeQuery.MoveNext(out var uid, out _, out var zPhys))
         {
-            ApplyVisuals(uid, zPhys, sprite, xform, _cachedZLevelOffset, OverMobsDrawDepth);
+            if (!float.IsNaN(zPhys.LastVisualLocalPosition) && MathF.Abs(zPhys.Velocity) <= VisualEpsilon)
+                continue;
+
+            _dirtyVisuals.Add(uid);
+        }
+
+        _nonActiveReconcileAccumulator += frameTime;
+        if (_nonActiveReconcileAccumulator >= NonActiveReconcileInterval)
+        {
+            _nonActiveReconcileAccumulator = 0f;
+            QueueMismatchedVisuals();
         }
 
         if (_dirtyVisuals.Count > 0)
@@ -142,9 +172,6 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
                     continue;
                 }
 
-                if (HasComp<CEActiveZPhysicsComponent>(uid))
-                    continue;
-
                 ApplyVisuals(uid, zPhys, sprite, xform, _cachedZLevelOffset, OverMobsDrawDepth);
             }
         }
@@ -161,6 +188,30 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
     // </Onyx-Tweak Edited>
 
     // <Onyx-Tweak>
+    private void QueueMismatchedVisuals()
+    {
+        var query = EntityQueryEnumerator<CEZPhysicsComponent>();
+        while (query.MoveNext(out var uid, out var zPhys))
+        {
+            var current = zPhys.LocalPosition;
+            if (MathF.Abs(current) <= VisualEpsilon)
+                current = 0f;
+
+            var last = zPhys.LastVisualLocalPosition;
+            if (float.IsNaN(last))
+            {
+                _dirtyVisuals.Add(uid);
+                continue;
+            }
+
+            if (MathF.Abs(last) <= VisualEpsilon)
+                last = 0f;
+
+            if (current != last)
+                _dirtyVisuals.Add(uid);
+        }
+    }
+
     private void ApplyVisuals(EntityUid uid,
         CEZPhysicsComponent zPhys,
         SpriteComponent sprite,

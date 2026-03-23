@@ -34,9 +34,8 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
     private readonly HashSet<string> _visibleLowerGroups = new();
     private readonly HashSet<Vector2i> _excludedTiles = new();
     private readonly Dictionary<EntityUid, UpperMaskCacheEntry> _upperMaskCache = new();
-    private readonly Dictionary<(EntityUid LowerGrid, EntityUid UpperGrid), ProjectionCacheEntry> _pairProjectionCache = new();
+    private readonly OnyxZLevelProjectionCacheSystem _projectionCache;
     private readonly List<EntityUid> _staleUpperMaskKeys = new();
-    private readonly List<(EntityUid LowerGrid, EntityUid UpperGrid)> _stalePairProjectionKeys = new();
     private static readonly TimeSpan CacheCleanupInterval = TimeSpan.FromSeconds(5);
     private TimeSpan _nextCacheCleanup;
     private readonly Dictionary<int, List<int>> _batchedRows = new();
@@ -53,6 +52,7 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
         _mapSystem = _entManager.System<SharedMapSystem>();
         _xformSystem = _entManager.System<SharedTransformSystem>();
         _zLevels = _entManager.System<CESharedZLevelsSystem>();
+        _projectionCache = _entManager.System<OnyxZLevelProjectionCacheSystem>();
 
         _motionLinkQuery = _entManager.GetEntityQuery<GridMotionLinkComponent>();
         _zMapQuery = _entManager.GetEntityQuery<CEZLevelMapComponent>();
@@ -199,30 +199,8 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
 
     private HashSet<Vector2i> GetProjectedExclusionTiles(Entity<MapGridComponent> lowerGrid, Entity<MapGridComponent> upperGrid)
     {
-        var key = (lowerGrid.Owner, upperGrid.Owner);
-        var upperTileTick = upperGrid.Comp.LastTileModifiedTick;
-        var lowerMatrix = _xformSystem.GetWorldMatrix(lowerGrid.Owner);
-        var upperMatrix = _xformSystem.GetWorldMatrix(upperGrid.Owner);
-        if (_pairProjectionCache.TryGetValue(key, out var cachedProjection)
-            && cachedProjection.UpperTileTick == upperTileTick
-            && cachedProjection.LowerMatrix == lowerMatrix
-            && cachedProjection.UpperMatrix == upperMatrix)
-        {
-            return cachedProjection.Tiles;
-        }
-
         var upperMask = GetUpperMaskTiles(upperGrid);
-        var projected = new HashSet<Vector2i>(upperMask.Count);
-
-        foreach (var pos in upperMask)
-        {
-            var worldPos = _mapSystem.GridTileToWorldPos(upperGrid.Owner, upperGrid.Comp, pos);
-            var lowerTilePos = _mapSystem.WorldToTile(lowerGrid.Owner, lowerGrid.Comp, worldPos);
-            projected.Add(lowerTilePos);
-        }
-
-        _pairProjectionCache[key] = new ProjectionCacheEntry(upperTileTick, lowerMatrix, upperMatrix, projected);
-        return projected;
+        return _projectionCache.GetProjectedTiles(lowerGrid, upperGrid, ZLevelProjectionKind.RoofMask, upperMask);
     }
 
     private HashSet<Vector2i> GetUpperMaskTiles(Entity<MapGridComponent> upperGrid)
@@ -269,20 +247,6 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
         foreach (var key in _staleUpperMaskKeys)
         {
             _upperMaskCache.Remove(key);
-        }
-
-        _stalePairProjectionKeys.Clear();
-        foreach (var key in _pairProjectionCache.Keys)
-        {
-            if (_entManager.EntityExists(key.LowerGrid) && _entManager.EntityExists(key.UpperGrid))
-                continue;
-
-            _stalePairProjectionKeys.Add(key);
-        }
-
-        foreach (var key in _stalePairProjectionKeys)
-        {
-            _pairProjectionCache.Remove(key);
         }
     }
 
@@ -349,5 +313,4 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
     }
 
     private readonly record struct UpperMaskCacheEntry(GameTick TileTick, HashSet<Vector2i> Tiles);
-    private readonly record struct ProjectionCacheEntry(GameTick UpperTileTick, Matrix3x2 LowerMatrix, Matrix3x2 UpperMatrix, HashSet<Vector2i> Tiles);
 }

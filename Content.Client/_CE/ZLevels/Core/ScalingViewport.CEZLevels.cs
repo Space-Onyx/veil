@@ -30,10 +30,8 @@ public sealed partial class ScalingViewport
     [Dependency] private readonly ITileDefinitionManager _tile = default!;
     [Dependency] private readonly IConfigurationManager _cfg = default!; // <Onyx-Tweak>
     [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly IOverlayManager _overlayManager = default!; // <Onyx-Tweak>
 
     private CEClientZLevelsSystem? _zLevels;
-    private SharedMapSystem? _mapSystem;
 
     private EntityQuery<TransformComponent>? _xformQuery;
     private EntityQuery<MapComponent>? _mapQuery;
@@ -41,11 +39,13 @@ public sealed partial class ScalingViewport
     private IEye? _fallbackEye;
     // <Onyx-Tweak> 
     private readonly Dictionary<int, EntityUid> _depthMapCache = new();
-
-    private Overlay? _cachedPlacementOverlay;
-    private bool _placementOverlayCached;
+    private bool _renderingNonBaseZLayer;
+    private bool _lowerDepthCacheValid;
+    private bool _drawLowerZCacheThisFrame;
+    private int _lowerDepthCacheFrameCounter;
     private readonly List<Entity<MapGridComponent>> _visibleGridsBuffer = new();
     private const float EmptyTileCacheLifetime = 0.5f;
+    private const int LowerDepthCacheFrameInterval = 1;
     private readonly Dictionary<(EntityUid MapUid, int CellX, int CellY, int Radius), bool> _emptyTileCache = new();
     private TimeSpan _emptyTileCacheExpiry;
     private bool _zLevelCvarsSubscribed;
@@ -53,6 +53,7 @@ public sealed partial class ScalingViewport
     private float _cachedZLevelOffset;
     private int _cachedLowerRenderRadius;
     private readonly ZEye _sharedZEye = new();
+    private static readonly Color TransparentColor = new(0f, 0f, 0f, 0f);
     // </Onyx-Tweak>
 
     private bool TryFindEmptyTilesCached(EntityUid mapUid, Vector2 centerPosition, float searchRadius)
@@ -187,7 +188,6 @@ public sealed partial class ScalingViewport
 
         // Cache systems and components
         _zLevels ??= _entityManager.System<CEClientZLevelsSystem>();
-        _mapSystem ??= _entityManager.System<SharedMapSystem>();
         EnsureZLevelCvarCache();
 
         if (_player.LocalEntity is null)
@@ -235,114 +235,126 @@ public sealed partial class ScalingViewport
                 break;
         }
 
-
-        // <Onyx-Tweak>
-        if (!_placementOverlayCached)
-        {
-            _cachedPlacementOverlay = null;
-            foreach (var overlay in _overlayManager.AllOverlays) // <Onyx-Tweak Edited>
-            {
-                if (overlay.GetType().Name == "PlacementOverlay")
-                {
-                    _cachedPlacementOverlay = overlay;
-                    break;
-                }
-            }
-            _placementOverlayCached = true;
-        }
-        // </Onyx-Tweak>
-
-        var placementOverlay = _cachedPlacementOverlay;
-        var placementRemoved = false;
-
         // <Onyx-Tweak> 
         var zLevelOffset = _cachedZLevelOffset;
         Angle rotation = _fallbackEye.Rotation * -1;
         var rotationVector = rotation.ToWorldVec();
         // <Onyx-Tweak> 
 
-        //From the lowest depth to the highest, render each level
-        for (var depth = lowestDepth; depth <= lookUp; depth++)
+        // <Onyx-Tweak edited> 
+        _renderingNonBaseZLayer = false;
+        try
         {
-            if (depth == 0)
+            var hasLowerDepths = lowestDepth < 0;
+            if (hasLowerDepths && _lowerZViewport != null)
             {
-                viewport.Eye = _fallbackEye;
-
-                // Restore placement overlay for the base layer
-                if (placementRemoved && placementOverlay is not null)
+                _lowerDepthCacheFrameCounter++;
+                var refreshLowerCache = !_lowerDepthCacheValid || _lowerDepthCacheFrameCounter >= LowerDepthCacheFrameInterval;
+                if (refreshLowerCache)
                 {
-                    try
-                    {
-                        _overlayManager.AddOverlay(placementOverlay); // <Onyx-Tweak Edited>
-                        placementRemoved = false;
-                    }
-                    catch { }
+                    _lowerDepthCacheFrameCounter = 0;
+                    _lowerDepthCacheValid = RenderDepthRange(
+                        _lowerZViewport,
+                        playerXform,
+                        lowestDepth,
+                        -1,
+                        lowestDepth,
+                        -1,
+                        rotationVector,
+                        zLevelOffset,
+                        Color.Black);
                 }
+
+                _drawLowerZCacheThisFrame = _lowerDepthCacheValid;
             }
             else
             {
-                // <Onyx-Tweak> 
+                _lowerDepthCacheValid = false;
+                _drawLowerZCacheThisFrame = false;
+                _lowerDepthCacheFrameCounter = 0;
+            }
+
+            var firstBaseClear = _drawLowerZCacheThisFrame ? TransparentColor : Color.Black;
+            RenderDepthRange(
+                viewport,
+                playerXform,
+                lowestDepth,
+                lookUp,
+                0,
+                lookUp,
+                rotationVector,
+                zLevelOffset,
+                firstBaseClear);
+        }
+        finally
+        {
+            _renderingNonBaseZLayer = false;
+            // Restore the Eye
+            Eye = _fallbackEye;
+            viewport.Eye = _fallbackEye;
+            if (_lowerZViewport != null)
+                _lowerZViewport.Eye = _fallbackEye;
+        }
+    }
+
+    private bool RenderDepthRange(
+        IClydeViewport targetViewport,
+        TransformComponent playerXform,
+        int lowestDepth,
+        int highestDepth,
+        int fromDepth,
+        int toDepth,
+        Vector2 rotationVector,
+        float zLevelOffset,
+        Color? firstClearColor)
+    {
+        if (fromDepth > toDepth)
+            return false;
+
+        var renderedAny = false;
+        for (var depth = fromDepth; depth <= toDepth; depth++)
+        {
+            if (depth == 0)
+            {
+                _renderingNonBaseZLayer = false;
+                targetViewport.Eye = _fallbackEye;
+            }
+            else
+            {
                 if (!_depthMapCache.TryGetValue(depth, out var depthMapUid))
                 {
-                    if (!_zLevels.TryMapOffset(playerXform.MapUid.Value, depth, out var mapUidDepth))
+                    if (!_zLevels!.TryMapOffset(playerXform.MapUid!.Value, depth, out var mapUidDepth))
                         continue;
 
                     depthMapUid = mapUidDepth.Value;
                     _depthMapCache[depth] = depthMapUid;
                 }
 
-                if (!_mapQuery.Value.TryComp(depthMapUid, out var mapComp))
+                if (!_mapQuery!.Value.TryComp(depthMapUid, out var mapComp))
                     continue;
-                // </Onyx-Tweak> 
 
-                // Remove placement overlay before rendering z-levels so it
-                // doesn't call PixelToMap with this z-level's eye.
-                if (!placementRemoved && placementOverlay is not null)
-                {
-                    try
-                    {
-                        _overlayManager.RemoveOverlay(placementOverlay); // <Onyx-Tweak Edited>
-                        placementRemoved = true;
-                    }
-                    catch { }
-                }
-
-                var offset = rotationVector * zLevelOffset * depth; // <Onyx-Tweak Edited>
-
-                // <Onyx-Tweak> 
+                var offset = rotationVector * zLevelOffset * depth;
                 _sharedZEye.LowestDepth = lowestDepth;
                 _sharedZEye.Depth = depth;
-                _sharedZEye.HighestDepth = lookUp;
-                _sharedZEye.Position = new MapCoordinates(_fallbackEye.Position.Position, mapComp.MapId);
+                _sharedZEye.HighestDepth = highestDepth;
+                _sharedZEye.Position = new MapCoordinates(_fallbackEye!.Position.Position, mapComp.MapId);
                 _sharedZEye.DrawFov = _fallbackEye.DrawFov && depth >= 0;
                 _sharedZEye.DrawLight = _fallbackEye.DrawLight;
                 _sharedZEye.Offset = _fallbackEye.Offset + offset;
                 _sharedZEye.Rotation = _fallbackEye.Rotation;
                 _sharedZEye.Scale = _fallbackEye.Scale;
-
-                viewport.Eye = _sharedZEye;
-                // <Onyx-Tweak> 
+                _renderingNonBaseZLayer = true;
+                targetViewport.Eye = _sharedZEye;
             }
 
-            viewport.ClearColor = depth == lowestDepth ? Color.Black : null;
-            viewport.Render();
+            targetViewport.ClearColor = renderedAny ? null : firstClearColor;
+            targetViewport.Render();
+            renderedAny = true;
         }
 
-
-        // Ensure placement overlay is restored
-        if (placementRemoved && placementOverlay is not null)
-        {
-            try
-            {
-                _overlayManager.AddOverlay(placementOverlay); // <Onyx-Tweak Edited>
-            }
-            catch { }
-        }
-
-        // Restore the Eye
-        Eye = _fallbackEye;
-        viewport.Eye = _fallbackEye;
+        return renderedAny;
     }
+    // </Onyx-Tweak edited> 
 
     // <Onyx-Tweak edited> 
     private void EnsureZLevelCvarCache()

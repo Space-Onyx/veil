@@ -26,6 +26,7 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
     private readonly CESharedZLevelsSystem _zLevels;
     private readonly SharedMapSystem _mapSystem;
     private readonly SharedTransformSystem _xform;
+    private readonly OnyxZLevelProjectionCacheSystem _projectionCache;
 
     private EntityQuery<CEZLevelMapComponent> _zMapQuery;
     private EntityQuery<MapComponent> _mapQuery;
@@ -37,20 +38,17 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
     private readonly List<string> _usedUpperGroupKeys = new();
     private readonly HashSet<string> _visibleLowerGroups = new();
     private readonly Dictionary<EntityUid, InteriorHoleCacheEntry> _upperInteriorHoleCache = new();
-    private readonly Dictionary<(EntityUid LowerGrid, EntityUid UpperGrid), ProjectionCacheEntry> _pairProjectionCache = new();
-    private readonly Dictionary<EntityUid, List<RowRun>> _cachedShadowRuns = new();
+    private readonly Dictionary<EntityUid, ShadowRunCacheEntry> _cachedShadowRuns = new();
     private readonly List<EntityUid> _staleUpperGridCacheKeys = new();
     private readonly List<EntityUid> _staleLowerRunCacheKeys = new();
-    private readonly List<(EntityUid LowerGrid, EntityUid UpperGrid)> _stalePairCacheKeys = new();
     private static readonly TimeSpan CacheCleanupInterval = TimeSpan.FromSeconds(5);
     private TimeSpan _nextCacheCleanup;
-    private TimeSpan _nextShadowRebuild;
+    private bool _forceShadowRunRebuild = true;
 
     private float _cachedOpacity;
     private Color _cachedShadowBaseColor = Color.Black;
     private Color _cachedFillColor = Color.Black;
     private bool _shadowEnabled = true;
-    private int _shadowUpdateRate = 20;
     private float _shadowMaxDistance;
 
     private readonly HashSet<Vector2i> _projectedHoleTiles = new();
@@ -66,6 +64,7 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
         _zLevels = _entManager.System<CESharedZLevelsSystem>();
         _mapSystem = _entManager.System<SharedMapSystem>();
         _xform = _entManager.System<SharedTransformSystem>();
+        _projectionCache = _entManager.System<OnyxZLevelProjectionCacheSystem>();
 
         _zMapQuery = _entManager.GetEntityQuery<CEZLevelMapComponent>();
         _mapQuery = _entManager.GetEntityQuery<MapComponent>();
@@ -127,22 +126,18 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
             _nextCacheCleanup = _timing.CurTime + CacheCleanupInterval;
         }
 
-        if (_timing.CurTime >= _nextShadowRebuild)
-        {
-            RebuildVisibleShadowRuns(args, upperMapId);
-            _nextShadowRebuild = _timing.CurTime + TimeSpan.FromSeconds(1f / _shadowUpdateRate);
-        }
+        RebuildVisibleShadowRuns(args, upperMapId);
 
         var worldHandle = args.WorldHandle;
         var holeShadowFillColor = _cachedFillColor;
 
         foreach (var lowerGrid in _lowerGrids)
         {
-            if (!_cachedShadowRuns.TryGetValue(lowerGrid.Owner, out var runs) || runs.Count == 0)
+            if (!_cachedShadowRuns.TryGetValue(lowerGrid.Owner, out var cacheEntry) || cacheEntry.Runs.Count == 0)
                 continue;
 
             worldHandle.SetTransform(_xform.GetWorldMatrix(lowerGrid.Owner));
-            foreach (var run in runs)
+            foreach (var run in cacheEntry.Runs)
             {
                 DrawHorizontalRun(worldHandle, lowerGrid.Comp.TileSize, run.Y, run.StartX, run.EndX, holeShadowFillColor);
             }
@@ -156,15 +151,19 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
         var eyePosition = args.Viewport.Eye?.Position.Position ?? Vector2.Zero;
         var limitByDistance = _shadowMaxDistance > 0f;
         var maxDistanceSquared = _shadowMaxDistance * _shadowMaxDistance;
+        var forceRebuild = _forceShadowRunRebuild;
+        _forceShadowRunRebuild = false;
 
         _visibleLowerGroups.Clear();
         foreach (var lowerGrid in _lowerGrids)
         {
-            var runs = GetOrCreateShadowRuns(lowerGrid.Owner);
-            runs.Clear();
-
+            var cacheEntry = GetOrCreateShadowRuns(lowerGrid.Owner);
             if (!_motionLinkQuery.TryComp(lowerGrid.Owner, out var lowerLink) || string.IsNullOrEmpty(lowerLink.GroupId))
+            {
+                cacheEntry.Runs.Clear();
+                cacheEntry.Initialized = false;
                 continue;
+            }
 
             _visibleLowerGroups.Add(lowerLink.GroupId);
         }
@@ -175,7 +174,15 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
         _upperGrids.Clear();
         _mapManager.FindGridsIntersecting(upperMapId, args.WorldBounds, ref _upperGrids, approx: true, includeMap: false);
         if (_upperGrids.Count == 0)
+        {
+            foreach (var lowerGrid in _lowerGrids)
+            {
+                var cacheEntry = GetOrCreateShadowRuns(lowerGrid.Owner);
+                cacheEntry.Runs.Clear();
+                cacheEntry.Initialized = false;
+            }
             return;
+        }
 
         foreach (var key in _usedUpperGroupKeys)
         {
@@ -204,71 +211,98 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
 
         foreach (var lowerGrid in _lowerGrids)
         {
-            var runs = GetOrCreateShadowRuns(lowerGrid.Owner);
-            runs.Clear();
-
-            _projectedHoleTiles.Clear();
+            var cacheEntry = GetOrCreateShadowRuns(lowerGrid.Owner);
             if (!_motionLinkQuery.TryComp(lowerGrid.Owner, out var lowerLink) || string.IsNullOrEmpty(lowerLink.GroupId))
+            {
+                cacheEntry.Runs.Clear();
+                cacheEntry.Initialized = false;
                 continue;
-            if (!_upperGridsByGroup.TryGetValue(lowerLink.GroupId, out var linkedUpperGrids))
-                continue;
+            }
 
+            if (!_upperGridsByGroup.TryGetValue(lowerLink.GroupId, out var linkedUpperGrids))
+            {
+                cacheEntry.Runs.Clear();
+                cacheEntry.Initialized = false;
+                continue;
+            }
+
+            GetVisibleTileBounds(lowerGrid, args.MapId, args.WorldBounds, out var minX, out var maxX, out var minY, out var maxY);
+            var lowerMatrix = _xform.GetWorldMatrix(lowerGrid.Owner);
+            var upperSignature = ComputeUpperSignature(linkedUpperGrids);
+            var eyeTile = limitByDistance
+                ? lowerGrid.Comp.TileIndicesFor(new MapCoordinates(eyePosition, args.MapId))
+                : default;
+
+            if (!forceRebuild &&
+                !ShouldRebuildShadowRuns(cacheEntry,
+                    minX,
+                    maxX,
+                    minY,
+                    maxY,
+                    lowerGrid.Comp.LastTileModifiedTick,
+                    lowerMatrix,
+                    upperSignature,
+                    limitByDistance,
+                    maxDistanceSquared,
+                    eyeTile))
+            {
+                continue;
+            }
+
+            cacheEntry.Runs.Clear();
+            _projectedHoleTiles.Clear();
             foreach (var upperGrid in linkedUpperGrids)
             {
                 _projectedHoleTiles.UnionWith(GetProjectedHoleTiles(lowerGrid, upperGrid));
             }
 
             if (_projectedHoleTiles.Count == 0)
+            {
+                UpdateShadowRunCacheStamp(cacheEntry,
+                    minX,
+                    maxX,
+                    minY,
+                    maxY,
+                    lowerGrid.Comp.LastTileModifiedTick,
+                    lowerMatrix,
+                    upperSignature,
+                    limitByDistance,
+                    maxDistanceSquared,
+                    eyeTile);
                 continue;
+            }
 
-            GetVisibleTileBounds(lowerGrid, args.MapId, args.WorldBounds, out var minX, out var maxX, out var minY, out var maxY);
             BuildBatchedRows(lowerGrid, minX, maxX, minY, maxY, eyePosition, limitByDistance, maxDistanceSquared);
-            AppendBatchedRuns(runs);
+            AppendBatchedRuns(cacheEntry.Runs);
+
+            UpdateShadowRunCacheStamp(cacheEntry,
+                minX,
+                maxX,
+                minY,
+                maxY,
+                lowerGrid.Comp.LastTileModifiedTick,
+                lowerMatrix,
+                upperSignature,
+                limitByDistance,
+                maxDistanceSquared,
+                eyeTile);
         }
     }
 
-    private List<RowRun> GetOrCreateShadowRuns(EntityUid lowerGridUid)
+    private ShadowRunCacheEntry GetOrCreateShadowRuns(EntityUid lowerGridUid)
     {
-        if (_cachedShadowRuns.TryGetValue(lowerGridUid, out var runs))
-            return runs;
+        if (_cachedShadowRuns.TryGetValue(lowerGridUid, out var entry))
+            return entry;
 
-        runs = new List<RowRun>();
-        _cachedShadowRuns[lowerGridUid] = runs;
-        return runs;
+        entry = new ShadowRunCacheEntry();
+        _cachedShadowRuns[lowerGridUid] = entry;
+        return entry;
     }
 
     private HashSet<Vector2i> GetProjectedHoleTiles(Entity<MapGridComponent> lowerGrid, Entity<MapGridComponent> upperGrid)
     {
-        var key = (lowerGrid.Owner, upperGrid.Owner);
-        var upperTileTick = upperGrid.Comp.LastTileModifiedTick;
-        var lowerMatrix = _xform.GetWorldMatrix(lowerGrid.Owner);
-        var upperMatrix = _xform.GetWorldMatrix(upperGrid.Owner);
-        if (_pairProjectionCache.TryGetValue(key, out var cachedProjected)
-            && cachedProjected.UpperTileTick == upperTileTick
-            && cachedProjected.LowerMatrix == lowerMatrix
-            && cachedProjected.UpperMatrix == upperMatrix)
-        {
-            return cachedProjected.Tiles;
-        }
-
         var upperHoles = GetInteriorHoleTiles(upperGrid);
-        var projected = new HashSet<Vector2i>();
-
-        if (upperHoles.Count == 0)
-        {
-            _pairProjectionCache[key] = new ProjectionCacheEntry(upperTileTick, lowerMatrix, upperMatrix, projected);
-            return projected;
-        }
-
-        foreach (var pos in upperHoles)
-        {
-            var worldPos = _mapSystem.GridTileToWorldPos(upperGrid.Owner, upperGrid.Comp, pos);
-            var lowerTilePos = _mapSystem.WorldToTile(lowerGrid.Owner, lowerGrid.Comp, worldPos);
-            projected.Add(lowerTilePos);
-        }
-
-        _pairProjectionCache[key] = new ProjectionCacheEntry(upperTileTick, lowerMatrix, upperMatrix, projected);
-        return projected;
+        return _projectionCache.GetProjectedTiles(lowerGrid, upperGrid, ZLevelProjectionKind.InteriorHoles, upperHoles);
     }
 
     private HashSet<Vector2i> GetInteriorHoleTiles(Entity<MapGridComponent> upperGrid)
@@ -327,20 +361,6 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
             _upperInteriorHoleCache.Remove(key);
         }
 
-        _stalePairCacheKeys.Clear();
-        foreach (var key in _pairProjectionCache.Keys)
-        {
-            if (_entManager.EntityExists(key.LowerGrid) && _entManager.EntityExists(key.UpperGrid))
-                continue;
-
-            _stalePairCacheKeys.Add(key);
-        }
-
-        foreach (var key in _stalePairCacheKeys)
-        {
-            _pairProjectionCache.Remove(key);
-        }
-
         _staleLowerRunCacheKeys.Clear();
         foreach (var lowerGridUid in _cachedShadowRuns.Keys)
         {
@@ -354,6 +374,81 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
         {
             _cachedShadowRuns.Remove(key);
         }
+    }
+
+    private static bool ShouldRebuildShadowRuns(
+        ShadowRunCacheEntry cache,
+        int minX,
+        int maxX,
+        int minY,
+        int maxY,
+        GameTick lowerTileTick,
+        Matrix3x2 lowerMatrix,
+        ulong upperSignature,
+        bool limitByDistance,
+        float maxDistanceSquared,
+        Vector2i eyeTile)
+    {
+        if (!cache.Initialized)
+            return true;
+
+        if (cache.MinX != minX || cache.MaxX != maxX || cache.MinY != minY || cache.MaxY != maxY)
+            return true;
+
+        if (cache.LowerTileTick != lowerTileTick || cache.LowerMatrix != lowerMatrix)
+            return true;
+
+        if (cache.UpperSignature != upperSignature)
+            return true;
+
+        if (cache.LimitByDistance != limitByDistance)
+            return true;
+
+        if (limitByDistance && (cache.EyeTile != eyeTile || MathF.Abs(cache.MaxDistanceSquared - maxDistanceSquared) > 0.001f))
+            return true;
+
+        return false;
+    }
+
+    private static void UpdateShadowRunCacheStamp(
+        ShadowRunCacheEntry cache,
+        int minX,
+        int maxX,
+        int minY,
+        int maxY,
+        GameTick lowerTileTick,
+        Matrix3x2 lowerMatrix,
+        ulong upperSignature,
+        bool limitByDistance,
+        float maxDistanceSquared,
+        Vector2i eyeTile)
+    {
+        cache.MinX = minX;
+        cache.MaxX = maxX;
+        cache.MinY = minY;
+        cache.MaxY = maxY;
+        cache.LowerTileTick = lowerTileTick;
+        cache.LowerMatrix = lowerMatrix;
+        cache.UpperSignature = upperSignature;
+        cache.LimitByDistance = limitByDistance;
+        cache.MaxDistanceSquared = maxDistanceSquared;
+        cache.EyeTile = eyeTile;
+        cache.Initialized = true;
+    }
+
+    private ulong ComputeUpperSignature(List<Entity<MapGridComponent>> linkedUpperGrids)
+    {
+        var signature = (ulong) linkedUpperGrids.Count;
+        foreach (var upperGrid in linkedUpperGrids)
+        {
+            var hash = new HashCode();
+            hash.Add(upperGrid.Owner);
+            hash.Add(upperGrid.Comp.LastTileModifiedTick);
+            hash.Add(_xform.GetWorldMatrix(upperGrid.Owner));
+            signature ^= (ulong) (uint) hash.ToHashCode();
+        }
+
+        return signature;
     }
 
     private void BuildBatchedRows(
@@ -433,16 +528,15 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
         }
     }
 
-    private void OnShadowUpdateRateChanged(int updateRate)
+    private void OnShadowUpdateRateChanged(int _)
     {
-        _shadowUpdateRate = Math.Clamp(updateRate, 1, 60);
-        _nextShadowRebuild = TimeSpan.Zero;
+        _forceShadowRunRebuild = true;
     }
 
     private void OnShadowMaxDistanceChanged(float maxDistance)
     {
         _shadowMaxDistance = MathF.Max(0f, maxDistance);
-        _nextShadowRebuild = TimeSpan.Zero;
+        _forceShadowRunRebuild = true;
     }
 
     private static void DrawHorizontalRun(DrawingHandleWorld worldHandle, ushort tileSize, int y, int startX, int endX, Color fillColor)
@@ -453,6 +547,21 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
     }
 
     private readonly record struct InteriorHoleCacheEntry(GameTick TileTick, HashSet<Vector2i> Holes);
-    private readonly record struct ProjectionCacheEntry(GameTick UpperTileTick, Matrix3x2 LowerMatrix, Matrix3x2 UpperMatrix, HashSet<Vector2i> Tiles);
     private readonly record struct RowRun(int Y, int StartX, int EndX);
+
+    private sealed class ShadowRunCacheEntry
+    {
+        public readonly List<RowRun> Runs = new();
+        public int MinX;
+        public int MaxX;
+        public int MinY;
+        public int MaxY;
+        public GameTick LowerTileTick;
+        public Matrix3x2 LowerMatrix;
+        public ulong UpperSignature;
+        public bool LimitByDistance;
+        public float MaxDistanceSquared;
+        public Vector2i EyeTile;
+        public bool Initialized;
+    }
 }

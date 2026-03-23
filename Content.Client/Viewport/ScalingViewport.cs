@@ -36,6 +36,7 @@ namespace Content.Client.Viewport
 
         // Internal viewport creation is deferred.
         private IClydeViewport? _viewport;
+        private IClydeViewport? _lowerZViewport; // <Onyx-Tweak>
         private IEye? _eye;
         private Vector2i _viewportSize;
         private int _curRenderScale;
@@ -60,6 +61,8 @@ namespace Content.Client.Viewport
 
                 if (_viewport != null)
                     _viewport.Eye = value;
+                if (_lowerZViewport != null) // <Onyx-Tweak>
+                    _lowerZViewport.Eye = value;
             }
         }
 
@@ -181,6 +184,8 @@ namespace Content.Client.Viewport
             var drawBox = GetDrawBox();
             var drawBoxGlobal = drawBox.Translated(GlobalPixelPosition);
             _viewport!.RenderScreenOverlaysBelow(handle, this, drawBoxGlobal);
+            if (_drawLowerZCacheThisFrame && _lowerZViewport != null) // <Onyx-Tweak>
+                handle.DrawingHandleScreen.DrawTextureRect(_lowerZViewport.RenderTarget.Texture, drawBox);
             handle.DrawingHandleScreen.DrawTextureRect(_viewport.RenderTarget.Texture, drawBox);
             _viewport!.RenderScreenOverlaysAbove(handle, this, drawBoxGlobal);
         }
@@ -255,17 +260,28 @@ namespace Content.Client.Viewport
             renderScale = Math.Max(1, renderScale);
 
             _curRenderScale = renderScale;
+            // <Onyx-Tweak>
+            var sampleParams = new TextureSampleParameters
+            {
+                Filter = StretchMode == ScalingViewportStretchMode.Bilinear,
+            };
+            // </Onyx-Tweak>
 
             _viewport = _clyde.CreateViewport(
                 ViewportSize * renderScale,
-                new TextureSampleParameters
-                {
-                    Filter = StretchMode == ScalingViewportStretchMode.Bilinear,
-                });
+                sampleParams); // <Onyx-Tweak edited>
 
             _viewport.RenderScale = new Vector2(renderScale, renderScale);
 
             _viewport.Eye = _eye;
+
+            // <Onyx-Tweak>
+            _lowerZViewport = _clyde.CreateViewport(
+                ViewportSize * renderScale,
+                sampleParams);
+            _lowerZViewport.RenderScale = new Vector2(renderScale, renderScale);
+            _lowerZViewport.Eye = _eye;
+            // </Onyx-Tweak>
         }
 
         protected override void Resized()
@@ -279,6 +295,11 @@ namespace Content.Client.Viewport
         {
             _viewport?.Dispose();
             _viewport = null;
+            _lowerZViewport?.Dispose();
+            _lowerZViewport = null;
+            _lowerDepthCacheValid = false;
+            _drawLowerZCacheThisFrame = false;
+            _lowerDepthCacheFrameCounter = 0;
         }
 
         public MapCoordinates ScreenToMap(Vector2 coords)
@@ -301,14 +322,31 @@ namespace Content.Client.Viewport
                 return default;
 
             EnsureViewportCreated();
+            var viewport = _viewport!; // <Onyx-Tweak>
 
             Matrix3x2.Invert(GetLocalToScreenMatrix(), out var matrix);
             coords = Vector2.Transform(coords, matrix);
 
-            var ev = new PixelToMapEvent(coords, this, _viewport!);
+            var ev = new PixelToMapEvent(coords, this, viewport); // <Onyx-Tweak edited>
             _entityManager.EventBus.RaiseEvent(EventSource.Local, ref ev);
 
-            return _viewport!.LocalToWorld(ev.VisiblePosition);
+            // <Onyx-Tweak edited> 
+            if (_renderingNonBaseZLayer && _fallbackEye != null && viewport.Eye is ZEye { Depth: not 0 })
+            {
+                var previousEye = viewport.Eye;
+                try
+                {
+                    viewport.Eye = _fallbackEye;
+                    return viewport.LocalToWorld(ev.VisiblePosition);
+                }
+                finally
+                {
+                    viewport.Eye = previousEye;
+                }
+            }
+
+            return viewport.LocalToWorld(ev.VisiblePosition);
+            // </Onyx-Tweak edited> 
         }
 
         public Vector2 WorldToScreen(Vector2 map)
