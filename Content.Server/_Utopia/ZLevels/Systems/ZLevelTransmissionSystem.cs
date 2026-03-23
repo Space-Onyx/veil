@@ -102,8 +102,6 @@ public sealed class ZLevelTransmissionSystem : EntitySystem
         link.AboveMap = transmitter.AllowUp ? GetNeighborMap(ctx, 1) : null;
         link.BelowMap = transmitter.AllowDown ? GetNeighborMap(ctx, -1) : null;
 
-        Log.Warning($"[ZTransmission] Refresh({uid}): depth={link.Depth}, above={link.AboveMap}, below={link.BelowMap}, hasPipe={HasComp<ZPipeComponent>(uid)}, hasCable={HasComp<ZCableComponent>(uid)}");
-
         if (HasComp<ZPipeComponent>(uid))
             RebuildPipeLinks(uid, link, transmitter);
 

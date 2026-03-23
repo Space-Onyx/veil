@@ -14,7 +14,7 @@ ent-ZCableMVDown = вертикальный СВ кабель
     .desc = { ent-CableHV.desc }
     .suffix = Вниз
 
-ent-EchoZCableLVUp = вертикальный НВ кабель
+ent-ZCableLVUp = вертикальный НВ кабель
     .desc = { ent-CableHV.desc }
     .suffix = Вверх
 
