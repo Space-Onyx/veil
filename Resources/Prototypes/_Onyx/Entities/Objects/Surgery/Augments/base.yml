@@ -90,6 +90,42 @@
 - type: entity
   abstract: true
   parent: BaseOnyxAugment
+  id: BaseOnyxRightTempleAugment
+  description: Augment
+  components:
+  - type: Sprite
+    sprite: _Shitmed/Objects/Augments/power.rsi
+    state: cell
+  - type: Organ
+    slotId: rightTemple
+    toolName: surgery-tool-augment-target-right-temple
+    hiddenFromAnalyzer: true
+  - type: Tag
+    tags:
+    - rightTempleAugment
+    - Augment
+
+- type: entity
+  abstract: true
+  parent: BaseOnyxAugment
+  id: BaseOnyxPrefrontalCortexAugment
+  description: Augment
+  components:
+  - type: Sprite
+    sprite: _Shitmed/Objects/Augments/power.rsi
+    state: cell
+  - type: Organ
+    slotId: prefrontalCortex
+    toolName: surgery-tool-augment-target-prefrontal-cortex
+    hiddenFromAnalyzer: true
+  - type: Tag
+    tags:
+    - prefrontalCortexAugment
+    - Augment
+
+- type: entity
+  abstract: true
+  parent: BaseOnyxAugment
   id: BaseOnyxEyeAugment
   description: Augment
   components:

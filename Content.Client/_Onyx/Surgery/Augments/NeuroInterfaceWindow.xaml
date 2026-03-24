@@ -51,6 +51,22 @@
                             </LayoutContainer>
                         </BoxContainer>
                     </PanelContainer>
+                    <PanelContainer Name="RamPanel" StyleClasses="PanelBackgroundLight" Margin="0 0 0 6" Visible="False">
+                        <BoxContainer Orientation="Vertical" Margin="8 6 8 6" SeparationOverride="4">
+                            <Label Name="RamTitleLabel" HorizontalAlignment="Center" />
+                            <LayoutContainer Name="RamOverlay" SetHeight="20" HorizontalExpand="True">
+                                <ProgressBar Name="RamBar"
+                                             MinValue="0"
+                                             MaxValue="1"
+                                             Value="0"
+                                             HorizontalExpand="True"
+                                             VerticalExpand="True" />
+                                <Label Name="RamValueLabel"
+                                       HorizontalAlignment="Left"
+                                       VerticalAlignment="Center" />
+                            </LayoutContainer>
+                        </BoxContainer>
+                    </PanelContainer>
                 </BoxContainer>
             </PanelContainer>
 

@@ -115,7 +115,7 @@
   - type: AdminAugmentImplanter
     entries:
     - prototype: AugmentHoloPda
-      slot: brainImplant
+      slot: rightTemple
       partType: Head
 
 - type: entity
@@ -169,7 +169,7 @@
   components:
   - type: AdminAugmentImplanter
     entries:
-    - prototype: AugmentReactor
+    - prototype: AugmentBioReactor
       slot: charger
       partType: Chest
 

@@ -70,6 +70,8 @@ public sealed class NeuroInterfaceModuleEntry
     public List<NeuroInterfaceMetricEntry> PassiveNeuroLoadEntries;
     public List<NeuroInterfaceMetricEntry> ActiveNeuroLoadEntries;
 
+    public List<NeuroInterfaceModuleEntry> SubModules;
+
     public NeuroInterfaceModuleEntry(
         NetEntity module,
         string slotId,
@@ -79,7 +81,8 @@ public sealed class NeuroInterfaceModuleEntry
         List<NeuroInterfaceMetricEntry>? passivePowerEntries = null,
         List<NeuroInterfaceMetricEntry>? activePowerEntries = null,
         List<NeuroInterfaceMetricEntry>? passiveNeuroLoadEntries = null,
-        List<NeuroInterfaceMetricEntry>? activeNeuroLoadEntries = null)
+        List<NeuroInterfaceMetricEntry>? activeNeuroLoadEntries = null,
+        List<NeuroInterfaceModuleEntry>? subModules = null)
     {
         Module = module;
         SlotId = slotId;
@@ -90,6 +93,7 @@ public sealed class NeuroInterfaceModuleEntry
         ActivePowerEntries = activePowerEntries ?? new List<NeuroInterfaceMetricEntry>();
         PassiveNeuroLoadEntries = passiveNeuroLoadEntries ?? new List<NeuroInterfaceMetricEntry>();
         ActiveNeuroLoadEntries = activeNeuroLoadEntries ?? new List<NeuroInterfaceMetricEntry>();
+        SubModules = subModules ?? new List<NeuroInterfaceModuleEntry>();
     }
 }
 
@@ -156,6 +160,9 @@ public sealed class NeuroInterfaceBuiState : BoundUserInterfaceState
     public float BatteryMax;
     public float NeuroLoadCurrent;
     public float NeuroLoadMax;
+    public bool HasCyberDeck;
+    public float RamCurrent;
+    public float RamMax;
     public List<NeuroInterfaceAugmentEntry> Augments;
 
     public NeuroInterfaceBuiState(
@@ -168,6 +175,9 @@ public sealed class NeuroInterfaceBuiState : BoundUserInterfaceState
         float batteryMax,
         float neuroLoadCurrent,
         float neuroLoadMax,
+        bool hasCyberDeck,
+        float ramCurrent,
+        float ramMax,
         List<NeuroInterfaceAugmentEntry> augments)
     {
         HexCode = hexCode;
@@ -179,6 +189,9 @@ public sealed class NeuroInterfaceBuiState : BoundUserInterfaceState
         BatteryMax = batteryMax;
         NeuroLoadCurrent = neuroLoadCurrent;
         NeuroLoadMax = neuroLoadMax;
+        HasCyberDeck = hasCyberDeck;
+        RamCurrent = ramCurrent;
+        RamMax = ramMax;
         Augments = augments;
     }
 }

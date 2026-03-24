@@ -27,6 +27,8 @@ neuro-interface-window-battery-none = Заряд батареи: нет бата
 neuro-interface-window-battery-value = Заряд батареи: {$current}/{$max} ({$percent}%)
 neuro-interface-window-neuro-load-title = Нейро-нагрузка
 neuro-interface-window-neuro-load-value = {$current}/{$max}
+neuro-interface-window-ram-title = Оперативная память
+neuro-interface-window-ram-value = {$current}/{$max}
 neuro-interface-window-no-augments = Аугментации не обнаружены
 neuro-interface-tooltip-description-unknown = Описание недоступно.
 neuro-interface-tooltip-description = Описание: {$description}
@@ -92,3 +94,22 @@ neuro-interface-module-line = {$slot}: {$name}
 
 augment-modules-slot-neuro-interface-capacity = нейро-лимит
 augment-modules-slot-neuro-interface-universal = универсальный слот модуля
+augment-modules-slot-neuro-interface-cyberdeck = слот модуля кибердеки
+augment-modules-slot-cyberdeck-program = слот программы
+augment-modules-slot-cyberdeck-ram = слот ОЗУ
+
+ent-AugmentModuleCyberDeck = NanoTrasen «Пульсар»
+    .desc = Кибердека для нейро-интерфейса. Предоставляет слоты для программных модулей.
+ent-AugmentModuleCyberDeckInterdyne = Interdyne «Падшие»
+    .desc = Кибердека для нейро-интерфейса. Предоставляет слоты для программных модулей.
+
+ent-ActionCyberDeckScriptImplantFailure = Сбой имплантов
+    .desc = Временно деактивирует все видимые импланты и кибернетические конечности.
+ent-AugmentModuleCyberDeckScriptImplantFailure = модуль сбоя имплантов
+    .desc = Скрипт кибердеки, деактивирующий видимые импланты и кибер-конечности на 6-8 секунд. Стоимость: 8 ОЗУ за использование.
+ent-ActionCyberDeckScriptRemoteDeactivation = Удалённая деактивация
+    .desc = Удалённо открывает или закрывает шлюз в радиусе действия.
+ent-AugmentModuleCyberDeckScriptRemoteDeactivation = модуль удалённой деактивации
+    .desc = Скрипт кибердеки, удалённо открывающий и закрывающий шлюзы. Стоимость: 2 ОЗУ за использование.
+
+cyberdeck-script-not-enough-ram = Недостаточно ОЗУ для выполнения скрипта!

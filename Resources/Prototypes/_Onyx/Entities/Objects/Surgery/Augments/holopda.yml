@@ -26,7 +26,7 @@
     canTargetSelf: true
 
 - type: entity
-  parent: BaseOnyxBrainAugment
+  parent: BaseOnyxRightTempleAugment
   id: AugmentHoloPda
   name: HoloPDA augment
   description: A cybernetic PDA unit implanted directly into the brain, providing holographic interface access.
@@ -86,11 +86,11 @@
       enum.HealthAnalyzerUiKey.Key:
         type: HealthAnalyzerBoundUserInterface
   - type: Organ
-    slotId: brainImplant
-    toolName: surgery-tool-augment-target-brain
+    slotId: rightTemple
+    toolName: surgery-tool-augment-target-right-temple
     hiddenFromAnalyzer: true
   - type: Tag
     tags:
     - Augment
-    - brainAugment
+    - rightTempleAugment
     - AugmentUtility

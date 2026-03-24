@@ -2,11 +2,14 @@ using Content.Shared.Body.Events;
 using Content.Shared.Body.Organ;
 using Content.Shared.Body.Part;
 using Content.Shared.Interaction;
+using Robust.Shared.Containers; // Onyx-Surgery
 
 namespace Content.Goobstation.Shared.Augments;
 
 public sealed class AugmentSystem : EntitySystem
 {
+    [Dependency] private readonly SharedContainerSystem _containerSystem = default!; // Onyx-Surgery
+
     private EntityQuery<InstalledAugmentsComponent> _installedQuery;
     private EntityQuery<OrganComponent> _organQuery;
     private EntityQuery<BodyPartComponent> _bodyPartQuery; // <Onyx-Surgery>
@@ -59,8 +62,16 @@ public sealed class AugmentSystem : EntitySystem
     // <Onyx-Surgery Edited>
     public EntityUid? GetBody(EntityUid uid)
     {
-        return _organQuery.CompOrNull(uid)?.Body
-            ?? _bodyPartQuery.CompOrNull(uid)?.Body;
+        if (_organQuery.CompOrNull(uid)?.Body is { } organBody)
+            return organBody;
+
+        if (_bodyPartQuery.CompOrNull(uid)?.Body is { } partBody)
+            return partBody;
+
+        if (_containerSystem.TryGetContainingContainer((uid, null, null), out var container))
+            return GetBody(container.Owner);
+
+        return null;
     }
     // </Onyx-Surgery Edited>
 

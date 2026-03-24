@@ -144,3 +144,7 @@ ent-AdminAugmentImplanterLaserPistolLeft = augment implanter
 ent-AdminAugmentImplanterLaserPistolRight = augment implanter
     .desc = A rapid implanter for augmentation installation with explicit limb targeting.
     .suffix = Admeme, Laser Pistol Panel, Right Arm
+
+ent-AdminAugmentImplanterSubdermalArmor = augment implanter
+    .desc = A rapid implanter for augmentation installation with explicit limb targeting.
+    .suffix = Admeme, Subdermal Armor, Chest

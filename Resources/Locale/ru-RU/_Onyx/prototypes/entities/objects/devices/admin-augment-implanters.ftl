@@ -144,3 +144,7 @@ ent-AdminAugmentImplanterLaserPistolLeft = имплантер аугментац
 ent-AdminAugmentImplanterLaserPistolRight = имплантер аугментаций
     .desc = Быстрый имплантер для установки аугментаций с точным выбором конечности.
     .suffix = Адмем, Панель лазерного пистолета, Правая рука
+
+ent-AdminAugmentImplanterSubdermalArmor = имплантер аугментаций
+    .desc = Быстрый имплантер для установки аугментаций с точным выбором конечности.
+    .suffix = Адмем, Подкожная броня, Торс

@@ -71,6 +71,17 @@ public sealed partial class AugmentNeuroInterfaceSystem
             maxCharge = battery.MaxCharge;
         }
 
+        var hasCyberDeck = false;
+        var ramCurrent = 0f;
+        var ramMax = 0f;
+
+        if (TryGetCyberDeck(ent, out var cyberDeckComp))
+        {
+            hasCyberDeck = true;
+            ramCurrent = cyberDeckComp.CurrentRam;
+            ramMax = cyberDeckComp.MaxRam;
+        }
+
         var state = new NeuroInterfaceBuiState(
             ent.Comp.InterfaceCode,
             powerSourceName,
@@ -81,6 +92,9 @@ public sealed partial class AugmentNeuroInterfaceSystem
             maxCharge,
             GetCurrentNeuroLoad(body),
             GetAdjustedMaxNeuroLoad(body, ent.Owner, ent.Comp.MaxNeuroLoad),
+            hasCyberDeck,
+            ramCurrent,
+            ramMax,
             augments);
         _ui.SetUiState(ent.Owner, NeuroInterfaceUiKey.Key, state);
     }
@@ -227,9 +241,12 @@ public sealed partial class AugmentNeuroInterfaceSystem
         return description;
     }
 
-    private List<NeuroInterfaceModuleEntry> GetModuleEntries(EntityUid augmentUid, Dictionary<EntityUid, string> descriptionCache)
+    private List<NeuroInterfaceModuleEntry> GetModuleEntries(EntityUid augmentUid, Dictionary<EntityUid, string> descriptionCache, int depth = 0)
     {
         var modules = new List<NeuroInterfaceModuleEntry>();
+        if (depth > 4)
+            return modules;
+
         if (!TryComp<AugmentModuleSlotsComponent>(augmentUid, out var moduleSlots)
             || !TryComp<ItemSlotsComponent>(augmentUid, out var itemSlots))
         {
@@ -249,6 +266,7 @@ public sealed partial class AugmentNeuroInterfaceSystem
                 : definition.Name;
 
             var metrics = GetAugmentMetrics(moduleUid, forcePowerEnabled: true);
+            var subModules = GetModuleEntries(moduleUid, descriptionCache, depth + 1);
 
             modules.Add(new NeuroInterfaceModuleEntry(
                 GetNetEntity(moduleUid),
@@ -259,7 +277,8 @@ public sealed partial class AugmentNeuroInterfaceSystem
                 metrics.PassivePowerEntries,
                 metrics.ActivePowerEntries,
                 metrics.PassiveNeuroLoadEntries,
-                metrics.ActiveNeuroLoadEntries));
+                metrics.ActiveNeuroLoadEntries,
+                subModules));
         }
 
         return modules;

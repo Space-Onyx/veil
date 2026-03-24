@@ -248,4 +248,30 @@ public sealed partial class AugmentNeuroInterfaceSystem : EntitySystem
         return _adminRemoteControlBodies.TryGetValue(actor, out var controlledBody) && controlledBody == body;
     }
 
+    private bool TryGetCyberDeck(Entity<AugmentNeuroInterfaceComponent> neuroInterface, out CyberDeckComponent cyberDeck)
+    {
+        cyberDeck = default!;
+
+        if (!TryComp<AugmentModuleSlotsComponent>(neuroInterface, out var moduleSlots) ||
+            !TryComp<ItemSlotsComponent>(neuroInterface, out var itemSlotsComp))
+            return false;
+
+        foreach (var definition in moduleSlots.Slots)
+        {
+            if (!_itemSlots.TryGetSlot(neuroInterface, definition.Id, out var slot, itemSlotsComp))
+                continue;
+
+            if (slot.Item is not { } moduleUid)
+                continue;
+
+            if (TryComp<CyberDeckComponent>(moduleUid, out var comp))
+            {
+                cyberDeck = comp;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 }

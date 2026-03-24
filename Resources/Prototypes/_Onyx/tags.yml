@@ -38,6 +38,21 @@
   id: handAugment
 
 - type: Tag
+  id: rightTempleAugment
+
+- type: Tag
+  id: prefrontalCortexAugment
+
+- type: Tag
+  id: AugmentModuleCyberDeck
+
+- type: Tag
+  id: AugmentModuleCyberDeckProgram
+
+- type: Tag
+  id: AugmentModuleCyberDeckRam
+
+- type: Tag
   id: SlotBlock
 
 - type: Tag

@@ -1,0 +1,195 @@
+- type: entity
+  parent: BaseItem
+  id: AugmentModuleCyberDeck
+  name: "NanoTrasen «Пульсар»"
+  description: A cyberdeck for the neuro-interface. Provides slots for program modules.
+  components:
+  - type: Sprite
+    sprite: Objects/Misc/module.rsi
+    state: generic
+  - type: Item
+    size: Tiny
+  - type: Tag
+    tags:
+    - AugmentModuleNeuroInterface
+    - AugmentModuleCyberDeck
+  - type: CyberDeck
+    baseMaxRam: 8
+    maxRam: 8
+    currentRam: 8
+    ramRegenTime: 3
+  - type: AugmentModuleSlots
+    slots:
+    - id: cyberdeck_ram_1
+      name: augment-modules-slot-cyberdeck-ram
+      allowInsertWhenUninstalled: true
+      allowInsertWhenInstalled: true
+      visibleInVerbs: true
+      whitelist:
+        tags:
+        - AugmentModuleCyberDeckRam
+    - id: cyberdeck_program_1
+      name: augment-modules-slot-cyberdeck-program
+      allowInsertWhenUninstalled: true
+      allowInsertWhenInstalled: true
+      visibleInVerbs: true
+      whitelist:
+        tags:
+        - AugmentModuleCyberDeckProgram
+    - id: cyberdeck_program_2
+      name: augment-modules-slot-cyberdeck-program
+      allowInsertWhenUninstalled: true
+      allowInsertWhenInstalled: true
+      visibleInVerbs: true
+      whitelist:
+        tags:
+        - AugmentModuleCyberDeckProgram
+    - id: cyberdeck_program_3
+      name: augment-modules-slot-cyberdeck-program
+      allowInsertWhenUninstalled: true
+      allowInsertWhenInstalled: true
+      visibleInVerbs: true
+      whitelist:
+        tags:
+        - AugmentModuleCyberDeckProgram
+
+- type: entity
+  parent: AugmentModuleCyberDeck
+  id: AugmentModuleCyberDeckInterdyne
+  name: "Interdyne «Fallen»"
+
+- type: entity
+  parent: BaseItem
+  id: AugmentModuleCyberDeckRam
+  name: cyberdeck RAM module
+  description: A RAM expansion module for the cyberdeck. Increases available memory by 4 units.
+  components:
+  - type: Sprite
+    sprite: Objects/Misc/module.rsi
+    state: generic
+  - type: Item
+    size: Tiny
+  - type: Tag
+    tags:
+    - AugmentModuleCyberDeckRam
+  - type: CyberDeckRamModule
+    ramIncrease: 4
+
+# Scripts
+
+- type: entity
+  abstract: true
+  parent: BaseAction
+  id: BaseCyberDeckScriptAction
+  components:
+  - type: InstantAction
+    event: !type:CyberDeckScriptActionEvent
+
+- type: entity
+  parent: BaseCyberDeckScriptAction
+  id: ActionCyberDeckScriptCameraControl
+  name: Camera Control
+  description: Access the station's surveillance camera network.
+
+- type: entity
+  parent: BaseCyberDeckScriptAction
+  id: ActionCyberDeckScriptImplantFailure
+  name: Implant Failure
+  description: Temporarily deactivates visible implants and cybernetic limbs.
+
+- type: entity
+  parent: BaseAction
+  id: ActionCyberDeckScriptRemoteDeactivation
+  name: Remote Deactivation
+  description: Remotely opens or closes an airlock in range.
+  components:
+  - type: Action
+    itemIconStyle: BigAction
+  - type: TargetAction
+    range: 10
+    checkCanAccess: false
+    deselectOnMiss: true
+    interactOnMiss: false
+    targetingIndicator: true
+  - type: EntityTargetAction
+  - type: WorldTargetAction
+    event: !type:CyberDeckScriptTargetActionEvent
+
+- type: entity
+  parent: BaseItem
+  id: AugmentModuleCyberDeckScriptCameraControl
+  name: camera control script
+  description: A cyberdeck script that grants access to the station's surveillance camera network. Costs 4 RAM per use.
+  components:
+  - type: Sprite
+    sprite: Objects/Misc/module.rsi
+    state: generic
+  - type: Item
+    size: Tiny
+  - type: Tag
+    tags:
+    - AugmentModuleCyberDeckProgram
+  - type: CyberDeckScript
+    action: ActionCyberDeckScriptCameraControl
+    ramCost: 4
+  - type: CyberDeckScriptActivatableUI
+    key: enum.SurveillanceCameraMonitorUiKey.Key
+  - type: UserInterface
+    interfaces:
+      enum.SurveillanceCameraMonitorUiKey.Key:
+        type: SurveillanceCameraMonitorBoundUserInterface
+  - type: DeviceNetwork
+    deviceNetId: Wired
+    receiveFrequencyId: SurveillanceCamera
+    transmitFrequencyId: SurveillanceCamera
+  - type: WiredNetworkConnection
+  - type: SurveillanceCameraMonitor
+
+- type: entity
+  parent: BaseItem
+  id: AugmentModuleCyberDeckScriptImplantFailure
+  name: implant failure script
+  description: A cyberdeck script that deactivates visible implants and cybernetic limbs for 6-8 seconds. Costs 8 RAM per use.
+  components:
+  - type: Sprite
+    sprite: Objects/Misc/module.rsi
+    state: generic
+  - type: Item
+    size: Tiny
+  - type: Tag
+    tags:
+    - AugmentModuleCyberDeckProgram
+  - type: CyberDeckScript
+    action: ActionCyberDeckScriptImplantFailure
+    ramCost: 8
+  - type: CyberDeckScriptImplantFailure
+    range: 7
+    minDisableDuration: 6
+    maxDisableDuration: 8
+
+- type: entity
+  parent: BaseItem
+  id: AugmentModuleCyberDeckScriptRemoteDeactivation
+  name: remote deactivation script
+  description: A cyberdeck script that remotely opens and closes airlocks. Costs 2 RAM per use.
+  components:
+  - type: Sprite
+    sprite: Objects/Misc/module.rsi
+    state: generic
+  - type: Item
+    size: Tiny
+  - type: Tag
+    tags:
+    - AugmentModuleCyberDeckProgram
+  - type: CyberDeckScript
+    action: ActionCyberDeckScriptRemoteDeactivation
+    ramCost: 2
+  - type: CyberDeckScriptRemoteDeactivation
+    range: 10
+    operationDelay: 2
+    targetSearchRadius: 1.2
+    access: []
+    inverted: true
+    overlayFillColor: "#ff24185c"
+    overlayOuterOutlineColor: "#000000E6"
+    overlayInnerOutlineColor: "#ff1818f5"

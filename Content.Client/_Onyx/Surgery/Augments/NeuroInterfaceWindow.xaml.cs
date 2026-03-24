@@ -43,6 +43,7 @@ public sealed partial class NeuroInterfaceWindow : FancyWindow
     {
         public HashSet<NetEntity> CollapsedGroups = new();
         public HashSet<NetEntity> CollapsedAugments = new();
+        public HashSet<NetEntity> CollapsedModules = new();
     }
 
     public event Action<NetEntity, bool>? OnToggleRequested;
@@ -238,6 +239,34 @@ public sealed partial class NeuroInterfaceWindow : FancyWindow
         BorderThickness = new Thickness(0),
     };
 
+    private static readonly StyleBoxFlat RamSafeBar = new()
+    {
+        BackgroundColor = new Color(70, 180, 85, 220),
+        BorderColor = new Color(59, 153, 72, 255),
+        BorderThickness = new Thickness(2f),
+    };
+
+    private static readonly StyleBoxFlat RamWarnBar = new()
+    {
+        BackgroundColor = new Color(215, 180, 70, 220),
+        BorderColor = new Color(183, 153, 60, 255),
+        BorderThickness = new Thickness(2f),
+    };
+
+    private static readonly StyleBoxFlat RamCriticalBar = new()
+    {
+        BackgroundColor = new Color(200, 70, 70, 220),
+        BorderColor = new Color(170, 60, 60, 255),
+        BorderThickness = new Thickness(2f),
+    };
+
+    private static readonly StyleBoxFlat RamBackground = new()
+    {
+        BackgroundColor = new Color(20, 22, 28, 255),
+        BorderColor = Color.Transparent,
+        BorderThickness = new Thickness(0),
+    };
+
     private const string UnknownPartLocKey = "augment-examine-unknown-part";
     private const string UnknownDescriptionLocKey = "neuro-interface-tooltip-description-unknown";
     private const float TooltipTextMaxWidth = 560;
@@ -258,6 +287,7 @@ public sealed partial class NeuroInterfaceWindow : FancyWindow
         DisableAllButton.OnPressed += _ => OnBulkToggleRequested?.Invoke(NeuroInterfaceBulkTarget.All, false);
         EnableAllButton.OnPressed += _ => OnBulkToggleRequested?.Invoke(NeuroInterfaceBulkTarget.All, true);
         SetupNeuroLoadOverlay();
+        SetupRamOverlay();
     }
 
     public void UpdateState(NeuroInterfaceBuiState state)
@@ -268,6 +298,7 @@ public sealed partial class NeuroInterfaceWindow : FancyWindow
 
         UpdatePowerSourceLabel(state);
         UpdateNeuroLoad(state);
+        UpdateRam(state);
         UpdateBatteryLabel(state);
 
         if (!AreAugmentsEqual(state.Augments, _cachedAugments))
@@ -344,6 +375,49 @@ public sealed partial class NeuroInterfaceWindow : FancyWindow
         NeuroLoadValueLabel.VAlign = Label.VAlignMode.Center;
         NeuroLoadValueLabel.FontColorOverride = Color.White;
         SetPosition(NeuroLoadValueLabel, new Vector2(6, -1));
+    }
+
+    private void UpdateRam(NeuroInterfaceBuiState state)
+    {
+        RamPanel.Visible = state.HasCyberDeck;
+
+        if (!state.HasCyberDeck)
+            return;
+
+        var max = Math.Max(state.RamMax, 0f);
+        var current = Math.Max(state.RamCurrent, 0f);
+        var barValue = max > 0f ? Math.Clamp(current, 0f, max) : 0f;
+
+        RamTitleLabel.Text = Loc.GetString("neuro-interface-window-ram-title");
+        RamBar.MinValue = 0f;
+        RamBar.MaxValue = Math.Max(max, 1f);
+        RamBar.Value = barValue;
+        RamBar.BackgroundStyleBoxOverride = RamBackground;
+
+        var ratio = max > 0f ? current / max : 0f;
+        RamBar.ForegroundStyleBoxOverride = ratio switch
+        {
+            <= 0.10f => RamCriticalBar,
+            <= 0.25f => RamWarnBar,
+            _ => RamSafeBar,
+        };
+
+        RamValueLabel.Text = Loc.GetString("neuro-interface-window-ram-value",
+            ("current", current.ToString("0.0")),
+            ("max", max.ToString("0.0")));
+    }
+
+    private void SetupRamOverlay()
+    {
+        SetAnchorPreset(RamBar, LayoutPreset.Wide);
+        SetAnchorPreset(RamValueLabel, LayoutPreset.Wide);
+
+        RamValueLabel.SetPositionLast();
+
+        RamValueLabel.Align = Label.AlignMode.Left;
+        RamValueLabel.VAlign = Label.VAlignMode.Center;
+        RamValueLabel.FontColorOverride = Color.White;
+        SetPosition(RamValueLabel, new Vector2(6, -1));
     }
 
     private void EnsureViewSettings(string interfaceCode)
@@ -476,7 +550,8 @@ public sealed partial class NeuroInterfaceWindow : FancyWindow
                 CloneMetricEntries(entry.PassivePowerEntries),
                 CloneMetricEntries(entry.ActivePowerEntries),
                 CloneMetricEntries(entry.PassiveNeuroLoadEntries),
-                CloneMetricEntries(entry.ActiveNeuroLoadEntries)));
+                CloneMetricEntries(entry.ActiveNeuroLoadEntries),
+                CloneModuleEntries(entry.SubModules)));
         }
 
         return copy;
@@ -542,7 +617,8 @@ public sealed partial class NeuroInterfaceWindow : FancyWindow
                 || !AreMetricListsEqual(a[i].PassivePowerEntries, b[i].PassivePowerEntries)
                 || !AreMetricListsEqual(a[i].ActivePowerEntries, b[i].ActivePowerEntries)
                 || !AreMetricListsEqual(a[i].PassiveNeuroLoadEntries, b[i].PassiveNeuroLoadEntries)
-                || !AreMetricListsEqual(a[i].ActiveNeuroLoadEntries, b[i].ActiveNeuroLoadEntries))
+                || !AreMetricListsEqual(a[i].ActiveNeuroLoadEntries, b[i].ActiveNeuroLoadEntries)
+                || !AreModuleListsEqual(a[i].SubModules, b[i].SubModules))
             {
                 return false;
             }
@@ -736,40 +812,99 @@ public sealed partial class NeuroInterfaceWindow : FancyWindow
         for (var i = 0; i < entry.Modules.Count; i++)
         {
             var module = entry.Modules[i];
-            var row = new PanelContainer
-            {
-                PanelOverride = GetStatusBackground(entry.Status),
-                Margin = new Thickness(0),
-                HorizontalExpand = true,
-            };
-
-            var description = string.IsNullOrWhiteSpace(module.Description)
-                ? Loc.GetString(UnknownDescriptionLocKey)
-                : module.Description;
-
-            var line = new Label
-            {
-                Text = Loc.GetString("neuro-interface-module-line",
-                    ("slot", module.SlotName),
-                    ("name", module.Name)),
-                Margin = new Thickness(6, 3, 6, 3),
-                HorizontalExpand = true,
-            };
-            line.TooltipSupplier = _ => BuildModuleTooltip(module, description, entry.Status);
-            row.AddChild(line);
-
-            var rowWithTree = new BoxContainer
-            {
-                Orientation = LayoutOrientation.Horizontal,
-                SeparationOverride = 2,
-                HorizontalExpand = true,
-            };
-            rowWithTree.AddChild(CreateModuleTreeBranch(i, entry.Modules.Count, treeLineBackground));
-            rowWithTree.AddChild(row);
-            modules.AddChild(rowWithTree);
+            AddModuleRow(modules, module, i, entry.Modules.Count, treeLineBackground, entry.Status, 0);
         }
 
         return modules;
+    }
+
+    private void AddModuleRow(
+        BoxContainer parent,
+        NeuroInterfaceModuleEntry module,
+        int index,
+        int total,
+        StyleBoxFlat treeLineBackground,
+        NeuroInterfaceAugmentStatus status,
+        int depth)
+    {
+        var hasSubModules = module.SubModules.Count > 0;
+        var moduleCollapsed = hasSubModules && _viewSettings.CollapsedModules.Contains(module.Module);
+
+        var description = string.IsNullOrWhiteSpace(module.Description)
+            ? Loc.GetString(UnknownDescriptionLocKey)
+            : module.Description;
+
+        var rowContent = new BoxContainer
+        {
+            Orientation = LayoutOrientation.Horizontal,
+            SeparationOverride = 4,
+            HorizontalExpand = true,
+            Margin = new Thickness(4, 2, 4, 2),
+        };
+
+        if (hasSubModules)
+        {
+            var collapseButton = new Button
+            {
+                Text = moduleCollapsed ? "v" : "^",
+                MinWidth = 20,
+                MinHeight = 20,
+                StyleBoxOverride = GetStatusBackground(status),
+            };
+            collapseButton.OnPressed += _ =>
+            {
+                ToggleModuleCollapsed(module.Module);
+                if (_cachedAugments != null)
+                    RebuildAugments(_cachedAugments);
+            };
+            rowContent.AddChild(collapseButton);
+        }
+
+        var line = new Label
+        {
+            Text = module.Name,
+            HorizontalExpand = true,
+        };
+        line.TooltipSupplier = _ => BuildModuleTooltip(module, description, status);
+        rowContent.AddChild(line);
+
+        var row = new PanelContainer
+        {
+            PanelOverride = GetStatusBackground(status),
+            Margin = new Thickness(0),
+            HorizontalExpand = true,
+        };
+        row.AddChild(rowContent);
+
+        var rowWithTree = new BoxContainer
+        {
+            Orientation = LayoutOrientation.Horizontal,
+            SeparationOverride = 2,
+            HorizontalExpand = true,
+        };
+        rowWithTree.AddChild(CreateModuleTreeBranch(index, total, treeLineBackground));
+        rowWithTree.AddChild(row);
+        parent.AddChild(rowWithTree);
+
+        if (!hasSubModules || moduleCollapsed)
+            return;
+
+        var subContainer = new BoxContainer
+        {
+            Orientation = LayoutOrientation.Vertical,
+            SeparationOverride = 0,
+            Margin = new Thickness(16, 0, 0, 0),
+            HorizontalExpand = true,
+        };
+
+        subContainer.AddChild(CreateModuleRootConnector(treeLineBackground));
+
+        for (var i = 0; i < module.SubModules.Count; i++)
+        {
+            AddModuleRow(subContainer, module.SubModules[i], i, module.SubModules.Count, treeLineBackground, status, depth + 1);
+        }
+
+        parent.AddChild(subContainer);
     }
 
     private static Control CreateModuleRootConnector(StyleBoxFlat treeLineBackground)
@@ -874,9 +1009,7 @@ public sealed partial class NeuroInterfaceWindow : FancyWindow
             AddTooltipText(root, Loc.GetString("neuro-interface-modules-label"), new Thickness(0, 2, 0, 0));
             foreach (var module in entry.Modules)
             {
-                AddTooltipText(root, Loc.GetString("neuro-interface-module-line",
-                    ("slot", module.SlotName),
-                    ("name", module.Name)), new Thickness(8, 0, 0, 0));
+                AddTooltipText(root, module.Name, new Thickness(8, 0, 0, 0));
             }
         }
 
@@ -974,6 +1107,12 @@ public sealed partial class NeuroInterfaceWindow : FancyWindow
     {
         if (!_viewSettings.CollapsedAugments.Remove(augment))
             _viewSettings.CollapsedAugments.Add(augment);
+    }
+
+    private void ToggleModuleCollapsed(NetEntity module)
+    {
+        if (!_viewSettings.CollapsedModules.Remove(module))
+            _viewSettings.CollapsedModules.Add(module);
     }
 
     private static StyleBoxFlat GetStatusBackground(NeuroInterfaceAugmentStatus status)

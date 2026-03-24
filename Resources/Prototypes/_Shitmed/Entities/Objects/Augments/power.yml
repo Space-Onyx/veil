@@ -41,6 +41,7 @@
   - type: Organ
     slotId: powerCell
     toolName: surgery-tool-augment-target-chest # <Onyx-Augment-Tweak>
+    hiddenFromAnalyzer: true # <Onyx-Augment-Tweak>
     onAdd:
     - type: HasAugmentPowerCellSlot
   - type: AugmentPowerCellSlot
@@ -79,6 +80,7 @@
   - type: Organ
     slotId: charger
     toolName: surgery-tool-augment-target-chest # <Onyx-Augment-Tweak>
+    hiddenFromAnalyzer: true # <Onyx-Augment-Tweak>
   - type: AugmentCharger
 
 - type: entity
@@ -121,6 +123,7 @@
     color: "#3b88ff"
     examineText: augment-examine-recharger-apc
   - type: Organ
+    hiddenFromAnalyzer: true # <Onyx-Augment-Tweak>
     onAdd:
     - type: BatteryDrinker
   - type: Construction
@@ -139,6 +142,7 @@
     color: "#3b88ff"
     examineText: augment-examine-recharger-station
   - type: Organ
+    hiddenFromAnalyzer: true # <Onyx-Augment-Tweak>
     onAdd:
     - type: AugmentStationRecharge
   - type: Construction

@@ -6,11 +6,10 @@ augment-brain-disabled = This augmentation is force-deactivated due to critical 
 augment-modules-verb-category = Augmentations
 augment-modules-slot-default-name = Module slot
 
-augment-modules-verb-open-panel = Open module panel: {$augment}
-augment-modules-verb-close-panel = Close module panel: {$augment}
-augment-modules-verb-insert-module = Insert module into {$augment} ({$slot})
+augment-modules-verb-open-panel = Open module panel
+augment-modules-verb-close-panel = Close module panel
 augment-modules-verb-insert-module-short = Insert: {$slot}
-augment-modules-verb-eject-module = Eject module from {$augment} ({$slot}): {$module}
+augment-modules-verb-eject-module = Eject: {$module}
 
 augment-modules-popup-panel-opened = Module panel opened for {$augment}.
 augment-modules-popup-panel-closed = Module panel closed for {$augment}.

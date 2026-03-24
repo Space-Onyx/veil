@@ -10,6 +10,7 @@
   - type: Organ
     slotId: armImplant
     toolName: surgery-tool-augment-target-arm # <Onyx-Augment-Tweak>
+    hiddenFromAnalyzer: true # <Onyx-Augment-Tweak>
   - type: AugmentArm
 
 # Tools

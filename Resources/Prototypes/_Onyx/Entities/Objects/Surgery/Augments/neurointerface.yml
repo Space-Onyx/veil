@@ -83,6 +83,14 @@
       whitelist:
         tags:
         - AugmentModuleNeuroCapacity
+    - id: neuro_module_cyberdeck
+      name: augment-modules-slot-neuro-interface-cyberdeck
+      allowInsertWhenUninstalled: true
+      allowInsertWhenInstalled: true
+      visibleInVerbs: true
+      whitelist:
+        tags:
+        - AugmentModuleCyberDeck
   - type: AugmentAction
     action: ActionAugmentNeuroInterface
   - type: AugmentActivatableUI

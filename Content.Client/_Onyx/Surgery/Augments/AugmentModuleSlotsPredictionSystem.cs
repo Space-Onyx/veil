@@ -47,10 +47,46 @@ public sealed class AugmentModuleSlotsPredictionSystem : EntitySystem
             if (!modules.PanelOpen)
                 continue;
 
-            if (args.Using is { } usingEnt)
-                AddInsertVerbs(ref args, augment, modules, Name(augment), usingEnt, user, installed: true);
+            var augmentName = Name(augment);
 
-            AddEjectVerbs(ref args, augment, modules, Name(augment), user);
+            if (args.Using is { } usingEnt)
+                AddInsertVerbs(ref args, augment, modules, augmentName, usingEnt, user, installed: true);
+
+            AddEjectVerbs(ref args, augment, modules, augmentName, user);
+
+            CollectNestedModuleVerbs(ref args, augment, modules, user);
+        }
+    }
+
+    private void CollectNestedModuleVerbs(
+        ref GetVerbsEvent<AlternativeVerb> args,
+        EntityUid parentAugment,
+        AugmentModuleSlotsComponent parentModules,
+        EntityUid user,
+        int depth = 0)
+    {
+        if (depth > 4)
+            return;
+
+        foreach (var def in parentModules.Slots)
+        {
+            if (!_itemSlots.TryGetSlot(parentAugment, def.Id, out var slot) || slot.Item is not { } moduleEntity)
+                continue;
+
+            if (!TryComp<AugmentModuleSlotsComponent>(moduleEntity, out var nestedModules))
+                continue;
+
+            if (!nestedModules.PanelOpen)
+                continue;
+
+            var moduleName = Name(moduleEntity);
+
+            if (args.Using is { } usingEnt)
+                AddInsertVerbs(ref args, moduleEntity, nestedModules, moduleName, usingEnt, user, installed: true);
+
+            AddEjectVerbs(ref args, moduleEntity, nestedModules, moduleName, user);
+
+            CollectNestedModuleVerbs(ref args, moduleEntity, nestedModules, user, depth + 1);
         }
     }
 
@@ -62,12 +98,13 @@ public sealed class AugmentModuleSlotsPredictionSystem : EntitySystem
         if (_augment.GetBody(ent) != null)
             return;
 
+        var augmentName = Name(ent);
         var user = args.User;
 
         if (args.Using is { } usingEnt)
-            AddInsertVerbs(ref args, ent.Owner, ent.Comp, Name(ent), usingEnt, user, installed: false);
+            AddInsertVerbs(ref args, ent.Owner, ent.Comp, augmentName, usingEnt, user, installed: false);
 
-        AddEjectVerbs(ref args, ent.Owner, ent.Comp, Name(ent), user);
+        AddEjectVerbs(ref args, ent.Owner, ent.Comp, augmentName, user);
     }
 
     private string GetSlotLabel(AugmentModuleSlotDefinition def)
@@ -117,11 +154,7 @@ public sealed class AugmentModuleSlotsPredictionSystem : EntitySystem
             var slotLabel = GetSlotLabel(def);
             args.Verbs.Add(new AlternativeVerb
             {
-                Text = Loc.GetString("augment-modules-verb-insert-module-short",
-                    ("slot", slotLabel)),
-                Message = Loc.GetString("augment-modules-verb-insert-module",
-                    ("augment", augmentName),
-                    ("slot", slotLabel)),
+                Text = $"({augmentName}) {Loc.GetString("augment-modules-verb-insert-module-short", ("slot", slotLabel))}",
                 Category = AugmentationsCategory,
                 Act = () => TryInsertModuleNoDelay(augment, def.Id, usingEnt, user),
             });
@@ -144,13 +177,9 @@ public sealed class AugmentModuleSlotsPredictionSystem : EntitySystem
                 continue;
             }
 
-            var slotLabel = GetSlotLabel(def);
             args.Verbs.Add(new AlternativeVerb
             {
-                Text = Loc.GetString("augment-modules-verb-eject-module",
-                    ("augment", augmentName),
-                    ("slot", slotLabel),
-                    ("module", Name(item))),
+                Text = $"({augmentName}) {Loc.GetString("augment-modules-verb-eject-module", ("module", Name(item)))}",
                 Category = AugmentationsCategory,
                 Act = () => _itemSlots.TryEjectToHands(augment, slot, user, doAfter: false),
             });

@@ -163,6 +163,106 @@
     organ:
     - type: Organ
 
+# Right Temple
+- type: entity
+  parent: SurgeryOpenCavityBase
+  id: SurgeryOpenRightTempleAugment
+  name: Open Right Temple Cavity
+  components:
+  - type: Surgery
+    requirement: SurgeryOpenIncision
+    steps:
+    - SurgeryStepSawBones
+    - SurgeryStepOpenOrganSlot
+  - type: SurgeryPartCondition
+    parts: [ Head ]
+  - type: SurgeryOrganSlotCondition
+    organSlot: rightTemple
+    inverse: true
+
+- type: entity
+  id: SurgeryInsertRightTempleAugment
+  name: Insert Right Temple Augment
+  components:
+  - type: Surgery
+    requirement: SurgeryOpenRightTempleAugment
+    steps:
+    - SurgeryStepInsertAugmentRightTemple
+    - SurgeryStepSealOrganWound
+  - type: SurgeryPartCondition
+    parts: [ Head ]
+  - type: SurgeryOrganSlotCondition
+    organSlot: rightTemple
+  - type: SurgeryOrganTagCondition
+    tag: rightTempleAugment
+    inverse: true
+    reattaching: true
+
+- type: entity
+  parent: SurgeryRemoveAugmentBase
+  id: SurgeryRemoveRightTempleAugment
+  name: Remove Right Temple Augment
+  components:
+  - type: Surgery
+    requirement: SurgeryOpenIncision
+  - type: SurgeryPartCondition
+    parts: [ Head ]
+  - type: SurgeryOrganTagCondition
+    tag: rightTempleAugment
+  - type: SurgeryOrganCondition
+    organ:
+    - type: Organ
+
+# Prefrontal Cortex
+- type: entity
+  parent: SurgeryOpenCavityBase
+  id: SurgeryOpenPrefrontalCortexAugment
+  name: Open Prefrontal Cortex Cavity
+  components:
+  - type: Surgery
+    requirement: SurgeryOpenIncision
+    steps:
+    - SurgeryStepSawBones
+    - SurgeryStepOpenOrganSlot
+  - type: SurgeryPartCondition
+    parts: [ Head ]
+  - type: SurgeryOrganSlotCondition
+    organSlot: prefrontalCortex
+    inverse: true
+
+- type: entity
+  id: SurgeryInsertPrefrontalCortexAugment
+  name: Insert Prefrontal Cortex Augment
+  components:
+  - type: Surgery
+    requirement: SurgeryOpenPrefrontalCortexAugment
+    steps:
+    - SurgeryStepInsertAugmentPrefrontalCortex
+    - SurgeryStepSealOrganWound
+  - type: SurgeryPartCondition
+    parts: [ Head ]
+  - type: SurgeryOrganSlotCondition
+    organSlot: prefrontalCortex
+  - type: SurgeryOrganTagCondition
+    tag: prefrontalCortexAugment
+    inverse: true
+    reattaching: true
+
+- type: entity
+  parent: SurgeryRemoveAugmentBase
+  id: SurgeryRemovePrefrontalCortexAugment
+  name: Remove Prefrontal Cortex Augment
+  components:
+  - type: Surgery
+    requirement: SurgeryOpenIncision
+  - type: SurgeryPartCondition
+    parts: [ Head ]
+  - type: SurgeryOrganTagCondition
+    tag: prefrontalCortexAugment
+  - type: SurgeryOrganCondition
+    organ:
+    - type: Organ
+
 - type: entity
   parent: SurgeryOpenCavityBase
   id: SurgeryOpenBrainAugment

@@ -27,6 +27,8 @@ neuro-interface-window-battery-none = Battery charge: no battery
 neuro-interface-window-battery-value = Battery charge: {$current}/{$max} ({$percent}%)
 neuro-interface-window-neuro-load-title = Neuro-load
 neuro-interface-window-neuro-load-value = {$current}/{$max}
+neuro-interface-window-ram-title = RAM
+neuro-interface-window-ram-value = {$current}/{$max}
 neuro-interface-window-no-augments = No augments detected
 neuro-interface-tooltip-description-unknown = No description available.
 neuro-interface-tooltip-description = Description: {$description}
@@ -93,3 +95,28 @@ neuro-interface-module-line = {$slot}: {$name}
 
 augment-modules-slot-neuro-interface-capacity = neuro-capacity module slot
 augment-modules-slot-neuro-interface-universal = universal module slot
+augment-modules-slot-neuro-interface-cyberdeck = cyberdeck module slot
+augment-modules-slot-cyberdeck-program = program slot
+augment-modules-slot-cyberdeck-ram = RAM module slot
+
+ent-AugmentModuleCyberDeck = NanoTrasen «Pulsar»
+    .desc = A cyberdeck for the neuro-interface. Provides slots for program modules.
+ent-AugmentModuleCyberDeckInterdyne = Interdyne «Fallen»
+    .desc = A cyberdeck for the neuro-interface. Provides slots for program modules.
+ent-AugmentModuleCyberDeckRam = cyberdeck RAM module
+    .desc = A RAM expansion module for the cyberdeck. Increases available memory by 4 units.
+
+ent-ActionCyberDeckScriptCameraControl = Camera Control
+    .desc = Access the station's surveillance camera network.
+ent-AugmentModuleCyberDeckScriptCameraControl = camera control script
+    .desc = A cyberdeck script that grants access to the station's surveillance camera network. Costs 4 RAM per use.
+ent-ActionCyberDeckScriptImplantFailure = Implant Failure
+    .desc = Temporarily deactivate all visible implants and cybernetic limbs.
+ent-AugmentModuleCyberDeckScriptImplantFailure = implant failure script
+    .desc = A cyberdeck script that deactivates visible implants and cybernetic limbs for 6-8 seconds. Costs 8 RAM per use.
+ent-ActionCyberDeckScriptRemoteDeactivation = Remote Deactivation
+    .desc = Remotely opens or closes an airlock in range.
+ent-AugmentModuleCyberDeckScriptRemoteDeactivation = remote deactivation script
+    .desc = A cyberdeck script that remotely opens and closes airlocks. Costs 2 RAM per use.
+
+cyberdeck-script-not-enough-ram = Not enough RAM to execute the script!
