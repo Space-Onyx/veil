@@ -184,6 +184,11 @@
   - !type:AddComponentSpecial
     components:
       - type: CommandStaff
+      - type: JobPresetAugments
+        entries:
+        - prototype: AugmentNeuroInterface
+          slot: neckImplant
+          partType: Head
       - type: Condemned # Goobstation - Nanotrasen owns your soul pal.
         soulOwnedNotDevil: true
 

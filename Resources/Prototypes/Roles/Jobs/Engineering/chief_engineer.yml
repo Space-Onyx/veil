@@ -179,6 +179,11 @@
   - !type:AddComponentSpecial
     components:
       - type: CommandStaff
+      - type: JobPresetAugments
+        entries:
+        - prototype: AugmentNeuroInterface
+          slot: neckImplant
+          partType: Head
       - type: EngineeringStaff # Goobstation
 
 - type: startingGear

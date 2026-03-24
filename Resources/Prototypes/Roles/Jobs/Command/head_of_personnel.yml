@@ -203,6 +203,11 @@
   - !type:AddComponentSpecial
     components:
       - type: CommandStaff
+      - type: JobPresetAugments
+        entries:
+        - prototype: AugmentNeuroInterface
+          slot: neckImplant
+          partType: Head
 
 - type: startingGear
   id: HoPGear

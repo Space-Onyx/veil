@@ -144,6 +144,11 @@
   - !type:AddComponentSpecial
     components:
       - type: CommandStaff
+      - type: JobPresetAugments
+        entries:
+        - prototype: AugmentNeuroInterface
+          slot: neckImplant
+          partType: Head
       - type: Condemned
         soulOwnedNotDevil: true
 

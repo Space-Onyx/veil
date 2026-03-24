@@ -41,6 +41,11 @@
   - !type:AddComponentSpecial
     components:
     - type: DeathSquadMember # Goobstation
+    - type: JobPresetAugments
+      entries:
+      - prototype: AugmentNeuroInterface
+        slot: neckImplant
+        partType: Head
 
   # Goobstation Start - I basically re-did all of deathsquads stuff so. - Sol
 - type: startingGear

@@ -66,6 +66,13 @@
   special: # Goobstation
   - !type:AddImplantSpecial
     implants: [ MindShieldImplant, FreedomImplant, BluespaceLifelineImplant, RadioImplantCentcomm, NutrimentPumpImplant, StypticStimulatorImplant, DeathRattleImplantCentcomm ]
+  - !type:AddComponentSpecial
+    components:
+      - type: JobPresetAugments
+        entries:
+        - prototype: AugmentNeuroInterface
+          slot: neckImplant
+          partType: Head
 
 - type: startingGear # Goobstation - Start - SolsticeOfTheWinter
   id: CentcomGear
