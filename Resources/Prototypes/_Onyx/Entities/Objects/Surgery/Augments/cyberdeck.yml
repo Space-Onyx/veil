@@ -97,7 +97,7 @@
   parent: BaseCyberDeckScriptAction
   id: ActionCyberDeckScriptImplantFailure
   name: Implant Failure
-  description: Temporarily deactivates visible implants and cybernetic limbs.
+  description: Temporarily deactivates visible implants, excluding cybernetic limbs and eyes.
 
 - type: entity
   parent: BaseAction
@@ -120,6 +120,22 @@
   id: ActionCyberDeckScriptOpticsOverload
   name: Optics Overload
   description: Temporarily deactivates cybernetic optics on a selected target.
+  components:
+  - type: TargetAction
+    range: 7
+    checkCanAccess: false
+    deselectOnMiss: true
+    interactOnMiss: false
+    targetingIndicator: true
+  - type: EntityTargetAction
+  - type: WorldTargetAction
+    event: !type:CyberDeckScriptTargetActionEvent
+
+- type: entity
+  parent: BaseAction
+  id: ActionCyberDeckScriptMotorImpairment
+  name: Motor Impairment
+  description: Temporarily deactivates cybernetic legs on a selected target.
   components:
   - type: TargetAction
     range: 7
@@ -165,7 +181,7 @@
   parent: BaseItem
   id: AugmentModuleCyberDeckScriptImplantFailure
   name: implant failure script
-  description: A cyberdeck script that deactivates visible implants and cybernetic limbs for 6-8 seconds. Costs 8 RAM per use.
+  description: A cyberdeck script that deactivates visible implants (excluding cybernetic limbs and eyes) for 6-8 seconds. Costs 8 RAM per use.
   components:
   - type: Sprite
     sprite: _Onyx/Objects/Devices/modules.rsi
@@ -177,11 +193,11 @@
     - AugmentModuleCyberDeckProgram
   - type: CyberDeckScript
     action: ActionCyberDeckScriptImplantFailure
-    ramCost: 8
+    ramCost: 12
   - type: CyberDeckScriptImplantFailure
     range: 7
-    minDisableDuration: 6
-    maxDisableDuration: 8
+    minDisableDuration: 5
+    maxDisableDuration: 6
 
 - type: entity
   parent: BaseItem
@@ -239,3 +255,27 @@
     overlayFillColor: "#ffb70061"
     overlayOuterOutlineColor: "#000000e3"
     overlayInnerOutlineColor: "#ffc300f5"
+
+- type: entity
+  parent: BaseItem
+  id: AugmentModuleCyberDeckScriptMotorImpairment
+  name: motor impairment script
+  description: A cyberdeck script that deactivates cybernetic legs for 4-5 seconds. Costs 6 RAM per use.
+  components:
+  - type: Sprite
+    sprite: _Onyx/Objects/Devices/modules.rsi
+    state: failure
+  - type: Item
+    size: Tiny
+  - type: Tag
+    tags:
+    - AugmentModuleCyberDeckProgram
+  - type: CyberDeckScript
+    action: ActionCyberDeckScriptMotorImpairment
+    ramCost: 7
+  - type: CyberDeckScriptMotorImpairment
+    range: 7
+    operationDelay: 1
+    targetSearchRadius: 1.2
+    minDisableDuration: 4
+    maxDisableDuration: 5

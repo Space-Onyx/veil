@@ -1,7 +1,6 @@
 using Content.Server.Doors.Systems;
 using Content.Server.Emp;
 using Content.Server.SurveillanceCamera;
-using Content.Goobstation.Common.Effects;
 using Content.Shared.Access.Systems;
 using Content.Shared._Onyx.Surgery.Augments;
 using Content.Shared._Shitmed.Body.Organ;
@@ -28,7 +27,6 @@ public sealed class CyberDeckScriptRemoteDeactivationSystem : EntitySystem
     [Dependency] private readonly IRobustRandom _random = default!;
     [Dependency] private readonly AccessReaderSystem _accessReader = default!;
     [Dependency] private readonly SharedInteractionSystem _interaction = default!;
-    [Dependency] private readonly SparksSystem _sparks = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
 
     public override void Initialize()
@@ -47,7 +45,7 @@ public sealed class CyberDeckScriptRemoteDeactivationSystem : EntitySystem
         if (!CanOperateTarget(args.Body, target, targetType, ent.Comp))
             return;
 
-        _sparks.DoSparks(Transform(target).Coordinates);
+        Spawn("EffectSparks", Transform(target).Coordinates);
 
         var delay = MathF.Max(0f, ent.Comp.OperationDelay * MathF.Max(1f, args.AciTimeMultiplier));
         if (delay <= 0f)

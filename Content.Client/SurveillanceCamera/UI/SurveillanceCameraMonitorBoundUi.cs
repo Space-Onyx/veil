@@ -27,7 +27,7 @@ public sealed class SurveillanceCameraMonitorBoundUserInterface : BoundUserInter
 
     // <Onyx-Fix>
     [ViewVariables]
-    private SurveillanceCameraMonitorUiState? _lastState; 
+    private SurveillanceCameraMonitorUiState? _lastState;
 
     [ViewVariables]
     private bool _retryPendingState;

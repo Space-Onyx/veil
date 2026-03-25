@@ -1,10 +1,9 @@
 using Content.Server.Body.Systems;
 using Content.Server.Emp;
 using Content.Shared._Onyx.Surgery.Augments;
-using Content.Shared._Shitmed.Body.Organ;
 using Content.Shared._Shitmed.Cybernetics;
 using Content.Shared.Body.Components;
-using Content.Shared.Body.Organ;
+using Content.Shared.Body.Part;
 using Content.Shared.DoAfter;
 using Content.Shared.Interaction;
 using Content.Shared.Physics;
@@ -15,7 +14,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._Onyx.Surgery.Augments;
 
-public sealed class CyberDeckScriptOpticsOverloadSystem : EntitySystem
+public sealed class CyberDeckScriptMotorImpairmentSystem : EntitySystem
 {
     private const LookupFlags TargetLookupFlags =
         LookupFlags.Dynamic | LookupFlags.StaticSundries | LookupFlags.Sensors;
@@ -34,11 +33,11 @@ public sealed class CyberDeckScriptOpticsOverloadSystem : EntitySystem
     {
         base.Initialize();
 
-        SubscribeLocalEvent<CyberDeckScriptOpticsOverloadComponent, CyberDeckScriptExecutedEvent>(OnExecuted);
-        SubscribeLocalEvent<CyberDeckScriptOpticsOverloadComponent, CyberDeckScriptOpticsOverloadDoAfterEvent>(OnDoAfter);
+        SubscribeLocalEvent<CyberDeckScriptMotorImpairmentComponent, CyberDeckScriptExecutedEvent>(OnExecuted);
+        SubscribeLocalEvent<CyberDeckScriptMotorImpairmentComponent, CyberDeckScriptMotorImpairmentDoAfterEvent>(OnDoAfter);
     }
 
-    private void OnExecuted(Entity<CyberDeckScriptOpticsOverloadComponent> ent, ref CyberDeckScriptExecutedEvent args)
+    private void OnExecuted(Entity<CyberDeckScriptMotorImpairmentComponent> ent, ref CyberDeckScriptExecutedEvent args)
     {
         if (!TryResolveTarget(ent.Comp, args.TargetEntity, args.TargetCoordinates, out var target))
             return;
@@ -49,7 +48,7 @@ public sealed class CyberDeckScriptOpticsOverloadSystem : EntitySystem
         var delay = MathF.Max(0f, ent.Comp.OperationDelay * MathF.Max(1f, args.AciTimeMultiplier));
         if (delay <= 0f)
         {
-            DisableTargetOptics(target, ent.Comp);
+            DisableTargetMotorics(target, ent.Comp);
             return;
         }
 
@@ -57,7 +56,7 @@ public sealed class CyberDeckScriptOpticsOverloadSystem : EntitySystem
             EntityManager,
             args.Performer,
             delay,
-            new CyberDeckScriptOpticsOverloadDoAfterEvent
+            new CyberDeckScriptMotorImpairmentDoAfterEvent
             {
                 Target = GetNetEntity(target),
                 Body = GetNetEntity(args.Body),
@@ -73,8 +72,8 @@ public sealed class CyberDeckScriptOpticsOverloadSystem : EntitySystem
     }
 
     private void OnDoAfter(
-        Entity<CyberDeckScriptOpticsOverloadComponent> ent,
-        ref CyberDeckScriptOpticsOverloadDoAfterEvent args)
+        Entity<CyberDeckScriptMotorImpairmentComponent> ent,
+        ref CyberDeckScriptMotorImpairmentDoAfterEvent args)
     {
         if (args.Handled || args.Cancelled)
             return;
@@ -90,11 +89,11 @@ public sealed class CyberDeckScriptOpticsOverloadSystem : EntitySystem
         if (!CanOperateTarget(body, target, ent.Comp))
             return;
 
-        DisableTargetOptics(target, ent.Comp);
+        DisableTargetMotorics(target, ent.Comp);
     }
 
     private bool TryResolveTarget(
-        CyberDeckScriptOpticsOverloadComponent comp,
+        CyberDeckScriptMotorImpairmentComponent comp,
         EntityUid? targetEntity,
         EntityCoordinates? targetCoordinates,
         out EntityUid target)
@@ -103,7 +102,7 @@ public sealed class CyberDeckScriptOpticsOverloadSystem : EntitySystem
 
         if (targetEntity is { } directTarget &&
             Exists(directTarget) &&
-            IsValidOpticalTarget(directTarget))
+            IsValidMotoricsTarget(directTarget))
         {
             target = directTarget;
             return true;
@@ -121,7 +120,7 @@ public sealed class CyberDeckScriptOpticsOverloadSystem : EntitySystem
                      searchRadius,
                      TargetLookupFlags))
         {
-            if (!IsValidOpticalTarget(candidate))
+            if (!IsValidMotoricsTarget(candidate))
                 continue;
 
             var candidateCoords = _transform.GetMapCoordinates(candidate);
@@ -142,30 +141,35 @@ public sealed class CyberDeckScriptOpticsOverloadSystem : EntitySystem
     private bool CanOperateTarget(
         EntityUid userBody,
         EntityUid targetBody,
-        CyberDeckScriptOpticsOverloadComponent comp)
+        CyberDeckScriptMotorImpairmentComponent comp)
     {
-        if (!IsValidOpticalTarget(targetBody))
+        if (!IsValidMotoricsTarget(targetBody))
             return false;
 
-        var hasOptics = EntityManager.HasOperationalCyberneticOrgan<EyesComponent>(userBody);
-        var range = hasOptics ? comp.Range : comp.RangeWithoutOptics;
-        range = MathF.Max(0f, range);
-
+        var range = MathF.Max(0f, comp.Range);
         if (range <= 0f)
             return false;
-
-        if (hasOptics)
-            return _transform.InRange(userBody, targetBody, range);
 
         return _interaction.InRangeUnobstructed(userBody, targetBody, range, CollisionGroup.Opaque);
     }
 
-    private bool IsValidOpticalTarget(EntityUid target)
+    private bool IsValidMotoricsTarget(EntityUid targetBody)
     {
-        return EntityManager.HasOperationalCyberneticOrgan<EyesComponent>(target);
+        foreach (var (partUid, partComp) in _body.GetBodyChildren(targetBody))
+        {
+            if (partComp.PartType != BodyPartType.Leg)
+                continue;
+
+            if (!TryComp<CyberneticsComponent>(partUid, out var cyberComp) || cyberComp.Disabled)
+                continue;
+
+            return true;
+        }
+
+        return false;
     }
 
-    private bool DisableTargetOptics(EntityUid targetBody, CyberDeckScriptOpticsOverloadComponent comp)
+    private bool DisableTargetMotorics(EntityUid targetBody, CyberDeckScriptMotorImpairmentComponent comp)
     {
         var minDuration = MathF.Min(comp.MinDisableDuration, comp.MaxDisableDuration);
         var maxDuration = MathF.Max(comp.MinDisableDuration, comp.MaxDisableDuration);
@@ -178,22 +182,20 @@ public sealed class CyberDeckScriptOpticsOverloadSystem : EntitySystem
         var duration = maxDuration > minDuration
             ? _random.NextFloat(minDuration, maxDuration)
             : minDuration;
+
         var disabledUntil = _timing.CurTime + TimeSpan.FromSeconds(duration);
-
         var affected = false;
-        foreach (var (organUid, organComp) in _body.GetBodyOrgans(targetBody))
+
+        foreach (var (partUid, partComp) in _body.GetBodyChildren(targetBody))
         {
-            if (!organComp.Enabled)
+            if (partComp.PartType != BodyPartType.Leg)
                 continue;
 
-            if (!TryComp<CyberneticsComponent>(organUid, out var cyberComp) || cyberComp.Disabled)
-                continue;
-
-            if (!TryComp<EyesComponent>(organUid, out _))
+            if (!CyberDeckScriptDisruptionHelper.IsCyberneticBodyPartType(partUid, BodyPartType.Leg, EntityManager))
                 continue;
 
             if (CyberDeckScriptDisruptionHelper.TryDisableCybernetic(
-                    organUid,
+                    partUid,
                     disabledUntil,
                     _emp,
                     _timing,
@@ -206,7 +208,7 @@ public sealed class CyberDeckScriptOpticsOverloadSystem : EntitySystem
         if (affected)
         {
             Spawn("EffectSparks", Transform(targetBody).Coordinates);
-            _popup.PopupEntity(Loc.GetString("cyberdeck-script-popup-optics-overload"), targetBody, targetBody, PopupType.LargeCaution);
+            _popup.PopupEntity(Loc.GetString("cyberdeck-script-popup-motor-impairment"), targetBody, targetBody, PopupType.LargeCaution);
         }
 
         return affected;

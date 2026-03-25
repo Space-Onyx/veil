@@ -3,6 +3,7 @@ using Content.Goobstation.Shared.Augments;
 using Content.Server.Body.Systems;
 using Content.Server.Emp;
 using Content.Shared._Onyx.Surgery.Augments;
+using Content.Shared._Shitmed.Body.Organ;
 using Content.Shared._Shitmed.Cybernetics;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Interaction;
@@ -64,10 +65,14 @@ public sealed class CyberDeckScriptImplantFailureSystem : EntitySystem
             if (!_interaction.InRangeUnobstructed(args.Body, body, ent.Comp.Range, CollisionGroup.Opaque))
                 continue;
 
+            if (!CanAffectBodyByAci(ent.Owner, body))
+                continue;
+
             if (!TryDisableBodyEnhancements(body, disabledUntil))
                 continue;
 
-            _popup.PopupEntity(Loc.GetString("augment-emp-disabled"), body, body, PopupType.LargeCaution);
+            Spawn("EffectSparks", Transform(body).Coordinates);
+            _popup.PopupEntity(Loc.GetString("cyberdeck-script-popup-implant-failure"), body, body, PopupType.LargeCaution);
         }
     }
 
@@ -90,12 +95,55 @@ public sealed class CyberDeckScriptImplantFailureSystem : EntitySystem
 
             if (TryComp<CyberneticsComponent>(enhancement, out _))
             {
+                if (IsExcludedCyberneticEnhancement(enhancement))
+                    continue;
+
                 if (DisableCybernetics(enhancement, disabledUntil))
                     affectedAny = true;
             }
         }
 
         return affectedAny;
+    }
+
+    private bool IsExcludedCyberneticEnhancement(EntityUid enhancement)
+    {
+        if (HasComp<EyesComponent>(enhancement))
+            return true;
+
+        return false;
+    }
+
+    private bool CanAffectBodyByAci(EntityUid scriptEntity, EntityUid body)
+    {
+        var penetration = 0;
+        if (TryComp<CyberDeckScriptComponent>(scriptEntity, out var scriptComp))
+            penetration = Math.Max(0, scriptComp.AciPenetrationLevel);
+
+        var protection = GetBodyNeuroAciProtection(body);
+        var difference = protection - penetration;
+        return difference < 2;
+    }
+
+    private int GetBodyNeuroAciProtection(EntityUid body)
+    {
+        var protection = 0;
+
+        foreach (var (partUid, partComp) in _body.GetBodyChildren(body))
+        {
+            foreach (var (organUid, _) in _body.GetPartOrgans(partUid, partComp))
+            {
+                if (!TryComp<AugmentNeuroInterfaceComponent>(organUid, out var neuro))
+                    continue;
+
+                protection = Math.Max(protection, Math.Max(0, neuro.AciProtectionLevel));
+
+                if (TryComp<AciProtectionComponent>(organUid, out var aci))
+                    protection = Math.Max(protection, Math.Max(0, aci.Level));
+            }
+        }
+
+        return protection;
     }
 
     private bool DisableAugment(EntityUid augment, EntityUid body, TimeSpan disabledUntil)
@@ -121,15 +169,11 @@ public sealed class CyberDeckScriptImplantFailureSystem : EntitySystem
 
     private bool DisableCybernetics(EntityUid cybernetic, TimeSpan disabledUntil)
     {
-        if (!TryComp<CyberneticsComponent>(cybernetic, out var cyberComp))
-            return false;
-
-        if (cyberComp.Disabled)
-            return false;
-
-        var duration = MathF.Max(0.01f, (float) (disabledUntil - _timing.CurTime).TotalSeconds);
-        _emp.DoEmpEffects(cybernetic, 0f, duration);
-
-        return TryComp<CyberneticsComponent>(cybernetic, out cyberComp) && cyberComp.Disabled;
+        return CyberDeckScriptDisruptionHelper.TryDisableCybernetic(
+            cybernetic,
+            disabledUntil,
+            _emp,
+            _timing,
+            EntityManager);
     }
 }
