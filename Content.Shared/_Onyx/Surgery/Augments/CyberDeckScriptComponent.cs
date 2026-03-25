@@ -16,6 +16,9 @@ public sealed partial class CyberDeckScriptComponent : Component
 
     [DataField]
     public float RamCost = 4f;
+
+    [DataField]
+    public int AciPenetrationLevel = 1;
 }
 public sealed partial class CyberDeckScriptActionEvent : InstantActionEvent;
 public sealed partial class CyberDeckScriptTargetActionEvent : WorldTargetActionEvent;
@@ -26,4 +29,5 @@ public record struct CyberDeckScriptExecutedEvent(
     EntityUid CyberDeck,
     EntityUid Performer,
     EntityUid? TargetEntity = null,
-    EntityCoordinates? TargetCoordinates = null);
+    EntityCoordinates? TargetCoordinates = null,
+    float AciTimeMultiplier = 1f);

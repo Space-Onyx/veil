@@ -1,4 +1,6 @@
 using Content.Server.Doors.Systems;
+using Content.Server.Emp;
+using Content.Server.SurveillanceCamera;
 using Content.Goobstation.Common.Effects;
 using Content.Shared.Access.Systems;
 using Content.Shared._Onyx.Surgery.Augments;
@@ -9,18 +11,21 @@ using Content.Shared.Interaction;
 using Content.Shared.Physics;
 using Content.Shared.StationRecords;
 using Robust.Shared.Map;
+using Robust.Shared.Random;
 
 namespace Content.Server._Onyx.Surgery.Augments;
 
 public sealed class CyberDeckScriptRemoteDeactivationSystem : EntitySystem
 {
     private static readonly ICollection<StationRecordKey> EmptyStationKeys = Array.Empty<StationRecordKey>();
-    private const LookupFlags AirlockLookupFlags =
+    private const LookupFlags TargetLookupFlags =
         LookupFlags.Dynamic | LookupFlags.Static | LookupFlags.StaticSundries | LookupFlags.Sundries;
 
     [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
     [Dependency] private readonly DoorSystem _doors = default!;
+    [Dependency] private readonly EmpSystem _emp = default!;
     [Dependency] private readonly EntityLookupSystem _lookup = default!;
+    [Dependency] private readonly IRobustRandom _random = default!;
     [Dependency] private readonly AccessReaderSystem _accessReader = default!;
     [Dependency] private readonly SharedInteractionSystem _interaction = default!;
     [Dependency] private readonly SparksSystem _sparks = default!;
@@ -36,18 +41,18 @@ public sealed class CyberDeckScriptRemoteDeactivationSystem : EntitySystem
 
     private void OnExecuted(Entity<CyberDeckScriptRemoteDeactivationComponent> ent, ref CyberDeckScriptExecutedEvent args)
     {
-        if (!TryResolveTargetAirlock(ent, args.TargetEntity, args.TargetCoordinates, out var target))
+        if (!TryResolveTarget(ent, args.TargetEntity, args.TargetCoordinates, out var target, out var targetType))
             return;
 
-        if (!CanOperateDoor(args.Body, target, ent.Comp))
+        if (!CanOperateTarget(args.Body, target, targetType, ent.Comp))
             return;
 
         _sparks.DoSparks(Transform(target).Coordinates);
 
-        var delay = MathF.Max(0f, ent.Comp.OperationDelay);
+        var delay = MathF.Max(0f, ent.Comp.OperationDelay * MathF.Max(1f, args.AciTimeMultiplier));
         if (delay <= 0f)
         {
-            ToggleDoor(target);
+            ExecuteTarget(target, targetType, ent.Comp);
             return;
         }
 
@@ -85,26 +90,31 @@ public sealed class CyberDeckScriptRemoteDeactivationSystem : EntitySystem
         if (!Exists(target) || !Exists(body))
             return;
 
-        if (!CanOperateDoor(body, target, ent.Comp))
+        if (!TryGetTargetType(target, out var targetType))
             return;
 
-        ToggleDoor(target);
+        if (!CanOperateTarget(body, target, targetType, ent.Comp))
+            return;
+
+        ExecuteTarget(target, targetType, ent.Comp);
     }
 
-    private bool TryResolveTargetAirlock(
+    private bool TryResolveTarget(
         Entity<CyberDeckScriptRemoteDeactivationComponent> ent,
         EntityUid? targetEntity,
         EntityCoordinates? targetCoordinates,
-        out EntityUid target)
+        out EntityUid target,
+        out RemoteDeactivationTargetType targetType)
     {
         target = default;
+        targetType = RemoteDeactivationTargetType.None;
 
         if (targetEntity is { } directTarget &&
             Exists(directTarget) &&
-            TryComp<AirlockComponent>(directTarget, out _) &&
-            TryComp<DoorComponent>(directTarget, out _))
+            TryGetTargetType(directTarget, out var directType))
         {
             target = directTarget;
+            targetType = directType;
             return true;
         }
 
@@ -118,9 +128,9 @@ public sealed class CyberDeckScriptRemoteDeactivationSystem : EntitySystem
         foreach (var (candidate, _) in _lookup.GetEntitiesInRange<AirlockComponent>(
                      coords,
                      searchRadius,
-                     AirlockLookupFlags))
+                     TargetLookupFlags))
         {
-            if (!TryComp<DoorComponent>(candidate, out _))
+            if (!TryGetTargetType(candidate, out var candidateType))
                 continue;
 
             var candidateCoords = _transform.GetMapCoordinates(candidate);
@@ -133,23 +143,43 @@ public sealed class CyberDeckScriptRemoteDeactivationSystem : EntitySystem
 
             bestDistanceSquared = distance;
             target = candidate;
+            targetType = candidateType;
+        }
+
+        foreach (var (candidate, _) in _lookup.GetEntitiesInRange<CyberDeckRemoteDeactivationCameraTargetComponent>(
+                     coords,
+                     searchRadius,
+                     TargetLookupFlags))
+        {
+            if (!TryGetTargetType(candidate, out var candidateType))
+                continue;
+
+            var candidateCoords = _transform.GetMapCoordinates(candidate);
+            if (candidateCoords.MapId != mapCoords.MapId)
+                continue;
+
+            var distance = (candidateCoords.Position - mapCoords.Position).LengthSquared();
+            if (distance >= bestDistanceSquared)
+                continue;
+
+            bestDistanceSquared = distance;
+            target = candidate;
+            targetType = candidateType;
         }
 
         return target != default;
     }
 
-    private bool CanOperateDoor(
+    private bool CanOperateTarget(
         EntityUid body,
         EntityUid target,
+        RemoteDeactivationTargetType targetType,
         CyberDeckScriptRemoteDeactivationComponent comp)
     {
-        if (!TryComp<AirlockComponent>(target, out _)
-            || !TryComp<DoorComponent>(target, out _))
-        {
+        if (!IsTargetType(target, targetType))
             return false;
-        }
 
-        if (!MatchesConfiguredAccess(target, comp))
+        if (targetType == RemoteDeactivationTargetType.Airlock && !MatchesConfiguredAccess(target, comp))
             return false;
 
         var range = MathF.Max(0f, comp.Range);
@@ -177,11 +207,84 @@ public sealed class CyberDeckScriptRemoteDeactivationSystem : EntitySystem
         return comp.Inverted ? !matches : matches;
     }
 
+    private void ExecuteTarget(
+        EntityUid target,
+        RemoteDeactivationTargetType targetType,
+        CyberDeckScriptRemoteDeactivationComponent comp)
+    {
+        switch (targetType)
+        {
+            case RemoteDeactivationTargetType.Airlock:
+                ToggleDoor(target);
+                break;
+            case RemoteDeactivationTargetType.Camera:
+                DisableCamera(target, comp);
+                break;
+        }
+    }
+
     private void ToggleDoor(EntityUid target)
     {
         if (!TryComp<DoorComponent>(target, out var door))
             return;
 
         _doors.TryToggleDoor(target, door, null);
+    }
+
+    private void DisableCamera(EntityUid target, CyberDeckScriptRemoteDeactivationComponent comp)
+    {
+        if (!TryComp<SurveillanceCameraComponent>(target, out _))
+            return;
+
+        var minDuration = MathF.Min(comp.MinCameraDisableDuration, comp.MaxCameraDisableDuration);
+        var maxDuration = MathF.Max(comp.MinCameraDisableDuration, comp.MaxCameraDisableDuration);
+
+        minDuration = MathF.Max(0f, minDuration);
+        maxDuration = MathF.Max(minDuration, maxDuration);
+        if (maxDuration <= 0f)
+            return;
+
+        var duration = maxDuration > minDuration
+            ? _random.NextFloat(minDuration, maxDuration)
+            : minDuration;
+
+        _emp.DoEmpEffects(target, 0f, duration);
+    }
+
+    private bool TryGetTargetType(EntityUid target, out RemoteDeactivationTargetType targetType)
+    {
+        if (TryComp<AirlockComponent>(target, out _) && TryComp<DoorComponent>(target, out _))
+        {
+            targetType = RemoteDeactivationTargetType.Airlock;
+            return true;
+        }
+
+        if (TryComp<CyberDeckRemoteDeactivationCameraTargetComponent>(target, out _)
+            && TryComp<SurveillanceCameraComponent>(target, out _)
+            && Transform(target).Anchored)
+        {
+            targetType = RemoteDeactivationTargetType.Camera;
+            return true;
+        }
+
+        targetType = RemoteDeactivationTargetType.None;
+        return false;
+    }
+
+    private bool IsTargetType(EntityUid target, RemoteDeactivationTargetType targetType)
+    {
+        return targetType switch
+        {
+            RemoteDeactivationTargetType.Airlock => TryComp<AirlockComponent>(target, out _) && TryComp<DoorComponent>(target, out _),
+            RemoteDeactivationTargetType.Camera => TryComp<CyberDeckRemoteDeactivationCameraTargetComponent>(target, out _) && TryComp<SurveillanceCameraComponent>(target, out _),
+            _ => false,
+        };
+    }
+
+    private enum RemoteDeactivationTargetType : byte
+    {
+        None,
+        Airlock,
+        Camera,
     }
 }

@@ -200,6 +200,8 @@
   id: AirlockCommand
   suffix: Command
   components:
+  - type: AciProtection # <Onyx-augmentation>
+    level: 2
   - type: Sprite
     sprite: Structures/Doors/Airlocks/Standard/command.rsi
   - type: WiresPanelSecurity
@@ -212,6 +214,8 @@
   id: AirlockSecurity
   suffix: Security
   components:
+  - type: AciProtection # <Onyx-augmentation>
+    level: 2
   - type: Sprite
     sprite: Structures/Doors/Airlocks/Standard/security.rsi
   - type: Wires
@@ -250,6 +254,8 @@
   id: AirlockCentralCommand
   suffix: Central Command
   components:
+  - type: AciProtection # <Onyx-augmentation>
+    level: 5
   - type: Sprite
     sprite: Structures/Doors/Airlocks/Standard/centcomm.rsi
 
@@ -371,6 +377,8 @@
   id: AirlockCommandGlass
   suffix: Command
   components:
+  - type: AciProtection # <Onyx-augmentation>
+    level: 2
   - type: Sprite
     sprite: Structures/Doors/Airlocks/Glass/command.rsi
   - type: WiresPanelSecurity
@@ -383,6 +391,8 @@
   id: AirlockSecurityGlass
   suffix: Security
   components:
+  - type: AciProtection # <Onyx-augmentation>
+    level: 2
   - type: Sprite
     sprite: Structures/Doors/Airlocks/Glass/security.rsi
   - type: Wires
@@ -411,6 +421,8 @@
   id: AirlockCentralCommandGlass
   suffix: Central Command
   components:
+  - type: AciProtection # <Onyx-augmentation>
+    level: 5
   - type: Sprite
     sprite: Structures/Doors/Airlocks/Glass/centcomm.rsi
 

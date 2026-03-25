@@ -52,7 +52,7 @@
 - type: entity
   parent: BaseOnyxNeckAugment
   id: AugmentNeuroInterface
-  name: neuro-interface
+  name: NanoTrasen Neuro
   description: An implanted neuro-interface unit installed at the back of the head.
   components:
   - type: Item
@@ -63,6 +63,9 @@
     hiddenFromAnalyzer: true
   - type: AugmentNeuroInterface
     maxNeuroLoad: 10
+    aciProtectionLevel: 1
+  - type: AciProtection
+    level: 1
   - type: AugmentNeuroLoad
     passiveLoad: 1
   - type: AugmentModuleSlots
@@ -114,6 +117,32 @@
     - Augment
     - neckAugment
     - AugmentNeuroInterface
+
+- type: entity
+  parent: AugmentNeuroInterface
+  id: AugmentNeuroInterfaceInterdyneFault
+  name: Interdyne Fault
+  components:
+  - type: AugmentNeuroInterface
+    maxNeuroLoad: 12
+    aciProtectionLevel: 1
+  - type: AciProtection
+    level: 1
+  - type: AugmentExamine
+    visible: false
+  - type: Construction
+
+- type: entity
+  parent: AugmentNeuroInterface
+  id: AugmentNeuroInterfaceNanoTrasenSilovik
+  name: NanoTrasen Enforcer
+  components:
+  - type: AugmentNeuroInterface
+    maxNeuroLoad: 15
+    aciProtectionLevel: 3
+  - type: AciProtection
+    level: 3
+  - type: Construction
 
 - type: entity
   parent: BaseItem

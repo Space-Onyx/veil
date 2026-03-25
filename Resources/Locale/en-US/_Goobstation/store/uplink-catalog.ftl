@@ -298,6 +298,8 @@ uplink-autosurgeon-berserker-heart-desc = Replaces the user's heart with a berse
 uplink-autosurgeon-jumpstarter-heart-name = Jumpstarter Heart Autosurgeon
 uplink-autosurgeon-jumpstarter-heart-desc = Replaces the user's heart with a jumpstarter implant, that injects enough omnizine to get up once you got critical damage. Has a 3 minutes cooldown. Requires too much fine tuning for a human to provide, comes with a one-use autosurgeon for installation.
 
+uplink-autosurgeon-neuro-interface-name = Neuro-Interface Autosurgeon (Interdyne Fault)
+uplink-autosurgeon-neuro-interface-desc = Implants an Interdyne Fault neuro-interface augment into your head. Comes with a one-use autosurgeon for installation.
 uplink-autosurgeon-voice-modulator-name = Voice Modulator Autosurgeon
 uplink-autosurgeon-voice-modulator-desc = Implants a voice modulator augment into your head, letting you alter your voice identity on demand. Comes with a one-use autosurgeon for installation.
 

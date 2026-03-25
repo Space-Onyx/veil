@@ -10,6 +10,9 @@ public sealed partial class AugmentNeuroInterfaceComponent : Component
 
     [DataField]
     public float MaxNeuroLoad = 20f;
+
+    [DataField, AutoNetworkedField]
+    public int AciProtectionLevel = 1;
 }
 
 [RegisterComponent]

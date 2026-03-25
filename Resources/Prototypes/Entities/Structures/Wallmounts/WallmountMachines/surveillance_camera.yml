@@ -96,6 +96,9 @@
       Active: camera
       Disabled: camera_off
       InUse: camera_in_use
+  - type: AciProtection # <Onyx-augmentation>
+    level: 1
+  - type: CyberDeckRemoteDeactivationCameraTarget
   - type: UserInterface
     interfaces:
       enum.SurveillanceCameraSetupUiKey.Camera:
@@ -163,6 +166,8 @@
   name: camera
   suffix: Engineering
   components:
+  - type: AciProtection # <Onyx-augmentation>
+    level: 2
   - type: DeviceNetwork
     deviceNetId: Wired
     receiveFrequencyId: SurveillanceCameraEngineering
@@ -176,6 +181,8 @@
   name: camera
   suffix: Security
   components:
+  - type: AciProtection # <Onyx-augmentation>
+    level: 2
   - type: DeviceNetwork
     deviceNetId: Wired
     receiveFrequencyId: SurveillanceCameraSecurity
@@ -215,6 +222,8 @@
   name: camera
   suffix: Command
   components:
+  - type: AciProtection # <Onyx-augmentation>
+    level: 2
   - type: DeviceNetwork
     deviceNetId: Wired
     receiveFrequencyId: SurveillanceCameraCommand

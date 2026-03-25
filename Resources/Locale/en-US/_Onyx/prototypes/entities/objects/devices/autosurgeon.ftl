@@ -4,7 +4,11 @@ ent-AutosurgeonVoiceModulator = syndicate autosurgeon (voice modulator)
 ent-AutosurgeonRTGAugment = autosurgeon (RTG augment)
     .desc = A single-use autosurgeon for implanting an RTG augment.
 
-ent-AutosurgeonNeuroInterface = autosurgeon (neuro-interface)
-    .desc = A single-use autosurgeon for implanting a neuro-interface augment.
+ent-AutosurgeonNeuroInterface = autosurgeon (Interdyne Fault neuro-interface)
+    .desc = A single-use autosurgeon for implanting an Interdyne Fault neuro-interface augment.
+ent-AutosurgeonNeuroInterfaceNanoTrasenNeuro = autosurgeon (NanoTrasen Neuro neuro-interface)
+    .desc = A single-use autosurgeon for implanting a NanoTrasen Neuro neuro-interface augment.
+ent-AutosurgeonNeuroInterfaceEnforcer = autosurgeon (NanoTrasen Enforcer neuro-interface)
+    .desc = A single-use autosurgeon for implanting a NanoTrasen Enforcer neuro-interface augment.
 ent-AutosurgeonSubdermalArmor = autosurgeon (subdermal armor)
     .desc = A single-use autosurgeon for implanting a subdermal armor augment.

@@ -168,6 +168,8 @@
     time: 3
   - type: Airlock
     openUnlitVisible: true # CorvaxGoob-Resprite-Airlocks
+  - type: AciProtection # <Onyx-augmentation>
+    level: 1
   - type: NavMapDoor
   - type: DoorBolt
   - type: Appearance

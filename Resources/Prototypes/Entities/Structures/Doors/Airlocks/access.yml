@@ -1254,6 +1254,8 @@
   id: HighSecCentralCommandLocked
   suffix: Central Command, Locked
   components:
+  - type: AciProtection # <Onyx-augmentation>
+    level: 5
   - type: ContainerFill
     containers:
       board: [ DoorElectronicsCentralCommand ]
@@ -1263,6 +1265,8 @@
   id: HighSecCommandLocked
   suffix: Command, Locked
   components:
+  - type: AciProtection # <Onyx-augmentation>
+    level: 2
   - type: ContainerFill
     containers:
       board: [ DoorElectronicsCommand ]
@@ -1272,6 +1276,8 @@
   id: HighSecCaptainLocked
   suffix: Captain, Locked
   components:
+  - type: AciProtection # <Onyx-augmentation>
+    level: 2
   - type: ContainerFill
     containers:
       board: [ DoorElectronicsCaptain ]
@@ -1281,6 +1287,8 @@
   id: HighSecArmoryLocked
   suffix: Armory, Locked
   components:
+  - type: AciProtection # <Onyx-augmentation>
+    level: 2
   - type: ContainerFill
     containers:
       board: [ DoorElectronicsArmory ]

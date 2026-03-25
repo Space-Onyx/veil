@@ -1,14 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.Numerics;
 using Content.Client.UserInterface.Systems.Actions;
-using Content.Shared.Access;
-using Content.Shared.Access.Systems;
 using Content.Shared.Actions.Components;
 using Content.Shared._Onyx.Surgery.Augments;
 using Content.Shared._Shitmed.Body.Organ;
-using Content.Shared.Doors.Components;
-using Content.Shared.StationRecords;
+using Content.Shared.Body.Components;
 using Robust.Client.Graphics;
 using Robust.Client.Player;
 using Robust.Client.UserInterface;
@@ -16,21 +12,18 @@ using Robust.Shared.Enums;
 using Robust.Shared.Maths;
 using Robust.Shared.Physics.Collision.Shapes;
 using Robust.Shared.Physics.Dynamics;
-using Robust.Shared.Prototypes;
 using PhysTransform = Robust.Shared.Physics.Transform;
 
 namespace Content.Client._Onyx.Surgery.Augments;
 
-public sealed class CyberDeckScriptRemoteDeactivationOverlaySystem : EntitySystem
+public sealed class CyberDeckScriptOpticsOverloadOverlaySystem : EntitySystem
 {
-    private static readonly Color DefaultFillColor = new(24, 132, 255, 26);
+    private static readonly Color DefaultFillColor = new(255, 52, 134, 52);
     private static readonly Color DefaultOuterOutlineColor = new(0, 0, 0, 230);
-    private static readonly Color DefaultInnerOutlineColor = new(24, 132, 255, 245);
-    private static readonly ICollection<StationRecordKey> EmptyStationKeys = Array.Empty<StationRecordKey>();
+    private static readonly Color DefaultInnerOutlineColor = new(255, 52, 134, 245);
     private const LookupFlags TargetLookupFlags =
-        LookupFlags.Dynamic | LookupFlags.Static | LookupFlags.StaticSundries | LookupFlags.Sundries;
+        LookupFlags.Dynamic | LookupFlags.StaticSundries | LookupFlags.Sensors;
 
-    [Dependency] private readonly AccessReaderSystem _accessReader = default!;
     [Dependency] private readonly EntityLookupSystem _lookup = default!;
     [Dependency] private readonly IOverlayManager _overlayManager = default!;
     [Dependency] private readonly IPlayerManager _player = default!;
@@ -38,17 +31,15 @@ public sealed class CyberDeckScriptRemoteDeactivationOverlaySystem : EntitySyste
     [Dependency] private readonly SharedTransformSystem _xform = default!;
 
     private readonly List<HighlightShape> _highlightShapes = new();
-    private CyberDeckScriptRemoteDeactivationOverlay? _overlay;
+    private CyberDeckScriptOpticsOverloadOverlay? _overlay;
     private Color _fillColor = DefaultFillColor;
     private Color _outerOutlineColor = DefaultOuterOutlineColor;
     private Color _innerOutlineColor = DefaultInnerOutlineColor;
-    private ICollection<ProtoId<AccessLevelPrototype>>? _requiredAccess;
-    private bool _invertedAccess;
 
     public override void Initialize()
     {
         base.Initialize();
-        _overlay = new CyberDeckScriptRemoteDeactivationOverlay(this);
+        _overlay = new CyberDeckScriptOpticsOverloadOverlay(this);
         _overlayManager.AddOverlay(_overlay);
     }
 
@@ -81,27 +72,18 @@ public sealed class CyberDeckScriptRemoteDeactivationOverlaySystem : EntitySyste
             return;
 
         var bodyCoords = Transform(body).Coordinates;
-        foreach (var (airlock, _) in _lookup.GetEntitiesInRange<AirlockComponent>(
+        foreach (var (candidate, _) in _lookup.GetEntitiesInRange<BodyComponent>(
                      bodyCoords,
                      range,
                      TargetLookupFlags))
         {
-            if (!MatchesConfiguredAccess(airlock))
+            if (candidate == body)
                 continue;
 
-            if (TryBuildHighlightShape(airlock, out var shape))
-                _highlightShapes.Add(shape);
-        }
-
-        foreach (var (camera, _) in _lookup.GetEntitiesInRange<CyberDeckRemoteDeactivationCameraTargetComponent>(
-                     bodyCoords,
-                     range,
-                     TargetLookupFlags))
-        {
-            if (!Transform(camera).Anchored)
+            if (!EntityManager.HasOperationalCyberneticOrgan<EyesComponent>(candidate))
                 continue;
 
-            if (TryBuildHighlightShape(camera, out var shape))
+            if (TryBuildHighlightShape(candidate, out var shape))
                 _highlightShapes.Add(shape);
         }
     }
@@ -118,8 +100,6 @@ public sealed class CyberDeckScriptRemoteDeactivationOverlaySystem : EntitySyste
         fillColor = DefaultFillColor;
         outerOutlineColor = DefaultOuterOutlineColor;
         innerOutlineColor = DefaultInnerOutlineColor;
-        _requiredAccess = null;
-        _invertedAccess = false;
 
         if (_player.LocalEntity is not { Valid: true } user)
             return false;
@@ -137,16 +117,14 @@ public sealed class CyberDeckScriptRemoteDeactivationOverlaySystem : EntitySyste
             return false;
 
         if (actionComp.Container is not { } container ||
-            !TryComp<CyberDeckScriptRemoteDeactivationComponent>(container, out var remoteComp))
+            !TryComp<CyberDeckScriptOpticsOverloadComponent>(container, out var opticsComp))
         {
             return false;
         }
 
-        fillColor = remoteComp.OverlayFillColor;
-        outerOutlineColor = remoteComp.OverlayOuterOutlineColor;
-        innerOutlineColor = remoteComp.OverlayInnerOutlineColor;
-        _requiredAccess = remoteComp.Access.Count > 0 ? remoteComp.Access : null;
-        _invertedAccess = remoteComp.Inverted;
+        fillColor = opticsComp.OverlayFillColor;
+        outerOutlineColor = opticsComp.OverlayOuterOutlineColor;
+        innerOutlineColor = opticsComp.OverlayInnerOutlineColor;
 
         if (!TryComp<TargetActionComponent>(actionUid, out var targetComp))
             return false;
@@ -155,29 +133,14 @@ public sealed class CyberDeckScriptRemoteDeactivationOverlaySystem : EntitySyste
         return range > 0f;
     }
 
-    private bool MatchesConfiguredAccess(EntityUid target)
-    {
-        if (_requiredAccess == null)
-            return true;
-
-        var matches = true;
-        if (_accessReader.GetMainAccessReader(target, out var readerEnt) &&
-            readerEnt is { } reader)
-        {
-            matches = _accessReader.IsAllowed(_requiredAccess, EmptyStationKeys, reader.Owner, reader.Comp);
-        }
-
-        return _invertedAccess ? !matches : matches;
-    }
-
-    private bool TryBuildHighlightShape(EntityUid airlock, out HighlightShape shape)
+    private bool TryBuildHighlightShape(EntityUid target, out HighlightShape shape)
     {
         shape = default;
 
-        if (!TryGetMainFixture(airlock, out var fixture))
+        if (!TryGetMainFixture(target, out var fixture))
             return false;
 
-        var xform = Transform(airlock);
+        var xform = Transform(target);
         var worldTransform = new PhysTransform(
             _xform.GetWorldPosition(xform),
             _xform.GetWorldRotation(xform));
@@ -386,13 +349,13 @@ public sealed class CyberDeckScriptRemoteDeactivationOverlaySystem : EntitySyste
 
     private readonly record struct HighlightShape(Vector2[] Vertices, Vector2[] OuterVertices, Box2 Bounds);
 
-    private sealed class CyberDeckScriptRemoteDeactivationOverlay : Overlay
+    private sealed class CyberDeckScriptOpticsOverloadOverlay : Overlay
     {
-        private readonly CyberDeckScriptRemoteDeactivationOverlaySystem _system;
+        private readonly CyberDeckScriptOpticsOverloadOverlaySystem _system;
 
         public override OverlaySpace Space => OverlaySpace.WorldSpace;
 
-        public CyberDeckScriptRemoteDeactivationOverlay(CyberDeckScriptRemoteDeactivationOverlaySystem system)
+        public CyberDeckScriptOpticsOverloadOverlay(CyberDeckScriptOpticsOverloadOverlaySystem system)
         {
             _system = system;
         }

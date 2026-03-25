@@ -1,50 +1,44 @@
-using System.Collections.Generic;
-using Content.Shared.Access;
 using Content.Shared.DoAfter;
 using Robust.Shared.GameStates;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Maths;
-using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared._Onyx.Surgery.Augments;
 
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
-public sealed partial class CyberDeckScriptRemoteDeactivationComponent : Component
+public sealed partial class CyberDeckScriptOpticsOverloadComponent : Component
 {
     [DataField, AutoNetworkedField]
-    public float Range = 10f;
+    public float Range = 7f;
 
     [DataField, AutoNetworkedField]
-    public float OperationDelay = 2f;
+    public float RangeWithoutOptics = 6f;
+
+    [DataField, AutoNetworkedField]
+    public float OperationDelay = 1f;
 
     [DataField, AutoNetworkedField]
     public float TargetSearchRadius = 1.2f;
 
     [DataField]
-    public float MinCameraDisableDuration = 6f;
+    public float MinDisableDuration = 5f;
 
     [DataField]
-    public float MaxCameraDisableDuration = 8f;
-
-    [DataField("access"), AutoNetworkedField]
-    public List<ProtoId<AccessLevelPrototype>> Access = new();
-
-    [DataField("inverted"), AutoNetworkedField]
-    public bool Inverted;
+    public float MaxDisableDuration = 6f;
 
     [DataField, AutoNetworkedField]
-    public Color OverlayFillColor = new(24, 132, 255, 26);
+    public Color OverlayFillColor = new(255, 52, 134, 52);
 
     [DataField, AutoNetworkedField]
     public Color OverlayOuterOutlineColor = new(0, 0, 0, 230);
 
     [DataField, AutoNetworkedField]
-    public Color OverlayInnerOutlineColor = new(24, 132, 255, 245);
+    public Color OverlayInnerOutlineColor = new(255, 52, 134, 245);
 }
 
 [Serializable, NetSerializable]
-public sealed partial class CyberDeckScriptRemoteDeactivationDoAfterEvent : DoAfterEvent
+public sealed partial class CyberDeckScriptOpticsOverloadDoAfterEvent : DoAfterEvent
 {
     [DataField]
     public NetEntity Target;
@@ -54,7 +48,7 @@ public sealed partial class CyberDeckScriptRemoteDeactivationDoAfterEvent : DoAf
 
     public override DoAfterEvent Clone()
     {
-        return new CyberDeckScriptRemoteDeactivationDoAfterEvent
+        return new CyberDeckScriptOpticsOverloadDoAfterEvent
         {
             Target = Target,
             Body = Body,

@@ -18,6 +18,8 @@
     maxRam: 8
     currentRam: 8
     ramRegenTime: 3
+  - type: AugmentUniversalModule
+    currentNeuroLoad: 6
   - type: AugmentModuleSlots
     slots:
     - id: cyberdeck_ram_1
@@ -101,12 +103,26 @@
   parent: BaseAction
   id: ActionCyberDeckScriptRemoteDeactivation
   name: Remote Deactivation
-  description: Remotely opens or closes an airlock in range.
+  description: Remotely toggles an airlock or disables a camera in range.
   components:
-  - type: Action
-    itemIconStyle: BigAction
   - type: TargetAction
     range: 10
+    checkCanAccess: false
+    deselectOnMiss: true
+    interactOnMiss: false
+    targetingIndicator: true
+  - type: EntityTargetAction
+  - type: WorldTargetAction
+    event: !type:CyberDeckScriptTargetActionEvent
+
+- type: entity
+  parent: BaseAction
+  id: ActionCyberDeckScriptOpticsOverload
+  name: Optics Overload
+  description: Temporarily deactivates cybernetic optics on a selected target.
+  components:
+  - type: TargetAction
+    range: 7
     checkCanAccess: false
     deselectOnMiss: true
     interactOnMiss: false
@@ -122,8 +138,8 @@
   description: A cyberdeck script that grants access to the station's surveillance camera network. Costs 4 RAM per use.
   components:
   - type: Sprite
-    sprite: Objects/Misc/module.rsi
-    state: generic
+    sprite: _Onyx/Objects/Devices/modules.rsi
+    state: cameras
   - type: Item
     size: Tiny
   - type: Tag
@@ -152,8 +168,8 @@
   description: A cyberdeck script that deactivates visible implants and cybernetic limbs for 6-8 seconds. Costs 8 RAM per use.
   components:
   - type: Sprite
-    sprite: Objects/Misc/module.rsi
-    state: generic
+    sprite: _Onyx/Objects/Devices/modules.rsi
+    state: failure
   - type: Item
     size: Tiny
   - type: Tag
@@ -171,11 +187,11 @@
   parent: BaseItem
   id: AugmentModuleCyberDeckScriptRemoteDeactivation
   name: remote deactivation script
-  description: A cyberdeck script that remotely opens and closes airlocks. Costs 2 RAM per use.
+  description: A cyberdeck script that remotely toggles airlocks and disables cameras for 6-8 seconds. Costs 2 RAM per use.
   components:
   - type: Sprite
-    sprite: Objects/Misc/module.rsi
-    state: generic
+    sprite: _Onyx/Objects/Devices/modules.rsi
+    state: remote_deactivation
   - type: Item
     size: Tiny
   - type: Tag
@@ -188,8 +204,38 @@
     range: 10
     operationDelay: 2
     targetSearchRadius: 1.2
+    minCameraDisableDuration: 6
+    maxCameraDisableDuration: 8
     access: []
     inverted: true
-    overlayFillColor: "#ff24185c"
-    overlayOuterOutlineColor: "#000000E6"
-    overlayInnerOutlineColor: "#ff1818f5"
+    overlayFillColor: "#ff241861"
+    overlayOuterOutlineColor: "#000000e3"
+    overlayInnerOutlineColor: "#ff181880"
+
+- type: entity
+  parent: BaseItem
+  id: AugmentModuleCyberDeckScriptOpticsOverload
+  name: optics overload script
+  description: A cyberdeck script that deactivates cybernetic optics for 5-6 seconds. Costs 6 RAM per use.
+  components:
+  - type: Sprite
+    sprite: _Onyx/Objects/Devices/modules.rsi
+    state: failure
+  - type: Item
+    size: Tiny
+  - type: Tag
+    tags:
+    - AugmentModuleCyberDeckProgram
+  - type: CyberDeckScript
+    action: ActionCyberDeckScriptOpticsOverload
+    ramCost: 6
+  - type: CyberDeckScriptOpticsOverload
+    range: 7
+    rangeWithoutOptics: 6
+    operationDelay: 1
+    targetSearchRadius: 1.2
+    minDisableDuration: 5
+    maxDisableDuration: 6
+    overlayFillColor: "#ffb70061"
+    overlayOuterOutlineColor: "#000000e3"
+    overlayInnerOutlineColor: "#ffc300f5"

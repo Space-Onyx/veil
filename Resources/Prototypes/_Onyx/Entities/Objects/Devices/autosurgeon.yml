@@ -19,14 +19,34 @@
     newPartProto: AugmentRTG
 
 - type: entity
-  parent: BaseAutosurgeonSingle
+  parent: BaseAutosurgeonSyndicateSingle
   id: AutosurgeonNeuroInterface
-  name: autosurgeon (neuro-interface)
+  name: autosurgeon (Interdyne Fault neuro-interface)
+  components:
+  - type: AutoSurgeon
+    targetBodyPart: Head
+    targetOrgan: neckImplant
+    newPartProto: AugmentNeuroInterfaceInterdyneFault
+
+- type: entity
+  parent: BaseAutosurgeonSingle
+  id: AutosurgeonNeuroInterfaceNanoTrasenNeuro
+  name: autosurgeon (NanoTrasen Neuro neuro-interface)
   components:
   - type: AutoSurgeon
     targetBodyPart: Head
     targetOrgan: neckImplant
     newPartProto: AugmentNeuroInterface
+
+- type: entity
+  parent: BaseAutosurgeonSingle
+  id: AutosurgeonNeuroInterfaceEnforcer
+  name: autosurgeon (NanoTrasen Enforcer neuro-interface)
+  components:
+  - type: AutoSurgeon
+    targetBodyPart: Head
+    targetOrgan: neckImplant
+    newPartProto: AugmentNeuroInterfaceNanoTrasenSilovik
 
 - type: entity
   parent: BaseAutosurgeonSingle

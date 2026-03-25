@@ -64,11 +64,33 @@
 - type: entity
   parent: BaseAdminAugmentImplanter
   id: AdminAugmentImplanterNeuroInterface
-  suffix: Admeme, Neuro-Interface
+  suffix: Admeme, Neuro-Interface, NanoTrasen Neuro
   components:
   - type: AdminAugmentImplanter
     entries:
     - prototype: AugmentNeuroInterface
+      slot: neckImplant
+      partType: Head
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterNeuroInterfaceInterdyneFault
+  suffix: Admeme, Neuro-Interface, Interdyne Fault
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentNeuroInterfaceInterdyneFault
+      slot: neckImplant
+      partType: Head
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterNeuroInterfaceNanoTrasenSilovik
+  suffix: Admeme, Neuro-Interface, NanoTrasen Enforcer
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: AugmentNeuroInterfaceNanoTrasenSilovik
       slot: neckImplant
       partType: Head
 
@@ -160,6 +182,50 @@
     entries:
     - prototype: AugmentVisionDiagnostic
       slot: brainImplant
+      partType: Head
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterCyberneticEyesBasic
+  suffix: Admeme, Cybernetic Eyes, Basic
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: BasicCyberneticEyes
+      slot: eyes
+      partType: Head
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterCyberneticEyesSecurity
+  suffix: Admeme, Cybernetic Eyes, Security HUD
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: SecurityCyberneticEyes
+      slot: eyes
+      partType: Head
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterCyberneticEyesMedical
+  suffix: Admeme, Cybernetic Eyes, Medical HUD
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: MedicalCyberneticEyes
+      slot: eyes
+      partType: Head
+
+- type: entity
+  parent: BaseAdminAugmentImplanter
+  id: AdminAugmentImplanterCyberneticEyesDiagnostic
+  suffix: Admeme, Cybernetic Eyes, Diagnostic HUD
+  components:
+  - type: AdminAugmentImplanter
+    entries:
+    - prototype: DiagnosticCyberneticEyes
+      slot: eyes
       partType: Head
 
 - type: entity

@@ -17,6 +17,8 @@
   name: wireless camera
   description: A camera. It's watching you. Kinda.
   components:
+    - type: AciProtection # <Onyx-augmentation>
+      level: 1
     - type: InteractionOutline
     - type: Eye
     - type: WirelessNetworkConnection
@@ -59,6 +61,7 @@
   parent: SurveillanceWirelessCameraBase
   suffix: Anchored
   components:
+    - type: CyberDeckRemoteDeactivationCameraTarget # <Onyx-augmentation>
     - type: Machine
       board: SurveillanceWirelessCameraAnchoredCircuitboard
     - type: Anchorable

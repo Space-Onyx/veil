@@ -1228,6 +1228,16 @@
 
 # <Onyx-Surgery>
 - type: listing
+  id: UplinkAutosurgeonNeuroInterface
+  name: uplink-autosurgeon-neuro-interface-name
+  description: uplink-autosurgeon-neuro-interface-desc
+  productEntity: AutosurgeonNeuroInterface
+  cost:
+    Telecrystal: 12
+  categories:
+  - UplinkImplants
+
+- type: listing
   id: UplinkAutosurgeonVoiceModulator
   name: uplink-autosurgeon-voice-modulator-name
   description: uplink-autosurgeon-voice-modulator-desc

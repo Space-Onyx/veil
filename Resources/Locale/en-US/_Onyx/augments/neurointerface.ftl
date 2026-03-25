@@ -3,8 +3,12 @@
 ent-ActionAugmentNeuroInterface = Open Neuro-Interface
     .desc = Open the augmentation control interface.
 
-ent-AugmentNeuroInterface = neuro-interface
+ent-AugmentNeuroInterface = NanoTrasen Neuro
     .desc = An implantable neuro-interface unit installed at the neck-back of the head.
+ent-AugmentNeuroInterfaceInterdyneFault = Interdyne Fault
+    .desc = A specialized Interdyne neuro-interface with an increased base neuro-load limit.
+ent-AugmentNeuroInterfaceNanoTrasenSilovik = NanoTrasen Enforcer
+    .desc = A reinforced NanoTrasen neuro-interface with higher neuro-load capacity and stronger ACI protection.
 ent-AugmentNeuroInterfaceCasing = neuro-interface casing
     .desc = A casing for assembling a neuro-interface implant.
 ent-AugmentNeuroInterfaceCables = neuro-interface casing with cables
@@ -118,5 +122,10 @@ ent-ActionCyberDeckScriptRemoteDeactivation = Remote Deactivation
     .desc = Remotely opens or closes an airlock in range.
 ent-AugmentModuleCyberDeckScriptRemoteDeactivation = remote deactivation script
     .desc = A cyberdeck script that remotely opens and closes airlocks. Costs 2 RAM per use.
+ent-ActionCyberDeckScriptOpticsOverload = Optics Overload
+    .desc = Temporarily deactivates cybernetic optics on the selected target.
+ent-AugmentModuleCyberDeckScriptOpticsOverload = optics overload script
+    .desc = A cyberdeck script that deactivates cybernetic optics for 5-6 seconds. Costs 6 RAM per use.
 
 cyberdeck-script-not-enough-ram = Not enough RAM to execute the script!
+cyberdeck-script-aci-blocked = ACI protection is too strong for this script.

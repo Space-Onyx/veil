@@ -19,7 +19,15 @@ ent-AdminAugmentImplanterRunnerBothLegs = augment implanter
 
 ent-AdminAugmentImplanterNeuroInterface = augment implanter
     .desc = A rapid implanter for augmentation installation with explicit limb targeting.
-    .suffix = Admeme, Neuro-Interface
+    .suffix = Admeme, Neuro-Interface, NanoTrasen Neuro
+
+ent-AdminAugmentImplanterNeuroInterfaceInterdyneFault = augment implanter
+    .desc = A rapid implanter for augmentation installation with explicit limb targeting.
+    .suffix = Admeme, Neuro-Interface, Interdyne Fault
+
+ent-AdminAugmentImplanterNeuroInterfaceNanoTrasenSilovik = augment implanter
+    .desc = A rapid implanter for augmentation installation with explicit limb targeting.
+    .suffix = Admeme, Neuro-Interface, NanoTrasen Enforcer
 
 ent-AdminAugmentImplanterAdvancedRunnerLeft = augment implanter
     .desc = A rapid implanter for augmentation installation with explicit limb targeting.
@@ -52,6 +60,22 @@ ent-AdminAugmentImplanterVisionDiagnostic = augment implanter
 ent-AdminAugmentImplanterVisionSyndicate = augment implanter
     .desc = A rapid implanter for augmentation installation with explicit limb targeting.
     .suffix = Admeme, Syndicate HUD
+
+ent-AdminAugmentImplanterCyberneticEyesBasic = augment implanter
+    .desc = A rapid implanter for augmentation installation with explicit limb targeting.
+    .suffix = Admeme, Cybernetic Eyes, Basic
+
+ent-AdminAugmentImplanterCyberneticEyesSecurity = augment implanter
+    .desc = A rapid implanter for augmentation installation with explicit limb targeting.
+    .suffix = Admeme, Cybernetic Eyes, Security HUD
+
+ent-AdminAugmentImplanterCyberneticEyesMedical = augment implanter
+    .desc = A rapid implanter for augmentation installation with explicit limb targeting.
+    .suffix = Admeme, Cybernetic Eyes, Medical HUD
+
+ent-AdminAugmentImplanterCyberneticEyesDiagnostic = augment implanter
+    .desc = A rapid implanter for augmentation installation with explicit limb targeting.
+    .suffix = Admeme, Cybernetic Eyes, Diagnostic HUD
 
 ent-AdminAugmentImplanterBioReactor = augment implanter
     .desc = A rapid implanter for augmentation installation with explicit limb targeting.

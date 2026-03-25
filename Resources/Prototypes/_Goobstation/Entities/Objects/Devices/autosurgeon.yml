@@ -101,9 +101,10 @@
   - type: AutoSurgeon
     targetBodyPart: Arm
     targetBodyPartSymmetry: Right
-    componentsToPart:
-    - type: MantisBladeArm
-      actionProto: ActionToggleRightMantisBlade
+    # <Onyx-surgery>
+    targetOrgan: armImplant
+    newPartProto: AugmentManitBladePanel
+    # </Onyx-surgery>
 
 - type: entity
   parent: BaseAutosurgeonSyndicateSingle
@@ -113,9 +114,10 @@
   - type: AutoSurgeon
     targetBodyPart: Arm
     targetBodyPartSymmetry: Left
-    componentsToPart:
-    - type: MantisBladeArm
-      actionProto: ActionToggleLeftMantisBlade
+    # <Onyx-surgery>
+    targetOrgan: armImplant
+    newPartProto: AugmentManitBladePanel
+    # </Onyx-surgery>
 
 - type: entity
   parent: BaseAutosurgeonSyndicateSingle
