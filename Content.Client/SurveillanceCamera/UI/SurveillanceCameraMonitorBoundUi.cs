@@ -25,6 +25,14 @@ public sealed class SurveillanceCameraMonitorBoundUserInterface : BoundUserInter
     [ViewVariables]
     private EntityUid? _currentCamera;
 
+    // <Onyx-Fix>
+    [ViewVariables]
+    private SurveillanceCameraMonitorUiState? _lastState; 
+
+    [ViewVariables]
+    private bool _retryPendingState;
+    // </Onyx-Fix>
+
     public SurveillanceCameraMonitorBoundUserInterface(EntityUid owner, Enum uiKey) : base(owner, uiKey)
     {
         _eyeLerpingSystem = EntMan.System<EyeLerpingSystem>();
@@ -71,50 +79,88 @@ public sealed class SurveillanceCameraMonitorBoundUserInterface : BoundUserInter
         SendMessage(new SurveillanceCameraDisconnectMessage());
     }
 
+    // <Onyx-Fix edited>
     protected override void UpdateState(BoundUserInterfaceState state)
     {
-        if (_window == null || state is not SurveillanceCameraMonitorUiState cast)
+        if (state is not SurveillanceCameraMonitorUiState cast)
         {
             return;
         }
 
-        var active = EntMan.GetEntity(cast.ActiveCamera);
+        _lastState = cast;
+        TryApplyState(cast);
+    }
+
+    public override void Update()
+    {
+        base.Update();
+
+        if (!_retryPendingState || _lastState == null)
+            return;
+
+        TryApplyState(_lastState);
+    }
+
+    private void TryApplyState(SurveillanceCameraMonitorUiState cast)
+    {
+        if (_window == null)
+            return;
+
+        EntityUid? active = null;
+
+        if (cast.ActiveCamera != null && EntMan.TryGetEntity(cast.ActiveCamera, out var activeEnt))
+            active = activeEnt;
 
         EntMan.TryGetComponent<TransformComponent>(Owner, out var xform); // Goobstation
         var monitor = Owner; // Goobstation
         var monitorCoords = xform?.Coordinates; // Goobstation
 
+        _retryPendingState = cast.ActiveCamera != null && active == null;
+
         if (active == null)
         {
             _window.UpdateState(null, cast.ActiveAddress, cast.Cameras, cast.MobileCameras, monitor, monitorCoords); // Goobstation
 
-            if (_currentCamera != null)
-            {
-                _surveillanceCameraMonitorSystem.RemoveTimer(Owner);
-                _eyeLerpingSystem.RemoveEye(_currentCamera.Value);
-                _currentCamera = null;
-            }
+            ClearCurrentCamera();
+            return;
         }
-        else
-        {
-            if (_currentCamera == null)
-            {
-                _eyeLerpingSystem.AddEye(active.Value);
-                _currentCamera = active;
-            }
-            else if (_currentCamera != active)
-            {
-                _eyeLerpingSystem.RemoveEye(_currentCamera.Value);
-                _eyeLerpingSystem.AddEye(active.Value);
-                _currentCamera = active;
-            }
 
-            if (EntMan.TryGetComponent<EyeComponent>(active, out var eye))
-            {
-                _window.UpdateState(eye.Eye, cast.ActiveAddress, cast.Cameras, cast.MobileCameras, monitor, monitorCoords); // Goobstation
-            }
+        if (!EntMan.TryGetComponent<EyeComponent>(active.Value, out var eye))
+        {
+            _retryPendingState = true;
+
+            if (_currentCamera != null && _currentCamera != active)
+                ClearCurrentCamera();
+
+            _window.UpdateState(null, cast.ActiveAddress, cast.Cameras, cast.MobileCameras, monitor, monitorCoords); // Goobstation
+            return;
         }
+
+        if (_currentCamera == null)
+        {
+            _eyeLerpingSystem.AddEye(active.Value);
+            _currentCamera = active;
+        }
+        else if (_currentCamera != active)
+        {
+            _eyeLerpingSystem.RemoveEye(_currentCamera.Value);
+            _eyeLerpingSystem.AddEye(active.Value);
+            _currentCamera = active;
+        }
+
+        _window.UpdateState(eye.Eye, cast.ActiveAddress, cast.Cameras, cast.MobileCameras, monitor, monitorCoords); // Goobstation
     }
+
+    private void ClearCurrentCamera()
+    {
+        if (_currentCamera == null)
+            return;
+
+        _surveillanceCameraMonitorSystem.RemoveTimer(Owner);
+        _eyeLerpingSystem.RemoveEye(_currentCamera.Value);
+        _currentCamera = null;
+    }
+    // </Onyx-Fix edited>
 
     protected override void Dispose(bool disposing)
     {

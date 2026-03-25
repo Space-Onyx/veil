@@ -74,6 +74,7 @@ public sealed class SurveillanceCameraSystem : EntitySystem
     [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
     [Dependency] private readonly TransformSystem _transformSystem = default!; // Goobstation
     [Dependency] private readonly IAdminLogManager _adminLogger = default!;
+    [Dependency] private readonly ISharedPlayerManager _playerManager = default!; // <Onyx-Fix>
 
 
     // Pings a surveillance camera subnet. All cameras will always respond
@@ -357,14 +358,19 @@ public sealed class SurveillanceCameraSystem : EntitySystem
 
     public void AddActiveViewer(EntityUid camera, EntityUid player, EntityUid? monitor = null, SurveillanceCameraComponent? component = null, ActorComponent? actor = null)
     {
+        // <Onyx-Fix edited>
         if (!Resolve(camera, ref component)
-            || !component.Active
-            || !Resolve(player, ref actor))
+            || !component.Active)
         {
             return;
         }
+        // </Onyx-Fix edited>
 
-        _viewSubscriberSystem.AddViewSubscriber(camera, actor.PlayerSession);
+        // <Onyx-Fix>
+        if (TryGetViewerSession(player, actor, out var session))
+            _viewSubscriberSystem.AddViewSubscriber(camera, session);
+        // <Onyx-Fix>
+
         component.ActiveViewers.Add(player);
 
         if (monitor != null)
@@ -424,8 +430,10 @@ public sealed class SurveillanceCameraSystem : EntitySystem
         if (!Resolve(camera, ref component))
             return;
 
-        if (Resolve(player, ref actor))
-            _viewSubscriberSystem.RemoveViewSubscriber(camera, actor.PlayerSession);
+        // <Onyx-Fix edited>
+        if (TryGetViewerSession(player, actor, out var session))
+            _viewSubscriberSystem.RemoveViewSubscriber(camera, session);
+        // </Onyx-Fix edited>
 
         component.ActiveViewers.Remove(player);
 
@@ -436,6 +444,26 @@ public sealed class SurveillanceCameraSystem : EntitySystem
 
         UpdateVisuals(camera, component);
     }
+
+    // <Onyx-Fix>
+    private bool TryGetViewerSession(EntityUid player, ActorComponent? actor, out ICommonSession session)
+    {
+        if (Resolve(player, ref actor, false))
+        {
+            session = actor.PlayerSession;
+            return true;
+        }
+
+        if (_playerManager.TryGetSessionByEntity(player, out var foundSession))
+        {
+            session = foundSession;
+            return true;
+        }
+
+        session = default!;
+        return false;
+    }
+    // </Onyx-Fix>
 
     public void RemoveActiveViewers(EntityUid camera, HashSet<EntityUid> players, EntityUid? monitor = null, SurveillanceCameraComponent? component = null)
     {

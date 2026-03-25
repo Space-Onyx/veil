@@ -93,6 +93,7 @@ public sealed class SurveillanceCameraMonitorSystem : EntitySystem
     [Dependency] private readonly SurveillanceCameraSystem _surveillanceCameras = default!;
     [Dependency] private readonly UserInterfaceSystem _userInterface = default!;
     [Dependency] private readonly DeviceNetworkSystem _deviceNetworkSystem = default!;
+    [Dependency] private readonly ISharedPlayerManager _playerManager = default!; // <Onyx-Fix>
 
     // Goobstation
     [Dependency] private readonly PvsOverrideSystem _pvsOverrideSystem = default!;
@@ -181,11 +182,11 @@ public sealed class SurveillanceCameraMonitorSystem : EntitySystem
                 // Remove PVS overrides for all viewers in a single pass
                 foreach (var player in monitor.Viewers)
                 {
-                    if (!TryComp<ActorComponent>(player, out var actor))
+                    if (!TryGetViewerSession(player, out var session)) // <Onyx-Fix edited>
                         continue;
 
                     foreach (var entity in expiredCameras.Values)
-                        _pvsOverrideSystem.RemoveSessionOverride(entity, actor.PlayerSession);
+                        _pvsOverrideSystem.RemoveSessionOverride(entity, session); // <Onyx-Fix edited>
                 }
 
                 // Remove expired cameras from all dictionaries
@@ -285,8 +286,14 @@ public sealed class SurveillanceCameraMonitorSystem : EntitySystem
                         {
                             component.KnownMobileCameras.Add(address, (name, netEntity.Value));
                             foreach (var player in component.Viewers)
-                                if (TryComp<ActorComponent>(player, out var actor))
-                                    _pvsOverrideSystem.AddSessionOverride(_entityManager.GetEntity(netEntity.Value.Item2.NetEntity), actor.PlayerSession);
+                            // <Onyx-Fix edited>
+                            {
+                                if (!TryGetViewerSession(player, out var session))
+                                    continue;
+
+                                _pvsOverrideSystem.AddSessionOverride(_entityManager.GetEntity(netEntity.Value.Item2.NetEntity), session);
+                            }
+                            // <Onyx-Fix edited>
                         }
                     }
                     else if (!component.KnownCameras.ContainsKey(address))
@@ -323,10 +330,16 @@ public sealed class SurveillanceCameraMonitorSystem : EntitySystem
     // Goobstation start
     private void RefreshCameras(EntityUid uid, SurveillanceCameraMonitorComponent component)
     {
+        // <Onyx-Fix edited>
         foreach (var player in component.Viewers)
-            if (TryComp<ActorComponent>(player, out var actor))
-                foreach (var camera in component.KnownMobileCameras)
-                    _pvsOverrideSystem.RemoveSessionOverride(_entityManager.GetEntity(camera.Value.Item2.Item2.NetEntity), actor.PlayerSession);
+        {
+            if (!TryGetViewerSession(player, out var session))
+                continue;
+
+            foreach (var camera in component.KnownMobileCameras)
+                _pvsOverrideSystem.RemoveSessionOverride(_entityManager.GetEntity(camera.Value.Item2.Item2.NetEntity), session);
+        }
+        // </Onyx-Fix edited>
         component.KnownCameras.Clear();
         component.KnownMobileCameras.Clear();
         RequestKnownSubnetsInfo(uid, component);
@@ -530,9 +543,9 @@ public sealed class SurveillanceCameraMonitorSystem : EntitySystem
         monitor.Viewers.Add(player);
 
         // Goobstation start
-        if (TryComp<ActorComponent>(player, out var actor))
+        if (TryGetViewerSession(player, out var session)) // <Onyx-Fix edited>
             foreach (var camera in monitor.KnownMobileCameras)
-                _pvsOverrideSystem.AddSessionOverride(_entityManager.GetEntity(camera.Value.Item2.Item2.NetEntity), actor.PlayerSession);
+                _pvsOverrideSystem.AddSessionOverride(_entityManager.GetEntity(camera.Value.Item2.Item2.NetEntity), session); // <Onyx-Fix edited>
         // Goobstation end
 
         if (monitor.ActiveCamera != null)
@@ -554,9 +567,9 @@ public sealed class SurveillanceCameraMonitorSystem : EntitySystem
         monitor.Viewers.Remove(player);
 
         // Goobstation end
-        if (TryComp<ActorComponent>(player, out var actor))
+        if (TryGetViewerSession(player, out var session))
             foreach (var camera in monitor.KnownMobileCameras)
-                _pvsOverrideSystem.RemoveSessionOverride(_entityManager.GetEntity(camera.Value.Item2.Item2.NetEntity), actor.PlayerSession);
+                _pvsOverrideSystem.RemoveSessionOverride(_entityManager.GetEntity(camera.Value.Item2.Item2.NetEntity), session);
         // Goobstation start
 
         if (monitor.ActiveCamera != null)
@@ -660,10 +673,10 @@ public sealed class SurveillanceCameraMonitorSystem : EntitySystem
 
     // This is public primarily because it might be useful to have the ability to
     // have this component added to any entity, and have them open the BUI (somehow).
-    public void AfterOpenUserInterface(EntityUid uid, EntityUid player, SurveillanceCameraMonitorComponent? monitor = null, ActorComponent? actor = null)
+    public void AfterOpenUserInterface(EntityUid uid, EntityUid player, SurveillanceCameraMonitorComponent? monitor = null) // <Onyx-Fix edited>
     {
         if (!Resolve(uid, ref monitor)
-            || !Resolve(player, ref actor))
+            || !TryGetViewerSession(player, out _)) // <Onyx-Fix edited>
         {
             return;
         }
@@ -682,4 +695,24 @@ public sealed class SurveillanceCameraMonitorSystem : EntitySystem
             monitor.ActiveCameraAddress, monitor.KnownCameras, monitor.KnownMobileCameras); // Goobstation
         _userInterface.SetUiState(uid, SurveillanceCameraMonitorUiKey.Key, state);
     }
+
+    // <Onyx-Fix>
+    private bool TryGetViewerSession(EntityUid player, out ICommonSession session)
+    {
+        if (TryComp<ActorComponent>(player, out var actor))
+        {
+            session = actor.PlayerSession;
+            return true;
+        }
+
+        if (_playerManager.TryGetSessionByEntity(player, out var foundSession))
+        {
+            session = foundSession;
+            return true;
+        }
+
+        session = default!;
+        return false;
+    }
+    // </Onyx-Fix>
 }
