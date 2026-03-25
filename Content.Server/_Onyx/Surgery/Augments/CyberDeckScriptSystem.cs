@@ -4,6 +4,7 @@ using Content.Shared._Onyx.Surgery.Augments;
 using Content.Shared.Actions;
 using Content.Shared.Actions.Components;
 using Content.Shared.Body.Components;
+using Content.Shared.UserInterface;
 using Robust.Shared.Map;
 using Content.Shared.Popups;
 
@@ -59,7 +60,11 @@ public sealed class CyberDeckScriptSystem : EntitySystem
             uiComp.Key is { } key &&
             _ui.HasUi(ent, key))
         {
-            _ui.OpenUi(ent.Owner, key, body);
+            if (_ui.TryOpenUi(ent.Owner, key, body))
+            {
+                var opened = new AfterActivatableUIOpenEvent(body, body);
+                RaiseLocalEvent(ent.Owner, opened);
+            }
         }
 
         var executed = new CyberDeckScriptExecutedEvent(body, parent, args.Performer);

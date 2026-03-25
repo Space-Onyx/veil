@@ -1,9 +1,11 @@
 using Content.Server.Body.Systems;
 using Content.Server.Emp;
+using Content.Goobstation.Shared.Augments;
 using Content.Shared._Onyx.Surgery.Augments;
 using Content.Shared._Shitmed.Cybernetics;
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Part;
+using Content.Shared.Containers.ItemSlots;
 using Content.Shared.DoAfter;
 using Content.Shared.Interaction;
 using Content.Shared.Physics;
@@ -23,6 +25,7 @@ public sealed class CyberDeckScriptMotorImpairmentSystem : EntitySystem
     [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
     [Dependency] private readonly EmpSystem _emp = default!;
     [Dependency] private readonly SharedInteractionSystem _interaction = default!;
+    [Dependency] private readonly ItemSlotsSystem _itemSlots = default!;
     [Dependency] private readonly EntityLookupSystem _lookup = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
@@ -160,10 +163,8 @@ public sealed class CyberDeckScriptMotorImpairmentSystem : EntitySystem
             if (partComp.PartType != BodyPartType.Leg)
                 continue;
 
-            if (!TryComp<CyberneticsComponent>(partUid, out var cyberComp) || cyberComp.Disabled)
-                continue;
-
-            return true;
+            if (HasLegEnhancements(partUid, partComp))
+                return true;
         }
 
         return false;
@@ -191,17 +192,34 @@ public sealed class CyberDeckScriptMotorImpairmentSystem : EntitySystem
             if (partComp.PartType != BodyPartType.Leg)
                 continue;
 
-            if (!CyberDeckScriptDisruptionHelper.IsCyberneticBodyPartType(partUid, BodyPartType.Leg, EntityManager))
-                continue;
-
-            if (CyberDeckScriptDisruptionHelper.TryDisableCybernetic(
-                    partUid,
-                    disabledUntil,
-                    _emp,
-                    _timing,
-                    EntityManager))
+            foreach (var enhancement in AugmentEnhancementHelpers.EnumeratePartEnhancements(
+                         partUid,
+                         partComp,
+                         _body,
+                         _itemSlots,
+                         EntityManager))
             {
-                affected = true;
+                if (TryComp<AugmentEmpComponent>(enhancement, out _))
+                {
+                    if (DisableAugmentEnhancement(enhancement, targetBody, disabledUntil))
+                        affected = true;
+
+                    continue;
+                }
+
+                if (TryComp<CyberneticsComponent>(enhancement, out _))
+                {
+                    if (DisableCyberneticEnhancement(enhancement, disabledUntil))
+                        affected = true;
+
+                    continue;
+                }
+
+                if (TryComp<AugmentComponent>(enhancement, out _))
+                {
+                    if (DisableAugmentEnhancement(enhancement, targetBody, disabledUntil))
+                        affected = true;
+                }
             }
         }
 
@@ -212,5 +230,58 @@ public sealed class CyberDeckScriptMotorImpairmentSystem : EntitySystem
         }
 
         return affected;
+    }
+
+    private bool HasLegEnhancements(EntityUid partUid, BodyPartComponent partComp)
+    {
+        foreach (var enhancement in AugmentEnhancementHelpers.EnumeratePartEnhancements(
+                     partUid,
+                     partComp,
+                     _body,
+                     _itemSlots,
+                     EntityManager))
+        {
+            if (TryComp<AugmentEmpComponent>(enhancement, out _))
+                return true;
+
+            if (TryComp<CyberneticsComponent>(enhancement, out var cyberComp) && !cyberComp.Disabled)
+                return true;
+
+            if (TryComp<AugmentComponent>(enhancement, out _))
+                return true;
+        }
+
+        return false;
+    }
+
+    private bool DisableCyberneticEnhancement(EntityUid enhancement, TimeSpan disabledUntil)
+    {
+        return CyberDeckScriptDisruptionHelper.TryDisableCybernetic(
+            enhancement,
+            disabledUntil,
+            _emp,
+            _timing,
+            EntityManager);
+    }
+
+    private bool DisableAugmentEnhancement(EntityUid augment, EntityUid body, TimeSpan disabledUntil)
+    {
+        var hadEmpDisabled = TryComp<AugmentEmpDisabledComponent>(augment, out var disabled);
+        disabled ??= EnsureComp<AugmentEmpDisabledComponent>(augment);
+
+        var changed = false;
+        if (disabled.DisabledUntil < disabledUntil)
+        {
+            disabled.DisabledUntil = disabledUntil;
+            Dirty(augment, disabled);
+            changed = true;
+        }
+
+        if (hadEmpDisabled)
+            return changed;
+
+        var ev = new AugmentEmpDisabledEvent(body);
+        RaiseLocalEvent(augment, ref ev);
+        return true;
     }
 }

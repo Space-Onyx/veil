@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Content.Goobstation.Shared.Augments;
 using Content.Shared._Onyx.Surgery.Augments;
 using Content.Shared._Shitmed.Body.Organ;
 using Content.Shared._Shitmed.Cybernetics;
@@ -77,7 +78,7 @@ public sealed class CyberDeckScriptMotorImpairmentOverlaySystem : EntitySystem
             if (candidate == body)
                 continue;
 
-            if (!HasOperationalCyberneticLeg(candidate))
+            if (!HasLegEnhancement(candidate))
                 continue;
 
             if (CyberDeckScriptOverlayHelper.TryBuildHighlightShape(EntityManager, _xform, candidate, out var shape))
@@ -115,7 +116,7 @@ public sealed class CyberDeckScriptMotorImpairmentOverlaySystem : EntitySystem
         return true;
     }
 
-    private bool HasOperationalCyberneticLeg(EntityUid targetBody)
+    private bool HasLegEnhancement(EntityUid targetBody)
     {
         if (!TryComp<BodyComponent>(targetBody, out var bodyComp))
             return false;
@@ -126,7 +127,18 @@ public sealed class CyberDeckScriptMotorImpairmentOverlaySystem : EntitySystem
                 continue;
 
             if (!TryComp<CyberneticsComponent>(partUid, out var cyberComp) || cyberComp.Disabled)
+            {
+                foreach (var (organUid, _) in _body.GetPartOrgans(partUid, part))
+                {
+                    if (TryComp<CyberneticsComponent>(organUid, out var organCyberComp) && !organCyberComp.Disabled)
+                        return true;
+
+                    if (TryComp<AugmentComponent>(organUid, out _))
+                        return true;
+                }
+
                 continue;
+            }
 
             return true;
         }
