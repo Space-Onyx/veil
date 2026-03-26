@@ -299,6 +299,29 @@
       state: generic_panel_open
 
 - type: entity
+  id: ComputerCriminalRecordsTabletop
+  parent: [BaseStructureComputerTabletop, ComputerCriminalRecords]
+  suffix: Tabletop
+  components:
+  - type: Sprite
+    drawdepth: SmallObjects
+    sprite: _Onyx/Structures/Machines/computer_tabletop.rsi
+    layers:
+    - map: ["computerLayerBody"]
+      state: computer
+    - map: ["computerLayerKeyboard"]
+      state: generic_keyboard
+    - map: ["computerLayerScreen"]
+      sprite: Structures/Machines/computers.rsi
+      state: explosive
+    - map: ["computerLayerKeys"]
+      sprite: Structures/Machines/computers.rsi
+      state: security_key
+    - map: [ "enum.WiresVisualLayers.MaintenancePanel" ]
+      sprite: Structures/Machines/computers.rsi
+      state: generic_panel_open
+
+- type: entity
   id: ComputerStationRecordsTabletop
   parent: [BaseStructureComputerTabletop, ComputerStationRecords]
   suffix: Tabletop
@@ -915,6 +938,29 @@
     - map: ["computerLayerKeys"]
       sprite: Structures/Machines/computers.rsi
       state: syndie_key
+    - map: [ "enum.WiresVisualLayers.MaintenancePanel" ]
+      sprite: Structures/Machines/computers.rsi
+      state: generic_panel_open
+
+- type: entity
+  id: ComputerEmergencyShuttleTabletop
+  parent: [BaseStructureComputerTabletop, ComputerEmergencyShuttle]
+  suffix: Tabletop
+  components:
+  - type: Sprite
+    drawdepth: SmallObjects
+    sprite: _Onyx/Structures/Machines/computer_tabletop.rsi
+    layers:
+    - map: ["computerLayerBody"]
+      state: computer
+    - map: ["computerLayerKeyboard"]
+      state: generic_keyboard
+    - map: ["computerLayerScreen"]
+      sprite: Structures/Machines/computers.rsi
+      state: shuttle
+    - map: ["computerLayerKeys"]
+      sprite: Structures/Machines/computers.rsi
+      state: generic_keys
     - map: [ "enum.WiresVisualLayers.MaintenancePanel" ]
       sprite: Structures/Machines/computers.rsi
       state: generic_panel_open

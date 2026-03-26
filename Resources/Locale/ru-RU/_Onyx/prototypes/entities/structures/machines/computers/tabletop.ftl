@@ -54,6 +54,10 @@ ent-ComputerMedicalRecordsTabletop = { ent-ComputerMedicalRecords }
     .desc = { ent-ComputerMedicalRecords.desc }
     .suffix = { ent-CentcommConsoleTabletop.suffix }
 
+ent-ComputerCriminalRecordsTabletop = { ent-ComputerCriminalRecords }
+    .desc = { ent-ComputerCriminalRecords.desc }
+    .suffix = { ent-CentcommConsoleTabletop.suffix }
+
 ent-ComputerStationRecordsTabletop = { ent-ComputerStationRecords }
     .desc = { ent-ComputerStationRecords.desc }
     .suffix = { ent-CentcommConsoleTabletop.suffix }
@@ -162,6 +166,10 @@ ent-ComputerShuttleSyndieTabletop = { ent-ComputerShuttleSyndie }
     .desc = { ent-ComputerShuttleSyndie.desc }
     .suffix = { ent-CentcommConsoleTabletop.suffix }
 
+ent-ComputerEmergencyShuttleTabletop = { ent-ComputerEmergencyShuttle }
+    .desc = { ent-ComputerEmergencyShuttle.desc }
+    .suffix = { ent-CentcommConsoleTabletop.suffix }
+
 ent-ComputerCloningConsoleTabletop = { ent-ComputerCloningConsole }
     .desc = { ent-ComputerCloningConsole.desc }
     .suffix = { ent-CentcommConsoleTabletop.suffix }
@@ -172,7 +180,7 @@ ent-ComputerIFFTabletop = { ent-ComputerIFF }
 
 ent-ComputerIFFSyndicateTabletop = { ent-ComputerIFFSyndicate }
     .desc = { ent-ComputerIFFSyndicate.desc }
-    .suffix = { ent-CentcommConsoleTabletop.suffix }
+    .suffix = Настольный, Синдикат
 
 ent-ComputerMassMediaTabletop = { ent-ComputerMassMedia }
     .desc = { ent-ComputerMassMedia.desc }
