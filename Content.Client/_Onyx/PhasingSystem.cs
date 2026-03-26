@@ -1,4 +1,4 @@
-using Content.Shared.Phasing;
+using Content.Shared._Onyx.Phasing;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Shared.Prototypes;
@@ -6,8 +6,9 @@ using Robust.Shared.Maths;
 using Robust.Shared.GameStates;
 using System.Collections.Generic;
 using System.Linq;
+using Content.Shared._Onyx.Phasing;
 
-namespace Content.Client;
+namespace Content.Client._Onyx;
 
 public sealed class PhasingSystem : EntitySystem
 {
@@ -15,21 +16,13 @@ public sealed class PhasingSystem : EntitySystem
     [Dependency] private readonly SpriteSystem _sprite = default!;
 
     private ShaderPrototype _shaderPrototype = default!;
-
-    // Словарь для хранения уникальных экземпляров шейдеров для каждой сущности
     private readonly Dictionary<EntityUid, ShaderInstance> _shaderInstances = new();
-
-    // Кэш параметров для оптимизации - избегаем лишних вызовов SetParameter
     private readonly Dictionary<EntityUid, PhasingParameters> _parameterCache = new();
-
-    // Счетчик кадров для оптимизации обновлений
     private int _frameCounter = 0;
-    private const int UPDATE_FREQUENCY = 2; // Обновляем параметры каждые 2 кадра
-
-    // Ограничения для предотвращения лагов
-    private const int MAX_SHADER_INSTANCES = 1000; // Максимальное количество экземпляров шейдеров
-    private const int MAX_UPDATES_PER_FRAME = 50; // Максимальное количество обновлений за кадр
-    private const int WARNING_THRESHOLD = 500; // Порог для предупреждения о производительности
+    private const int UPDATE_FREQUENCY = 2;
+    private const int MAX_SHADER_INSTANCES = 1000;
+    private const int MAX_UPDATES_PER_FRAME = 50;
+    private const int WARNING_THRESHOLD = 500;
 
     public override void Initialize()
     {
@@ -45,28 +38,16 @@ public sealed class PhasingSystem : EntitySystem
     {
         base.Update(frameTime);
 
-        // Проверяем количество активных шейдеров
-        if (_shaderInstances.Count > WARNING_THRESHOLD)
-        {
-            Logger.Warning($"PhasingSystem: Большое количество активных шейдеров ({_shaderInstances.Count}). Это может влиять на производительность.");
-        }
-
-        // Если слишком много шейдеров, переключаемся в режим экономии ресурсов
         if (_shaderInstances.Count > MAX_SHADER_INSTANCES)
         {
-            Logger.Error($"PhasingSystem: Превышен лимит шейдеров ({_shaderInstances.Count}/{MAX_SHADER_INSTANCES}). Отключаем новые эффекты.");
             return;
         }
 
-        // Оптимизация: обновляем параметры не каждый кадр, а с определенной частотой
         _frameCounter++;
         if (_frameCounter % UPDATE_FREQUENCY != 0)
             return;
-
-        // Ограничиваем количество обновлений за один кадр для предотвращения лагов
         int updateCount = 0;
 
-        // Оптимизация: обрабатываем только видимые сущности
         var visibleEntities = EntityManager.EntityQuery<PhasingComponent, SpriteComponent>()
             .Where(x => x.Item2.Visible)
             .Take(MAX_UPDATES_PER_FRAME);
@@ -78,7 +59,6 @@ public sealed class PhasingSystem : EntitySystem
 
             if (_shaderInstances.TryGetValue(comp.Owner, out var shaderInstance) && sprite.PostShader == shaderInstance)
             {
-                // Проверяем, изменились ли параметры
                 if (HasParametersChanged(comp.Owner, comp))
                 {
                     ApplyShaderParams(comp, shaderInstance);
@@ -94,18 +74,9 @@ public sealed class PhasingSystem : EntitySystem
         if (!TryComp(uid, out SpriteComponent? sprite))
             return;
 
-        // Проверяем лимит шейдеров
-        if (_shaderInstances.Count >= MAX_SHADER_INSTANCES)
-        {
-            Logger.Warning($"PhasingSystem: Не удалось создать шейдер для {uid} - превышен лимит.");
-            return;
-        }
-
-        // Создаем уникальный экземпляр шейдера для этой сущности
         var shaderInstance = _shaderPrototype.InstanceUnique();
         _shaderInstances[uid] = shaderInstance;
 
-        // Инициализируем кэш параметров
         UpdateParameterCache(uid, component);
 
         ApplyShaderParams(component, shaderInstance);
@@ -119,11 +90,9 @@ public sealed class PhasingSystem : EntitySystem
         if (!TryComp(uid, out SpriteComponent? sprite))
             return;
 
-        // Убираем шейдер
         if (_shaderInstances.TryGetValue(uid, out var shaderInstance) && sprite.PostShader == shaderInstance)
             sprite.PostShader = null;
 
-        // Освобождаем ресурсы шейдера и удаляем из словарей
         if (_shaderInstances.TryGetValue(uid, out var instance))
         {
             instance.Dispose();
@@ -135,7 +104,6 @@ public sealed class PhasingSystem : EntitySystem
 
     private void OnShaderRender(EntityUid uid, PhasingComponent component, BeforePostShaderRenderEvent args)
     {
-        // При рендеринге применяем параметры только если они изменились
         if (_shaderInstances.TryGetValue(uid, out var shaderInstance) && HasParametersChanged(uid, component))
         {
             ApplyShaderParams(component, shaderInstance);
@@ -148,7 +116,6 @@ public sealed class PhasingSystem : EntitySystem
         if (args.Current is not PhasingComponentState state)
             return;
 
-        // Проверяем, изменились ли параметры
         bool needsRestart = component.AnimationSpeed != state.AnimationSpeed ||
                            component.DistortionStrength != state.DistortionStrength ||
                            component.BandMin != state.BandMin ||
@@ -157,7 +124,6 @@ public sealed class PhasingSystem : EntitySystem
                            component.BandSplitStrength != state.BandSplitStrength ||
                            component.BandSplitFrequency != state.BandSplitFrequency;
 
-        // Обновляем параметры
         component.AnimationSpeed = state.AnimationSpeed;
         component.DistortionStrength = state.DistortionStrength;
         component.BandMin = state.BandMin;
@@ -166,7 +132,6 @@ public sealed class PhasingSystem : EntitySystem
         component.BandSplitStrength = state.BandSplitStrength;
         component.BandSplitFrequency = state.BandSplitFrequency;
 
-        // Если параметры изменились, перезапускаем шейдер
         if (needsRestart && TryComp(uid, out SpriteComponent? sprite))
         {
             RestartShader(uid, sprite, component);
@@ -184,9 +149,6 @@ public sealed class PhasingSystem : EntitySystem
         shaderInstance.SetParameter("bandSplitFrequency", component.BandSplitFrequency);
     }
 
-    /// <summary>
-    /// Проверяет, изменились ли параметры компонента с момента последнего кэширования
-    /// </summary>
     private bool HasParametersChanged(EntityUid uid, PhasingComponent component)
     {
         if (!_parameterCache.TryGetValue(uid, out var cached))
@@ -201,9 +163,6 @@ public sealed class PhasingSystem : EntitySystem
                cached.BandSplitFrequency != component.BandSplitFrequency;
     }
 
-    /// <summary>
-    /// Обновляет кэш параметров для указанной сущности
-    /// </summary>
     private void UpdateParameterCache(EntityUid uid, PhasingComponent component)
     {
         _parameterCache[uid] = new PhasingParameters
@@ -217,46 +176,29 @@ public sealed class PhasingSystem : EntitySystem
             BandSplitFrequency = component.BandSplitFrequency
         };
     }
-
-    /// <summary>
-    /// Перезапускает шейдер на указанной сущности
-    /// </summary>
     public void RestartShader(EntityUid uid, SpriteComponent sprite, PhasingComponent component)
     {
-        // Временно убираем шейдер
         sprite.PostShader = null;
 
-        // Освобождаем старый экземпляр шейдера
         if (_shaderInstances.TryGetValue(uid, out var oldInstance))
         {
             oldInstance.Dispose();
         }
 
-        // Создаем новый экземпляр шейдера
         var newInstance = _shaderPrototype.InstanceUnique();
         _shaderInstances[uid] = newInstance;
 
-        // Обновляем кэш параметров
         UpdateParameterCache(uid, component);
 
-        // Применяем параметры
         ApplyShaderParams(component, newInstance);
 
-        // Возвращаем шейдер
         sprite.PostShader = newInstance;
     }
-
-    /// <summary>
-    /// Получает статистику использования шейдеров
-    /// </summary>
     public (int activeShaders, int cachedParameters) GetShaderStats()
     {
         return (_shaderInstances.Count, _parameterCache.Count);
     }
 
-    /// <summary>
-    /// Очищает все шейдеры (для отладки или при критических проблемах с производительностью)
-    /// </summary>
     public void ClearAllShaders()
     {
         foreach (var (uid, shaderInstance) in _shaderInstances)
@@ -270,14 +212,9 @@ public sealed class PhasingSystem : EntitySystem
 
         _shaderInstances.Clear();
         _parameterCache.Clear();
-
-        Logger.Warning("PhasingSystem: Все шейдеры очищены.");
     }
 }
 
-/// <summary>
-/// Структура для кэширования параметров шейдера
-/// </summary>
 public struct PhasingParameters
 {
     public float AnimationSpeed;

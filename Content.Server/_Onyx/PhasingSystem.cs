@@ -1,7 +1,7 @@
-using Content.Shared.Phasing;
+using Content.Shared._Onyx.Phasing;
 using Robust.Shared.GameStates;
 
-namespace Content.Server;
+namespace Content.Server._Onyx;
 
 public sealed class PhasingSystem : EntitySystem
 {

@@ -1,0 +1,26 @@
+- type: vendingMachineInventory
+  id: CiviMedVendInventory
+  startingInventory:
+    HandheldHealthAnalyzer: 5 # <Onyx-Tweak>
+    Brutepack: 4 # <Onyx-Tweak>
+    Ointment: 10 # <Onyx-Tweak>
+    Bloodpack: 10 # <Onyx-Tweak>
+    Gauze: 10 # <Onyx-Tweak>
+    EmergencyMedipen: 3 # <Onyx-Tweak>
+    PillCanisterTricordrazine: 3 # <Onyx-Tweak>
+    BodyBagFolded: 5 # <Onyx-Tweak>
+    ClothingEyesHudMedical: 2 # <Onyx-Tweak>
+    ClothingEyesEyepatchHudMedical: 2 # <Onyx-Tweak>
+    LightImplanterLabeled: 2 # <Onyx-Tweak>
+  prices: # <Onyx-Tweak>
+    HandheldHealthAnalyzer: 15
+    Brutepack: 9
+    Ointment: 10
+    Bloodpack: 10
+    Gauze: 10
+    EmergencyMedipen: 15
+    PillCanisterTricordrazine: 10
+    BodyBagFolded: 9
+    ClothingEyesHudMedical: 15
+    ClothingEyesEyepatchHudMedical: 15
+    LightImplanterLabeled: 20

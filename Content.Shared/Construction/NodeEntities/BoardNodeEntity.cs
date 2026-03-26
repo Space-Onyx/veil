@@ -9,6 +9,8 @@ using Content.Shared.Construction;
 using Content.Shared.Construction.Components;
 using JetBrains.Annotations;
 using Robust.Shared.Containers;
+using Robust.Shared.IoC;
+using Robust.Shared.Prototypes;
 
 namespace Content.Shared.Construction.NodeEntities;
 
@@ -21,6 +23,8 @@ namespace Content.Shared.Construction.NodeEntities;
 public sealed partial class BoardNodeEntity : IGraphNodeEntity
 {
     [DataField("container")] public string Container { get; private set; } = string.Empty;
+    [DataField("prototypeSuffix")] public string? PrototypeSuffix { get; private set; } // <Onyx-Tweak>
+    [DataField("computer")] public string? LegacyComputerSuffix { get; private set; } // <Onyx-Tweak>
 
     public string? GetId(EntityUid? uid, EntityUid? userUid, GraphNodeEntityArgs args)
     {
@@ -40,8 +44,30 @@ public sealed partial class BoardNodeEntity : IGraphNodeEntity
             return machine.Prototype;
 
         if (args.EntityManager.TryGetComponent(board, out ComputerBoardComponent? computer))
-            return computer.Prototype;
+            return GetComputerPrototype(computer.Prototype); // <Onyx-Tweak edited>
 
         return null;
     }
+
+    // <Onyx-Tweak>
+    private string? GetComputerPrototype(string? prototype)
+    {
+        if (string.IsNullOrEmpty(prototype))
+            return prototype;
+
+        var suffix = !string.IsNullOrWhiteSpace(PrototypeSuffix)
+            ? PrototypeSuffix
+            : LegacyComputerSuffix;
+
+        if (string.IsNullOrWhiteSpace(suffix))
+            return prototype;
+
+        var tabletopPrototype = $"{prototype}{suffix}";
+        var prototypeManager = IoCManager.Resolve<IPrototypeManager>();
+
+        return prototypeManager.HasIndex<EntityPrototype>(tabletopPrototype)
+            ? tabletopPrototype
+            : prototype;
+    }
+    // </Onyx-Tweak>
 }

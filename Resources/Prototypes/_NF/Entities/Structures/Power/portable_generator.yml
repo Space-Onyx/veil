@@ -1,0 +1,11 @@
+# Base generator for powered on, anchored versions for shuttles
+- type: entity
+  id: BaseGeneratorShuttle
+  abstract: true
+  components:
+  - type: Transform
+    anchored: true
+  - type: Physics
+    bodyType: Static
+  - type: PortableGenerator
+    startOnMapInit: true
