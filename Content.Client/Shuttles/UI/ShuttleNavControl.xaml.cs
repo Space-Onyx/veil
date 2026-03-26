@@ -28,14 +28,18 @@ using Robust.Shared.Physics;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Timing;
 using Content.Shared._Mono.Radar;
+using Content.Shared._Mono.Detection;
+using Content.Shared._Crescent.ShipShields;
+using Robust.Shared.Physics.Collision.Shapes;
 
 namespace Content.Client.Shuttles.UI;
 
 [GenerateTypedNameReferences]
-public sealed partial class ShuttleNavControl : BaseShuttleControl
+public partial class ShuttleNavControl : BaseShuttleControl // Mono
 {
     [Dependency] private readonly IMapManager _mapManager = default!;
     [Dependency] private readonly IUserInterfaceManager _uiManager = default!;
+    private readonly DetectionSystem _detection; // Mono
     private readonly SharedShuttleSystem _shuttles;
     private readonly SharedTransformSystem _transform;
     private readonly RadarBlipsSystem _blips;
@@ -76,6 +80,9 @@ public sealed partial class ShuttleNavControl : BaseShuttleControl
 
     private List<Entity<MapGridComponent>> _grids = new();
 
+    // Mono - set if we want this to detect not from itself
+    public List<EntityUid>? Detectors = null;
+
     #region Mono
     // These 2 handle timing updates
     private const float RadarUpdateInterval = 0f;
@@ -88,9 +95,12 @@ public sealed partial class ShuttleNavControl : BaseShuttleControl
     private float _lastFireTime;
     private const float FireRateLimit = 0.1f; // 100ms between shots
 
-    public ShuttleNavControl() : base(64f, 256f, 256f)
+    public ShuttleNavControl() : this(64f, 256f, 256f) { } // Mono
+
+    public ShuttleNavControl(float minRange, float maxRange, float range) : base(minRange, maxRange, range) // Mono
     {
         RobustXamlLoader.Load(this);
+        _detection = EntManager.System<DetectionSystem>(); // Mono
         _shuttles = EntManager.System<SharedShuttleSystem>();
         _transform = EntManager.System<SharedTransformSystem>();
         _blips = EntManager.System<RadarBlipsSystem>();
@@ -98,7 +108,6 @@ public sealed partial class ShuttleNavControl : BaseShuttleControl
         OnMouseEntered += HandleMouseEntered;
         OnMouseExited += HandleMouseExited;
     }
-
     private void HandleMouseEntered(GUIMouseHoverEventArgs args)
     {
         _isMouseInside = true;
@@ -275,6 +284,10 @@ public sealed partial class ShuttleNavControl : BaseShuttleControl
         var shuttleToWorld = Matrix3x2.Multiply(posMatrix, ourEntMatrix);
         Matrix3x2.Invert(shuttleToWorld, out var worldToShuttle);
         var shuttleToView = Matrix3x2.CreateScale(new Vector2(MinimapScale, -MinimapScale)) * Matrix3x2.CreateTranslation(MidPointVector);
+        var worldToView = worldToShuttle * shuttleToView;
+
+        // Draw shields
+        DrawShields(handle, xform, worldToShuttle);
 
         // Frontier Corvax: north line drawing
         var rot = ourEntRot + _rotation.Value;
@@ -794,6 +807,63 @@ public sealed partial class ShuttleNavControl : BaseShuttleControl
         for (float offset = 0; offset <= ringThickness; offset += 0.5f)
         {
             handle.DrawCircle(position, radius + offset, color.WithAlpha(0.5f), false);
+        }
+    }
+
+    protected DetectionLevel GetGridDetected(EntityUid grid)
+    {
+        if (Detectors != null)
+            return _detection.IsGridDetected(grid, Detectors);
+
+        return _consoleEntity == null ? DetectionLevel.Undetected : _detection.IsGridDetected(grid, _consoleEntity.Value);
+    }
+
+
+    private void DrawShields(DrawingHandleScreen handle, TransformComponent consoleXform, Matrix3x2 matrix)
+    {
+        var shields = EntManager.AllEntityQueryEnumerator<ShipShieldVisualsComponent, FixturesComponent, TransformComponent>();
+        while (shields.MoveNext(out var uid, out var visuals, out var fixtures, out var xform))
+        {
+            if (!EntManager.TryGetComponent<TransformComponent>(xform.GridUid, out var parentXform))
+                continue;
+
+            if (xform.MapID != consoleXform.MapID)
+                continue;
+
+            // Don't draw shields when in FTL
+            if (EntManager.HasComponent<FTLComponent>(parentXform.Owner))
+                continue;
+
+            var detectionLevel = _consoleEntity == null ? DetectionLevel.Detected : GetGridDetected(parentXform.Owner);
+            if (detectionLevel != DetectionLevel.Detected)
+                continue;
+
+            var shieldFixture = fixtures.Fixtures.TryGetValue("shield", out var fixture) ? fixture : null;
+
+            if (shieldFixture == null || shieldFixture.Shape is not ChainShape)
+                continue;
+
+            ChainShape chain = (ChainShape) shieldFixture.Shape;
+
+            var count = chain.Count;
+            var verticies = chain.Vertices;
+
+            var center = _transform.WithEntityId(xform.Coordinates, xform.GridUid.Value).Position;
+
+            for (int i = 1; i < count; i++)
+            {
+                var v1 = Vector2.Add(center, verticies[i - 1]);
+                v1 = Vector2.Transform(v1, parentXform.WorldMatrix); // transform to world matrix
+                v1 = Vector2.Transform(v1, matrix); // get back to local matrix for drawing
+                v1.Y = -v1.Y;
+                v1 = ScalePosition(v1);
+                var v2 = Vector2.Add(center, verticies[i]);
+                v2 = Vector2.Transform(v2, parentXform.WorldMatrix);
+                v2 = Vector2.Transform(v2, matrix);
+                v2.Y = -v2.Y;
+                v2 = ScalePosition(v2);
+                handle.DrawLine(v1, v2, visuals.ShieldColor);
+            }
         }
     }
 }

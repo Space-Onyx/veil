@@ -1,0 +1,95 @@
+using Robust.Shared.Configuration;
+
+namespace Content.Shared._Mono.CCVar;
+
+/// <summary>
+/// Contains CVars used by Mono.
+/// </summary>
+[CVarDefs]
+public sealed partial class MonoCVars
+{
+    #region Audio
+
+    /// <summary>
+    /// HULLROT: Wether or not to play combat music when combatmode is on.
+    /// </summary>
+    public static readonly CVarDef<bool> CombatMusicEnabled =
+        CVarDef.Create("mono.combat_music.enabled", true, CVar.ARCHIVE | CVar.CLIENTONLY);
+
+    /// <summary>
+    /// HULLROT: Combat mode music volume.
+    /// </summary>
+    public static readonly CVarDef<float> CombatMusicVolume =
+        CVarDef.Create("mono.combat_music_volume", 1.5f, CVar.ARCHIVE | CVar.CLIENTONLY);
+
+    /// <summary>
+    /// HULLROT: Time needed with combatmode on to turn on combat music.
+    /// </summary>
+    public static readonly CVarDef<int> CombatMusicWindUpTime =
+        CVarDef.Create("mono.combat_music_windup_time", 3, CVar.ARCHIVE | CVar.CLIENTONLY);
+
+    /// <summary>
+    /// HULLROT: Time needed with combatmode off to turn off combat music.
+    /// </summary>
+    public static readonly CVarDef<int> CombatMusicWindDownTime =
+        CVarDef.Create("mono.combat_music_winddown_time", 30, CVar.ARCHIVE | CVar.CLIENTONLY);
+
+
+    /// <summary>
+    ///     Whether to render sounds with echo when they are in 'large' open, rooved areas.
+    /// </summary>
+    /// <seealso cref="AreaEchoSystem"/>
+    public static readonly CVarDef<bool> AreaEchoEnabled =
+        CVarDef.Create("mono.area_echo.enabled", true, CVar.ARCHIVE | CVar.CLIENTONLY);
+
+    /// <summary>
+    ///     If false, area echos calculate with 4 directions (NSEW).
+    ///         Otherwise, area echos calculate with all 8 directions.
+    /// </summary>
+    /// <seealso cref="AreaEchoSystem"/>
+    public static readonly CVarDef<bool> AreaEchoHighResolution =
+        CVarDef.Create("mono.area_echo.alldirections", false, CVar.ARCHIVE | CVar.CLIENTONLY);
+
+
+    /// <summary>
+    ///     How many times a ray can bounce off a surface for an echo calculation.
+    /// </summary>
+    /// <seealso cref="AreaEchoSystem"/>
+    public static readonly CVarDef<int> AreaEchoReflectionCount =
+        CVarDef.Create("mono.area_echo.max_reflections", 1, CVar.ARCHIVE | CVar.CLIENTONLY);
+
+    /// <summary>
+    ///     Distantial interval, in tiles, in the rays used to calculate the roofs of an open area for echos,
+    ///         or the ray's distance to space, at which the tile at that point of the ray is processed.
+    ///
+    ///     The lower this is, the more 'predictable' and computationally heavy the echoes are.
+    /// </summary>
+    /// <seealso cref="AreaEchoSystem"/>
+    public static readonly CVarDef<float> AreaEchoStepFidelity =
+        CVarDef.Create("mono.area_echo.step_fidelity", 5f, CVar.CLIENTONLY);
+
+    /// <summary>
+    ///     Interval between updates for every audio entity.
+    /// </summary>
+    /// <seealso cref="AreaEchoSystem"/>
+    public static readonly CVarDef<TimeSpan> AreaEchoRecalculationInterval =
+        CVarDef.Create("mono.area_echo.recalculation_interval", TimeSpan.FromSeconds(15), CVar.ARCHIVE | CVar.CLIENTONLY);
+
+    #endregion
+
+    #region Detection
+
+    /// <summary>
+    ///     Multiplier of grid thermal detection radius.
+    /// </summary>
+    public static readonly CVarDef<float> ThermalDetectionMultiplier =
+        CVarDef.Create("mono.detection.thermal_multiplier", 2f, CVar.ARCHIVE | CVar.REPLICATED);
+
+    /// <summary>
+    ///     Multiplier of grid visual detection radius.
+    /// </summary>
+    public static readonly CVarDef<float> VisualDetectionMultiplier =
+        CVarDef.Create("mono.detection.visual_multiplier", 16f, CVar.ARCHIVE | CVar.REPLICATED);
+
+    #endregion
+}
