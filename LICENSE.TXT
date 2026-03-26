@@ -1,101 +1,45 @@
 RU:
-1. Принятие Лицензии
-При получении, доступе или использовании настоящего Проекта либо любой его части любым способом вы соглашаетесь быть полностью связанными условиями настоящей Лицензии.
-Любое использование материалов без полного принятия данных условий строго запрещено.
-Нарушение условий настоящей Лицензии предоставляет Лицензиару право применять правовые, технические и административные меры защиты в соответствии с DMCA и/или применимым законодательством соответствующих юрисдикций, включая юрисдикции, в которых расположены хостинг-провайдеры и иные информационные посредники.
-Принятие условий настоящей Лицензии означает заключение обязательного, неисключительного и безвозмездного соглашения между вами и Лицензиаром.
 
-2. Область защиты
-Настоящая Лицензия распространяется исключительно на всё содержимое любых каталогов с наименованием _Onyx, включая, но не ограничиваясь:
-исходным и объектным кодом;
-скриптами, логикой и системами;
-внутренними инструментами и модулями;
-конфигурационными файлами;
-любыми производными, адаптациями или модификациями указанных материалов.
-Все иные части Проекта могут регулироваться отдельными лицензиями при наличии прямого указания.
+Настоящий проект включает компоненты, разработанные в рамках проекта "Onyx" или расположенные в каталогах с именем "_Onyx".
 
-3. Права собственности
-Все права, право собственности и иные законные интересы в отношении материалов _Onyx сохраняются за Лицензиаром.
-Ни одно положение настоящей Лицензии не может толковаться как передача прав собственности или прав интеллектуальной собственности.
+Указанные компоненты распространяются на условиях лицензии GNU Affero General Public License v3.0 (AGPLv3) в соответствии с лицензией проекта.
 
-4. Разрешённое использование
-Вам разрешается:
-просматривать и изучать исходный код _Onyx исключительно в личных, некоммерческих и ознакомительных целях;
-компилировать и запускать Проект локально исключительно в составе данного Проекта.
+Дополнительно применяются следующие условия:
 
-5. Ограничения
-Без предварительного прямого разрешения Лицензиара вам прямо запрещается:
-копировать, извлекать, повторно использовать или обособлять любую часть материалов _Onyx;
-использовать материалы _Onyx в любых иных проектах, билдах, форках, модификациях или репозиториях;
-публиковать, распространять, сублицензировать либо иным образом предоставлять материалы _Onyx третьим лицам;
-размещать публичные или частные серверы, использующие материалы _Onyx, вне рамок данного Проекта;
-создавать производные произведения на основе материалов _Onyx;
-использовать материалы _Onyx в коммерческих целях любого рода;
-удалять, изменять или скрывать уведомления об авторских правах или ином правовом статусе.
-Любая попытка обхода ограничений, сокрытия либо искажения происхождения материалов _Onyx считается существенным нарушением настоящей Лицензии.
+1. Требование указания авторства  
+При любом использовании, изменении или распространении компонентов _Onyx должно сохраняться явное и читаемое указание на оригинальный проект "Onyx".
 
-6. Модификации и контрибьюты
-Любые модификации материалов _Onyx, независимо от их объёма или формы, не подлежат распространению или публикации.
-Лицензиар не несёт обязательств по принятию, объединению или признанию любых таких модификаций.
+2. Ограничение на использование наименования  
+Запрещается использовать наименования "Onyx", "Onyx Station" или сходные до степени смешения обозначения для обозначения производных проектов, серверов или сборок без явного разрешения правообладателя.
 
-7. Прекращение действия
-Настоящая Лицензия действует до момента её прекращения.
-Ваши права по настоящей Лицензии прекращаются автоматически и немедленно при любом нарушении её условий.
-После прекращения действия Лицензии вы обязаны прекратить любое использование материалов _Onyx и уничтожить все имеющиеся у вас копии.
+3. Запрет искажения авторства  
+Запрещается заявлять авторство на компоненты _Onyx либо представлять их как собственную разработку.
 
-8. Отказ от гарантий
-МАТЕРИАЛЫ _Onyx ПРЕДОСТАВЛЯЮТСЯ «КАК ЕСТЬ», БЕЗ КАКИХ-ЛИБО ГАРАНТИЙ, ЯВНЫХ ИЛИ ПОДРАЗУМЕВАЕМЫХ.
+4. Сохранение уведомлений  
+Все уведомления об авторских правах, лицензии и исходном происхождении в файлах _Onyx должны сохраняться без изменений.
 
-9. Ограничение ответственности
-НИ ПРИ КАКИХ ОБСТОЯТЕЛЬСТВАХ ЛИЦЕНЗИАР НЕ НЕСЁТ ОТВЕТСТВЕННОСТИ ЗА ЛЮБОЙ УЩЕРБ, ВОЗНИКШИЙ В РЕЗУЛЬТАТЕ ИСПОЛЬЗОВАНИЯ ИЛИ НЕВОЗМОЖНОСТИ ИСПОЛЬЗОВАНИЯ МАТЕРИАЛОВ _Onyx.
+5. Отказ от гарантий  
+Компоненты _Onyx предоставляются «как есть», без каких-либо гарантий, явных или подразумеваемых.
 
 ENG:
-1. Acceptance of License
-By obtaining, accessing, or using this Project or any part thereof by any means, you agree to be bound by the terms of this License in full.
-Any use of the materials without full acceptance of these terms is strictly prohibited.
-Violation of this License grants the Licensor the right to apply legal, technical, and administrative enforcement measures in accordance with the DMCA and/or applicable laws of relevant jurisdictions, including those of hosting providers and other information intermediaries.
-Acceptance of this License constitutes a binding, non-exclusive, royalty-free agreement between you and the Licensor.
 
-2. Scope of Protection
-This License applies exclusively to all contents of any directory named _Onyx, including but not limited to:
-source code and object code;
-scripts, logic, and systems;
-internal tools and modules;
-configuration files;
-any derivatives, adaptations, or modifications thereof.
-All other parts of the Project may be governed by separate licenses, if explicitly stated.
+This project includes components developed as part of the "Onyx" project or located in directories named "_Onyx".
 
-3. Ownership
-All rights, title, and interest in and to the _Onyx materials are retained by the Licensor.
-Nothing in this License shall be interpreted as a transfer of ownership or intellectual property rights.
+These components are licensed under the GNU Affero General Public License v3.0 (AGPLv3), in accordance with the overall project license.
 
-4. Permitted Use
-You are permitted to:
-view and study the _Onyx source code solely for personal, non-commercial, informational purposes;
-compile and run the Project locally only as part of this Project.
+The following additional terms apply:
 
-5. Restrictions
-You are expressly prohibited from, without prior explicit permission of the Licensor:
-Copying, extracting, reusing, or isolating any part of the _Onyx materials.
-Using _Onyx materials in any other project, build, fork, mod, or repository.
-Publishing, distributing, sublicensing, or otherwise making _Onyx materials available to third parties.
-Hosting public or private servers that rely on _Onyx materials outside of this Project.
-Creating derivative works based on _Onyx materials.
-Using _Onyx materials for commercial purposes of any kind.
-Removing or altering copyright or proprietary notices.
-Any attempt to bypass, obscure, or misrepresent the origin of _Onyx materials constitutes a material breach of this License.
+1. Attribution Requirement  
+Any use, modification, or redistribution of the _Onyx components must retain clear and visible attribution to the original "Onyx" project.
 
-6. Modifications and Contributions
-Any modifications to _Onyx materials, regardless of scope or form, must not be distributed or published.
-The Licensor is under no obligation to accept, merge, or acknowledge any such modifications.
+2. Naming Restrictions  
+You may not use the names "Onyx", "Onyx Station", or any confusingly similar designations to name derivative projects, servers, or builds without explicit permission from the rights holder.
 
-7. Termination
-This License is effective until terminated.
-Your rights under this License terminate automatically and immediately upon any violation of its terms.
-Upon termination, you must cease all use of _Onyx materials and destroy all copies in your possession.
+3. Misrepresentation Prohibition  
+You may not claim authorship of the _Onyx components or present them as your own work.
 
-8. Disclaimer of Warranty
-THE _Onyx MATERIALS ARE PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED.
+4. Preservation of Notices  
+All copyright notices, license information, and origin references within _Onyx files must be preserved without modification.
 
-9. Limitation of Liability
-IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY DAMAGES ARISING FROM THE USE OR INABILITY TO USE THE _Onyx MATERIALS.
+5. Disclaimer of Warranty  
+The _Onyx components are provided "as is", without any warranties, express or implied.
