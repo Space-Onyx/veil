@@ -78,13 +78,18 @@ using Content.Shared.Power;
 using Content.Shared.SurveillanceCamera;
 using Robust.Server.GameObjects;
 using Robust.Shared.Player;
+using Content.Shared.Pinpointer;
+using Content.Shared._CE.ZLevels.Core.Components;
+using Content.Shared._CE.ZLevels.Core.EntitySystems;
 
 // Goobstation
 using Content.Goobstation.Common.SurveillanceCamera;
 using Content.Shared.UserInterface;
 using Robust.Server.GameStates;
 using Robust.Shared.Map;
+using Robust.Shared.Map.Components;
 using System.Runtime.InteropServices;
+using System.Linq;
 
 namespace Content.Server.SurveillanceCamera;
 
@@ -94,6 +99,7 @@ public sealed class SurveillanceCameraMonitorSystem : EntitySystem
     [Dependency] private readonly UserInterfaceSystem _userInterface = default!;
     [Dependency] private readonly DeviceNetworkSystem _deviceNetworkSystem = default!;
     [Dependency] private readonly ISharedPlayerManager _playerManager = default!; // <Onyx-Fix>
+    [Dependency] private readonly CESharedZLevelsSystem _zLevels = default!; // <Onyx-Tweak>
 
     // Goobstation
     [Dependency] private readonly PvsOverrideSystem _pvsOverrideSystem = default!;
@@ -112,6 +118,7 @@ public sealed class SurveillanceCameraMonitorSystem : EntitySystem
             subs.Event<SurveillanceCameraRefreshCamerasMessage>(OnRefreshCamerasMessage);
             subs.Event<SurveillanceCameraRefreshSubnetsMessage>(OnRefreshSubnetsMessage);
             subs.Event<SurveillanceCameraDisconnectMessage>(OnDisconnectMessage);
+            subs.Event<SurveillanceCameraMonitorSelectFloorMessage>(OnSelectFloorMessage); // <Onyx-Tweak>
             subs.Event<SurveillanceCameraMonitorSwitchMessage>(OnSwitchMessage);
             subs.Event<BoundUIClosedEvent>(OnBoundUiClose);
         });
@@ -193,6 +200,7 @@ public sealed class SurveillanceCameraMonitorSystem : EntitySystem
                 foreach (var key in expiredCameras.Keys)
                 {
                     monitor.KnownMobileCameras.Remove(key);
+                    monitor.KnownMobileCameraDepths.Remove(key); // <Onyx-Tweak>
                     monitor.KnownMobileCamerasLastHeartbeat.Remove(key);
                     monitor.KnownMobileCamerasLastHeartbeatSent.Remove(key);
                 }
@@ -271,13 +279,14 @@ public sealed class SurveillanceCameraMonitorSystem : EntitySystem
                 case SurveillanceCameraSystem.CameraDataMessage:
                     // Goobstation start
                     if (!args.Data.TryGetValue(SurveillanceCameraSystem.CameraNameData, out string? name)
-                        || !args.Data.TryGetValue(SurveillanceCameraSystem.CameraSubnetData, out string? subnetData)
+                        || !args.Data.TryGetValue(SurveillanceCameraSystem.CameraSubnetData, out _) // <Onyx-Tweak>
                         || !args.Data.TryGetValue(SurveillanceCameraSystem.CameraAddressData, out string? address)
                         || !args.Data.TryGetValue(SurveillanceCameraSystem.CameraNetEntity, out (NetEntity, NetCoordinates)? netEntity)
                         || !args.Data.TryGetValue(SurveillanceCameraSystem.CameraMobile, out bool? mobile))
                     {
                         return;
                     }
+                    var cameraDepth = TryGetCameraDepth(netEntity.Value.Item1, out var parsedDepth) ? parsedDepth : 0; // <Onyx-Tweak>
                     if (mobile.HasValue && mobile.Value) // if camera is mobile, it should be in the mobile cameras list
                     {
                         if (component.KnownMobileCameras.Count == 0) // was it the first mobile camera added?
@@ -295,9 +304,20 @@ public sealed class SurveillanceCameraMonitorSystem : EntitySystem
                             }
                             // <Onyx-Fix edited>
                         }
+                    // <Onyx-Tweak>
+                        else
+                        {
+                            component.KnownMobileCameras[address] = (name, netEntity.Value);
+                        }
+
+                        component.KnownMobileCameraDepths[address] = cameraDepth;
                     }
-                    else if (!component.KnownCameras.ContainsKey(address))
-                        component.KnownCameras.Add(address, (name, netEntity.Value));
+                    else
+                    {
+                        component.KnownCameras[address] = (name, netEntity.Value);
+                        component.KnownCameraDepths[address] = cameraDepth;
+                    }
+                    // </Onyx-Tweak>
                     // Goobstation end
                     UpdateUserInterface(uid, component);
                     break;
@@ -341,7 +361,9 @@ public sealed class SurveillanceCameraMonitorSystem : EntitySystem
         }
         // </Onyx-Fix edited>
         component.KnownCameras.Clear();
+        component.KnownCameraDepths.Clear(); // <Onyx-Tweak>
         component.KnownMobileCameras.Clear();
+        component.KnownMobileCameraDepths.Clear(); // <Onyx-Tweak>
         RequestKnownSubnetsInfo(uid, component);
     }
     // Goobstation end
@@ -359,6 +381,33 @@ public sealed class SurveillanceCameraMonitorSystem : EntitySystem
         // do the switch
         TrySwitchCameraByAddress(uid, message.Address, component);
     }
+
+    // <Onyx-Tweak>
+    private void OnSelectFloorMessage(
+        EntityUid uid,
+        SurveillanceCameraMonitorComponent component,
+        SurveillanceCameraMonitorSelectFloorMessage message)
+    {
+        var (_, floors, selectedFloor, _, _) = GetFloorState(uid, component);
+        if (floors.Count <= 1 || !floors.Contains(message.Floor))
+            return;
+
+        if (selectedFloor == message.Floor)
+            return;
+
+        component.SelectedFloorDepth = message.Floor;
+
+        if (!string.IsNullOrEmpty(component.ActiveCameraAddress) &&
+            TryGetCameraDepthForAddress(component, component.ActiveCameraAddress, out var activeDepth) &&
+            activeDepth != message.Floor)
+        {
+            DisconnectCamera(uid, true, component);
+            return;
+        }
+
+        UpdateUserInterface(uid, component);
+    }
+    // </Onyx-Tweak>
 
     private void OnPowerChanged(EntityUid uid, SurveillanceCameraMonitorComponent component, ref PowerChangedEvent args)
     {
@@ -681,8 +730,45 @@ public sealed class SurveillanceCameraMonitorSystem : EntitySystem
             return;
         }
 
+        EnsureNavMapsForMonitorFloors(uid); // <Onyx-Tweak>
+
         AddViewer(uid, player);
     }
+
+    // <Onyx-Tweak>
+    private void EnsureNavMapsForMonitorFloors(EntityUid monitorUid)
+    {
+        var xform = Transform(monitorUid);
+        if (xform.MapUid == null)
+        {
+            if (xform.GridUid != null)
+                EnsureComp<NavMapComponent>(xform.GridUid.Value);
+            return;
+        }
+
+        if (!TryComp<CEZLevelMapComponent>(xform.MapUid.Value, out var monitorZMap))
+        {
+            if (xform.GridUid != null)
+                EnsureComp<NavMapComponent>(xform.GridUid.Value);
+            return;
+        }
+
+        var targetMaps = new HashSet<EntityUid> { xform.MapUid.Value };
+        foreach (var mapUid in _zLevels.GetAllMapsAbove((xform.MapUid.Value, monitorZMap)))
+            targetMaps.Add(mapUid);
+        foreach (var mapUid in _zLevels.GetAllMapsBelow((xform.MapUid.Value, monitorZMap)))
+            targetMaps.Add(mapUid);
+
+        var gridQuery = EntityQueryEnumerator<MapGridComponent, TransformComponent>();
+        while (gridQuery.MoveNext(out var gridUid, out _, out var gridXform))
+        {
+            if (gridXform.MapUid == null || !targetMaps.Contains(gridXform.MapUid.Value))
+                continue;
+
+            EnsureComp<NavMapComponent>(gridUid);
+        }
+    }
+    // </Onyx-Tweak>
 
     private void UpdateUserInterface(EntityUid uid, SurveillanceCameraMonitorComponent? monitor = null, EntityUid? player = null)
     {
@@ -691,10 +777,129 @@ public sealed class SurveillanceCameraMonitorSystem : EntitySystem
             return;
         }
 
-        var state = new SurveillanceCameraMonitorUiState(GetNetEntity(monitor.ActiveCamera), // Goobstation
-            monitor.ActiveCameraAddress, monitor.KnownCameras, monitor.KnownMobileCameras); // Goobstation
+        // <Onyx-Tweak edited>
+        var (hasFloorSelection, floors, selectedFloor, selectedMap, monitorFloor) = GetFloorState(uid, monitor);
+
+        var cameras = hasFloorSelection
+            ? FilterCamerasByFloor(monitor.KnownCameras, monitor.KnownCameraDepths, selectedFloor)
+            : monitor.KnownCameras;
+
+        var mobileCameras = hasFloorSelection
+            ? FilterCamerasByFloor(monitor.KnownMobileCameras, monitor.KnownMobileCameraDepths, selectedFloor)
+            : monitor.KnownMobileCameras;
+
+        var state = new SurveillanceCameraMonitorUiState(
+            GetNetEntity(monitor.ActiveCamera),
+            monitor.ActiveCameraAddress,
+            cameras,
+            mobileCameras,
+            floors,
+            selectedFloor,
+            monitorFloor,
+            GetNetEntity(selectedMap));
+        // </Onyx-Tweak edited>
         _userInterface.SetUiState(uid, SurveillanceCameraMonitorUiKey.Key, state);
     }
+
+    // <Onyx-Tweak>
+    private (bool HasFloorSelection, List<int> Floors, int SelectedFloor, EntityUid? SelectedMap, int MonitorFloor)
+        GetFloorState(EntityUid monitorUid, SurveillanceCameraMonitorComponent monitor)
+    {
+        var monitorMap = Transform(monitorUid).MapUid;
+        if (monitorMap == null || !TryComp<CEZLevelMapComponent>(monitorMap.Value, out var monitorZMap))
+        {
+            monitor.SelectedFloorDepth = 0;
+            return (false, new List<int> { 0 }, 0, monitorMap, 0);
+        }
+
+        var monitorDepth = monitorZMap.Depth;
+
+        var mapByDepth = new Dictionary<int, EntityUid>
+        {
+            [monitorDepth] = monitorMap.Value
+        };
+
+        foreach (var mapUid in _zLevels.GetAllMapsBelow((monitorMap.Value, monitorZMap)))
+        {
+            if (!TryComp<CEZLevelMapComponent>(mapUid, out var zMap))
+                continue;
+
+            mapByDepth[zMap.Depth] = mapUid;
+        }
+
+        foreach (var mapUid in _zLevels.GetAllMapsAbove((monitorMap.Value, monitorZMap)))
+        {
+            if (!TryComp<CEZLevelMapComponent>(mapUid, out var zMap))
+                continue;
+
+            mapByDepth[zMap.Depth] = mapUid;
+        }
+
+        var floors = mapByDepth.Keys.OrderBy(x => x).ToList();
+        if (floors.Count <= 1)
+        {
+            monitor.SelectedFloorDepth = monitorDepth;
+            return (false, new List<int> { monitorDepth }, monitorDepth, monitorMap, monitorDepth);
+        }
+
+        var selected = monitor.SelectedFloorDepth;
+        if (selected == null || !floors.Contains(selected.Value))
+            selected = monitorDepth;
+
+        monitor.SelectedFloorDepth = selected.Value;
+
+        EntityUid? selectedMap = monitorMap;
+        if (mapByDepth.TryGetValue(selected.Value, out var levelMap))
+            selectedMap = levelMap;
+
+        return (true, floors, selected.Value, selectedMap, monitorDepth);
+    }
+
+    private static Dictionary<string, (string, (NetEntity, NetCoordinates))> FilterCamerasByFloor(
+        IReadOnlyDictionary<string, (string, (NetEntity, NetCoordinates))> source,
+        IReadOnlyDictionary<string, int> depthLookup,
+        int selectedFloor)
+    {
+        var filtered = new Dictionary<string, (string, (NetEntity, NetCoordinates))>();
+
+        foreach (var (address, data) in source)
+        {
+            if (!depthLookup.TryGetValue(address, out var depth) || depth != selectedFloor)
+                continue;
+
+            filtered[address] = data;
+        }
+
+        return filtered;
+    }
+
+    private bool TryGetCameraDepth(NetEntity cameraNetEntity, out int depth)
+    {
+        depth = 0;
+
+        if (!_entityManager.TryGetEntity(cameraNetEntity, out var cameraUid))
+            return false;
+
+        if (!TryComp<TransformComponent>(cameraUid, out var xform) || xform.MapUid is not { } mapUid)
+            return false;
+
+        if (TryComp<CEZLevelMapComponent>(mapUid, out var zMap))
+            depth = zMap.Depth;
+
+        return true;
+    }
+
+    private static bool TryGetCameraDepthForAddress(
+        SurveillanceCameraMonitorComponent monitor,
+        string address,
+        out int depth)
+    {
+        if (monitor.KnownCameraDepths.TryGetValue(address, out depth))
+            return true;
+
+        return monitor.KnownMobileCameraDepths.TryGetValue(address, out depth);
+    }
+    // </Onyx-Tweak>
 
     // <Onyx-Fix>
     private bool TryGetViewerSession(EntityUid player, out ICommonSession session)

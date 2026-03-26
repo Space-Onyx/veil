@@ -16,6 +16,8 @@
 // SPDX-License-Identifier: MIT
 
 using Content.Server.DeviceNetwork.Components;
+using Content.Server.SurveillanceCamera;
+using Content.Shared._CE.ZLevels.Core.EntitySystems;
 using Content.Shared.DeviceNetwork.Events;
 using JetBrains.Annotations;
 
@@ -24,6 +26,8 @@ namespace Content.Server.DeviceNetwork.Systems
     [UsedImplicitly]
     public sealed class WiredNetworkSystem : EntitySystem
     {
+        [Dependency] private readonly CESharedZLevelsSystem _zLevels = default!; // <Onyx-Tweak>
+
         public override void Initialize()
         {
             base.Initialize();
@@ -33,13 +37,34 @@ namespace Content.Server.DeviceNetwork.Systems
         /// <summary>
         /// Checks if both devices are on the same grid
         /// </summary>
+        // <Onyx-Tweak edited>
         private void OnBeforePacketSent(EntityUid uid, WiredNetworkComponent component, BeforePacketSentEvent args)
         {
-            if (Transform(uid).GridUid != args.SenderTransform.GridUid)
+            var receiverXform = Transform(uid);
+            if (receiverXform.GridUid == args.SenderTransform.GridUid)
+                return;
+
+            if (!IsSurveillanceDevice(uid) || !IsSurveillanceDevice(args.Sender))
             {
                 args.Cancel();
+                return;
             }
+
+            var receiverMap = receiverXform.MapUid;
+            var senderMap = args.SenderTransform.MapUid;
+            if (receiverMap == null || senderMap == null || !_zLevels.AreOnSameZNetwork(receiverMap.Value, senderMap.Value))
+                args.Cancel();
         }
+        // </Onyx-Tweak edited>
+
+        // <Onyx-Tweak>
+        private bool IsSurveillanceDevice(EntityUid uid)
+        {
+            return HasComp<SurveillanceCameraMonitorComponent>(uid) ||
+                   HasComp<SurveillanceCameraRouterComponent>(uid) ||
+                   HasComp<SurveillanceCameraComponent>(uid);
+        }
+        // </Onyx-Tweak>
 
         //Things to do in a future PR:
         //Abstract out the connection between the apcExtensionCable and the apcPowerReceiver

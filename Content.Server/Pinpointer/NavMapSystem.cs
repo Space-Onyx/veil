@@ -63,6 +63,7 @@ public sealed partial class NavMapSystem : SharedNavMapSystem
 
         // Initialization events
         SubscribeLocalEvent<StationGridAddedEvent>(OnStationInit);
+        SubscribeLocalEvent<NavMapComponent, ComponentStartup>(OnNavMapStartup); // <Onyx-Tweak>
 
         // Grid change events
         SubscribeLocalEvent<GridSplitEvent>(OnNavMapSplit);
@@ -79,9 +80,18 @@ public sealed partial class NavMapSystem : SharedNavMapSystem
 
     private void OnStationInit(StationGridAddedEvent ev)
     {
-        var comp = EnsureComp<NavMapComponent>(ev.GridId);
-        RefreshGrid(ev.GridId, comp, Comp<MapGridComponent>(ev.GridId));
+        EnsureComp<NavMapComponent>(ev.GridId); // <Onyx-Tweak>
     }
+
+    // <Onyx-Tweak>
+    private void OnNavMapStartup(EntityUid uid, NavMapComponent component, ComponentStartup args)
+    {
+        if (!_gridQuery.TryComp(uid, out var mapGrid))
+            return;
+
+        RefreshGrid(uid, component, mapGrid);
+    }
+    // </Onyx-Tweak>
 
     #region: Grid change event handling
 

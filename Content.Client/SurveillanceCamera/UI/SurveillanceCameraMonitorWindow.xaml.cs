@@ -16,6 +16,7 @@ using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.XAML;
 using Robust.Shared.Graphics;
 using Robust.Shared.Map; // Goobstation
+using Robust.Shared.Map.Components;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility; // Goobstation
 
@@ -35,6 +36,7 @@ public sealed partial class SurveillanceCameraMonitorWindow : FancyWindow // Goo
     public event Action? SubnetRefresh;
     public event Action? CameraSwitchTimer;
     public event Action? CameraDisconnect;
+    public event Action<int>? FloorSelected; // <Onyx-Tweak>s
 
     private string _currentAddress = string.Empty;
     private bool _isSwitching;
@@ -42,7 +44,11 @@ public sealed partial class SurveillanceCameraMonitorWindow : FancyWindow // Goo
     private readonly SpriteSystem _spriteSystem; // Goobstation
     private readonly Dictionary<NetEntity, string> _reverseCameras = new(); // Goobstation
     private readonly Dictionary<string, string> _resolveCameraName = new(); // Goobstation
+    private readonly List<int> _knownFloors = new(); // <Onyx-Tweak>
     private Texture? _blipTexture; // Goobstation
+    private EntityUid? _monitorMapUid; // <Onyx-Tweak>
+    private bool _updatingFloorSelector; // <Onyx-Tweak>
+    private int _monitorFloor; // <Onyx-Tweak>
 
     public SurveillanceCameraMonitorWindow()
     {
@@ -67,6 +73,7 @@ public sealed partial class SurveillanceCameraMonitorWindow : FancyWindow // Goo
         SubnetRefreshButton.OnPressed += _ => SubnetRefresh!();
         CameraRefreshButton.OnPressed += _ => CameraRefresh!();
         CameraDisconnectButton.OnPressed += _ => CameraDisconnect!();
+        FloorSelector.OnItemSelected += OnFloorSelected; // <Onyx-Tweak>
     }
 
     // Goobstation start
@@ -92,12 +99,15 @@ public sealed partial class SurveillanceCameraMonitorWindow : FancyWindow // Goo
         // Set nav map grid uid
         var stationName = Loc.GetString("surveillance-camera-monitor-ui-unknown-location");
 
+        // <Onyx-Tweak edited>
         if (_entManager.TryGetComponent<TransformComponent>(uid, out var xform))
         {
-            NavMap.MapUid = xform.GridUid;
+            _monitorMapUid = xform.GridUid ?? xform.MapUid;
+            NavMap.MapUid = _monitorMapUid;
 
             // Assign station name
-            if (_entManager.TryGetComponent<MetaDataComponent>(xform.GridUid, out var stationMetaData))
+            if (xform.GridUid != null &&
+                _entManager.TryGetComponent<MetaDataComponent>(xform.GridUid.Value, out var stationMetaData))
                 stationName = stationMetaData.EntityName;
 
             var msg = new FormattedMessage();
@@ -109,9 +119,11 @@ public sealed partial class SurveillanceCameraMonitorWindow : FancyWindow // Goo
 
         else
         {
+            _monitorMapUid = null;
             StationName.SetMessage(stationName);
             NavMap.Visible = false;
         }
+        // </Onyx-Tweak edited>
     }
 
     // Add a particular camera
@@ -133,33 +145,85 @@ public sealed partial class SurveillanceCameraMonitorWindow : FancyWindow // Goo
     }
     // Goobstation End
 
+    // <Onyx-Tweak>
+    private void OnFloorSelected(OptionButton.ItemSelectedEventArgs args)
+    {
+        args.Button.SelectId(args.Id);
+
+        if (_updatingFloorSelector || args.Id < 0 || args.Id >= _knownFloors.Count)
+            return;
+
+        FloorSelected?.Invoke(_knownFloors[args.Id]);
+    }
+    // </Onyx-Tweak>
+
     // The UI class should get the eye from the entity, and then
     // pass it here so that the UI can change its view.
-    public void UpdateState(IEye? eye, string activeAddress, Dictionary<string, (string, (NetEntity, NetCoordinates))> cameras, Dictionary<string, (string, (NetEntity, NetCoordinates))> mobileCameras, EntityUid monitor, EntityCoordinates? monitorCoords) // Goobstation
+    // <Onyx-Tweak edited>
+    public void UpdateState(
+        IEye? eye,
+        string activeAddress,
+        Dictionary<string, (string, (NetEntity, NetCoordinates))> cameras,
+        Dictionary<string, (string, (NetEntity, NetCoordinates))> mobileCameras,
+        List<int> floors,
+        int selectedFloor,
+        int monitorFloor,
+        NetEntity? selectedFloorMap,
+        EntityUid monitor,
+        EntityCoordinates? monitorCoords) // Goobstation
     {
         _currentAddress = activeAddress;
         SetCameraView(eye);
+        UpdateFloors(floors, selectedFloor, monitorFloor);
+
         // Goobstation start
         _reverseCameras.Clear();
         _resolveCameraName.Clear();
         NavMap.TrackedEntities.Clear();
+
+        EntityUid? navMapUid = null;
+        if (selectedFloorMap != null &&
+            _entManager.TryGetEntity(selectedFloorMap.Value, out var selectedFloorMapUid) &&
+            selectedFloorMapUid != null)
+        {
+            navMapUid = ResolveMapUidFromEntity(selectedFloorMapUid.Value);
+        }
+
         foreach (var (camera, (name, (ent, coordinates))) in cameras)
         {
+            if (navMapUid == null &&
+                _entManager.TryGetEntity(ent, out var cameraUid) &&
+                cameraUid != null)
+            {
+                navMapUid = ResolveMapUidFromEntity(cameraUid.Value);
+            }
+            navMapUid ??= ResolveMapUid(coordinates);
             _reverseCameras[ent] = camera;
             _resolveCameraName[camera] = name;
             AddTrackedEntityToNavMap(ent, coordinates, camera.Equals(_currentAddress) ? true : false, false);
         }
         foreach (var (camera, (name, (ent, coordinates))) in mobileCameras)
         {
+            if (navMapUid == null &&
+                _entManager.TryGetEntity(ent, out var cameraUid) &&
+                cameraUid != null)
+            {
+                navMapUid = ResolveMapUidFromEntity(cameraUid.Value);
+            }
+            navMapUid ??= ResolveMapUid(coordinates);
             _reverseCameras[ent] = camera;
             _resolveCameraName[camera] = name;
             AddTrackedEntityToNavMap(ent, coordinates, camera.Equals(_currentAddress) ? true : false, true);
         }
+
+        NavMap.MapUid = navMapUid ?? _monitorMapUid;
+
         // Show monitor on nav map
-        if (monitorCoords != null && _blipTexture != null)
+        if (monitorCoords != null && _blipTexture != null && NavMap.MapUid == _monitorMapUid)
             NavMap.TrackedEntities[_entManager.GetNetEntity(monitor)] = new NavMapBlip(monitorCoords.Value, _blipTexture, Color.Cyan, true, false);
         // Goobstation end
     }
+    // </Onyx-Tweak edited>
 
 
     private void SetCameraView(IEye? eye)
@@ -213,4 +277,85 @@ public sealed partial class SurveillanceCameraMonitorWindow : FancyWindow // Goo
                             ("address", _currentAddress));
         // Goobstation end
     }
+
+    // <Onyx-Tweak>
+    private void UpdateFloors(List<int> floors, int selectedFloor, int monitorFloor)
+    {
+        _monitorFloor = monitorFloor;
+        _knownFloors.Clear();
+        _knownFloors.AddRange(floors);
+
+        _updatingFloorSelector = true;
+        FloorSelector.Clear();
+
+        for (var i = 0; i < floors.Count; i++)
+        {
+            FloorSelector.AddItem(FormatFloor(floors[i], _monitorFloor), i);
+        }
+
+        var selectedId = 0;
+        for (var i = 0; i < floors.Count; i++)
+        {
+            if (floors[i] == selectedFloor)
+            {
+                selectedId = i;
+                break;
+            }
+        }
+
+        FloorSelector.SelectId(selectedId);
+        _updatingFloorSelector = false;
+
+        FloorSelectorContainer.Visible = floors.Count > 1;
+    }
+
+    private static string FormatFloor(int floor, int monitorFloor)
+    {
+        var relativeFloor = floor - monitorFloor;
+        if (relativeFloor > 0)
+            return $"+{relativeFloor}";
+
+        return relativeFloor.ToString();
+    }
+
+    private EntityUid? ResolveMapUid(NetCoordinates coords)
+    {
+        var entityCoordinates = _entManager.GetCoordinates(coords);
+        var source = entityCoordinates.EntityId;
+
+        if (_entManager.HasComponent<MapGridComponent>(source))
+            return source;
+
+        if (_entManager.TryGetComponent<TransformComponent>(source, out var xform))
+            return xform.GridUid ?? xform.MapUid;
+
+        return null;
+    }
+
+    private EntityUid? ResolveMapUidFromEntity(EntityUid uid)
+    {
+        if (_entManager.HasComponent<MapGridComponent>(uid))
+            return uid;
+
+        if (_entManager.TryGetComponent<TransformComponent>(uid, out var xform))
+        {
+            if (xform.GridUid != null)
+                return xform.GridUid;
+
+            if (xform.MapUid is { } mapUid)
+            {
+                var gridQuery = _entManager.EntityQueryEnumerator<MapGridComponent, TransformComponent>();
+                while (gridQuery.MoveNext(out var gridUid, out _, out var gridXform))
+                {
+                    if (gridXform.MapUid == mapUid)
+                        return gridUid;
+                }
+
+                return mapUid;
+            }
+        }
+
+        return null;
+    }
+    // </Onyx-Tweak>
 }

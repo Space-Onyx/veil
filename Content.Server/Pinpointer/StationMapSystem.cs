@@ -48,6 +48,11 @@ public sealed class StationMapSystem : EntitySystem
         if (!_cell.TryUseActivatableCharge(uid))
             return;
 
+        // <Onyx-Tweak>
+        var xform = Transform(uid);
+        if (xform.GridUid != null)
+            EnsureComp<NavMapComponent>(xform.GridUid.Value);
+        // </Onyx-Tweak>
         var comp = EnsureComp<StationMapUserComponent>(args.Actor);
         comp.Map = uid;
     }

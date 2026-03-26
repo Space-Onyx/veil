@@ -82,6 +82,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using Content.Server.DeviceNetwork.Components;
+using Content.Server.SurveillanceCamera;
+using Content.Shared._CE.ZLevels.Core.EntitySystems;
 using Content.Shared.DeviceNetwork.Events;
 using JetBrains.Annotations;
 
@@ -91,6 +93,7 @@ namespace Content.Server.DeviceNetwork.Systems
     public sealed class WirelessNetworkSystem : EntitySystem
     {
         [Dependency] private readonly SharedTransformSystem _transformSystem = default!;
+        [Dependency] private readonly CESharedZLevelsSystem _zLevels = default!; // <Onyx-Tweak>
 
         public override void Initialize()
         {
@@ -101,6 +104,7 @@ namespace Content.Server.DeviceNetwork.Systems
         /// <summary>
         /// Gets the position of both the sending and receiving entity and checks if the receiver is in range of the sender.
         /// </summary>
+        // <Onyx-Tweak edited>
         private void OnBeforePacketSent(EntityUid uid, WirelessNetworkComponent component, BeforePacketSentEvent args)
         {
             var ownPosition = args.SenderPosition;
@@ -110,11 +114,32 @@ namespace Content.Server.DeviceNetwork.Systems
             if (!TryComp<WirelessNetworkComponent>(args.Sender, out var sendingComponent))
                 return;
 
-            if (xform.MapID != args.SenderTransform.MapID
-                || (ownPosition - _transformSystem.GetWorldPosition(xform)).Length() > sendingComponent.Range)
+            if (xform.MapID != args.SenderTransform.MapID)
             {
-                args.Cancel();
+                if (!IsSurveillanceDevice(uid) ||
+                    !IsSurveillanceDevice(args.Sender) ||
+                    xform.MapUid == null ||
+                    args.SenderTransform.MapUid == null ||
+                    !_zLevels.AreOnSameZNetwork(xform.MapUid.Value, args.SenderTransform.MapUid.Value))
+                {
+                    args.Cancel();
+                }
+
+                return;
             }
+
+            if ((ownPosition - _transformSystem.GetWorldPosition(xform)).Length() > sendingComponent.Range)
+                args.Cancel();
         }
+        // </Onyx-Tweak edited>
+
+        // <Onyx-Tweak>
+        private bool IsSurveillanceDevice(EntityUid uid)
+        {
+            return HasComp<SurveillanceCameraMonitorComponent>(uid) ||
+                   HasComp<SurveillanceCameraRouterComponent>(uid) ||
+                   HasComp<SurveillanceCameraComponent>(uid);
+        }
+        // </Onyx-Tweak>
     }
 }

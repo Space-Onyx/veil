@@ -50,6 +50,7 @@ public sealed class SurveillanceCameraMonitorBoundUserInterface : BoundUserInter
         _window.SubnetRefresh += OnSubnetRefresh;
         _window.CameraSwitchTimer += OnCameraSwitchTimer;
         _window.CameraDisconnect += OnCameraDisconnect;
+        _window.FloorSelected += OnFloorSelected; // <Onyx-Tweak>
 
         _window.SetEntity(Owner); // Goobstation
     }
@@ -78,6 +79,13 @@ public sealed class SurveillanceCameraMonitorBoundUserInterface : BoundUserInter
     {
         SendMessage(new SurveillanceCameraDisconnectMessage());
     }
+
+    // <Onyx-Tweak>
+    private void OnFloorSelected(int floor)
+    {
+        SendMessage(new SurveillanceCameraMonitorSelectFloorMessage(floor));
+    }
+    // </Onyx-Tweak>
 
     // <Onyx-Fix edited>
     protected override void UpdateState(BoundUserInterfaceState state)
@@ -119,7 +127,17 @@ public sealed class SurveillanceCameraMonitorBoundUserInterface : BoundUserInter
 
         if (active == null)
         {
-            _window.UpdateState(null, cast.ActiveAddress, cast.Cameras, cast.MobileCameras, monitor, monitorCoords); // Goobstation
+            _window.UpdateState(
+                null,
+                cast.ActiveAddress,
+                cast.Cameras,
+                cast.MobileCameras,
+                cast.Floors,
+                cast.SelectedFloor,
+                cast.MonitorFloor,
+                cast.SelectedFloorMap,
+                monitor,
+                monitorCoords); // Goobstation
 
             ClearCurrentCamera();
             return;
@@ -132,7 +150,17 @@ public sealed class SurveillanceCameraMonitorBoundUserInterface : BoundUserInter
             if (_currentCamera != null && _currentCamera != active)
                 ClearCurrentCamera();
 
-            _window.UpdateState(null, cast.ActiveAddress, cast.Cameras, cast.MobileCameras, monitor, monitorCoords); // Goobstation
+            _window.UpdateState(
+                null,
+                cast.ActiveAddress,
+                cast.Cameras,
+                cast.MobileCameras,
+                cast.Floors,
+                cast.SelectedFloor,
+                cast.MonitorFloor,
+                cast.SelectedFloorMap,
+                monitor,
+                monitorCoords); // Goobstation
             return;
         }
 
@@ -148,7 +176,17 @@ public sealed class SurveillanceCameraMonitorBoundUserInterface : BoundUserInter
             _currentCamera = active;
         }
 
-        _window.UpdateState(eye.Eye, cast.ActiveAddress, cast.Cameras, cast.MobileCameras, monitor, monitorCoords); // Goobstation
+        _window.UpdateState(
+            eye.Eye,
+            cast.ActiveAddress,
+            cast.Cameras,
+            cast.MobileCameras,
+            cast.Floors,
+            cast.SelectedFloor,
+            cast.MonitorFloor,
+            cast.SelectedFloorMap,
+            monitor,
+            monitorCoords); // Goobstation
     }
 
     private void ClearCurrentCamera()

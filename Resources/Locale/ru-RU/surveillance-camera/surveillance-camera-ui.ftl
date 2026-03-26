@@ -9,3 +9,4 @@ surveillance-camera-monitor-ui-status-disconnected = Отключено
 surveillance-camera-monitor-ui-no-subnets = Нет подсетей
 surveillance-camera-setup = Настроить
 surveillance-camera-setup-ui-set = Установить
+surveillance-camera-monitor-ui-floor = Этаж

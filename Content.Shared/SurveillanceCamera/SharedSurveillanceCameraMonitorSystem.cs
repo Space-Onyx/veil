@@ -30,12 +30,36 @@ public sealed class SurveillanceCameraMonitorUiState : BoundUserInterfaceState
 
     public Dictionary<string, (string, (NetEntity, NetCoordinates))> MobileCameras { get; } // Goobstation
 
-    public SurveillanceCameraMonitorUiState(NetEntity? activeCamera, string activeAddress, Dictionary<string, (string, (NetEntity, NetCoordinates))> cameras, Dictionary<string, (string, (NetEntity, NetCoordinates))> mobileCameras) // Goobstation
+    public List<int> Floors { get; } // <Onyx-Tweak>
+
+    public int SelectedFloor { get; } // <Onyx-Tweak>
+
+    public int MonitorFloor { get; } // <Onyx-Tweak>
+
+    public NetEntity? SelectedFloorMap { get; } // <Onyx-Tweak>
+
+    // <Onyx-Tweak edited>
+    public SurveillanceCameraMonitorUiState(
+        NetEntity? activeCamera,
+        string activeAddress,
+        Dictionary<string, (string, (NetEntity, NetCoordinates))> cameras,
+        Dictionary<string, (string, (NetEntity, NetCoordinates))> mobileCameras,
+        List<int> floors,
+        int selectedFloor,
+        int monitorFloor,
+        NetEntity? selectedFloorMap) // Goobstation
+    // </Onyx-Tweak edited>
     {
         ActiveCamera = activeCamera;
         ActiveAddress = activeAddress;
         Cameras = cameras;
         MobileCameras = mobileCameras; // Goobstation
+        // <Onyx-Tweak>
+        Floors = floors;
+        SelectedFloor = selectedFloor;
+        MonitorFloor = monitorFloor;
+        SelectedFloorMap = selectedFloorMap;
+        // </Onyx-Tweak>
     }
 }
 
@@ -49,6 +73,19 @@ public sealed class SurveillanceCameraMonitorSwitchMessage : BoundUserInterfaceM
         Address = address;
     }
 }
+
+// <Onyx-Tweak>
+[Serializable, NetSerializable]
+public sealed class SurveillanceCameraMonitorSelectFloorMessage : BoundUserInterfaceMessage
+{
+    public int Floor { get; }
+
+    public SurveillanceCameraMonitorSelectFloorMessage(int floor)
+    {
+        Floor = floor;
+    }
+}
+// </Onyx-Tweak>
 
 [Serializable, NetSerializable]
 public sealed class SurveillanceCameraMonitorSubnetRequestMessage : BoundUserInterfaceMessage
