@@ -8,4 +8,4 @@ ent-GeneratorCRPinch = термоядерный реактор SKR CR-класс
 
 ent-GeneratorCRPinchShuttle = корабельный термоядерный реактор SKR CR-класса Z-пинча
     .desc = Корабельный вариант промышленного миниатюрного термоядерного реактора на плазме топливного класса.
-        { ent.GeneratorCRPinch.desc }
+        { ent-GeneratorCRPinch.desc }

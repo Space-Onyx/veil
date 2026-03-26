@@ -1,0 +1,16 @@
+crystallizer-ui-controls = Controls
+crystallizer-ui-power = Power:
+crystallizer-ui-recipe = Recipe:
+crystallizer-ui-gas-input = Gas Input (mol/s):
+crystallizer-ui-progress-and-requirements = Progress and Requirements
+crystallizer-ui-progress = Progress:
+crystallizer-ui-temperature = Temperature:
+crystallizer-ui-gases = Gases:
+crystallizer-ui-select-recipe-prompt = Please select a recipe.
+crystallizer-ui-nothing = Nothing
+crystallizer-ui-recipe-minimum =  - Minimum: {$temp}K
+crystallizer-ui-recipe-maximum =  - Maximum: {$temp}K
+crystallizer-ui-gas-requirement =  - {$gas}: {$moles} moles
+crystallizer-ui-reaction-exothermic = This reaction will be exothermic.
+crystallizer-ui-reaction-endothermic = This reaction will be endothermic.
+crystallizer-ui-moles = {$moles} moles
