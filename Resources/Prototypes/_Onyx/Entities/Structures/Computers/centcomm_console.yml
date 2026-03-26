@@ -33,3 +33,26 @@
     radius: 1.5
     energy: 1.6
     color: "#00FF00"
+
+- type: entity
+  id: CentcommConsoleTabletop
+  parent: [BaseStructureComputerTabletop,  CentcommConsole]
+  suffix: Tabletop
+  components:
+  - type: Sprite
+    drawdepth: SmallObjects
+    sprite: _Onyx/Structures/Machines/computer_tabletop.rsi
+    layers:
+    - map: ["computerLayerBody"]
+      state: computer
+    - map: ["computerLayerKeyboard"]
+      state: id_key_off
+    - map: ["computerLayerScreen"]
+      sprite: Structures/Machines/computers.rsi
+      state: comm_logs
+    - map: ["computerLayerKeys"]
+      sprite: Structures/Machines/computers.rsi
+      state: id_key
+    - map: [ "enum.WiresVisualLayers.MaintenancePanel" ]
+      sprite: Structures/Machines/computers.rsi
+      state: generic_panel_open
