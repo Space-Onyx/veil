@@ -47,21 +47,6 @@
     capacity: 1
     airtight: true
     itemCanStoreMobs: true
-    air:
-      # ~1 atm of water vapor at -10 C to prevent barotrauma and give a funny "fwoosh" when opening
-      volume: 200
-      temperature: 263.15
-      moles:
-        - 0 # oxygen
-        - 0 # nitrogen
-        - 0
-        - 0
-        - 0
-        - 10 # water vapor
-    whitelist: # Frontier - whitelist
-      components:
-      - MedicalBounty
-    forceWhitelist: true # Frontier - force whitelist
   - type: Damageable
     damageContainer: StructuralInorganic
     damageModifierSet: Metallic
@@ -102,3 +87,28 @@
     node: medicalpod
     containers:
     - entity_storage
+
+- type: entity
+  parent: MedicalPod
+  id: MedicalPodVapor
+  name: emergency medical pod
+  description: A pod used for preservation of high value corpses. Something awful happened here.
+  suffix: Vapor
+  components:
+  - type: EntityStorage
+    openSound: /Audio/Mecha/mechmove03.ogg # Internals on/off
+    closeSound: /Audio/Mecha/mechmove03.ogg # Internals on/off
+    capacity: 1
+    airtight: true
+    itemCanStoreMobs: true
+    air:
+      # ~1 atm of water vapor at -10 C to prevent barotrauma and give a funny "fwoosh" when opening
+      volume: 200
+      temperature: 263.15
+      moles:
+        - 0 # oxygen
+        - 0 # nitrogen
+        - 0
+        - 0
+        - 0
+        - 10 # water vapor

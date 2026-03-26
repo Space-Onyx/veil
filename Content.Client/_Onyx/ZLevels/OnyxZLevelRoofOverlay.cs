@@ -3,6 +3,7 @@ using Content.Client.Viewport;
 using Content.Shared.CCVar;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._CE.ZLevels.Core.EntitySystems;
+using Content.Shared._CE.ZLevels.Roof.EntitySystems;
 using Content.Shared._Utopia.ZLevels.Components;
 using Robust.Shared.Configuration;
 using Content.Shared.Maps;
@@ -25,6 +26,7 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
     private readonly SharedMapSystem _mapSystem;
     private readonly SharedTransformSystem _xformSystem;
     private readonly CESharedZLevelsSystem _zLevels;
+    private readonly SharedTileZRoofSystem _tileZRoof;
 
     private EntityQuery<GridMotionLinkComponent> _motionLinkQuery;
     private EntityQuery<CEZLevelMapComponent> _zMapQuery;
@@ -56,6 +58,7 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
         _mapSystem = _entManager.System<SharedMapSystem>();
         _xformSystem = _entManager.System<SharedTransformSystem>();
         _zLevels = _entManager.System<CESharedZLevelsSystem>();
+        _tileZRoof = _entManager.System<SharedTileZRoofSystem>();
         _projectionCache = _entManager.System<OnyxZLevelProjectionCacheSystem>();
 
         _motionLinkQuery = _entManager.GetEntityQuery<GridMotionLinkComponent>();
@@ -179,7 +182,7 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
                     continue;
 
                 var def = (ContentTileDefinition) _tileDef[tileRef.Tile.TypeId];
-                if (!def.HasZRoof)
+                if (!_tileZRoof.HasZRoof(lowerGrid, tileRef.GridIndices, def.HasZRoof))
                     continue;
 
                 if (_excludedTiles.Contains(tileRef.GridIndices))

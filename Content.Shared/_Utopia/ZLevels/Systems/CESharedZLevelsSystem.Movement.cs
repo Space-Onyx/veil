@@ -317,7 +317,8 @@ public abstract partial class CESharedZLevelsSystem
                     if (floor > 0)
                     {
                         var tileDef = (ContentTileDefinition) TilDefMan[tileRef.Tile.TypeId];
-                        if (tileDef.HasZRoof && !IsOverInteriorHole(checkingMap, worldPos))
+                        if (TileZRoof.HasZRoof(grid, tileRef.GridIndices, tileDef.HasZRoof) &&
+                            !IsOverInteriorHole(checkingMap, worldPos))
                             return -(floor - 1);
                     }
 

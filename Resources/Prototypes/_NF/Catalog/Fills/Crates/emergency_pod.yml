@@ -1,29 +1,29 @@
 - type: entity
-  parent: MedicalPod
+  parent: MedicalPodVapor
   id: MedicalPodFilled
   suffix: Filled, Random
   components:
   - type: StorageFill
     contents:
-    - id: SpawnRandomHumanoidCorpseMedicalBountyService
+    - id: RandomServiceCorpseSpawner
       orGroup: body
       prob: 0.25
-    - id: SpawnRandomHumanoidCorpseMedicalBountyMedical
+    - id: RandomMedicCorpseSpawner
       orGroup: body
       prob: 0.2
-    - id: SpawnRandomHumanoidCorpseMedicalBountyCargo
+    - id: RandomEngineerCorpseSpawner
       orGroup: body
       prob: 0.15
-    - id: SpawnRandomHumanoidCorpseMedicalBountyEngineering
+    - id: RandomEngineerCorpseSpawner
       orGroup: body
       prob: 0.15
-    - id: SpawnRandomHumanoidCorpseMedicalBountyScience
+    - id: RandomScienceCorpseSpawner
       orGroup: body
       prob: 0.1
-    - id: SpawnRandomHumanoidCorpseMedicalBountySecurity
+    - id: RandomSecurityCorpseSpawner
       orGroup: body
       prob: 0.1
-    - id: SpawnRandomHumanoidCorpseMedicalBountyCommand
+    - id: RandomCommandCorpseSpawner
       orGroup: body
       prob: 0.05
   - type: Sprite # Fix our initial state (occupied, occupied-unlit visible).  This sucks.

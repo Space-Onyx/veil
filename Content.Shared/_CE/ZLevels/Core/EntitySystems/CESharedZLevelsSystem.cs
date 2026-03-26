@@ -19,6 +19,7 @@ using Robust.Shared.Map.Components;
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Prototypes;
 using Content.Shared._Utopia.ZLevels.Components;
+using Content.Shared._CE.ZLevels.Roof.EntitySystems;
 using Robust.Shared.Network;
 using Robust.Shared.Timing;
 
@@ -40,6 +41,7 @@ public abstract partial class CESharedZLevelsSystem : EntitySystem
     [Dependency] private readonly FixtureSystem _fix = default!;    // ECHO-Tweak: для улучшения системы
     [Dependency] protected readonly IMapManager _mapManager = default!; // <Onyx-Tweak>
     [Dependency] private readonly INetManager _net = default!; // <Onyx-Tweak>
+    [Dependency] protected readonly SharedTileZRoofSystem TileZRoof = default!;
 
     private EntityQuery<MapComponent> _mapQuery;
     private EntityQuery<CEZLevelMapComponent> _zMapQuery;

@@ -55,3 +55,29 @@
     layers:
     - state: red
       shader: unshaded
+
+- type: entity
+  id: HasZRoofMarker
+  name: Has Z Roof
+  suffix: Enabled
+  parent: MarkerBase
+  components:
+  - type: SetTileZRoof
+    value: true
+  - type: Sprite
+    layers:
+    - state: green
+      shader: unshaded
+
+- type: entity
+  id: NoHasZRoofMarker
+  name: Has Z Roof
+  suffix: Disabled
+  parent: MarkerBase
+  components:
+  - type: SetTileZRoof
+    value: false
+  - type: Sprite
+    layers:
+    - state: red
+      shader: unshaded

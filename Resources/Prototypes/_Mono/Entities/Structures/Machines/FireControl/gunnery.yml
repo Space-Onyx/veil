@@ -67,7 +67,7 @@
   - type: Machine
     board: MachineGCSLowCircuitboard
   - type: FireControlServer
-    processingPower: 8
+    processingPower: 10 # <Onyx-Tweak>
 
 - type: entity
   id: GunneryServerMedium
@@ -77,7 +77,7 @@
   - type: Machine
     board: MachineGCSMediumCircuitboard
   - type: FireControlServer
-    processingPower: 14
+    processingPower: 18 # <Onyx-Tweak>
   - type: ApcPowerReceiver
     powerLoad: 1250
   - type: PowerCharge
@@ -93,7 +93,7 @@
   - type: Machine
     board: MachineGCSHighCircuitboard
   - type: FireControlServer
-    processingPower: 20
+    processingPower: 25 # <Onyx-Tweak>
   - type: ApcPowerReceiver
     powerLoad: 2500
   - type: PowerCharge
@@ -109,7 +109,7 @@
   - type: Machine
     board: MachineGCSUltraCircuitboard
   - type: FireControlServer
-    processingPower: 30
+    processingPower: 45 # <Onyx-Tweak>
   - type: ApcPowerReceiver
     powerLoad: 5000
   - type: PowerCharge

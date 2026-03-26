@@ -286,7 +286,7 @@ public abstract partial class CESharedZLevelsSystem
                 continue;
 
             var tileDef = (ContentTileDefinition) TilDefMan[tileRef.Tile.TypeId];
-            if (tileDef.HasZRoof)
+            if (TileZRoof.HasZRoof(grid, tileRef.GridIndices, tileDef.HasZRoof))
                 return true;
         }
         // </Onyx-Tweak>
@@ -318,7 +318,7 @@ public abstract partial class CESharedZLevelsSystem
                 continue;
 
             var tileDef = (ContentTileDefinition) TilDefMan[tileRef.Tile.TypeId];
-            if (tileDef.HasZRoof)
+            if (TileZRoof.HasZRoof(grid, tileRef.GridIndices, tileDef.HasZRoof))
                 return true;
         }
         // </Onyx-Tweak>
