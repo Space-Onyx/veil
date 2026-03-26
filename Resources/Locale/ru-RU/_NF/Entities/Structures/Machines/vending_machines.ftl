@@ -1,5 +1,5 @@
-ent-VendingMachineCiviMedPlus = CiviMed Плюс
-    .desc = CiviMed Плюс раздаёт жизненно важные лекарства так же жёстко, как ты дробишь породу.
+ent-VendingMachineCiviMedPlus = ГражМенд Плюс
+    .desc = ГражМенд Плюс раздаёт жизненно важные лекарства так же жёстко, как тебя долбит щиткур.
 
-ent-VendingMachineCiviMed = CiviMed
-    .desc = CiviMed раздаёт жизненно важные лекарства так же жёстко, как ты дробишь породу.
+ent-VendingMachineCiviMed = ГражМенд
+    .desc = ГражМенд раздаёт жизненно важные лекарства так же жёстко, как тебя долбит щиткур.

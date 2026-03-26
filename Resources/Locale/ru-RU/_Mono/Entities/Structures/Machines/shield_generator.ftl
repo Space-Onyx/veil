@@ -4,8 +4,8 @@ ent-ShieldGeneratorBase = генератор щита
 ent-ShieldGeneratorPOI = аванпостный генератор щита FS-421 "Fortress"
     .desc = Усиленный генератор щита для объектов особой важности.
 
-ent-ShieldGeneratorTSFCapital = капитальный генератор щита LM-212 "Vanguard"
-    .desc = Корабельный генератор щита для крупных кораблей TSF.
+ent-ShieldGeneratorTSFCapital = масштабный генератор щита LM-212 "Vanguard"
+    .desc = Корабельный генератор щита для крупных кораблей.
 
 ent-ShieldGenerator = генератор щита MS-500 "Titan"
     .desc = Высококлассный корабельный генератор щита.
