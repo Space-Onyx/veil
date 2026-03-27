@@ -26,6 +26,7 @@ public sealed partial class WarpPointComponent : Component
     public EntityWhitelist? Blacklist;
 
     // Corvax-Next-Warper-Start: Unique (across all loaded maps) identifier for teleporting to warp points.
-	[ViewVariables(VVAccess.ReadWrite)] [DataField("id")] public string? ID { get; set; }
-	// Corvax-Next-Warper-End
+    [ViewVariables(VVAccess.ReadWrite)] [DataField("id")]
+    public string? ID { get; set; }
+    // Corvax-Next-Warper-End
 }

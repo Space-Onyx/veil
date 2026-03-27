@@ -429,8 +429,6 @@
       state: ai_female
   - type: NameIdentifier
     group: StationAi
-  - type: TTS # CorvaxGoob-TTS
-    voice: Glados
   - type: LanguageKnowledge
     speaks:
     - TauCetiBasic
@@ -473,6 +471,8 @@
     - Sign
     - Schechi
     - NewKinPidgin
+  - type: TTS # CorvaxGoob-TTS
+    voice: Glados
 
 # Hologram projection that the AI's eye tracks.
 - type: entity

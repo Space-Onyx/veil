@@ -1,0 +1,35 @@
+- type: technology
+  id: AdvancedAugmentation
+  name: research-technology-advanced-augmentation
+  icon:
+    sprite: _Shitmed/Objects/Augments/power.rsi
+    state: cell
+  discipline: CivilianServices
+  tier: 3
+  cost: 15000
+  recipeUnlocks:
+    - AugmentBioReactorCasing
+    - AugmentHoloPda
+    - AugmentNeuroInterfaceCasing
+    - AugmentNeuroInterfaceChip
+    - RunnerAugment
+  position: -3,6
+  technologyPrerequisites:
+    - BasicAugmentation
+    - ImplantedTools
+- type: technology
+  id: AdvancedAugmentation2
+  name: research-technology-advanced-augmentation_two
+  icon:
+    sprite: _Shitmed/Objects/Augments/power.rsi
+    state: cell
+  discipline: CivilianServices
+  tier: 3
+  cost: 15000
+  recipeUnlocks:
+    - AugmentRTGCasing
+    - AdvancedRunnerAugment
+    - AugmentModuleNeuroCapacity
+  position: -4,6
+  technologyPrerequisites:
+    - AdvancedAugmentation

@@ -270,6 +270,8 @@ namespace Content.IntegrationTests.Tests
             "OnyxAtlas",
             "OnyxKettle",
             "OnyxOrigin",
+            "OnyxSilly",
+            "OnyxBox",
             // Onyx-Maps-End
         };
         // Goobstation edit start, yeah i know, but this is easier and less load than loading protoman or something.

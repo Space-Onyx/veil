@@ -126,6 +126,7 @@
   - CaptainMask # Goobstation - Lollypops!
   - CaptainBackpack
   - CaptainOuterClothing
+  - CaptainGloves
   - Survival
   - Trinkets
   - Animals
@@ -147,11 +148,12 @@
   - Inventory # CorvaxGoob-loadouts
   - GroupTankHarness
   - HoPHead
+  - HoPGlasses # CorvaxGoob-loadouts: Glasses > HoPGlasses
   - HoPNeck
   - HoPJumpsuit
   - HoPBackpack
   - HoPOuterClothing
-  - Glasses
+  - HoPGloves
   - Survival
   - Trinkets
   - Animals
@@ -434,6 +436,7 @@
   - MimeBackpack
   - MimeOuterClothing
   - MimeBelt
+  - MimeGloves
   - Glasses
   - SurvivalMime
   - Trinkets
@@ -454,11 +457,11 @@
   groups:
   - Inventory # CorvaxGoob-loadouts
   - GroupTankHarness
+  - MusicianHelmet # CorvaxGoob-Musician's Helmet
+  - MusicianGlasses # CorvaxGoob-loadouts: Glasses > MusicianGlasses
   - MusicianJumpsuit
   - CommonBackpack
   - MusicianOuterClothing
-  - MusicianHelmet # CorvaxGoob-Musician's Helmet
-  - Glasses
   - Survival
   - Trinkets
   - Instruments
@@ -609,6 +612,7 @@
   - StationEngineerOuterClothing
   - StationEngineerShoes
   - StationEngineerID
+  - EngineeringWelder # CorvaxGoob-loadouts
   - SurvivalExtended
   - Trinkets
   - Animals
@@ -633,6 +637,7 @@
   - AtmosphericTechnicianBackpack
   - AtmosphericTechnicianOuterClothing
   - AtmosphericTechnicianShoes
+  - EngineeringWelder # CorvaxGoob-loadouts
   - SurvivalExtended
   - Trinkets
   - Animals
@@ -738,6 +743,7 @@
   - SecurityBelt
   - HeadofSecurityOuterClothing
   - HeadofSecurityShoes # Goobstation edit
+  - HeadofSecurityGloves
   - SurvivalSecurity
   - Trinkets
   - SecurityStar
@@ -760,7 +766,7 @@
   - Inventory # CorvaxGoob-loadouts
   - WardenHead
   - WardenJumpsuit
-  - SecurityBackpack
+  - WardenBackpack # CorvaxGoobChanges: SecurityBackpack > WardenBackpack
   - SecurityMelee # Goobstation
   - SecurityNeck
   - SecurityBelt
@@ -819,6 +825,7 @@
   - SecurityBackpack
   - DetectiveOuterClothing
   - SecurityShoes
+  - DetectiveGloves
   - SurvivalSecurity
   - Trinkets
   - SecurityStar
@@ -866,13 +873,13 @@
   - GroupTankHarness
   - ChiefMedicalOfficerHead
   - MedicalMask
+  - ChiefMedicalOfficerGlasses # CorvaxGoob-loadouts: MedicalEyewear > ChiefMedicalOfficerGlasses 
   - ChiefMedicalOfficerJumpsuit
   - MedicalGloves
   - MedicalBackpack
   - ChiefMedicalOfficerOuterClothing
   - ChiefMedicalOfficerNeck
   - ChiefMedicalOfficerShoes
-  - MedicalEyewear
   - SurvivalMedical
   - Trinkets
   - Animals
@@ -894,13 +901,13 @@
   - GroupTankHarness
   - MedicalDoctorHead
   - MedicalMask
+  - MedicalEyewear
   - MedicalDoctorJumpsuit
   - MedicalGloves
   - MedicalBackpack
   - MedicalDoctorOuterClothing
   - MedicalShoes
   - MedicalDoctorPDA
-  - MedicalEyewear
   - SurvivalMedical
   - Trinkets
   - Animals
@@ -919,10 +926,10 @@
   id: JobMedicalIntern
   groups:
   - Inventory # CorvaxGoob-loadouts
+  - MedicalEyewear
   - GroupTankHarness
   - MedicalInternJumpsuit
   - MedicalBackpack
-  - MedicalEyewear
   - SurvivalMedical
   - Trinkets
   - Animals
@@ -970,12 +977,12 @@
   - GroupTankHarness
   - ParamedicHead
   - MedicalMask
+  - MedicalEyewear
   - ParamedicJumpsuit
   - MedicalGloves
   - MedicalBackpack
   - ParamedicOuterClothing
   - ParamedicShoes
-  - MedicalEyewear
   - SurvivalMedical
   - Trinkets
   - Animals

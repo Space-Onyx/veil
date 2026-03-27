@@ -14,6 +14,7 @@ using Content.Server.GameTicking.Rules;
 using Content.Server.Revolutionary.Components;
 using Robust.Shared.Random;
 using System.Linq;
+using Content.Server._CorvaxGoob.Objectives.Components;
 
 namespace Content.Server.Objectives.Systems;
 
@@ -84,6 +85,14 @@ public sealed class PickObjectiveTargetSystem : EntitySystem
             args.Cancelled = true;
             return;
         }
+
+        // CorvaxGoob antag-target-immunity start
+        if (HasComp<AntagObjectiveImmunityComponent>(ent.Owner))
+        {
+            args.Cancelled = true;
+            return;
+        }
+        // CorvaxGoob antag-target-immunity end
 
         _target.SetTarget(ent, picked, target);
     }

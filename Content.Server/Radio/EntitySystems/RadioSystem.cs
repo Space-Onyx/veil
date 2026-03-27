@@ -401,6 +401,7 @@ public sealed partial class RadioSystem : EntitySystem
         // DS14-end
 
         return Loc.GetString(wrapId,
+            ("color", channel.Color),
             ("channel-color", channel.Color),
             ("headset-color", headsetColor),
             ("languageColor", languageColor),

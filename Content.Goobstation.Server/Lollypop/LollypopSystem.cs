@@ -125,7 +125,6 @@ public sealed class LollypopSystem : EntitySystem
         if (soln.Value.Comp.Solution.Volume > FixedPoint2.Zero )
             return; // end if there is solution left
 
-
         if (ent.Comp.DeleteOnEmpty)
         {
             fullyEaten ??= new List<(EntityUid, EdibleComponent, EntityUid)>();

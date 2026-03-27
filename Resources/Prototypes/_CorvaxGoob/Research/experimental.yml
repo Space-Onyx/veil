@@ -1,0 +1,41 @@
+- type: technology
+  id: AdvancedRobotics
+  name: research-technology-advanced-robotics
+  icon:
+    sprite: Mobs/Silicon/station_ai.rsi
+    state: ai
+  discipline: Experimental
+  tier: 2
+  cost: 7500
+  recipeUnlocks:
+    - AsimovCircuitBoard
+    - CorporateCircuitBoard
+    - NTDefaultCircuitBoard
+    - CommandmentCircuitBoard
+    - PaladinCircuitBoard
+    - LiveLetLiveCircuitBoard
+    - StationEfficiencyCircuitBoard
+    - RobocopCircuitBoard
+    - OverlordCircuitBoard
+    - GameMasterCircuitBoard
+    - ArtistCircuitBoard
+    - NutimovCircuitBoard
+    - GambamovCircuitBoard
+  position: -1,2
+  technologyPrerequisites:
+    - AdvancedAnomalyResearch
+- type: technology
+  id: BluespaceMining
+  name: research-technology-bluespace-mining
+  icon:
+    sprite: _CorvaxGoob/Bluespace/harvester.rsi
+    state: tap_0
+  discipline: Experimental
+  tier: 3
+  cost: 7500
+  recipeUnlocks:
+    - MachineBluespaceHarvesterCircuitboard
+    - MachineBluespaceTransitorCircuitboard
+  position: -2,-2
+  technologyPrerequisites:
+    - BluespaceTheory

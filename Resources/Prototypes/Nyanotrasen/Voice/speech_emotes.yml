@@ -22,7 +22,7 @@
   blacklist:
     components:
     - BorgChassis
-  chatMessages: [chat-emote-msg-Hiss]
+  chatMessages: ["chat-emote-msg-cathisses"]
   chatTriggers:
     - hiss
     - hisses
@@ -41,7 +41,7 @@
   blacklist:
     components:
     - BorgChassis
-  chatMessages: [chat-emote-msg-Meow]
+  chatMessages: ["chat-emote-msg-catmeow"]
   chatTriggers:
     - meow
     - meows
@@ -66,7 +66,7 @@
   blacklist:
     components:
     - BorgChassis
-  chatMessages: [chat-emote-msg-Mew]
+  chatMessages: ["chat-emote-msg-mew"]
   chatTriggers:
     - mew
     - mews
@@ -85,7 +85,7 @@
   blacklist:
     components:
     - BorgChassis
-  chatMessages: [chat-emote-msg-Growl]
+  chatMessages: ["chat-emote-msg-growl"]
   chatTriggers:
     - growl
     - growls
@@ -104,7 +104,7 @@
   blacklist:
     components:
     - BorgChassis
-  chatMessages: [chat-emote-msg-Purr]
+  chatMessages: ["chat-emote-msg-purr"]
   chatTriggers:
     - purr
     - purrs

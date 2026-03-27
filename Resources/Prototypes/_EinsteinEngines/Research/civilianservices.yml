@@ -1,0 +1,63 @@
+- type: technology
+  id: BasicTranslation
+  name: research-technology-basic-translation
+  icon:
+    sprite: _EinsteinEngines/Objects/Devices/translator.rsi
+    state: icon
+  discipline: CivilianServices
+  tier: 2
+  cost: 7500
+  recipeUnlocks:
+    - BasicGalaticCommonTranslatorImplanter
+    - CanilunztTranslator
+    - BubblishTranslator
+    - NekomimeticTranslator
+    - DraconicTranslator
+    - SolCommonTranslator
+    - RootSpeakTranslator
+    - MofficTranslator
+    - ValyrianStandardTranslator
+    - ChittinTranslator
+    - SiikMaasTranslator
+    - MarishTranslator
+    - ChevalTranslatorImplanter
+    - NewKinPidginTranslator
+    - SchechiTranslator
+    - GruntishTranslator
+    - YowKriolTranslator
+  position: -4,2
+  technologyPrerequisites:
+    - AdvancedEntertainment
+- type: technology
+  id: AdvancedTranslation
+  name: research-technology-advanced-translation
+  icon:
+    sprite: Objects/Specific/Medical/implanter.rsi
+    state: implanter0
+  discipline: CivilianServices
+  tier: 3
+  cost: 10000
+  recipeUnlocks:
+    - AdvancedGalaticCommonTranslatorImplanter
+    - CanilunztTranslatorImplanter
+    - BubblishTranslatorImplanter
+    - NekomimeticTranslatorImplanter
+    - DraconicTranslatorImplanter
+    - SolCommonTranslatorImplanter
+    - RootSpeakTranslatorImplanter
+    - MofficTranslatorImplanter
+    - ValyrianStandardTranslatorImplanter
+    - ChittinTranslatorImplanter
+    - SiikMaasTranslatorImplanter
+    - MarishTranslatorImplanter
+    - SchechiTranslatorImplanter
+    - NewKinPidginTranslatorImplanter
+    - AnimalTranslator
+    - XenoTranslator
+    - GruntishTranslatorImplanter
+    - XeeplianTranslator
+    - YowKriolTranslatorImplanter
+    - SignTranslatorImplanter
+  position: -4,3
+  technologyPrerequisites:
+    - BasicTranslation

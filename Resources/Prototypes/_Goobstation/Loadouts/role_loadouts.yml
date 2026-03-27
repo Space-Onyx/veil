@@ -100,12 +100,12 @@
   - NanotrasenRepresentativeNeck
   - NanotrasenRepresentativeShoes
   - NanotrasenRepresentativeBelt
+  - NanotrasenRepresentativeGloves
   - Glasses
   - Trinkets
   - Animals
   - GroupSpeciesBreathTool
   - Survival
-  - NanotrasenRepresentativeGloves
   # Goobstation - EE Plasmeme Change.
   - NanotrasenRepresentativeEnvirohelm
   - NanotrasenRepresentativeEnvirosuit
@@ -127,6 +127,7 @@
   - BlueshieldOfficerNeck
   - BlueshieldOfficerMask
   - BlueshieldOfficerShoes
+  - BlueshieldOfficerGloves
   - Trinkets
   - Animals
   - GroupSpeciesBreathTool
@@ -178,8 +179,10 @@
 - type: roleLoadout
   id: JobRoboticist
   groups:
+  - Inventory # CorvaxGoob-loadouts
   - GroupTankHarness
   - RoboticistHead
+  - RoboticistGlasses # CorvaxGoob-loadouts: Glasses > RoboticistGlasses
   - ScientistNeck
   - RoboticistJumpsuit
   - RoboticistBackpack
@@ -187,7 +190,6 @@
   - RoboticistGloves
   - RoboticistShoes
   - RoboticistPDA
-  - Glasses
   - Survival
   - Trinkets
   - GroupSpeciesBreathTool
@@ -208,6 +210,7 @@
   - BrigmedicHead
   #- MedicalMask
   - BrigmedicMask # CorvaxGoob-Brigmedic-Loadout : Replaced from MedicalMask
+  - BrigmedicGlasses # CorvaxGoob-loadouts
   - BrigmedicJumpsuit
   - BrigmedicOuterClothing
   - MedicalGloves
@@ -233,7 +236,9 @@
 - type: roleLoadout
   id: JobRadioHost
   groups:
+  - Inventory # CorvaxGoob-loadouts
   - RadioHostJumpsuit
+  - RadiohostGlasses # CorvaxGoob-loadouts
   - CommonBackpack
   - Survival
   - Trinkets
@@ -284,6 +289,7 @@
 - type: roleLoadout
   id: JobVirologist
   groups:
+   - Inventory # CorvaxGoob-loadouts
    - GroupTankHarness
    - MedicalDoctorHead
    - MedicalMask
