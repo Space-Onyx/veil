@@ -10,29 +10,31 @@
     sprite: _Funkystation/Structures/Machines/crystallizer.rsi
     drawdepth: Mobs
     noRot: true
+    granularLayersRendering: true
     offset: 0, 0.5
     layers:
-      - sprite: Structures/Piping/Atmospherics/pipe.rsi
-        state: pipeTJunction
+      - state: straight
         offset: 0, -0.5
         map: [ "enum.PipeVisualLayers.Pipe" ]
+        renderingStrategy: Default
       - state: off
         map: [ "enum.PowerDeviceVisualLayers.Powered" ]
+        renderingStrategy: NoRotation
       - state: panel
         map: [ "enum.WiresVisualLayers.MaintenancePanel" ]
+        renderingStrategy: NoRotation
   - type: Appearance
+  - type: Rotatable
   - type: GenericVisualizer
     visuals:
       enum.PowerDeviceVisuals.Powered:
         enum.PowerDeviceVisualLayers.Powered:
           True: { state: on }
           False: { state: off }
-  - type: PipeColorVisuals
-  - type: AtmosPipeColor
   - type: PipeRestrictOverlap
   - type: InteractionOutline
   - type: Transform
-    noRot: true
+    noRot: false
   - type: Fixtures
     fixtures:
       fix1:
