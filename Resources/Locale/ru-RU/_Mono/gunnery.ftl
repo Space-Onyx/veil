@@ -10,3 +10,4 @@ gunnery-select-energy = Энергия
 gunnery-select-missiles = Ракеты
 gunnery-select-mining = Копание
 gunner-console-display-label = Дисплей
+ship-gun-class-component-examine-detail = Орудие использует [color=yellow]{ $processingPower }[/color] вычислительной мощности.

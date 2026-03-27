@@ -2,6 +2,7 @@
 
 - type: entity
   id: WeaponShuttleKineticL85
+  suffix: Shuttle, Kinetic
   name: L85 20mm autocannon
   parent: BallisticArtillery
   description: A cheap and light 20mm autocannon. Can be remotely activated, or linked up to a GCS.
@@ -58,6 +59,7 @@
 
 - type: entity
   id: WeaponShuttleKineticDravon
+  suffix: Shuttle, Kinetic
   name: ADBP-7 DRAVON 57mm Autocannon
   parent: BallisticArtillery
   description: A single-barrel autocannon made by Aetherion Dynamics. High fire rate, but relatively low impact. Can be remotely activated, or linked up to a GCS.
@@ -106,6 +108,7 @@
 
 - type: entity
   id: WeaponShuttleKineticAK570
+  suffix: Shuttle, Kinetic
   name: AK570 90mm heavy autocannon
   parent: BallisticArtillery
   description: A dual barrel, heavy autocannon. Can be remotely activated, or linked up to a GCS.
@@ -159,6 +162,7 @@
 
 - type: entity
   id: WeaponShuttleKineticTarnyx
+  suffix: Shuttle, Kinetic
   name: ADBX-31 TARNYX 150mm EMP Cannon
   parent: BallisticArtilleryUnanchorable
   description: A heavy EMP Cannon made by Aetherion Dynamics. It can disable massive parts of an enemy ship, making it effective in asymmetric combat. Can be remotely activated, or linked up to a GCS.
@@ -207,6 +211,7 @@
 
 - type: entity
   id: WeaponShuttleKineticCyrexa
+  suffix: Shuttle, Kinetic
   name: CYREXA 220mm cannon
   parent: BallisticArtilleryUnanchorable
   description: A dual barrel, main-battery cannon firing 220mm auto shells with slight reduction in brute strength. Can be remotely activated, or linked up to a GCS.
@@ -272,6 +277,7 @@
 
 - type: entity
   id: WeaponShuttleKineticHades
+  suffix: Shuttle, Kinetic
   name: HADES 305mm cannon
   parent: BallisticArtilleryUnanchorable
   description: One of the largest chemical-based kinetic weapons in the sector. Its power is only rivaled by mass drivers such as the M381.
@@ -337,6 +343,7 @@
 
 - type: entity
   id: WeaponShuttleKineticCharon
+  suffix: Shuttle, Kinetic
   name: M381 CHARON mass driver
   parent: BallisticArtilleryUnanchorable
   description: A heavy linear accelerator, capable of devastating targets with kinetic energy. Can be remotely activated, or linked up to a GCS.
@@ -413,6 +420,7 @@
 
 - type: entity
   id: WeaponShuttleKineticBofors
+  suffix: Shuttle, Kinetic
   name: Bofors 255mm cannon
   parent: BallisticArtilleryUnanchorable
   description: A single barrelled, heavy artillery cannon. Can be remotely activated, or linked up to a GCS.
@@ -474,6 +482,7 @@
 
 - type: entity
   id: WeaponShuttleKineticKargil
+  suffix: Shuttle, Kinetic
   name: Kargil 203mm cannon
   parent: BallisticArtilleryUnanchorable
   description: A single barrelled, medium-heavy artillery cannon. Can be remotely activated, or linked up to a GCS.
