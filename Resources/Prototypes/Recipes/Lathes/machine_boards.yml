@@ -160,6 +160,12 @@
   icon: { sprite:  Structures/Machines/gasrecycler.rsi, state: icon } # Goobstation
   result: GasRecyclerMachineCircuitboard
 
+- type: latheRecipe
+  parent: [ BaseGoldCircuitboardRecipe, BaseEngineeringMachineRecipeCategory ]
+  id: CrystallizerMachineCircuitboard
+  icon: { sprite: _Funkystation/Structures/Machines/crystallizer.rsi, state: off } # Onyx
+  result: CrystallizerMachineCircuitboard
+
 # Power
 - type: latheRecipe
   parent: [ BaseGoldCircuitboardRecipe, BaseEngineeringMachineRecipeCategory ]

@@ -1,0 +1,14 @@
+- type: technology
+  id: Crystallizer
+  name: research-technology-crystallizer
+  icon:
+    sprite: _Funkystation/Structures/Machines/crystallizer.rsi
+    state: off
+  discipline: Industrial
+  tier: 1
+  cost: 13000
+  recipeUnlocks:
+    - CrystallizerMachineCircuitboard
+  position: -1,-3
+  technologyPrerequisites:
+    - AdvancedAtmospherics

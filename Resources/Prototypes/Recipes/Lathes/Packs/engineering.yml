@@ -95,6 +95,7 @@
   - SolarControlComputerCircuitboard
   - SolarTrackerElectronics
   - GasRecyclerMachineCircuitboard
+  - CrystallizerMachineCircuitboard # <Onyx>
   - PortableGeneratorPacmanMachineCircuitboard
   - PortableGeneratorSuperPacmanMachineCircuitboard
   - PortableGeneratorJrPacmanMachineCircuitboard
@@ -104,8 +105,8 @@
   - HolopadMachineCircuitboard
   - TeslaCoilCircuitboard
   - RadiationCollectorCircuitboard
-  - EngineeringTechFabCircuitboardRecipe # Onyx
-  - ServiceTechFabCircuitboardRecipe # Onyx
-  - CargoTechFabCircuitboardRecipe # Onyx
-  - ScienceTechFabCircuitboardRecipe # Onyx
-  - MedicalTechFabCircuitboardRecipe # Onyx
+  - EngineeringTechFabCircuitboardRecipe # <Onyx>
+  - ServiceTechFabCircuitboardRecipe # <Onyx>
+  - CargoTechFabCircuitboardRecipe # <Onyx>
+  - ScienceTechFabCircuitboardRecipe # <Onyx>
+  - MedicalTechFabCircuitboardRecipe # <Onyx>
