@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Content.Server.Administration;
 using Content.Server.Parallax;
 using Content.Shared.Administration;
+using Content.Shared.Parallax;
 using Content.Shared.Parallax.Biomes;
 using Content.Shared.Procedural.Loot;
 using Content.Shared.Random;
@@ -28,6 +29,8 @@ namespace Content.Server.Maps;
 [AdminCommand(AdminFlags.Mapping)]
 public sealed class PlanetCommand : IConsoleCommand
 {
+    private const string PlanetParallaxId = "bedrock"; // <Onyx-Tweak>
+
     [Dependency] private readonly IEntityManager _entManager = default!;
     [Dependency] private readonly IMapManager _mapManager = default!;
     [Dependency] private readonly IPrototypeManager _protoManager = default!;
@@ -68,6 +71,15 @@ public sealed class PlanetCommand : IConsoleCommand
         var biomeSystem = _entManager.System<BiomeSystem>();
         var mapUid = _mapManager.GetMapEntityId(mapId);
         biomeSystem.EnsurePlanet(mapUid, biomeTemplate);
+
+        // <Onyx-Tweak>
+        var parallax = _entManager.EnsureComponent<ParallaxComponent>(mapUid);
+        if (parallax.Parallax != PlanetParallaxId)
+        {
+            parallax.Parallax = PlanetParallaxId;
+            _entManager.Dirty(mapUid, parallax);
+        }
+        // </Onyx-Tweak>
 
         // - Beginning of GoobStation changes -
 
