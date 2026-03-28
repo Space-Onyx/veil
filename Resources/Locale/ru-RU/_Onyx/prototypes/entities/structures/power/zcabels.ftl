@@ -7,17 +7,17 @@ ent-ZCableHVDown = вертикальный ВВ кабель
     .suffix = Вниз
 
 ent-ZCableMVUp = вертикальный СВ кабель
-    .desc = { ent-CableHV.desc }
+    .desc = { ent-CableMV.desc }
     .suffix = Вверх
 
 ent-ZCableMVDown = вертикальный СВ кабель
-    .desc = { ent-CableHV.desc }
+    .desc = { ent-CableMV.desc }
     .suffix = Вниз
 
 ent-ZCableLVUp = вертикальный НВ кабель
-    .desc = { ent-CableHV.desc }
+    .desc = { ent-CableAPC.desc }
     .suffix = Вверх
 
 ent-ZCableLVDown = вертикальный НВ кабель
-    .desc = { ent-CableHV.desc }
+    .desc = { ent-CableAPC.desc }
     .suffix = Вниз

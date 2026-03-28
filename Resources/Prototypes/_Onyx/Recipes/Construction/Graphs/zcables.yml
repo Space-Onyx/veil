@@ -121,7 +121,7 @@
               doAfter: 2
 
     - node: cable
-      entity: EchoZCableLVUp
+      entity: ZCableLVUp
       edges:
         - to: start
           completed:

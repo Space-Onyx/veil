@@ -84,7 +84,7 @@
 
 - type: entity
   parent: CableApcExtension
-  id: EchoZCableLVUp
+  id: ZCableLVUp
   name: LV power cable
   description: A green low voltage power cable.
   suffix: Up
