@@ -92,6 +92,7 @@ public abstract class SharedWeatherSystem : EntitySystem
         base.Initialize();
         _blockQuery = GetEntityQuery<BlockWeatherComponent>();
         SubscribeLocalEvent<WeatherComponent, EntityUnpausedEvent>(OnWeatherUnpaused);
+        SubscribeLocalEvent<WeatherComponent, ComponentShutdown>(OnWeatherShutdown); // <Onyx-Tweak>
     }
 
     private void OnWeatherUnpaused(EntityUid uid, WeatherComponent component, ref EntityUnpausedEvent args)
@@ -105,6 +106,18 @@ public abstract class SharedWeatherSystem : EntitySystem
         }
         component.NextUpdate += args.PausedTime; // DeltaV
     }
+
+    // <Onyx-Tweak>
+    private void OnWeatherShutdown(EntityUid uid, WeatherComponent component, ref ComponentShutdown args)
+    {
+        foreach (var weather in component.Weather.Values)
+        {
+            weather.Stream = _audio.Stop(weather.Stream);
+        }
+
+        component.Weather.Clear();
+    }
+    // </Onyx-Tweak>
 
     public bool CanWeatherAffect(EntityUid uid, MapGridComponent grid, TileRef tileRef, RoofComponent? roofComp = null, TileWeatherComponent? tileWeatherComp = null)
     {
