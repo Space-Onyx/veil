@@ -7,6 +7,7 @@ using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.CustomControls;
 using Robust.Shared.Localization;
 using Content.Client.NPC;
+using Content.Shared._Onyx.NPC;
 
 namespace Content.Client._Onyx.NPC;
 

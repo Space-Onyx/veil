@@ -4,6 +4,7 @@ using Content.Shared.Eui;
 using Content.Shared.NPC;
 using JetBrains.Annotations;
 using Content.Client.NPC;
+using Content.Shared._Onyx.NPC;
 
 namespace Content.Client._Onyx.NPC;
 
