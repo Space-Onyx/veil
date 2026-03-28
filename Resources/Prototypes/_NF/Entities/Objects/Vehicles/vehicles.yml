@@ -13,10 +13,6 @@
     - state: lights
       shader: unshaded
     noRot: true
-  - type: RandomSprite
-    available:
-      - enum.DamageStateVisualLayers.Base:
-          hull: Sixteen # Rainbow, Emagged, Departmental, Advanced
   - type: ItemSlots
     slots:
       key_slot:
@@ -117,10 +113,6 @@
     - state: lights
       shader: unshaded
     noRot: true
-  - type: RandomSprite
-    available:
-      - enum.DamageStateVisualLayers.Base:
-          hull: Sixteen # Rainbow, Emagged, Departmental, Advanced
   - type: ItemSlots
     slots:
       key_slot:
