@@ -96,3 +96,15 @@
 
 - type: Tag
   id: AugmentSubdermalArmorCasing
+
+- type: Tag
+  id: FootAugment
+
+- type: Tag
+  id: HandAugment
+
+- type: Tag
+  id: ArmAugment
+
+- type: Tag
+  id: LegAugment

@@ -51,6 +51,9 @@
       Burn:
         sprite: _Shitmed/Mobs/Effects/burn_damage.rsi
     bleedingOverlay: null
+  - type: Tag
+    tags:
+    - ArmAugment
 
 - type: entity
   parent: [ CyberneticPartBase, BaseRightArm ]
@@ -73,6 +76,9 @@
       Burn:
         sprite: _Shitmed/Mobs/Effects/burn_damage.rsi
     bleedingOverlay: null
+  - type: Tag
+    tags:
+    - ArmAugment
 
 - type: entity
   parent: [ CyberneticPartBase, BaseLeftLeg ]
@@ -95,6 +101,9 @@
       Burn:
         sprite: _Shitmed/Mobs/Effects/burn_damage.rsi
     bleedingOverlay: null
+  - type: Tag
+    tags:
+    - LegAugment
 
 - type: entity
   parent: [ CyberneticPartBase, BaseRightLeg ]
@@ -117,6 +126,9 @@
       Burn:
         sprite: _Shitmed/Mobs/Effects/burn_damage.rsi
     bleedingOverlay: null
+  - type: Tag
+    tags:
+    - LegAugment
 
 - type: entity
   parent: [ CyberneticPartBase, BaseLeftHand ]
@@ -135,6 +147,9 @@
       Burn:
         sprite: _Shitmed/Mobs/Effects/burn_damage.rsi
     bleedingOverlay: null
+  - type: Tag
+    tags:
+    - HandAugment
 
 - type: entity
   parent: [ CyberneticPartBase, BaseRightHand ]
@@ -153,6 +168,9 @@
       Burn:
         sprite: _Shitmed/Mobs/Effects/burn_damage.rsi
     bleedingOverlay: null
+  - type: Tag
+    tags:
+    - HandAugment
 
 - type: entity
   parent: [ CyberneticPartBase, BaseLeftFoot ]
@@ -171,6 +189,9 @@
       Burn:
         sprite: _Shitmed/Mobs/Effects/burn_damage.rsi
     bleedingOverlay: null
+  - type: Tag
+    tags:
+    - FootAugment
 
 - type: entity
   parent: [ CyberneticPartBase, BaseRightFoot ]
@@ -189,6 +210,9 @@
       Burn:
         sprite: _Shitmed/Mobs/Effects/burn_damage.rsi
     bleedingOverlay: null
+  - type: Tag
+    tags:
+    - FootAugment
 
 - type: entity
   parent: LeftArmCybernetic
