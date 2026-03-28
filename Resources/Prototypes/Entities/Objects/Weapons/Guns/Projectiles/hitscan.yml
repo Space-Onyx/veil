@@ -51,19 +51,6 @@
   - type: AnimationPlayer
 
 - type: hitscan
-  id: BasicHitscan
-  muzzleFlash:
-    sprite: Objects/Weapons/Guns/Projectiles/projectiles.rsi
-    state: muzzle_laser
-  travelFlash:
-    sprite: Objects/Weapons/Guns/Projectiles/projectiles.rsi
-    state: beam
-  impactFlash:
-    sprite: Objects/Weapons/Guns/Projectiles/projectiles.rsi
-    state: impact_laser
-  reflective: Energy
-
-- type: hitscan
   id: RedLaser
   damage:
     types:
