@@ -66,7 +66,7 @@ public sealed partial class CEZLevelsSystem
 
     private void OnViewerInit(Entity<CEZLevelViewerComponent> ent, ref MapInitEvent args)
     {
-        _actions.AddAction(ent, ref ent.Comp.ZLevelActionEntity, ent.Comp.ActionProto);
+        UpdateLookUpAction(ent); // <Onyx-Tweak>
         _meta.AddFlag(ent, MetaDataFlags.ExtraTransformEvents);
     }
 
@@ -97,8 +97,37 @@ public sealed partial class CEZLevelsSystem
         UpdateViewer(ent);
     }
 
+    // <Onyx-Tweak>
+    private void UpdateLookUpAction(Entity<CEZLevelViewerComponent> ent)
+    {
+        var mapUid = Transform(ent).MapUid;
+        var shouldHaveAction = mapUid != null && TryGetZNetwork(mapUid.Value, out _);
+
+        if (shouldHaveAction)
+        {
+            _actions.AddAction(ent, ref ent.Comp.ZLevelActionEntity, ent.Comp.ActionProto);
+            return;
+        }
+
+        if (ent.Comp.ZLevelActionEntity is { } actionEntity)
+        {
+            _actions.RemoveAction(actionEntity);
+            ent.Comp.ZLevelActionEntity = null;
+            DirtyField(ent, ent.Comp, nameof(CEZLevelViewerComponent.ZLevelActionEntity));
+        }
+
+        if (!ent.Comp.LookUp)
+            return;
+
+        ent.Comp.LookUp = false;
+        DirtyField(ent, ent.Comp, nameof(CEZLevelViewerComponent.LookUp));
+    }
+    // <Onyx-Tweak>
+
     private void UpdateViewer(Entity<CEZLevelViewerComponent> ent)
     {
+        UpdateLookUpAction(ent); // <Onyx-Tweak>
+
         var eyes = ent.Comp.Eyes;
         foreach (var eye in ent.Comp.Eyes)
         {
