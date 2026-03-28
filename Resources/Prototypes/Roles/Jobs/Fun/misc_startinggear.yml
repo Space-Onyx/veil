@@ -271,6 +271,14 @@
     - trayScanner
     - AccessConfiguratorUniversal
     - Multitool
+    - WeaponForceGunAdmin
+    - WeaponTetherGunAdmin
+    - DoorRemoteAll
+    - HolofanProjector
+    - EmagUnlimited
+    - BluespaceBeaker
+    - Omnitool
+    - SyringeBluespace
 
 #Gladiator with spear
 - type: startingGear
