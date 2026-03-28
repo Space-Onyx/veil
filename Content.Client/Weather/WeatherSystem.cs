@@ -41,12 +41,12 @@ using Content.Shared.Weather;
 using Robust.Client.Audio;
 using Robust.Client.GameObjects;
 using Robust.Client.Player;
+using Robust.Shared.Audio.Components;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.GameStates;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Player;
-using AudioComponent = Robust.Shared.Audio.Components.AudioComponent;
 
 namespace Content.Client.Weather;
 
@@ -56,12 +56,28 @@ public sealed partial class WeatherSystem : SharedWeatherSystem // Goob edit - m
     [Dependency] private readonly AudioSystem _audio = default!;
     [Dependency] private readonly MapSystem _mapSystem = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
+    private readonly Dictionary<EntityUid, EntityUid> _trackedStreams = new(); // <Onyx-Tweak>
+    private static readonly TimeSpan CleanupInterval = TimeSpan.FromSeconds(0.25); // <Onyx-Tweak>
+    private TimeSpan _nextCleanupTime = TimeSpan.Zero; // <Onyx-Tweak>
 
     public override void Initialize()
     {
         base.Initialize();
         SubscribeLocalEvent<WeatherComponent, ComponentHandleState>(OnWeatherHandleState);
     }
+
+    // <Onyx-Tweak>
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+
+        if (_trackedStreams.Count == 0 || Timing.CurTime < _nextCleanupTime)
+            return;
+
+        _nextCleanupTime = Timing.CurTime + CleanupInterval;
+        CleanupTrackedStreams();
+    }
+    // </Onyx-Tweak>
 
     protected override void Run(EntityUid uid, WeatherData weather, WeatherPrototype weatherProto, float frameTime)
     {
@@ -78,14 +94,20 @@ public sealed partial class WeatherSystem : SharedWeatherSystem // Goob edit - m
         // Maybe have the viewports manage this?
         if (mapUid == null || entXform.MapUid != mapUid)
         {
-            weather.Stream = _audio.Stop(weather.Stream);
+            weather.Stream = StopWeatherStream(weather.Stream); // <Onyx-Tweak edited>
             return;
         }
 
         if (!Timing.IsFirstTimePredicted || weatherProto.Sound == null)
             return;
 
-        weather.Stream ??= _audio.PlayGlobal(weatherProto.Sound, Filter.Local(), true)?.Entity;
+        // <Onyx-Tweak>
+        if (weather.Stream == null)
+        {
+            weather.Stream = _audio.PlayGlobal(weatherProto.Sound, Filter.Local(), true)?.Entity;
+            TrackWeatherStream(uid, weather.Stream);
+        }
+        // </Onyx-Tweak>
 
         if (!TryComp(weather.Stream, out AudioComponent? comp))
             return;
@@ -173,10 +195,21 @@ public sealed partial class WeatherSystem : SharedWeatherSystem // Goob edit - m
         // End DeltaV Additions
 
         // TODO: Fades (properly)
-        weather.Stream = _audio.Stop(weather.Stream);
+        weather.Stream = StopWeatherStream(weather.Stream); // <Onyx-Tweak edited>
         weather.Stream = _audio.PlayGlobal(weatherProto.Sound, Filter.Local(), true)?.Entity;
+        TrackWeatherStream(uid, weather.Stream); // <Onyx-Tweak>
         return true;
     }
+
+    // <Onyx-Tweak>
+    protected override void EndWeather(EntityUid uid, WeatherComponent component, string proto)
+    {
+        if (component.Weather.TryGetValue(proto, out var data))
+            data.Stream = StopWeatherStream(data.Stream);
+
+        base.EndWeather(uid, component, proto);
+    }
+    // </Onyx-Tweak>
 
     private void OnWeatherHandleState(EntityUid uid, WeatherComponent component, ref ComponentHandleState args)
     {
@@ -207,4 +240,83 @@ public sealed partial class WeatherSystem : SharedWeatherSystem // Goob edit - m
             StartWeather(uid, component, ProtoMan.Index<WeatherPrototype>(proto), weather.EndTime);
         }
     }
+
+    // <Onyx-Tweak>
+    private void TrackWeatherStream(EntityUid mapUid, EntityUid? stream)
+    {
+        if (stream is not { } streamUid)
+            return;
+
+        _trackedStreams[streamUid] = mapUid;
+    }
+
+    private EntityUid? StopWeatherStream(EntityUid? stream)
+    {
+        if (stream is { } streamUid)
+        {
+            _trackedStreams.Remove(streamUid);
+            if (TryComp<AudioComponent>(streamUid, out var audioComp))
+                _audio.SetState(streamUid, AudioState.Stopped, force: true, audioComp);
+
+            if (!Deleted(streamUid))
+                QueueDel(streamUid);
+        }
+
+        return null;
+    }
+
+    private void CleanupTrackedStreams()
+    {
+        if (_trackedStreams.Count == 0)
+            return;
+
+        var localMapUid = _playerManager.LocalEntity is { } localEnt
+            ? Transform(localEnt).MapUid
+            : null;
+
+        List<EntityUid>? toStop = null;
+
+        foreach (var (streamUid, sourceMapUid) in _trackedStreams)
+        {
+            if (Deleted(streamUid) || Deleted(sourceMapUid))
+            {
+                (toStop ??= []).Add(streamUid);
+                continue;
+            }
+
+            if (localMapUid == null || localMapUid != sourceMapUid)
+            {
+                (toStop ??= []).Add(streamUid);
+                continue;
+            }
+
+            if (!TryComp<WeatherComponent>(sourceMapUid, out var weatherComp) || weatherComp.Weather.Count == 0)
+            {
+                (toStop ??= []).Add(streamUid);
+                continue;
+            }
+
+            var referenced = false;
+            foreach (var weather in weatherComp.Weather.Values)
+            {
+                if (weather.Stream == streamUid)
+                {
+                    referenced = true;
+                    break;
+                }
+            }
+
+            if (!referenced)
+                (toStop ??= []).Add(streamUid);
+        }
+
+        if (toStop == null)
+            return;
+
+        foreach (var streamUid in toStop)
+        {
+            StopWeatherStream(streamUid);
+        }
+    }
+    // </Onyx-Tweak>
 }

@@ -17,7 +17,7 @@ public sealed partial class WeatherSystem
 
         if (map == null || entMap != map)
         {
-            weather.Stream = _audio.Stop(weather.Stream);
+            weather.Stream = StopWeatherStream(weather.Stream); // <Onyx-Tweak edited>
             return false;
         }
 
