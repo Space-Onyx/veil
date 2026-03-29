@@ -8,15 +8,16 @@
   - OnyxOrigin
 
   # Midpop 25–50
+  - OnyxKettle
   - CorvaxBagel
   - CorvaxPaper
-  - OnyxKettle
 
   # Lowpop 0–25
-  - CorvaxMaus
   - OnyxOmega
-  - CorvaxPacked
   - OnyxSilly
+  - CorvaxMaus
+  - OnyxBeta
+  - OnyxAtlas
+  - CorvaxPacked
   - CorvaxTushkan
   - CorvaxCluster
-  - OnyxBeta
