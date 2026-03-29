@@ -7,6 +7,7 @@
 
 using Content.Client.Message;
 using Content.Client.Pinpointer.UI;
+using Content.Client._Onyx.ZLevels.UI;
 using Content.Client.Stylesheets;
 using Content.Client.UserInterface.Controls;
 using Content.Shared.Atmos.Components;
@@ -34,16 +35,21 @@ public sealed partial class AtmosAlertsComputerWindow : FancyWindow
 
     private EntityUid? _owner;
     private NetEntity? _trackedEntity;
+    private readonly List<int> _knownFloors = new(); // <Onyx-Tweak>
+    private int? _selectedFloorDepth; // <Onyx-Tweak>
+    private bool _updatingFloorSelector; // <Onyx-Tweak>
 
     private AtmosAlertsComputerEntry[]? _airAlarms = null;
     private AtmosAlertsComputerEntry[]? _fireAlarms = null;
     private IEnumerable<AtmosAlertsComputerEntry>? _allAlarms = null;
+    private HashSet<AtmosAlertsDeviceNavMapData> _visibleAtmosDevices = new(); // <Onyx-Tweak>
 
     private IEnumerable<AtmosAlertsComputerEntry>? _activeAlarms = null;
     private Dictionary<NetEntity, float> _deviceSilencingProgress = new();
 
     public event Action<NetEntity?>? SendFocusChangeMessageAction;
     public event Action<NetEntity, bool>? SendDeviceSilencedMessageAction;
+    public event Action<int>? FloorSelected; // <Onyx-Tweak>
 
     private bool _autoScrollActive = false;
     private bool _autoScrollAwaitsUpdate = false;
@@ -116,6 +122,7 @@ public sealed partial class AtmosAlertsComputerWindow : FancyWindow
         ShowNormalAlarms.OnToggled += _ => OnShowAlarmsToggled(ShowNormalAlarms, AtmosAlarmType.Normal);
         ShowWarningAlarms.OnToggled += _ => OnShowAlarmsToggled(ShowWarningAlarms, AtmosAlarmType.Warning);
         ShowDangerAlarms.OnToggled += _ => OnShowAlarmsToggled(ShowDangerAlarms, AtmosAlarmType.Danger);
+        FloorSelector.OnItemSelected += OnFloorSelected; // <Onyx-Tweak>
 
         // Set atmos monitoring message action
         SendFocusChangeMessageAction += userInterface.SendFocusChangeMessage;
@@ -126,13 +133,7 @@ public sealed partial class AtmosAlertsComputerWindow : FancyWindow
 
     private void OnShowAlarmsToggled(CheckBox toggle, AtmosAlarmType toggledAlarmState)
     {
-        if (_owner == null)
-            return;
-
-        if (!_entManager.TryGetComponent<AtmosAlertsComputerComponent>(_owner.Value, out var console))
-            return;
-
-        foreach (var device in console.AtmosDevices)
+        foreach (var device in _visibleAtmosDevices)// <Onyx-Tweak edited>
         {
             var alarmState = GetAlarmState(device.NetEntity);
 
@@ -167,6 +168,50 @@ public sealed partial class AtmosAlertsComputerWindow : FancyWindow
         SendDeviceSilencedMessageAction?.Invoke(netEntity, toggleState);
     }
 
+    // <Onyx-Tweak>
+
+    private void OnFloorSelected(OptionButton.ItemSelectedEventArgs args)
+    {
+        args.Button.SelectId(args.Id);
+
+        if (_updatingFloorSelector || args.Id < 0 || args.Id >= _knownFloors.Count)
+            return;
+
+        _selectedFloorDepth = _knownFloors[args.Id];
+        _trackedEntity = null;
+        SendFocusChangeMessageAction?.Invoke(null);
+        FloorSelected?.Invoke(_selectedFloorDepth.Value);
+    }
+
+    private void UpdateFloors(List<int> floors, int selectedFloor, int monitorFloor)
+    {
+        _knownFloors.Clear();
+        _knownFloors.AddRange(floors);
+
+        _updatingFloorSelector = true;
+        FloorSelector.Clear();
+
+        for (var i = 0; i < floors.Count; i++)
+        {
+            FloorSelector.AddItem(ZLevelFloorSelectorHelper.FormatRelativeFloor(floors[i], monitorFloor), i);
+        }
+
+        var selectedId = 0;
+        for (var i = 0; i < floors.Count; i++)
+        {
+            if (floors[i] != selectedFloor)
+                continue;
+
+            selectedId = i;
+            break;
+        }
+
+        FloorSelector.SelectId(selectedId);
+        _updatingFloorSelector = false;
+        FloorSelectorContainer.Visible = floors.Count > 1;
+    }
+    // </Onyx-Tweak>
+
     #endregion
 
     public void UpdateUI(EntityCoordinates? consoleCoords, AtmosAlertsComputerEntry[] airAlarms, AtmosAlertsComputerEntry[] fireAlarms, AtmosAlertsFocusDeviceData? focusData)
@@ -176,6 +221,28 @@ public sealed partial class AtmosAlertsComputerWindow : FancyWindow
 
         if (!_entManager.TryGetComponent<AtmosAlertsComputerComponent>(_owner.Value, out var console))
             return;
+
+        // <Onyx-Tweak>
+        var floorState = ZLevelFloorSelectorHelper.GetFloorState(_entManager, _owner.Value, _selectedFloorDepth);
+        _selectedFloorDepth = floorState.SelectedFloor;
+        UpdateFloors(floorState.Floors, floorState.SelectedFloor, floorState.MonitorFloor);
+
+        var selectedFloor = floorState.SelectedFloor;
+        var hasFloorFilter = floorState.HasFloorSelection;
+        var selectedNavMap = ZLevelFloorSelectorHelper.ResolveNavMapUidForMap(_entManager, floorState.SelectedMap);
+        NavMap.MapUid = selectedNavMap;
+        NavMap.Visible = selectedNavMap != null;
+
+        _visibleAtmosDevices = hasFloorFilter
+            ? FilterDevicesByFloor(console.AtmosDevices, selectedFloor, floorState.SelectedMap)
+            : new HashSet<AtmosAlertsDeviceNavMapData>(console.AtmosDevices);
+
+        if (hasFloorFilter)
+        {
+            airAlarms = FilterEntriesByFloor(airAlarms, selectedFloor, floorState.SelectedMap);
+            fireAlarms = FilterEntriesByFloor(fireAlarms, selectedFloor, floorState.SelectedMap);
+        }
+        // </Onyx-Tweak>
 
         if (_trackedEntity != focusData?.NetEntity)
         {
@@ -188,6 +255,15 @@ public sealed partial class AtmosAlertsComputerWindow : FancyWindow
         _fireAlarms = fireAlarms;
         _allAlarms = airAlarms.Concat(fireAlarms);
 
+        // <Onyx-Tweak>
+        if (_trackedEntity != null && !_allAlarms.Any(x => x.NetEntity == _trackedEntity))
+        {
+            _trackedEntity = null;
+            SendFocusChangeMessageAction?.Invoke(null);
+            focusData = null;
+        }
+        // </Onyx-Tweak>
+
         var silenced = console.SilencedDevices;
 
         _activeAlarms = _allAlarms.Where(x => x.AlarmState > AtmosAlarmType.Normal &&
@@ -198,7 +274,7 @@ public sealed partial class AtmosAlertsComputerWindow : FancyWindow
         NavMap.TrackedEntities.Clear();
 
         // Add tracked entities to the nav map
-        foreach (var device in console.AtmosDevices)
+        foreach (var device in _visibleAtmosDevices) // <Onyx-Tweak edited>
         {
             if (!device.NetEntity.Valid)
                 continue;
@@ -230,7 +306,9 @@ public sealed partial class AtmosAlertsComputerWindow : FancyWindow
         // Show the monitor location
         var consoleUid = _entManager.GetNetEntity(_owner);
 
-        if (consoleCoords != null && consoleUid != null)
+        if (consoleCoords != null &&
+            consoleUid != null &&
+            (!hasFloorFilter || selectedFloor == floorState.MonitorFloor)) // <Onyx-Tweak edited>
         {
             var texture = _spriteSystem.Frame0(new SpriteSpecifier.Texture(new ResPath("/Textures/Interface/NavMap/beveled_circle.png")));
             var blip = new NavMapBlip(consoleCoords.Value, texture, _monitorBlipColor, true, false);
@@ -298,9 +376,8 @@ public sealed partial class AtmosAlertsComputerWindow : FancyWindow
         NavMap.RegionOverlays.Clear();
         var prioritizedRegionOverlays = new Dictionary<NavMapRegionOverlay, int>();
 
-        if (_owner != null &&
-            _entManager.TryGetComponent<TransformComponent>(_owner, out var xform) &&
-            _entManager.TryGetComponent<NavMapComponent>(xform.GridUid, out var navMap))
+        if (NavMap.MapUid != null &&
+            _entManager.TryGetComponent<NavMapComponent>(NavMap.MapUid.Value, out var navMap)) // <Onyx-Tweak edited>
         {
             var regionOverlays = _navMapSystem.GetNavMapRegionOverlays(_owner.Value, navMap, AtmosAlertsComputerUiKey.Key);
 
@@ -562,6 +639,65 @@ public sealed partial class AtmosAlertsComputerWindow : FancyWindow
 
         return false;
     }
+
+    // <Onyx-Tweak>
+    private AtmosAlertsComputerEntry[] FilterEntriesByFloor(
+        AtmosAlertsComputerEntry[] source,
+        int selectedFloor,
+        EntityUid? selectedMap)
+    {
+        if (source.Length == 0)
+            return source;
+
+        var filtered = new List<AtmosAlertsComputerEntry>(source.Length);
+        foreach (var entry in source)
+        {
+            if (!BelongsToSelectedFloor(entry.Coordinates, selectedFloor, selectedMap))
+                continue;
+
+            filtered.Add(entry);
+        }
+
+        return filtered.ToArray();
+    }
+
+    private HashSet<AtmosAlertsDeviceNavMapData> FilterDevicesByFloor(
+        HashSet<AtmosAlertsDeviceNavMapData> source,
+        int selectedFloor,
+        EntityUid? selectedMap)
+    {
+        var filtered = new HashSet<AtmosAlertsDeviceNavMapData>();
+        foreach (var device in source)
+        {
+            if (!BelongsToSelectedFloor(device.NetCoordinates, selectedFloor, selectedMap))
+                continue;
+
+            filtered.Add(device);
+        }
+
+        return filtered;
+    }
+
+    private bool BelongsToSelectedFloor(NetCoordinates coords, int selectedFloor, EntityUid? selectedMap)
+    {
+        if (selectedMap != null &&
+            ZLevelFloorSelectorHelper.TryGetCoordinatesMapUid(_entManager, coords, out var mapUid))
+        {
+            return mapUid == selectedMap.Value;
+        }
+
+        if (TryGetDepth(coords, out var depth))
+            return depth == selectedFloor;
+
+        return false;
+    }
+
+    private bool TryGetDepth(NetCoordinates coords, out int depth)
+    {
+        var entityCoordinates = _entManager.GetCoordinates(coords);
+        return ZLevelFloorSelectorHelper.TryGetEntityDepth(_entManager, entityCoordinates.EntityId, out depth);
+    }
+    // </Onyx-Tweak>
 
     private AtmosAlarmType GetAlarmState(NetEntity netEntity)
     {

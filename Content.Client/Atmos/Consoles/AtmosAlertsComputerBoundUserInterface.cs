@@ -24,6 +24,7 @@ public sealed class AtmosAlertsComputerBoundUserInterface : BoundUserInterface
         _menu = new AtmosAlertsComputerWindow(this, Owner);
         _menu.OpenCentered();
         _menu.OnClose += Close;
+        _menu.FloorSelected += OnFloorSelected; // <Onyx-Tweak>
     }
 
     protected override void UpdateState(BoundUserInterfaceState state)
@@ -45,6 +46,13 @@ public sealed class AtmosAlertsComputerBoundUserInterface : BoundUserInterface
     {
         SendMessage(new AtmosAlertsComputerDeviceSilencedMessage(netEntity, silenceDevice));
     }
+
+    // <Onyx-Tweak>
+    private void OnFloorSelected(int floor)
+    {
+        SendMessage(new AtmosAlertsComputerSelectFloorMessage(floor));
+    }
+    // </Onyx-Tweak>
 
     protected override void Dispose(bool disposing)
     {

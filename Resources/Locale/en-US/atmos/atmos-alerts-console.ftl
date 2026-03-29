@@ -13,6 +13,7 @@ atmos-alerts-window-tab-no-alerts = Alerts
 atmos-alerts-window-tab-alerts = Alerts ({$value})
 atmos-alerts-window-tab-air-alarms = Air alarms
 atmos-alerts-window-tab-fire-alarms = Fire alarms
+atmos-alerts-window-floor = Floor
 
 atmos-alerts-window-alarm-label = {CAPITALIZE($name)} ({$address})
 atmos-alerts-window-temperature-label = Temperature

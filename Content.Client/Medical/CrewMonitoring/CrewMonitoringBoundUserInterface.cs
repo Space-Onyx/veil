@@ -32,21 +32,19 @@ public sealed class CrewMonitoringBoundUserInterface : BoundUserInterface
     {
         base.Open();
 
-        EntityUid? gridUid = null;
         var stationName = string.Empty;
 
         if (EntMan.TryGetComponent<TransformComponent>(Owner, out var xform))
         {
-            gridUid = xform.GridUid;
-
-            if (EntMan.TryGetComponent<MetaDataComponent>(gridUid, out var metaData))
+            if (xform.GridUid != null &&
+                EntMan.TryGetComponent<MetaDataComponent>(xform.GridUid.Value, out var metaData)) // <Onyx-Tweak edited>
             {
                 stationName = metaData.EntityName;
             }
         }
 
         _menu = this.CreateWindow<CrewMonitoringWindow>();
-        _menu.Set(stationName, gridUid);
+        _menu.Set(stationName, Owner); // <Onyx-Tweak edited>
     }
 
     protected override void UpdateState(BoundUserInterfaceState state)

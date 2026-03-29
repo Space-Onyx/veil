@@ -18,7 +18,13 @@ SPDX-License-Identifier: AGPL-3.0-or-later
         <!-- Station name -->
         <controls:StripeBack>
             <PanelContainer>
-                <Label Name="StationName" Text="Unknown station" StyleClasses="LabelBig" Align="Center"/>
+                <BoxContainer Orientation="Horizontal" Margin="6 2 6 2" SeparationOverride="8">
+                    <Label Name="StationName" Text="Unknown station" StyleClasses="LabelBig" Align="Center" HorizontalExpand="True"/>
+                    <BoxContainer Name="FloorSelectorContainer" Orientation="Horizontal" SeparationOverride="6" VerticalAlignment="Center" Visible="False">
+                        <Label Text="{Loc 'station-map-floor'}" VerticalAlignment="Center" Modulate="#B0B0B0"/>
+                        <OptionButton Name="FloorSelector" MinSize="80 0"/>
+                    </BoxContainer>
+                </BoxContainer>
             </PanelContainer>
         </controls:StripeBack>
 

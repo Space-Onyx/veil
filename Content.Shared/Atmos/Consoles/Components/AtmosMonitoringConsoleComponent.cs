@@ -56,6 +56,11 @@ public sealed partial class AtmosMonitoringConsoleComponent : Component
     /// </summary>
     [ViewVariables]
     public bool ForceFullUpdate = false;
+
+    // <Onyx-Tweak>
+    [ViewVariables]
+    public int? SelectedFloorDepth;
+    // </Onyx-Tweak>
 }
 
 [Serializable, NetSerializable]
@@ -156,6 +161,19 @@ public sealed class AtmosMonitoringConsoleBoundInterfaceState : BoundUserInterfa
         AtmosNetworks = atmosNetworks;
     }
 }
+
+// <Onyx-Tweak>
+[Serializable, NetSerializable]
+public sealed class AtmosMonitoringConsoleSelectFloorMessage : BoundUserInterfaceMessage
+{
+    public int Floor;
+
+    public AtmosMonitoringConsoleSelectFloorMessage(int floor)
+    {
+        Floor = floor;
+    }
+}
+// </Onyx-Tweak>
 
 [Serializable, NetSerializable]
 public struct AtmosMonitoringConsoleEntry

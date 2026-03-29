@@ -33,6 +33,11 @@ public sealed partial class AtmosAlertsComputerComponent : Component
     /// </summary>
     [ViewVariables, AutoNetworkedField]
     public HashSet<NetEntity> SilencedDevices = new();
+
+    // <Onyx-Tweak>
+    [ViewVariables]
+    public int? SelectedFloorDepth;
+    // </Onyx-Tweak>
 }
 
 [Serializable, NetSerializable]
@@ -214,6 +219,19 @@ public sealed class AtmosAlertsComputerDeviceSilencedMessage : BoundUserInterfac
         SilenceDevice = silenceDevice;
     }
 }
+
+// <Onyx-Tweak>
+[Serializable, NetSerializable]
+public sealed class AtmosAlertsComputerSelectFloorMessage : BoundUserInterfaceMessage
+{
+    public int Floor;
+
+    public AtmosAlertsComputerSelectFloorMessage(int floor)
+    {
+        Floor = floor;
+    }
+}
+// </Onyx-Tweak>
 
 /// <summary>
 /// List of all the different atmos device groups

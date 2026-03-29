@@ -38,6 +38,11 @@ public sealed partial class PowerMonitoringConsoleComponent : Component
     [ViewVariables]
     public PowerMonitoringConsoleGroup FocusGroup = PowerMonitoringConsoleGroup.Generator;
 
+    // <Onyx-Tweak>
+    [ViewVariables]
+    public int? SelectedFloorDepth;
+    // </Onyx-Tweak>
+
     /// <summary>
     /// A list of flags relating to currently active events of interest to the console.
     /// E.g., power sinks, power net anomalies
@@ -139,6 +144,19 @@ public sealed class PowerMonitoringConsoleMessage : BoundUserInterfaceMessage
         FocusGroup = focusGroup;
     }
 }
+
+// <Onyx-Tweak>
+[Serializable, NetSerializable]
+public sealed class PowerMonitoringSelectFloorMessage : BoundUserInterfaceMessage
+{
+    public int Floor;
+
+    public PowerMonitoringSelectFloorMessage(int floor)
+    {
+        Floor = floor;
+    }
+}
+// </Onyx-Tweak>
 
 /// <summary>
 ///     Determines how entities are grouped and color coded on the power monitor

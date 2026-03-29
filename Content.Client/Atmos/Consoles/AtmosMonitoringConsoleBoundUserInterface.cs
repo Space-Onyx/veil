@@ -21,6 +21,7 @@ public sealed class AtmosMonitoringConsoleBoundUserInterface : BoundUserInterfac
         _menu = new AtmosMonitoringConsoleWindow(this, Owner);
         _menu.OpenCentered();
         _menu.OnClose += Close;
+        _menu.FloorSelected += OnFloorSelected; // <Onyx-Tweak>
     }
 
     protected override void UpdateState(BoundUserInterfaceState state)
@@ -42,4 +43,11 @@ public sealed class AtmosMonitoringConsoleBoundUserInterface : BoundUserInterfac
 
         _menu?.Dispose();
     }
+
+    // <Onyx-Tweak>
+    private void OnFloorSelected(int floor)
+    {
+        SendMessage(new AtmosMonitoringConsoleSelectFloorMessage(floor));
+    }
+    // </Onyx-Tweak>
 }

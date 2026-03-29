@@ -13,6 +13,7 @@
 ## UI
 
 crew-monitoring-user-interface-title = Crew Monitoring Console
+crew-monitoring-user-interface-floor = Floor
 
 crew-monitor-filter-line-placeholder = Filter
 

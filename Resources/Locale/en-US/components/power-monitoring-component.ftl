@@ -19,6 +19,7 @@ power-monitoring-window-object-array = {$name} array [{$count}]
 
 power-monitoring-window-station-name = [color=white][font size=14]{$stationName}[/font][/color]
 power-monitoring-window-unknown-location = Unknown location
+power-monitoring-window-floor = Floor
 power-monitoring-window-total-sources = Total generator output
 power-monitoring-window-total-battery-usage = Total battery usage
 power-monitoring-window-total-loads = Total network loads

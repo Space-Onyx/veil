@@ -69,7 +69,13 @@ SPDX-License-Identifier: AGPL-3.0-or-later
                 <!-- Station name -->
                 <controls:StripeBack>
                     <PanelContainer>
-                        <RichTextLabel Name="StationName" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0 5 0 3"/>
+                        <BoxContainer Orientation="Horizontal" Margin="6 3 6 2" SeparationOverride="8">
+                            <RichTextLabel Name="StationName" HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalExpand="True"/>
+                            <BoxContainer Name="FloorSelectorContainer" Orientation="Horizontal" SeparationOverride="6" VerticalAlignment="Center" Visible="False">
+                                <Label Text="{Loc 'atmos-monitoring-window-floor'}" VerticalAlignment="Center" Modulate="#B0B0B0"/>
+                                <OptionButton Name="FloorSelector" MinSize="80 0"/>
+                            </BoxContainer>
+                        </BoxContainer>
                     </PanelContainer>
                 </controls:StripeBack>
 

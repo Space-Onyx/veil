@@ -93,6 +93,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
+using Content.Client._Onyx.ZLevels.UI;
 using Content.Client.Pinpointer.UI;
 using Content.Client.Stylesheets;
 using Content.Client.UserInterface.Controls;
@@ -123,6 +124,16 @@ public sealed partial class CrewMonitoringWindow : FancyWindow
     private NetEntity? _trackedEntity;
     private bool _tryToScrollToListFocus;
     private Texture? _blipTexture;
+    // <Onyx-Tweak>
+    private EntityUid? _owner;
+    private readonly List<int> _knownFloors = new();
+    private int? _selectedFloorDepth;
+    private bool _updatingFloorSelector;
+    private bool _hasCachedState;
+    private List<SuitSensorStatus> _cachedSensors = new();
+    private EntityUid _cachedMonitor;
+    private EntityCoordinates? _cachedMonitorCoords;
+    // </Onyx-Tweak>
 
     public CrewMonitoringWindow()
     {
@@ -133,21 +144,17 @@ public sealed partial class CrewMonitoringWindow : FancyWindow
         _spriteSystem = _entManager.System<SpriteSystem>();
 
         NavMap.TrackedEntitySelectedAction += SetTrackedEntityFromNavMap;
+        FloorSelector.OnItemSelected += OnFloorSelected; // <Onyx-Tweak>
     }
 
-    public void Set(string stationName, EntityUid? mapUid)
+    public void Set(string stationName, EntityUid owner) // <Onyx-Tweak edited>
     {
+        _owner = owner; // <Onyx-Tweak>
         _blipTexture = _spriteSystem.Frame0(new SpriteSpecifier.Texture(new ResPath("/Textures/Interface/NavMap/beveled_circle.png")));
-
-        if (_entManager.TryGetComponent<TransformComponent>(mapUid, out var xform))
-            NavMap.MapUid = xform.GridUid;
-
-        else
-            NavMap.Visible = false;
 
         StationName.AddStyleClass("LabelBig");
         StationName.Text = stationName;
-        NavMap.ForceNavMapUpdate();
+        RefreshForSelectedFloor(); // <Onyx-Tweak edited>
     }
 
     protected override void FrameUpdate(FrameEventArgs args)
@@ -160,6 +167,22 @@ public sealed partial class CrewMonitoringWindow : FancyWindow
 
     public void ShowSensors(List<SuitSensorStatus> sensors, EntityUid monitor, EntityCoordinates? monitorCoords)
     {
+        // <Onyx-Tweak>
+        _cachedSensors = sensors;
+        _cachedMonitor = monitor;
+        _cachedMonitorCoords = monitorCoords;
+        _hasCachedState = true;
+
+        var floorState = GetFloorState();
+        var selectedFloor = floorState.SelectedFloor;
+        var hasFloorFilter = floorState.HasFloorSelection;
+
+        if (_trackedEntity != null && !SensorBelongsToFloor(sensors, _trackedEntity.Value, selectedFloor, floorState.SelectedMap))
+            _trackedEntity = null;
+
+        if (hasFloorFilter)
+            sensors = FilterSensorsByFloor(sensors, selectedFloor, floorState.SelectedMap);
+        // </Onyx-Tweak>
         ClearOutDatedData();
 
         // No server label
@@ -256,11 +279,143 @@ public sealed partial class CrewMonitoringWindow : FancyWindow
         }
 
         // Show monitor on nav map
-        if (monitorCoords != null && _blipTexture != null)
+        if (monitorCoords != null &&
+            _blipTexture != null &&
+            (!hasFloorFilter || selectedFloor == floorState.MonitorFloor)) // <Onyx-Tweak edited>
         {
             NavMap.TrackedEntities[_entManager.GetNetEntity(monitor)] = new NavMapBlip(monitorCoords.Value, _blipTexture, Color.Cyan, true, false);
         }
     }
+
+    // <Onyx-Tweak>
+    private void OnFloorSelected(OptionButton.ItemSelectedEventArgs args)
+    {
+        args.Button.SelectId(args.Id);
+
+        if (_updatingFloorSelector || args.Id < 0 || args.Id >= _knownFloors.Count)
+            return;
+
+        _selectedFloorDepth = _knownFloors[args.Id];
+        _trackedEntity = null;
+        RefreshForSelectedFloor();
+
+        if (_hasCachedState)
+            ShowSensors(_cachedSensors, _cachedMonitor, _cachedMonitorCoords);
+    }
+
+    private ZLevelFloorSelectorState GetFloorState()
+    {
+        if (_owner == null)
+            return new ZLevelFloorSelectorState(false, new List<int> { 0 }, 0, 0, null);
+
+        var floorState = ZLevelFloorSelectorHelper.GetFloorState(_entManager, _owner.Value, _selectedFloorDepth);
+        _selectedFloorDepth = floorState.SelectedFloor;
+
+        UpdateFloors(floorState.Floors, floorState.SelectedFloor, floorState.MonitorFloor);
+        var navMapUid = ZLevelFloorSelectorHelper.ResolveNavMapUidForMap(_entManager, floorState.SelectedMap);
+        NavMap.MapUid = navMapUid;
+        NavMap.Visible = navMapUid != null;
+        NavMap.ForceNavMapUpdate();
+
+        return floorState;
+    }
+
+    private void RefreshForSelectedFloor()
+    {
+        GetFloorState();
+    }
+
+    private void UpdateFloors(List<int> floors, int selectedFloor, int monitorFloor)
+    {
+        _knownFloors.Clear();
+        _knownFloors.AddRange(floors);
+
+        _updatingFloorSelector = true;
+        FloorSelector.Clear();
+
+        for (var i = 0; i < floors.Count; i++)
+        {
+            FloorSelector.AddItem(ZLevelFloorSelectorHelper.FormatRelativeFloor(floors[i], monitorFloor), i);
+        }
+
+        var selectedId = 0;
+        for (var i = 0; i < floors.Count; i++)
+        {
+            if (floors[i] != selectedFloor)
+                continue;
+
+            selectedId = i;
+            break;
+        }
+
+        FloorSelector.SelectId(selectedId);
+        _updatingFloorSelector = false;
+        FloorSelectorContainer.Visible = floors.Count > 1;
+    }
+
+    private List<SuitSensorStatus> FilterSensorsByFloor(
+        List<SuitSensorStatus> sensors,
+        int selectedFloor,
+        EntityUid? selectedMap)
+    {
+        var filtered = new List<SuitSensorStatus>(sensors.Count);
+
+        foreach (var sensor in sensors)
+        {
+            if (sensor.Coordinates is not { } coordinates)
+            {
+                filtered.Add(sensor);
+                continue;
+            }
+
+            if (BelongsToSelectedFloor(coordinates, selectedFloor, selectedMap))
+                filtered.Add(sensor);
+        }
+
+        return filtered;
+    }
+
+    private bool SensorBelongsToFloor(
+        List<SuitSensorStatus> sensors,
+        NetEntity sensorNetEntity,
+        int selectedFloor,
+        EntityUid? selectedMap)
+    {
+        foreach (var sensor in sensors)
+        {
+            if (sensor.SuitSensorUid != sensorNetEntity)
+                continue;
+
+            if (sensor.Coordinates is not { } coordinates)
+                return true;
+
+            return BelongsToSelectedFloor(coordinates, selectedFloor, selectedMap);
+        }
+
+        return false;
+    }
+
+    private bool BelongsToSelectedFloor(NetCoordinates coords, int selectedFloor, EntityUid? selectedMap)
+    {
+        if (selectedMap != null &&
+            ZLevelFloorSelectorHelper.TryGetCoordinatesMapUid(_entManager, coords, out var mapUid))
+        {
+            return mapUid == selectedMap.Value;
+        }
+
+        if (TryGetDepth(coords, out var depth))
+            return depth == selectedFloor;
+
+        // If location cannot be resolved, treat as not belonging to any specific floor.
+        return false;
+    }
+
+    private bool TryGetDepth(NetCoordinates coords, out int depth)
+    {
+        var entityCoordinates = _entManager.GetCoordinates(coords);
+        return ZLevelFloorSelectorHelper.TryGetEntityDepth(_entManager, entityCoordinates.EntityId, out depth);
+    }
+    // </Onyx-Tweak>
 
     private void PopulateDepartmentList(IEnumerable<SuitSensorStatus> departmentSensors)
     {

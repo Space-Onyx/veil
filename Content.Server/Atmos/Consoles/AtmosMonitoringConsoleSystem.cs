@@ -14,6 +14,8 @@ using Content.Server.Power.Components;
 using Content.Shared.Atmos;
 using Content.Shared.Atmos.Components;
 using Content.Shared.Atmos.Consoles;
+using Content.Shared._CE.ZLevels.Core.Components;
+using Content.Shared._CE.ZLevels.Core.EntitySystems;
 using Content.Shared.Labels.Components;
 using Content.Shared.Pinpointer;
 using Robust.Server.GameObjects;
@@ -33,6 +35,7 @@ public sealed class AtmosMonitoringConsoleSystem : SharedAtmosMonitoringConsoleS
     [Dependency] private readonly UserInterfaceSystem _userInterfaceSystem = default!;
     [Dependency] private readonly SharedMapSystem _sharedMapSystem = default!;
     [Dependency] private readonly IGameTiming _gameTiming = default!;
+    [Dependency] private readonly CESharedZLevelsSystem _zLevels = default!; // <Onyx-Tweak>
 
     // Private variables
     // Note: this data does not need to be saved
@@ -51,6 +54,8 @@ public sealed class AtmosMonitoringConsoleSystem : SharedAtmosMonitoringConsoleS
         SubscribeLocalEvent<AtmosMonitoringConsoleComponent, ComponentInit>(OnConsoleInit);
         SubscribeLocalEvent<AtmosMonitoringConsoleComponent, AnchorStateChangedEvent>(OnConsoleAnchorChanged);
         SubscribeLocalEvent<AtmosMonitoringConsoleComponent, EntParentChangedMessage>(OnConsoleParentChanged);
+        SubscribeLocalEvent<AtmosMonitoringConsoleComponent, BoundUIOpenedEvent>(OnBoundUIOpened); // <Onyx-Tweak>
+        SubscribeLocalEvent<AtmosMonitoringConsoleComponent, AtmosMonitoringConsoleSelectFloorMessage>(OnSelectFloorMessage); // <Onyx-Tweak>
 
         // Tracked device events
         SubscribeLocalEvent<AtmosMonitoringConsoleDeviceComponent, NodeGroupsRebuilt>(OnEntityNodeGroupsRebuilt);
@@ -79,6 +84,28 @@ public sealed class AtmosMonitoringConsoleSystem : SharedAtmosMonitoringConsoleS
         component.ForceFullUpdate = true;
         InitializeAtmosMonitoringConsole(uid, component);
     }
+
+    // <Onyx-Tweak>
+    private void OnBoundUIOpened(EntityUid uid, AtmosMonitoringConsoleComponent component, BoundUIOpenedEvent args)
+    {
+        EnsureNavMapsForMonitorFloors(uid);
+        UpdateUIState(uid, component);
+    }
+
+    private void OnSelectFloorMessage(
+        EntityUid uid,
+        AtmosMonitoringConsoleComponent component,
+        AtmosMonitoringConsoleSelectFloorMessage args)
+    {
+        var (hasFloorSelection, floors, selectedFloor, _, _) = GetFloorState(uid, component.SelectedFloorDepth);
+        if (!hasFloorSelection || !floors.Contains(args.Floor) || selectedFloor == args.Floor)
+            return;
+
+        component.SelectedFloorDepth = args.Floor;
+        component.ForceFullUpdate = true;
+        UpdateUIState(uid, component);
+    }
+    // </Onyx-Tweak>
 
     private void OnEntityNodeGroupsRebuilt(EntityUid uid, AtmosMonitoringConsoleDeviceComponent component, NodeGroupsRebuilt args)
     {
@@ -140,35 +167,53 @@ public sealed class AtmosMonitoringConsoleSystem : SharedAtmosMonitoringConsoleS
         {
             _updateTimer -= UpdateTime;
 
-            var query = AllEntityQuery<AtmosMonitoringConsoleComponent, TransformComponent>();
-            while (query.MoveNext(out var ent, out var entConsole, out var entXform))
+            var query = AllEntityQuery<AtmosMonitoringConsoleComponent>(); // <Onyx-Tweak edited>
+            while (query.MoveNext(out var ent, out var entConsole)) // <Onyx-Tweak edited>
             {
-                if (entXform?.GridUid == null)
-                    continue;
-
-                UpdateUIState(ent, entConsole, entXform);
+                UpdateUIState(ent, entConsole); // <Onyx-Tweak edited>
             }
         }
     }
 
-    public void UpdateUIState
-        (EntityUid uid,
-        AtmosMonitoringConsoleComponent component,
-        TransformComponent xform)
+    public void UpdateUIState(EntityUid uid, AtmosMonitoringConsoleComponent component) // <Onyx-Tweak edited>
     {
         if (!_userInterfaceSystem.IsUiOpen(uid, AtmosMonitoringConsoleUiKey.Key))
             return;
 
-        var gridUid = xform.GridUid!.Value;
-
-        if (!TryComp<MapGridComponent>(gridUid, out var mapGrid))
+        // <Onyx-Tweak edited>
+        var xform = Transform(uid);
+        if (xform.MapUid == null)
             return;
 
-        if (!TryComp<GridAtmosphereComponent>(gridUid, out var atmosphere))
+        var (_, _, selectedFloor, selectedMap, _) = GetFloorState(uid, component.SelectedFloorDepth);
+        component.SelectedFloorDepth = selectedFloor;
+
+        var gridUid = selectedMap == null
+            ? xform.GridUid
+            : ResolveGridForMap(selectedMap.Value);
+
+        if (gridUid == null)
+            return;
+
+        if (!TryComp<MapGridComponent>(gridUid.Value, out var mapGrid))
+            return;
+
+        if (!TryComp<GridAtmosphereComponent>(gridUid.Value, out _))
             return;
 
         // The grid must have a NavMapComponent to visualize the map in the UI
-        EnsureComp<NavMapComponent>(gridUid);
+        EnsureComp<NavMapComponent>(gridUid.Value);
+
+        component.AtmosDevices = GetAllAtmosDeviceNavMapData(gridUid.Value);
+        if (!_gridAtmosPipeChunks.TryGetValue(gridUid.Value, out var chunks))
+        {
+            RebuildAtmosPipeGrid(gridUid.Value, mapGrid);
+            _gridAtmosPipeChunks.TryGetValue(gridUid.Value, out chunks);
+        }
+
+        component.AtmosPipeChunks = chunks ?? new Dictionary<Vector2i, AtmosPipeChunk>();
+        Dirty(uid, component);
+        // </Onyx-Tweak edited>
 
         // Gathering data to be send to the client
         var atmosNetworks = new List<AtmosMonitoringConsoleEntry>();
@@ -176,7 +221,7 @@ public sealed class AtmosMonitoringConsoleSystem : SharedAtmosMonitoringConsoleS
 
         while (query.MoveNext(out var ent, out var entSensor, out var entXform))
         {
-            if (entXform?.GridUid != xform.GridUid)
+            if (entXform?.GridUid != gridUid.Value) // <Onyx-Tweak edited>
                 continue;
 
             if (!entXform.Anchored)
@@ -568,6 +613,106 @@ public sealed class AtmosMonitoringConsoleSystem : SharedAtmosMonitoringConsoleS
     }
 
     #endregion
+
+    // <Onyx-Tweak>
+    private void EnsureNavMapsForMonitorFloors(EntityUid monitorUid)
+    {
+        var xform = Transform(monitorUid);
+        if (xform.MapUid == null)
+        {
+            if (xform.GridUid != null)
+                EnsureComp<NavMapComponent>(xform.GridUid.Value);
+            return;
+        }
+
+        if (!TryComp<CEZLevelMapComponent>(xform.MapUid.Value, out var monitorZMap))
+        {
+            if (xform.GridUid != null)
+                EnsureComp<NavMapComponent>(xform.GridUid.Value);
+            return;
+        }
+
+        var targetMaps = new HashSet<EntityUid> { xform.MapUid.Value };
+        foreach (var mapUid in _zLevels.GetAllMapsAbove((xform.MapUid.Value, monitorZMap)))
+        {
+            targetMaps.Add(mapUid);
+        }
+
+        foreach (var mapUid in _zLevels.GetAllMapsBelow((xform.MapUid.Value, monitorZMap)))
+        {
+            targetMaps.Add(mapUid);
+        }
+
+        var gridQuery = EntityQueryEnumerator<MapGridComponent, TransformComponent>();
+        while (gridQuery.MoveNext(out var gridUid, out _, out var gridXform))
+        {
+            if (gridXform.MapUid == null || !targetMaps.Contains(gridXform.MapUid.Value))
+                continue;
+
+            EnsureComp<NavMapComponent>(gridUid);
+        }
+    }
+
+    private (bool HasFloorSelection, List<int> Floors, int SelectedFloor, EntityUid? SelectedMap, int MonitorFloor) GetFloorState(
+        EntityUid monitorUid,
+        int? selectedFloorDepth)
+    {
+        var monitorMap = Transform(monitorUid).MapUid;
+        if (monitorMap == null || !TryComp<CEZLevelMapComponent>(monitorMap.Value, out var monitorZMap))
+            return (false, new List<int> { 0 }, 0, monitorMap, 0);
+
+        var monitorDepth = monitorZMap.Depth;
+        var mapByDepth = new Dictionary<int, EntityUid>
+        {
+            [monitorDepth] = monitorMap.Value
+        };
+
+        foreach (var mapUid in _zLevels.GetAllMapsBelow((monitorMap.Value, monitorZMap)))
+        {
+            if (!TryComp<CEZLevelMapComponent>(mapUid, out var zMap))
+                continue;
+
+            mapByDepth[zMap.Depth] = mapUid;
+        }
+
+        foreach (var mapUid in _zLevels.GetAllMapsAbove((monitorMap.Value, monitorZMap)))
+        {
+            if (!TryComp<CEZLevelMapComponent>(mapUid, out var zMap))
+                continue;
+
+            mapByDepth[zMap.Depth] = mapUid;
+        }
+
+        var floors = mapByDepth.Keys.OrderBy(x => x).ToList();
+        if (floors.Count <= 1)
+            return (false, new List<int> { monitorDepth }, monitorDepth, monitorMap, monitorDepth);
+
+        var selected = selectedFloorDepth;
+        if (selected == null || !floors.Contains(selected.Value))
+            selected = monitorDepth;
+
+        var selectedMap = mapByDepth.GetValueOrDefault(selected.Value, monitorMap.Value);
+        return (true, floors, selected.Value, selectedMap, monitorDepth);
+    }
+
+    private EntityUid? ResolveGridForMap(EntityUid mapUid)
+    {
+        EntityUid? fallback = null;
+        var gridQuery = EntityQueryEnumerator<MapGridComponent, TransformComponent>();
+        while (gridQuery.MoveNext(out var gridUid, out _, out var xform))
+        {
+            if (xform.MapUid != mapUid)
+                continue;
+
+            if (HasComp<NavMapComponent>(gridUid))
+                return gridUid;
+
+            fallback ??= gridUid;
+        }
+
+        return fallback;
+    }
+    // </Onyx-Tweak>
 
     private int GetTileIndex(Vector2i relativeTile)
     {

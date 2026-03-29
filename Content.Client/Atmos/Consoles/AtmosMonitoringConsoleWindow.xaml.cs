@@ -8,6 +8,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using Content.Client.Pinpointer.UI;
+using Content.Client._Onyx.ZLevels.UI;
 using Content.Client.UserInterface.Controls;
 using Content.Shared.Atmos.Components;
 using Content.Shared.Prototypes;
@@ -36,6 +37,16 @@ public sealed partial class AtmosMonitoringConsoleWindow : FancyWindow
     private EntityUid? _owner;
     private NetEntity? _focusEntity;
     private int? _focusNetId;
+    // <Onyx-Tweak>
+    private readonly List<int> _knownFloors = new();
+    private int? _selectedFloorDepth;
+    private bool _updatingFloorSelector;
+    private bool _hasCachedState;
+    private bool _showMonitorBlip = true;
+    private EntityCoordinates? _cachedConsoleCoords;
+    private AtmosMonitoringConsoleEntry[] _cachedAtmosNetworks = Array.Empty<AtmosMonitoringConsoleEntry>();
+    private Dictionary<NetEntity, AtmosDeviceNavMapData> _visibleAtmosDevices = new();
+    // </Onyx-Tweak>
 
     private bool _autoScrollActive = false;
 
@@ -44,6 +55,7 @@ public sealed partial class AtmosMonitoringConsoleWindow : FancyWindow
     private ProtoId<NavMapBlipPrototype> _gasPipeSensorProtoId = "GasPipeSensor";
 
     private readonly Vector2[] _pipeLayerOffsets = { new Vector2(0f, 0f), new Vector2(0.25f, 0.25f), new Vector2(-0.25f, -0.25f) };
+    public event Action<int>? FloorSelected; // <Onyx-Tweak>
 
     public AtmosMonitoringConsoleWindow(AtmosMonitoringConsoleBoundUserInterface userInterface, EntityUid? owner)
     {
@@ -93,6 +105,7 @@ public sealed partial class AtmosMonitoringConsoleWindow : FancyWindow
         // Set UI toggles
         ShowPipeNetwork.OnToggled += _ => OnShowPipeNetworkToggled();
         ShowGasPipeSensors.OnToggled += _ => OnShowGasPipeSensors();
+        FloorSelector.OnItemSelected += OnFloorSelected; // <Onyx-Tweak>
 
         // Set nav map colors
         if (!_entManager.TryGetComponent<AtmosMonitoringConsoleComponent>(_owner, out var console))
@@ -109,46 +122,13 @@ public sealed partial class AtmosMonitoringConsoleWindow : FancyWindow
 
     private void OnShowPipeNetworkToggled()
     {
-        if (_owner == null)
-            return;
-
-        if (!_entManager.TryGetComponent<AtmosMonitoringConsoleComponent>(_owner.Value, out var console))
-            return;
-
         NavMap.ShowPipeNetwork = ShowPipeNetwork.Pressed;
-
-        foreach (var (netEnt, device) in console.AtmosDevices)
-        {
-            if (device.NavMapBlip == _gasPipeSensorProtoId)
-                continue;
-
-            if (ShowPipeNetwork.Pressed)
-                AddTrackedEntityToNavMap(device);
-
-            else
-                NavMap.TrackedEntities.Remove(netEnt);
-        }
+        RefreshNavMapEntities(); // <Onyx-Tweak edited>
     }
 
     private void OnShowGasPipeSensors()
     {
-        if (_owner == null)
-            return;
-
-        if (!_entManager.TryGetComponent<AtmosMonitoringConsoleComponent>(_owner.Value, out var console))
-            return;
-
-        foreach (var (netEnt, device) in console.AtmosDevices)
-        {
-            if (device.NavMapBlip != _gasPipeSensorProtoId)
-                continue;
-
-            if (ShowGasPipeSensors.Pressed)
-                AddTrackedEntityToNavMap(device, true);
-
-            else
-                NavMap.TrackedEntities.Remove(netEnt);
-        }
+        RefreshNavMapEntities(); // <Onyx-Tweak edited>
     }
 
     #endregion
@@ -163,33 +143,37 @@ public sealed partial class AtmosMonitoringConsoleWindow : FancyWindow
         if (!_entManager.TryGetComponent<AtmosMonitoringConsoleComponent>(_owner.Value, out var console))
             return;
 
+        // <Onyx-Tweak>
+        _cachedConsoleCoords = consoleCoords;
+        _cachedAtmosNetworks = atmosNetworks;
+        _hasCachedState = true;
+
+        var floorState = ZLevelFloorSelectorHelper.GetFloorState(_entManager, _owner.Value, _selectedFloorDepth);
+        _selectedFloorDepth = floorState.SelectedFloor;
+        UpdateFloors(floorState.Floors, floorState.SelectedFloor, floorState.MonitorFloor);
+
+        var selectedFloor = floorState.SelectedFloor;
+        var hasFloorFilter = floorState.HasFloorSelection;
+        var selectedNavMap = ZLevelFloorSelectorHelper.ResolveNavMapUidForMap(_entManager, floorState.SelectedMap);
+        NavMap.MapUid = selectedNavMap;
+        NavMap.Visible = selectedNavMap != null;
+
+        _visibleAtmosDevices = hasFloorFilter
+            ? FilterDevicesByFloor(console.AtmosDevices, selectedFloor, floorState.SelectedMap)
+            : new Dictionary<NetEntity, AtmosDeviceNavMapData>(console.AtmosDevices);
+
+        if (hasFloorFilter)
+            atmosNetworks = FilterEntriesByFloor(atmosNetworks, selectedFloor, floorState.SelectedMap);
+
+        _showMonitorBlip = consoleCoords != null && (!hasFloorFilter || selectedFloor == floorState.MonitorFloor);
+        // </Onyx-Tweak>
+
         // Reset nav map values
         NavMap.TrackedCoordinates.Clear();
-        NavMap.TrackedEntities.Clear();
-
-        if (_focusEntity != null && !console.AtmosDevices.Any(x => x.Key == _focusEntity))
+        if (_focusEntity != null && !_visibleAtmosDevices.ContainsKey(_focusEntity.Value)) // <Onyx-Tweak edited>
             ClearFocus();
 
-        // Add tracked entities to the nav map
-        UpdateNavMapBlips();
-
-        // Show the monitor location
-        var consoleNetEnt = _entManager.GetNetEntity(_owner);
-
-        if (consoleCoords != null && consoleNetEnt != null)
-        {
-            var proto = _protoManager.Index(_navMapConsoleProtoId);
-
-            if (proto.TexturePaths != null && proto.TexturePaths.Length != 0)
-            {
-                var texture = _spriteSystem.Frame0(new SpriteSpecifier.Texture(proto.TexturePaths[0]));
-                var blip = new NavMapBlip(consoleCoords.Value, texture, proto.Color, proto.Blinks, proto.Selectable);
-                NavMap.TrackedEntities[consoleNetEnt.Value] = blip;
-            }
-        }
-
-        // Update the nav map
-        NavMap.ForceNavMapUpdate();
+        RefreshNavMapEntities(); // <Onyx-Tweak edited>
 
         // Clear excess children from the tables
         while (AtmosNetworksTable.ChildCount > atmosNetworks.Length)
@@ -199,18 +183,15 @@ public sealed partial class AtmosMonitoringConsoleWindow : FancyWindow
         for (int index = 0; index < atmosNetworks.Length; index++)
         {
             var entry = atmosNetworks.ElementAt(index);
-            UpdateUIEntry(entry, index, AtmosNetworksTable, console);
+            UpdateUIEntry(entry, index, AtmosNetworksTable); // <Onyx-Tweak edited>
         }
     }
 
     private void UpdateNavMapBlips()
     {
-        if (_owner == null || !_entManager.TryGetComponent<AtmosMonitoringConsoleComponent>(_owner.Value, out var console))
-            return;
-
         if (NavMap.Visible)
         {
-            foreach (var (netEnt, device) in console.AtmosDevices)
+            foreach (var (netEnt, device) in _visibleAtmosDevices) // <Onyx-Tweak edited>
             {
                 // Update the focus network ID, incase it has changed
                 if (_focusEntity == netEnt)
@@ -233,6 +214,30 @@ public sealed partial class AtmosMonitoringConsoleWindow : FancyWindow
             }
         }
     }
+
+    // <Onyx-Tweak>
+    private void RefreshNavMapEntities()
+    {
+        NavMap.TrackedEntities.Clear();
+        UpdateNavMapBlips();
+
+        var consoleNetEnt = _entManager.GetNetEntity(_owner);
+
+        if (_showMonitorBlip && _cachedConsoleCoords != null && consoleNetEnt != null)
+        {
+            var proto = _protoManager.Index(_navMapConsoleProtoId);
+
+            if (proto.TexturePaths != null && proto.TexturePaths.Length != 0)
+            {
+                var texture = _spriteSystem.Frame0(new SpriteSpecifier.Texture(proto.TexturePaths[0]));
+                var blip = new NavMapBlip(_cachedConsoleCoords.Value, texture, proto.Color, proto.Blinks, proto.Selectable);
+                NavMap.TrackedEntities[consoleNetEnt.Value] = blip;
+            }
+        }
+
+        NavMap.ForceNavMapUpdate();
+    }
+    // </Onyx-Tweak>
 
     private void AddTrackedEntityToNavMap(AtmosDeviceNavMapData metaData, bool isSensor = false)
     {
@@ -258,7 +263,7 @@ public sealed partial class AtmosMonitoringConsoleWindow : FancyWindow
         NavMap.TrackedEntities[metaData.NetEntity] = blip;
     }
 
-    private void UpdateUIEntry(AtmosMonitoringConsoleEntry data, int index, Control table, AtmosMonitoringConsoleComponent console)
+    private void UpdateUIEntry(AtmosMonitoringConsoleEntry data, int index, Control table) // <Onyx-Tweak edited>
     {
         // Make new UI entry if required
         if (index >= table.ChildCount)
@@ -282,7 +287,7 @@ public sealed partial class AtmosMonitoringConsoleWindow : FancyWindow
                 }
 
                 // Update affected UI elements across all tables
-                UpdateConsoleTable(console, AtmosNetworksTable, _focusEntity);
+                UpdateConsoleTable(AtmosNetworksTable, _focusEntity); // <Onyx-Tweak edited>
             };
 
             // Add the entry to the current table
@@ -295,7 +300,7 @@ public sealed partial class AtmosMonitoringConsoleWindow : FancyWindow
         if (tableChild is not AtmosMonitoringEntryContainer)
         {
             table.RemoveChild(tableChild);
-            UpdateUIEntry(data, index, table, console);
+            UpdateUIEntry(data, index, table); // <Onyx-Tweak edited>
 
             return;
         }
@@ -304,19 +309,19 @@ public sealed partial class AtmosMonitoringConsoleWindow : FancyWindow
         entryContainer.UpdateEntry(data, data.NetEntity == _focusEntity);
     }
 
-    private void UpdateConsoleTable(AtmosMonitoringConsoleComponent console, Control table, NetEntity? currTrackedEntity)
+    private void UpdateConsoleTable(Control table, NetEntity? currTrackedEntity) // <Onyx-Tweak edited>
     {
         foreach (var tableChild in table.Children)
         {
-            if (tableChild is not AtmosAlarmEntryContainer)
+            if (tableChild is not AtmosMonitoringEntryContainer) // <Onyx-Tweak edited>
                 continue;
 
-            var entryContainer = (AtmosAlarmEntryContainer)tableChild;
+            var entryContainer = (AtmosMonitoringEntryContainer)tableChild; // <Onyx-Tweak edited>
 
-            if (entryContainer.NetEntity != currTrackedEntity)
+            if (entryContainer.Data.NetEntity != currTrackedEntity) // <Onyx-Tweak edited>
                 entryContainer.RemoveAsFocus();
 
-            else if (entryContainer.NetEntity == currTrackedEntity)
+            else if (entryContainer.Data.NetEntity == currTrackedEntity) // <Onyx-Tweak edited>
                 entryContainer.SetAsFocus();
         }
     }
@@ -351,6 +356,106 @@ public sealed partial class AtmosMonitoringConsoleWindow : FancyWindow
     {
         AutoScrollToFocus();
     }
+
+    // <Onyx-Tweak>
+    private void OnFloorSelected(OptionButton.ItemSelectedEventArgs args)
+    {
+        args.Button.SelectId(args.Id);
+
+        if (_updatingFloorSelector || args.Id < 0 || args.Id >= _knownFloors.Count)
+            return;
+
+        _selectedFloorDepth = _knownFloors[args.Id];
+        ClearFocus();
+        FloorSelected?.Invoke(_selectedFloorDepth.Value);
+    }
+
+    private void UpdateFloors(List<int> floors, int selectedFloor, int monitorFloor)
+    {
+        _knownFloors.Clear();
+        _knownFloors.AddRange(floors);
+
+        _updatingFloorSelector = true;
+        FloorSelector.Clear();
+
+        for (var i = 0; i < floors.Count; i++)
+        {
+            FloorSelector.AddItem(ZLevelFloorSelectorHelper.FormatRelativeFloor(floors[i], monitorFloor), i);
+        }
+
+        var selectedId = 0;
+        for (var i = 0; i < floors.Count; i++)
+        {
+            if (floors[i] != selectedFloor)
+                continue;
+
+            selectedId = i;
+            break;
+        }
+
+        FloorSelector.SelectId(selectedId);
+        _updatingFloorSelector = false;
+        FloorSelectorContainer.Visible = floors.Count > 1;
+    }
+
+    private Dictionary<NetEntity, AtmosDeviceNavMapData> FilterDevicesByFloor(
+        IReadOnlyDictionary<NetEntity, AtmosDeviceNavMapData> source,
+        int selectedFloor,
+        EntityUid? selectedMap)
+    {
+        var filtered = new Dictionary<NetEntity, AtmosDeviceNavMapData>();
+        foreach (var (netEntity, data) in source)
+        {
+            if (!BelongsToSelectedFloor(data.NetCoordinates, selectedFloor, selectedMap))
+                continue;
+
+            filtered[netEntity] = data;
+        }
+
+        return filtered;
+    }
+
+    private AtmosMonitoringConsoleEntry[] FilterEntriesByFloor(
+        AtmosMonitoringConsoleEntry[] source,
+        int selectedFloor,
+        EntityUid? selectedMap)
+    {
+        if (source.Length == 0)
+            return source;
+
+        var filtered = new List<AtmosMonitoringConsoleEntry>(source.Length);
+        foreach (var entry in source)
+        {
+            if (!BelongsToSelectedFloor(entry.Coordinates, selectedFloor, selectedMap))
+                continue;
+
+            filtered.Add(entry);
+        }
+
+        return filtered.ToArray();
+    }
+
+    private bool BelongsToSelectedFloor(NetCoordinates coords, int selectedFloor, EntityUid? selectedMap)
+    {
+        if (selectedMap != null &&
+            ZLevelFloorSelectorHelper.TryGetCoordinatesMapUid(_entManager, coords, out var mapUid))
+        {
+            return mapUid == selectedMap.Value;
+        }
+
+        if (TryGetDepth(coords, out var depth))
+            return depth == selectedFloor;
+
+        // Do not leak unknown entries into selected floors.
+        return false;
+    }
+
+    private bool TryGetDepth(NetCoordinates coords, out int depth)
+    {
+        var entityCoordinates = _entManager.GetCoordinates(coords);
+        return ZLevelFloorSelectorHelper.TryGetEntityDepth(_entManager, entityCoordinates.EntityId, out depth);
+    }
+    // </Onyx-Tweak>
 
     private void ActivateAutoScrollToFocus()
     {
@@ -432,11 +537,7 @@ public sealed partial class AtmosMonitoringConsoleWindow : FancyWindow
 
     private void OnFocusChanged()
     {
-        UpdateNavMapBlips();
-        NavMap.ForceNavMapUpdate();
-
-        if (!_entManager.TryGetComponent<AtmosMonitoringConsoleComponent>(_owner, out var console))
-            return;
+        RefreshNavMapEntities(); // <Onyx-Tweak edited>
 
         for (int index = 0; index < AtmosNetworksTable.ChildCount; index++)
         {
@@ -445,7 +546,7 @@ public sealed partial class AtmosMonitoringConsoleWindow : FancyWindow
             if (entry == null)
                 continue;
 
-            UpdateUIEntry(entry.Data, index, AtmosNetworksTable, console);
+            UpdateUIEntry(entry.Data, index, AtmosNetworksTable); // <Onyx-Tweak edited>
         }
     }
 }

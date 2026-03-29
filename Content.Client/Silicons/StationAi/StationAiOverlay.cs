@@ -82,12 +82,13 @@ public sealed class StationAiOverlay : Overlay
 
         var playerEnt = _player.LocalEntity;
 
-        // Shitmed - Starlight Abductors Change Start
-        if (_entManager.TryGetComponent(playerEnt, out StationAiOverlayComponent? stationAiOverlay)
-            && stationAiOverlay.AllowCrossGrid
-            && _entManager.TryGetComponent(playerEnt, out RelayInputMoverComponent? relay))
+        // <Onyx-Tweak edited>
+        if (_entManager.TryGetComponent<StationAiOverlayComponent>(playerEnt, out StationAiOverlayComponent? stationAiOverlay)
+            && stationAiOverlay != null
+            && _entManager.TryGetComponent(playerEnt, out RelayInputMoverComponent? relay)
+            && relay.RelayEntity != EntityUid.Invalid)
             playerEnt = relay.RelayEntity;
-        // Shitmed Change End
+        // </Onyx-Tweak edited>
 
         _entManager.TryGetComponent(playerEnt, out TransformComponent? playerXform);
         var gridUid = playerXform?.GridUid ?? EntityUid.Invalid;

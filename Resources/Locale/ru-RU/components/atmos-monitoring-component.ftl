@@ -12,3 +12,5 @@ atmos-monitoring-window-show-gas-pipe-sensors = Сенсоры труб
 atmos-monitoring-window-label-gases = Присутствующие газы
 atmos-monitoring-window-flavor-left = За помощью обращаться к атмосферным техникам
 atmos-monitoring-window-flavor-right = v1.1
+
+atmos-monitoring-window-floor = Этаж
