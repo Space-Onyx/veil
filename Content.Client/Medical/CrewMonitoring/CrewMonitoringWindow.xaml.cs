@@ -312,7 +312,7 @@ public sealed partial class CrewMonitoringWindow : FancyWindow
         _selectedFloorDepth = floorState.SelectedFloor;
 
         UpdateFloors(floorState.Floors, floorState.SelectedFloor, floorState.MonitorFloor);
-        var navMapUid = ZLevelFloorSelectorHelper.ResolveNavMapUidForMap(_entManager, floorState.SelectedMap);
+        var navMapUid = ZLevelFloorSelectorHelper.ResolveNavMapUidForOwner(_entManager, _owner.Value, floorState.SelectedMap);
         NavMap.MapUid = navMapUid;
         NavMap.Visible = navMapUid != null;
         NavMap.ForceNavMapUpdate();
@@ -678,14 +678,19 @@ public sealed partial class CrewMonitoringWindow : FancyWindow
     /// </summary>
     private EntityCoordinates CoordinatesToLocal(EntityCoordinates refCoords)
     {
-        if (NavMap.MapUid != null)
-        {
-            return _transformSystem.WithEntityId(refCoords, (EntityUid)NavMap.MapUid);
-        }
-        else
-        {
+        // <Onyx-Tweak edited>
+        if (NavMap.MapUid == null)
             return refCoords;
-        }
+
+        var targetMapUid = (EntityUid) NavMap.MapUid;
+        var sourceMap = _transformSystem.ToMapCoordinates(refCoords, logError: false);
+        var targetMap = _transformSystem.GetMapCoordinates(targetMapUid);
+
+        if (sourceMap.MapId == MapId.Nullspace || sourceMap.MapId != targetMap.MapId)
+            return refCoords;
+
+        return _transformSystem.WithEntityId(refCoords, targetMapUid);
+        // </Onyx-Tweak edited>
     }
 
     private void ClearOutDatedData()

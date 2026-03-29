@@ -111,7 +111,7 @@ public sealed partial class StationMapWindow : FancyWindow
         _selectedFloorDepth = floorState.SelectedFloor;
         UpdateFloors(floorState.Floors, floorState.SelectedFloor, floorState.MonitorFloor);
 
-        var navMapUid = ZLevelFloorSelectorHelper.ResolveNavMapUidForMap(_entMan, floorState.SelectedMap);
+        var navMapUid = ZLevelFloorSelectorHelper.ResolveNavMapUidForOwner(_entMan, _owner.Value, floorState.SelectedMap);
         NavMapScreen.MapUid = navMapUid;
         NavMapScreen.TrackedCoordinates.Clear();
 

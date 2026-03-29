@@ -158,7 +158,7 @@ public sealed partial class PowerMonitoringWindow : FancyWindow
 
         var selectedFloor = floorState.SelectedFloor;
         var hasFloorFilter = floorState.HasFloorSelection;
-        var selectedNavMap = ZLevelFloorSelectorHelper.ResolveNavMapUidForMap(_entManager, floorState.SelectedMap);
+        var selectedNavMap = ZLevelFloorSelectorHelper.ResolveNavMapUidForOwner(_entManager, Entity, floorState.SelectedMap);
         if (selectedNavMap != null)
             NavMap.MapUid = selectedNavMap;
 

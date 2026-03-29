@@ -65,6 +65,12 @@ public static class ZLevelFloorSelectorHelper
         if (mapUid == null)
             return null;
 
+        if (entMan.HasComponent<MapGridComponent>(mapUid.Value))
+            return mapUid.Value;
+
+        if (entMan.HasComponent<NavMapComponent>(mapUid.Value))
+            return mapUid.Value;
+
         EntityUid? fallbackGrid = null;
         var grids = entMan.EntityQueryEnumerator<MapGridComponent, TransformComponent>();
         while (grids.MoveNext(out var gridUid, out _, out var xform))
@@ -78,7 +84,25 @@ public static class ZLevelFloorSelectorHelper
             fallbackGrid ??= gridUid;
         }
 
-        return fallbackGrid ?? mapUid;
+        return fallbackGrid;
+    }
+
+    public static EntityUid? ResolveNavMapUidForOwner(IEntityManager entMan, EntityUid owner, EntityUid? selectedMap)
+    {
+        var resolvedForMap = ResolveNavMapUidForMap(entMan, selectedMap);
+        if (resolvedForMap != null)
+            return resolvedForMap;
+
+        if (!entMan.TryGetComponent<TransformComponent>(owner, out var ownerXform))
+            return null;
+
+        if (ownerXform.GridUid != null)
+            return ownerXform.GridUid.Value;
+
+        if (ownerXform.MapUid != null)
+            return ResolveNavMapUidForMap(entMan, ownerXform.MapUid.Value);
+
+        return null;
     }
 
     public static bool TryGetEntityDepth(IEntityManager entMan, EntityUid entity, out int depth)

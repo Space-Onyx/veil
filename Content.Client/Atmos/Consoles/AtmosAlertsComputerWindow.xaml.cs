@@ -229,7 +229,7 @@ public sealed partial class AtmosAlertsComputerWindow : FancyWindow
 
         var selectedFloor = floorState.SelectedFloor;
         var hasFloorFilter = floorState.HasFloorSelection;
-        var selectedNavMap = ZLevelFloorSelectorHelper.ResolveNavMapUidForMap(_entManager, floorState.SelectedMap);
+        var selectedNavMap = ZLevelFloorSelectorHelper.ResolveNavMapUidForOwner(_entManager, _owner.Value, floorState.SelectedMap);
         NavMap.MapUid = selectedNavMap;
         NavMap.Visible = selectedNavMap != null;
 
