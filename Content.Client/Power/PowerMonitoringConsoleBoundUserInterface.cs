@@ -25,7 +25,7 @@ public sealed class PowerMonitoringConsoleBoundUserInterface : BoundUserInterfac
         _menu = this.CreateWindow<PowerMonitoringWindow>();
         _menu.SetEntity(Owner);
         _menu.SendPowerMonitoringConsoleMessageAction += SendPowerMonitoringConsoleMessage;
-        _menu.FloorSelected += OnFloorSelected; // <Onyx-Tweak>
+        _menu.FloorSelected += SendPowerMonitoringSelectFloorMessage; // <Onyx-ZLevelsTweak>
     }
 
     protected override void UpdateState(BoundUserInterfaceState state)
@@ -42,7 +42,11 @@ public sealed class PowerMonitoringConsoleBoundUserInterface : BoundUserInterfac
             castState.AllEntries,
             castState.FocusSources,
             castState.FocusLoads,
-            xform?.Coordinates);
+            castState.Floors,
+            castState.SelectedFloor,
+            castState.MonitorFloor,
+            castState.SelectedFloorMap,
+            xform?.Coordinates); // <Onyx-ZLevelsTweak edited>
     }
 
     public void SendPowerMonitoringConsoleMessage(NetEntity? netEntity, PowerMonitoringConsoleGroup group)
@@ -50,10 +54,10 @@ public sealed class PowerMonitoringConsoleBoundUserInterface : BoundUserInterfac
         SendMessage(new PowerMonitoringConsoleMessage(netEntity, group));
     }
 
-    // <Onyx-Tweak>
-    private void OnFloorSelected(int floor)
+    // <Onyx-ZLevelsTweak>
+    public void SendPowerMonitoringSelectFloorMessage(int floor)
     {
-        SendMessage(new PowerMonitoringSelectFloorMessage(floor));
+        SendMessage(new PowerMonitoringConsoleSelectFloorMessage(floor));
     }
-    // </Onyx-Tweak>
+    // </Onyx-ZLevelsTweak>
 }

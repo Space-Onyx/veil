@@ -34,10 +34,10 @@ public sealed partial class AtmosAlertsComputerComponent : Component
     [ViewVariables, AutoNetworkedField]
     public HashSet<NetEntity> SilencedDevices = new();
 
-    // <Onyx-Tweak>
+    // <Onyx-ZLevelsTweak>
     [ViewVariables]
     public int? SelectedFloorDepth;
-    // </Onyx-Tweak>
+    // </Onyx-ZLevelsTweak>
 }
 
 [Serializable, NetSerializable]
@@ -125,16 +125,33 @@ public sealed class AtmosAlertsComputerBoundInterfaceState : BoundUserInterfaceS
     /// Data for the UI focus (if applicable)
     /// </summary>
     public AtmosAlertsFocusDeviceData? FocusData;
+    public List<int> Floors; // <Onyx-ZLevelsTweak>
+    public int SelectedFloor; // <Onyx-ZLevelsTweak>
+    public int MonitorFloor; // <Onyx-ZLevelsTweak>
+    public NetEntity? SelectedFloorMap; // <Onyx-ZLevelsTweak>
 
     /// <summary>
     /// Sends data from the server to the client to populate the atmos monitoring console UI
     /// </summary>
-    public AtmosAlertsComputerBoundInterfaceState(AtmosAlertsComputerEntry[] airAlarms, AtmosAlertsComputerEntry[] fireAlarms, AtmosAlertsFocusDeviceData? focusData)
+    // <Onyx-ZLevelsTweak edited>
+    public AtmosAlertsComputerBoundInterfaceState(
+        AtmosAlertsComputerEntry[] airAlarms,
+        AtmosAlertsComputerEntry[] fireAlarms,
+        AtmosAlertsFocusDeviceData? focusData,
+        List<int> floors,
+        int selectedFloor,
+        int monitorFloor,
+        NetEntity? selectedFloorMap)
     {
         AirAlarms = airAlarms;
         FireAlarms = fireAlarms;
         FocusData = focusData;
+        Floors = floors;
+        SelectedFloor = selectedFloor;
+        MonitorFloor = monitorFloor;
+        SelectedFloorMap = selectedFloorMap;
     }
+    // </Onyx-ZLevelsTweak edited>
 }
 
 [Serializable, NetSerializable]
@@ -220,19 +237,6 @@ public sealed class AtmosAlertsComputerDeviceSilencedMessage : BoundUserInterfac
     }
 }
 
-// <Onyx-Tweak>
-[Serializable, NetSerializable]
-public sealed class AtmosAlertsComputerSelectFloorMessage : BoundUserInterfaceMessage
-{
-    public int Floor;
-
-    public AtmosAlertsComputerSelectFloorMessage(int floor)
-    {
-        Floor = floor;
-    }
-}
-// </Onyx-Tweak>
-
 /// <summary>
 /// List of all the different atmos device groups
 /// </summary>
@@ -257,3 +261,16 @@ public enum AtmosAlertsComputerUiKey
 {
     Key
 }
+
+// <Onyx-ZLevelsTweak>
+[Serializable, NetSerializable]
+public sealed class AtmosAlertsComputerSelectFloorMessage : BoundUserInterfaceMessage
+{
+    public int Floor;
+
+    public AtmosAlertsComputerSelectFloorMessage(int floor)
+    {
+        Floor = floor;
+    }
+}
+// </Onyx-ZLevelsTweak>

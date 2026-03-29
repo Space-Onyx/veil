@@ -70,15 +70,14 @@ SPDX-License-Identifier: MIT
                 <!-- Station name -->
                 <controls:StripeBack>
                     <PanelContainer>
-                        <BoxContainer Orientation="Horizontal" Margin="6 3 6 2" SeparationOverride="8">
-                            <RichTextLabel Name="StationName" HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalExpand="True"/>
-                            <BoxContainer Name="FloorSelectorContainer" Orientation="Horizontal" SeparationOverride="6" VerticalAlignment="Center" Visible="False">
-                                <Label Text="{Loc 'power-monitoring-window-floor'}" VerticalAlignment="Center" Modulate="#B0B0B0"/>
-                                <OptionButton Name="FloorSelector" MinSize="80 0"/>
-                            </BoxContainer>
-                        </BoxContainer>
+                        <RichTextLabel Name="StationName" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0 5 0 3"/>
                     </PanelContainer>
                 </controls:StripeBack>
+
+                <BoxContainer Name="FloorSelectorContainer" Orientation="Horizontal" SeparationOverride="6" Margin="0 8 0 4" Visible="False">
+                    <Label Text="{Loc 'power-monitoring-window-floor'}" VerticalAlignment="Center" Modulate="#B0B0B0"/>
+                    <OptionButton Name="FloorSelector" MinSize="80 0"/>
+                </BoxContainer>
 
                 <!-- Power overview -->
                 <GridContainer Columns="2">

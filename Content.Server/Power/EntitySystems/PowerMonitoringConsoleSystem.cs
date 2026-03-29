@@ -27,17 +27,17 @@ using Content.Server.Power.Nodes;
 using Content.Server.Power.NodeGroups;
 using Content.Server.StationEvents.Components;
 using Content.Shared.GameTicking.Components;
+using Content.Shared.NodeContainer;
 using Content.Shared.Pinpointer;
-using Content.Shared.Station.Components;
 using Content.Shared.Power;
-using Content.Shared._CE.ZLevels.Core.Components;
+using Content.Shared.Station.Components;
 using Content.Shared._CE.ZLevels.Core.EntitySystems;
+using Content.Shared._Onyx.UI;
 using JetBrains.Annotations;
 using Robust.Server.GameObjects;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Utility;
 using System.Linq;
-using Content.Shared.NodeContainer;
 
 namespace Content.Server.Power.EntitySystems;
 
@@ -46,7 +46,7 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
 {
     [Dependency] private readonly UserInterfaceSystem _userInterfaceSystem = default!;
     [Dependency] private readonly SharedMapSystem _sharedMapSystem = default!;
-    [Dependency] private readonly CESharedZLevelsSystem _zLevels = default!; // <Onyx-Tweak>
+    [Dependency] private readonly CESharedZLevelsSystem _zLevels = default!;
 
     // Note: this data does not need to be saved
     private Dictionary<EntityUid, Dictionary<Vector2i, PowerCableChunk>> _gridPowerCableChunks = new();
@@ -67,7 +67,7 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
 
         // UI events
         SubscribeLocalEvent<PowerMonitoringConsoleComponent, PowerMonitoringConsoleMessage>(OnPowerMonitoringConsoleMessage);
-        SubscribeLocalEvent<PowerMonitoringConsoleComponent, PowerMonitoringSelectFloorMessage>(OnSelectFloorMessage); // <Onyx-Tweak>
+        SubscribeLocalEvent<PowerMonitoringConsoleComponent, PowerMonitoringConsoleSelectFloorMessage>(OnSelectFloorMessage);
         SubscribeLocalEvent<PowerMonitoringConsoleComponent, BoundUIOpenedEvent>(OnBoundUIOpened);
 
         // Grid events
@@ -128,50 +128,63 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
             component.FocusGroup = args.FocusGroup;
             Dirty(uid, component);
         }
-
-        // <Onyx-Tweak>
-        if (_userInterfaceSystem.IsUiOpen(uid, PowerMonitoringConsoleUiKey.Key)) 
-            UpdateUIState(uid, component);
-        // </Onyx-Tweak>
     }
 
-    private void OnBoundUIOpened(EntityUid uid, PowerMonitoringConsoleComponent component, BoundUIOpenedEvent args)
-    {
-        component.Focus = null;
-        component.FocusGroup = PowerMonitoringConsoleGroup.Generator;
-
-        if (TryComp<PowerMonitoringCableNetworksComponent>(uid, out var cableNetworks))
-        {
-            cableNetworks.FocusChunks.Clear();
-            Dirty(uid, cableNetworks);
-        }
-
-        EnsureNavMapsForMonitorFloors(uid); // <Onyx-Tweak>
-        UpdateUIState(uid, component); // <Onyx-Tweak>
-    }
-
-    // <Onyx-Tweak>
     private void OnSelectFloorMessage(
         EntityUid uid,
         PowerMonitoringConsoleComponent component,
-        PowerMonitoringSelectFloorMessage args)
+        PowerMonitoringConsoleSelectFloorMessage message)
     {
-        var (hasFloorSelection, floors, selectedFloor, _, _) = GetFloorState(uid, component.SelectedFloorDepth);
-        if (!hasFloorSelection || !floors.Contains(args.Floor) || selectedFloor == args.Floor)
+        var floorState = ZLevelFloorSelectorHelper.GetFloorState(
+            EntityManager,
+            _zLevels,
+            uid,
+            component.SelectedFloorDepth);
+        component.SelectedFloorDepth = floorState.SelectedFloor;
+
+        var floors = floorState.Floors;
+        if (floors.Count <= 1 || !floors.Contains(message.Floor))
             return;
 
-        component.SelectedFloorDepth = args.Floor;
-        component.Focus = null;
+        if (floorState.SelectedFloor == message.Floor)
+            return;
 
-        if (TryComp<PowerMonitoringCableNetworksComponent>(uid, out var cableNetworks))
+        component.SelectedFloorDepth = message.Floor;
+
+        if (component.Focus != null)
         {
-            cableNetworks.FocusChunks.Clear();
-            Dirty(uid, cableNetworks);
+            var clearFocus = true;
+            if (ZLevelFloorSelectorHelper.TryGetMapDepthForNetEntity(
+                    EntityManager,
+                    GetNetEntity(component.Focus.Value),
+                    out var focusDepth))
+            {
+                clearFocus = focusDepth != message.Floor;
+            }
+
+            if (clearFocus)
+                ClearConsoleFocus(uid, component);
         }
 
         UpdateUIState(uid, component);
     }
-    // </Onyx-Tweak>
+
+    private void OnBoundUIOpened(EntityUid uid, PowerMonitoringConsoleComponent component, BoundUIOpenedEvent args)
+    {
+        component.FocusGroup = PowerMonitoringConsoleGroup.Generator;
+        ClearConsoleFocus(uid, component);
+
+        ZLevelFloorSelectorHelper.EnsureNavMapsForLinkedFloors(EntityManager, _zLevels, uid);
+
+        var floorState = ZLevelFloorSelectorHelper.GetFloorState(
+            EntityManager,
+            _zLevels,
+            uid,
+            component.SelectedFloorDepth);
+        component.SelectedFloorDepth = floorState.SelectedFloor;
+
+        UpdateUIState(uid, component);
+    }
 
     private void OnGridSplit(ref GridSplitEvent args)
     {
@@ -191,18 +204,17 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
         }
 
         // Update power monitoring consoles that stand upon an updated grid
-        var affectedGrids = new HashSet<EntityUid>(allGrids); // <Onyx-Tweak edited>
-        var query = AllEntityQuery<PowerMonitoringConsoleComponent, PowerMonitoringCableNetworksComponent>(); // <Onyx-Tweak edited>
-        while (query.MoveNext(out var ent, out var entConsole, out var entCableNetworks))
+        var query = AllEntityQuery<PowerMonitoringConsoleComponent, PowerMonitoringCableNetworksComponent, TransformComponent>();
+        while (query.MoveNext(out var ent, out var entConsole, out var entCableNetworks, out var entXform))
         {
-            if (!TryGetConsoleViewedGrid(ent, entConsole, out var viewedGrid)) // <Onyx-Tweak edited>
+            if (entXform.GridUid == null)
                 continue;
 
-            if (!affectedGrids.Contains(viewedGrid)) // <Onyx-Tweak edited>
+            if (!allGrids.Contains(entXform.GridUid.Value))
                 continue;
 
-            RefreshPowerMonitoringConsole(ent, entConsole, viewedGrid); // <Onyx-Tweak edited>
-            RefreshPowerMonitoringCableNetworks(ent, entCableNetworks, viewedGrid); // <Onyx-Tweak edited>
+            RefreshPowerMonitoringConsole(ent, entConsole);
+            RefreshPowerMonitoringCableNetworks(ent, entCableNetworks);
         }
     }
 
@@ -213,12 +225,10 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
         if (xform.GridUid == null || !TryComp<MapGridComponent>(xform.GridUid, out var grid))
             return;
 
-        var changedGrid = xform.GridUid.Value; // <Onyx-Tweak edited>
-
-        if (!_gridPowerCableChunks.TryGetValue(changedGrid, out var allChunks)) // <Onyx-Tweak edited>
+        if (!_gridPowerCableChunks.TryGetValue(xform.GridUid.Value, out var allChunks))
             allChunks = new();
 
-        var tile = _sharedMapSystem.LocalToTile(changedGrid, grid, xform.Coordinates); // <Onyx-Tweak edited>
+        var tile = _sharedMapSystem.LocalToTile(xform.GridUid.Value, grid, xform.Coordinates);
         var chunkOrigin = SharedMapSystem.GetChunkIndices(tile, ChunkSize);
 
         if (!allChunks.TryGetValue(chunkOrigin, out var chunk))
@@ -236,10 +246,10 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
         else
             chunk.PowerCableData[(int) component.CableType] &= ~flag;
 
-        var query = AllEntityQuery<PowerMonitoringCableNetworksComponent, PowerMonitoringConsoleComponent>(); // <Onyx-Tweak edited>
-        while (query.MoveNext(out var ent, out var entCableNetworks, out var entConsole)) // <Onyx-Tweak edited>
+        var query = AllEntityQuery<PowerMonitoringCableNetworksComponent, TransformComponent>();
+        while (query.MoveNext(out var ent, out var entCableNetworks, out var entXform))
         {
-            if (!TryGetConsoleViewedGrid(ent, entConsole, out var viewedGrid) || viewedGrid != changedGrid) // <Onyx-Tweak edited>
+            if (entXform.GridUid != xform.GridUid)
                 continue;
 
             entCableNetworks.AllChunks = allChunks;
@@ -255,15 +265,13 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
         if (gridUid == null)
             return;
 
-        var changedGrid = gridUid.Value;
-
         if (component.IsCollectionMasterOrChild)
             AssignEntityAsCollectionMaster(uid, component, xform);
 
-        var query = AllEntityQuery<PowerMonitoringConsoleComponent>(); // <Onyx-Tweak edited>
-        while (query.MoveNext(out var ent, out var entConsole)) // <Onyx-Tweak edited>
+        var query = AllEntityQuery<PowerMonitoringConsoleComponent, TransformComponent>();
+        while (query.MoveNext(out var ent, out var entConsole, out var entXform))
         {
-            if (!TryGetConsoleViewedGrid(ent, entConsole, out var viewedGrid) || changedGrid != viewedGrid) // <Onyx-Tweak edited>
+            if (gridUid != entXform.GridUid)
                 continue;
 
             if (!args.Anchored)
@@ -289,26 +297,11 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
         if (component.IsCollectionMasterOrChild)
             AssignEntityAsCollectionMaster(uid, component);
 
-        var changedGrid = Transform(uid).GridUid;
         var query = AllEntityQuery<PowerMonitoringConsoleComponent, PowerMonitoringCableNetworksComponent>();
-        while (query.MoveNext(out var ent, out var entConsole, out var entCableNetworks)) // <Onyx-Tweak edited>
+        while (query.MoveNext(out var _, out var entConsole, out var entCableNetworks))
         {
-            // <Onyx-Tweak edited>
             if (entConsole.Focus == uid)
-            {
-                entCableNetworks.FocusChunks.Clear();
-                Dirty(ent, entCableNetworks);
-            }
-
-            if (changedGrid == null ||
-                !_userInterfaceSystem.IsUiOpen(ent, PowerMonitoringConsoleUiKey.Key) ||
-                !IsConsoleViewingGrid(ent, entConsole, changedGrid.Value))
-            {
-                continue;
-            }
-
-            UpdateUIState(ent, entConsole);
-            // </Onyx-Tweak edited>
+                entCableNetworks.FocusChunks.Clear(); // Component is dirtied when these chunks are rebuilt
         }
     }
 
@@ -370,30 +363,25 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
 
     private void UpdateUIState(EntityUid uid, PowerMonitoringConsoleComponent component)
     {
-        if (!TryGetConsoleViewedGrid(uid, component, out var gridUid)) // <Onyx-Tweak edited>
+        var consoleXform = Transform(uid);
+
+        if (consoleXform?.GridUid == null)
             return;
 
-        if (!TryComp<MapGridComponent>(gridUid, out var mapGrid))
-            return;
+        var floorState = ZLevelFloorSelectorHelper.GetFloorState(
+            EntityManager,
+            _zLevels,
+            uid,
+            component.SelectedFloorDepth);
+        component.SelectedFloorDepth = floorState.SelectedFloor;
+
+        var targetMapUid = ZLevelFloorSelectorHelper.ResolveMapUid(EntityManager, floorState.SelectedMap);
+        var targetUid = targetMapUid ?? consoleXform.GridUid.Value;
 
         // The grid must have a NavMapComponent to visualize the map in the UI
-        EnsureComp<NavMapComponent>(gridUid);
+        EnsureComp<NavMapComponent>(targetUid);
 
-        RefreshPowerMonitoringConsole(uid, component, gridUid, dirty: false);
-        if (TryComp<PowerMonitoringCableNetworksComponent>(uid, out var cableNetworks))
-            RefreshPowerMonitoringCableNetworks(uid, cableNetworks, gridUid);
-
-        if (component.Focus != null &&
-            (!TryComp<TransformComponent>(component.Focus, out var focusXform) || focusXform.GridUid != gridUid))
-        {
-            component.Focus = null;
-
-            if (TryComp<PowerMonitoringCableNetworksComponent>(uid, out var focusCableNetworks))
-            {
-                focusCableNetworks.FocusChunks.Clear();
-                Dirty(uid, focusCableNetworks);
-            }
-        }
+        UpdateTrackedMetaDataForGrid(uid, component, targetUid);
 
         // Initializing data to be send to the client
         var totalSources = 0d;
@@ -411,7 +399,7 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
         var powerConsumerQuery = AllEntityQuery<PowerConsumerComponent, TransformComponent>();
         while (powerConsumerQuery.MoveNext(out var ent, out var powerConsumer, out var xform))
         {
-            if (xform.Anchored == false || xform.GridUid != gridUid)
+            if (xform.Anchored == false || xform.GridUid != targetUid)
                 continue;
 
             if (TryComp<PowerMonitoringDeviceComponent>(ent, out var device))
@@ -435,7 +423,7 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
             if (device.IsCollectionMasterOrChild && !device.IsCollectionMaster)
                 continue;
 
-            if (xform.Anchored == false || xform.GridUid != gridUid)
+            if (xform.Anchored == false || xform.GridUid != targetUid)
                 continue;
 
             // Get the device power stats
@@ -454,6 +442,13 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
             // Generate a new console entry with which to populate the UI
             var entry = new PowerMonitoringConsoleEntry(GetNetEntity(ent), device.Group, powerStats.PowerValue, powerStats.BatteryLevel);
             allEntries.Add(entry);
+        }
+
+        if (component.Focus != null &&
+            (!TryComp<TransformComponent>(component.Focus, out var focusXform) ||
+             focusXform.GridUid != targetUid))
+        {
+            ClearConsoleFocus(uid, component);
         }
 
         // Update the UI focus data (if applicable)
@@ -482,8 +477,9 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
                     GetLoadsForNode(component.Focus.Value, loadNode, out loadsForFocus);
 
                 // If the UI focus changed, update the highlighted power network
-                if (TryComp<PowerMonitoringCableNetworksComponent>(uid, out var focusNetworkComp) &&
-                    focusNetworkComp.FocusChunks.Count == 0) // <Onyx-Tweak edited>
+                if (TryComp<MapGridComponent>(targetUid, out var mapGrid) &&
+                    TryComp<PowerMonitoringCableNetworksComponent>(uid, out var cableNetworks) &&
+                    cableNetworks.FocusChunks.Count == 0)
                 {
                     var reachableEntities = new List<EntityUid>();
 
@@ -499,8 +495,37 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
                             reachableEntities.Add(node.Owner);
                     }
 
-                    UpdateFocusNetwork(uid, focusNetworkComp, gridUid, mapGrid, reachableEntities); // <Onyx-Tweak edited>
+                    UpdateFocusNetwork(uid, cableNetworks, targetUid, mapGrid, reachableEntities);
                 }
+            }
+        }
+
+        if (TryComp<PowerMonitoringCableNetworksComponent>(uid, out var monitorCableNetworks))
+        {
+            var allChunks = monitorCableNetworks.AllChunks;
+
+            if (TryComp<MapGridComponent>(targetUid, out var mapGrid))
+            {
+                if (!_gridPowerCableChunks.TryGetValue(targetUid, out var cachedChunks) || cachedChunks == null)
+                    allChunks = RefreshPowerCableGrid(targetUid, mapGrid);
+                else
+                    allChunks = cachedChunks;
+            }
+            else
+            {
+                allChunks = monitorCableNetworks.AllChunks.Count == 0
+                    ? monitorCableNetworks.AllChunks
+                    : new Dictionary<Vector2i, PowerCableChunk>();
+            }
+
+            var allChunksChanged = !ReferenceEquals(monitorCableNetworks.AllChunks, allChunks);
+            if (allChunksChanged)
+                monitorCableNetworks.AllChunks = allChunks;
+
+            var forceCableDirty = consoleXform.GridUid != targetUid;
+            if (allChunksChanged || forceCableDirty)
+            {
+                Dirty(uid, monitorCableNetworks);
             }
         }
 
@@ -513,7 +538,96 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
                 totalLoads,
                 allEntries.ToArray(),
                 sourcesForFocus.ToArray(),
-                loadsForFocus.ToArray()));
+                loadsForFocus.ToArray(),
+                floorState.Floors,
+                floorState.SelectedFloor,
+                floorState.SourceFloor,
+                GetNetEntity(floorState.SelectedMap)));
+    }
+
+    private void ClearConsoleFocus(EntityUid uid, PowerMonitoringConsoleComponent component)
+    {
+        component.Focus = null;
+
+        if (!TryComp<PowerMonitoringCableNetworksComponent>(uid, out var cableNetworks) ||
+            cableNetworks.FocusChunks.Count == 0)
+        {
+            return;
+        }
+
+        cableNetworks.FocusChunks.Clear();
+        Dirty(uid, cableNetworks);
+    }
+
+    private void UpdateTrackedMetaDataForGrid(EntityUid uid, PowerMonitoringConsoleComponent component, EntityUid gridUid)
+    {
+        var updatedMeta = new Dictionary<NetEntity, PowerMonitoringDeviceMetaData>();
+
+        var query = AllEntityQuery<PowerMonitoringDeviceComponent, TransformComponent>();
+        while (query.MoveNext(out var ent, out var entDevice, out var entXform))
+        {
+            if (entXform.GridUid != gridUid)
+                continue;
+
+            var netEntity = GetNetEntity(ent);
+            var name = MetaData(ent).EntityName;
+            var netCoords = GetNetCoordinates(entXform.Coordinates);
+
+            var metaData = new PowerMonitoringDeviceMetaData(name, netCoords, entDevice.Group, entDevice.SpritePath, entDevice.SpriteState);
+
+            if (entDevice.IsCollectionMasterOrChild)
+            {
+                if (!entDevice.IsCollectionMaster)
+                {
+                    metaData.CollectionMaster = GetNetEntity(entDevice.CollectionMaster);
+                }
+                else if (entDevice.ChildDevices.Count > 0)
+                {
+                    name = MetaData(ent).EntityPrototype?.Name ?? MetaData(ent).EntityName;
+                    metaData.EntityName = Loc.GetString(
+                        "power-monitoring-window-object-array",
+                        ("name", name),
+                        ("count", entDevice.ChildDevices.Count + 1));
+                }
+            }
+
+            updatedMeta[netEntity] = metaData;
+        }
+
+        if (AreMetaDataDictionariesEqual(component.PowerMonitoringDeviceMetaData, updatedMeta))
+            return;
+
+        component.PowerMonitoringDeviceMetaData = updatedMeta;
+        Dirty(uid, component);
+    }
+
+    private static bool AreMetaDataDictionariesEqual(
+        Dictionary<NetEntity, PowerMonitoringDeviceMetaData> current,
+        Dictionary<NetEntity, PowerMonitoringDeviceMetaData> updated)
+    {
+        if (current.Count != updated.Count)
+            return false;
+
+        foreach (var (netEntity, meta) in current)
+        {
+            if (!updated.TryGetValue(netEntity, out var updatedMeta))
+                return false;
+
+            if (!AreMetaDataEqual(meta, updatedMeta))
+                return false;
+        }
+
+        return true;
+    }
+
+    private static bool AreMetaDataEqual(PowerMonitoringDeviceMetaData left, PowerMonitoringDeviceMetaData right)
+    {
+        return left.EntityName == right.EntityName &&
+               left.Coordinates.Equals(right.Coordinates) &&
+               left.Group == right.Group &&
+               left.SpritePath == right.SpritePath &&
+               left.SpriteState == right.SpriteState &&
+               left.CollectionMaster == right.CollectionMaster;
     }
 
     private PowerStats GetPowerStats(EntityUid uid, PowerMonitoringDeviceComponent device)
@@ -921,13 +1035,11 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
     {
         var netEntity = GetNetEntity(child);
         var xform = Transform(child);
-        if (xform.GridUid == null)
-            return;
 
-        var query = AllEntityQuery<PowerMonitoringConsoleComponent>(); // <Onyx-Tweak edited>
-        while (query.MoveNext(out var ent, out var entConsole)) // <Onyx-Tweak edited>
+        var query = AllEntityQuery<PowerMonitoringConsoleComponent, TransformComponent>();
+        while (query.MoveNext(out var ent, out var entConsole, out var entXform))
         {
-            if (!IsConsoleViewingGrid(ent, entConsole, xform.GridUid.Value)) // <Onyx-Tweak edited>
+            if (entXform.GridUid != xform.GridUid)
                 continue;
 
             if (!entConsole.PowerMonitoringDeviceMetaData.TryGetValue(netEntity, out var metaData))
@@ -944,13 +1056,11 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
     {
         var netEntity = GetNetEntity(master);
         var xform = Transform(master);
-        if (xform.GridUid == null)
-            return;
 
-        var query = AllEntityQuery<PowerMonitoringConsoleComponent>(); // <Onyx-Tweak edited>
-        while (query.MoveNext(out var ent, out var entConsole)) // <Onyx-Tweak edited>
+        var query = AllEntityQuery<PowerMonitoringConsoleComponent, TransformComponent>();
+        while (query.MoveNext(out var ent, out var entConsole, out var entXform))
         {
-            if (!IsConsoleViewingGrid(ent, entConsole, xform.GridUid.Value)) // <Onyx-Tweak edited>
+            if (entXform.GridUid != xform.GridUid)
                 continue;
 
             if (!entConsole.PowerMonitoringDeviceMetaData.TryGetValue(netEntity, out var metaData))
@@ -1034,17 +1144,17 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
 
     private void RefreshPowerMonitoringConsole(EntityUid uid, PowerMonitoringConsoleComponent component)
     {
+        component.Focus = null;
+        component.FocusGroup = PowerMonitoringConsoleGroup.Generator;
+        component.PowerMonitoringDeviceMetaData.Clear();
+        component.Flags = 0;
+
         var xform = Transform(uid);
 
         if (xform.GridUid == null)
             return;
 
-        RefreshPowerMonitoringConsole(uid, component, xform.GridUid.Value); // <Onyx-Tweak edited>
-    }
-
-    private void RefreshPowerMonitoringConsole(EntityUid uid, PowerMonitoringConsoleComponent component, EntityUid grid, bool dirty = true) // <Onyx-Tweak edited>
-    {
-        component.PowerMonitoringDeviceMetaData.Clear(); // <Onyx-Tweak edited>
+        var grid = xform.GridUid.Value;
 
         var query = AllEntityQuery<PowerMonitoringDeviceComponent, TransformComponent>();
         while (query.MoveNext(out var ent, out var entDevice, out var entXform))
@@ -1075,8 +1185,7 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
             component.PowerMonitoringDeviceMetaData.Add(netEntity, metaData);
         }
 
-        if (dirty) // <Onyx-Tweak edited>
-            Dirty(uid, component); // <Onyx-Tweak edited>
+        Dirty(uid, component);
     }
 
     private void RefreshPowerMonitoringCableNetworks(EntityUid uid, PowerMonitoringCableNetworksComponent component)
@@ -1086,12 +1195,7 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
         if (xform.GridUid == null)
             return;
 
-        RefreshPowerMonitoringCableNetworks(uid, component, xform.GridUid.Value); // <Onyx-Tweak edited>
-    }
-
-    private void RefreshPowerMonitoringCableNetworks(EntityUid uid, PowerMonitoringCableNetworksComponent component, EntityUid grid) // <Onyx-Tweak edited>
-    {
-        component.FocusChunks.Clear(); // <Onyx-Tweak edited>
+        var grid = xform.GridUid.Value;
 
         if (!TryComp<MapGridComponent>(grid, out var map))
             return;
@@ -1100,142 +1204,10 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
             allChunks = RefreshPowerCableGrid(grid, map);
 
         component.AllChunks = allChunks;
+        component.FocusChunks.Clear();
 
         Dirty(uid, component);
     }
-
-    // <Onyx-Tweak>
-    private void EnsureNavMapsForMonitorFloors(EntityUid monitorUid)
-    {
-        var xform = Transform(monitorUid);
-        if (xform.MapUid == null)
-        {
-            if (xform.GridUid != null)
-                EnsureComp<NavMapComponent>(xform.GridUid.Value);
-            return;
-        }
-
-        if (!TryComp<CEZLevelMapComponent>(xform.MapUid.Value, out var monitorZMap))
-        {
-            if (xform.GridUid != null)
-                EnsureComp<NavMapComponent>(xform.GridUid.Value);
-            return;
-        }
-
-        var targetMaps = new HashSet<EntityUid> { xform.MapUid.Value };
-        foreach (var mapUid in _zLevels.GetAllMapsAbove((xform.MapUid.Value, monitorZMap)))
-        {
-            targetMaps.Add(mapUid);
-        }
-
-        foreach (var mapUid in _zLevels.GetAllMapsBelow((xform.MapUid.Value, monitorZMap)))
-        {
-            targetMaps.Add(mapUid);
-        }
-
-        var gridQuery = EntityQueryEnumerator<MapGridComponent, TransformComponent>();
-        while (gridQuery.MoveNext(out var gridUid, out _, out var gridXform))
-        {
-            if (gridXform.MapUid == null || !targetMaps.Contains(gridXform.MapUid.Value))
-                continue;
-
-            EnsureComp<NavMapComponent>(gridUid);
-        }
-    }
-
-    private (bool HasFloorSelection, List<int> Floors, int SelectedFloor, EntityUid? SelectedMap, int MonitorFloor) GetFloorState(
-        EntityUid monitorUid,
-        int? selectedFloorDepth)
-    {
-        var monitorMap = Transform(monitorUid).MapUid;
-        if (monitorMap == null || !TryComp<CEZLevelMapComponent>(monitorMap.Value, out var monitorZMap))
-            return (false, new List<int> { 0 }, 0, monitorMap, 0);
-
-        var monitorDepth = monitorZMap.Depth;
-        var mapByDepth = new Dictionary<int, EntityUid>
-        {
-            [monitorDepth] = monitorMap.Value
-        };
-
-        foreach (var mapUid in _zLevels.GetAllMapsBelow((monitorMap.Value, monitorZMap)))
-        {
-            if (!TryComp<CEZLevelMapComponent>(mapUid, out var zMap))
-                continue;
-
-            mapByDepth[zMap.Depth] = mapUid;
-        }
-
-        foreach (var mapUid in _zLevels.GetAllMapsAbove((monitorMap.Value, monitorZMap)))
-        {
-            if (!TryComp<CEZLevelMapComponent>(mapUid, out var zMap))
-                continue;
-
-            mapByDepth[zMap.Depth] = mapUid;
-        }
-
-        var floors = mapByDepth.Keys.OrderBy(x => x).ToList();
-        if (floors.Count <= 1)
-            return (false, new List<int> { monitorDepth }, monitorDepth, monitorMap, monitorDepth);
-
-        var selected = selectedFloorDepth;
-        if (selected == null || !floors.Contains(selected.Value))
-            selected = monitorDepth;
-
-        var selectedMap = mapByDepth.GetValueOrDefault(selected.Value, monitorMap.Value);
-        return (true, floors, selected.Value, selectedMap, monitorDepth);
-    }
-
-    private bool TryGetConsoleViewedGrid(EntityUid monitorUid, PowerMonitoringConsoleComponent monitor, out EntityUid gridUid)
-    {
-        gridUid = default;
-
-        var monitorXform = Transform(monitorUid);
-        if (monitorXform.MapUid == null)
-        {
-            if (monitorXform.GridUid == null)
-                return false;
-
-            gridUid = monitorXform.GridUid.Value;
-            return true;
-        }
-
-        var (_, _, selectedFloor, selectedMap, _) = GetFloorState(monitorUid, monitor.SelectedFloorDepth);
-        monitor.SelectedFloorDepth = selectedFloor;
-
-        var selectedGrid = selectedMap == null
-            ? monitorXform.GridUid
-            : ResolveGridForMap(selectedMap.Value);
-
-        if (selectedGrid == null)
-            return false;
-
-        gridUid = selectedGrid.Value;
-        return true;
-    }
-
-    private bool IsConsoleViewingGrid(EntityUid monitorUid, PowerMonitoringConsoleComponent monitor, EntityUid gridUid)
-    {
-        return TryGetConsoleViewedGrid(monitorUid, monitor, out var viewedGrid) && viewedGrid == gridUid;
-    }
-
-    private EntityUid? ResolveGridForMap(EntityUid mapUid)
-    {
-        EntityUid? fallback = null;
-        var gridQuery = EntityQueryEnumerator<MapGridComponent, TransformComponent>();
-        while (gridQuery.MoveNext(out var gridUid, out _, out var xform))
-        {
-            if (xform.MapUid != mapUid)
-                continue;
-
-            if (HasComp<NavMapComponent>(gridUid))
-                return gridUid;
-
-            fallback ??= gridUid;
-        }
-
-        return fallback;
-    }
-    // </Onyx-Tweak>
 
     private struct PowerStats
     {

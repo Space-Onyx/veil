@@ -92,21 +92,26 @@ public sealed class StationMapBoundUserInterface : BoundUserInterface
     protected override void Open()
     {
         base.Open();
+        // <Onyx-ZLevelsTweak>
+        EntityUid? gridUid = null;
+
+        if (EntMan.TryGetComponent<TransformComponent>(Owner, out var xform))
+        {
+            gridUid = xform.GridUid;
+        }
+        // </Onyx-ZLevelsTweak>
 
         _window = this.CreateWindow<StationMapWindow>();
         _window.Title = EntMan.GetComponent<MetaDataComponent>(Owner).EntityName;
 
         string stationName = string.Empty;
-        if (EntMan.TryGetComponent<TransformComponent>(Owner, out var xform) &&
-            xform.GridUid != null &&
-            EntMan.TryGetComponent<MetaDataComponent>(xform.GridUid.Value, out var gridMetaData)) // <Onyx-Tweak edited>
+        if(EntMan.TryGetComponent<MetaDataComponent>(gridUid, out var gridMetaData)) // <Onyx-ZLevelsTweak edited>
         {
             stationName = gridMetaData.EntityName;
         }
-
         if (EntMan.TryGetComponent<StationMapComponent>(Owner, out var comp) && comp.ShowLocation)
-            _window.Set(stationName, Owner, Owner); // <Onyx-Tweak edited>
+            _window.Set(Owner, stationName, Owner); // <Onyx-ZLevelsTweak edited>
         else
-            _window.Set(stationName, Owner, null); // <Onyx-Tweak edited>
+            _window.Set(Owner, stationName, null); // <Onyx-ZLevelsTweak edited>
     }
 }

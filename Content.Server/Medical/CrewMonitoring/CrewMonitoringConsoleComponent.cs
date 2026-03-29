@@ -30,4 +30,9 @@ public sealed partial class CrewMonitoringConsoleComponent : Component
     /// </summary>
     [DataField("sensorTimeout"), ViewVariables(VVAccess.ReadWrite)]
     public float SensorTimeout = 10f;
+
+    // <Onyx-ZLevelsTweak>
+    [ViewVariables]
+    public int? SelectedFloorDepth;
+    // </Onyx-ZLevelsTweak>
 }
