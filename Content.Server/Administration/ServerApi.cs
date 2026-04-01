@@ -42,9 +42,6 @@ using Content.Shared.Chat;
 using Content.Server.Chat.Managers;
 using Content.Server.Database;
 using Content.Shared.Database;
-using Content.Server._Onyx.Discord;
-using Content.Server._Onyx.Discord.Bans;
-using Content.Server._Onyx.Discord.Bans.PayloadGenerators;
 
 namespace Content.Server.Administration;
 
