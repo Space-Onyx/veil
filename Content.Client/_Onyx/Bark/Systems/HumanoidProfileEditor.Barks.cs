@@ -1,9 +1,9 @@
 using System.Linq;
 using System.Numerics;
-using Content.Client.ADT.Bark;
-using Content.Client.ADT.SpeechBarks;
+using Content.Client._Onyx.Bark;
+using Content.Client._Onyx.SpeechBarks;
 using Content.Client.UserInterface.Controls;
-using Content.Shared.ADT.SpeechBarks;
+using Content.Shared._Onyx.SpeechBarks;
 using Robust.Client.UserInterface.Controls;
 
 namespace Content.Client.Lobby.UI;

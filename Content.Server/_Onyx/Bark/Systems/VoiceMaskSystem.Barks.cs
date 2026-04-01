@@ -1,6 +1,6 @@
 using Content.Shared.ADT.CCVar;
 using Content.Shared.VoiceMask;
-using Content.Shared.ADT.SpeechBarks;
+using Content.Shared._Onyx.SpeechBarks;
 using Robust.Shared.Configuration;
 using Content.Shared.Inventory;
 

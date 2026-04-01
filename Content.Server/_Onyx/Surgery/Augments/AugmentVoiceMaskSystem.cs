@@ -8,7 +8,7 @@ using Content.Shared.Popups;
 using Content.Shared.Administration.Logs;
 using Content.Shared.Database;
 using Content.Goobstation.Shared.Augments;
-using Content.Shared.ADT.SpeechBarks;
+using Content.Shared._Onyx.SpeechBarks;
 using Content.Shared.CCVar;
 using Robust.Shared.Configuration;
 using Robust.Shared.Prototypes;

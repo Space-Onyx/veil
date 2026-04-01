@@ -1,7 +1,7 @@
 using Content.Shared.Access.Components;
 using Content.Shared.Weapons.Melee.Events;
 using Content.Shared.Chat;
-using Content.Shared.ADT.SpeechBarks;
+using Content.Shared._Onyx.SpeechBarks;
 
 namespace Content.Goobstation.Shared.Augments;
 

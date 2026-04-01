@@ -51,7 +51,7 @@
 
 using System.Linq;
 using System.Text.RegularExpressions;
-using Content.Shared.ADT.SpeechBarks;
+using Content.Shared._Onyx.SpeechBarks;
 using Content.Shared.CCVar;
 using Content.Shared._CorvaxGoob.TTS;
 using Content.Shared.Dataset;

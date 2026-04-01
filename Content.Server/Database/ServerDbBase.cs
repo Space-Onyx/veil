@@ -140,7 +140,7 @@ using Content.Server.Administration.Managers;
 // using Content.Shared._RMC14.LinkAccount; // CorvaxGoob-Coins
 using Content.Shared.Administration.Logs;
 using Content.Shared.Construction.Prototypes;
-using Content.Shared.ADT.SpeechBarks;
+using Content.Shared._Onyx.SpeechBarks;
 using Content.Shared.Database;
 using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;

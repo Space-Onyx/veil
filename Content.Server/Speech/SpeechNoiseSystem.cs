@@ -23,7 +23,7 @@ using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 using Robust.Shared.Random;
 using Robust.Shared.Configuration;
-using Content.Shared.ADT.SpeechBarks;
+using Content.Shared._Onyx.SpeechBarks;
 using Content.Shared.ADT.CCVar;
 using Content.Goobstation.Common.Speech;
 

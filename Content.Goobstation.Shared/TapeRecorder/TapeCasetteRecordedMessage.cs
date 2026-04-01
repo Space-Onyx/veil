@@ -6,7 +6,7 @@
 
 using Content.Shared.Speech;
 using Robust.Shared.Prototypes;
-using Content.Shared.ADT.SpeechBarks;
+using Content.Shared._Onyx.SpeechBarks;
 
 namespace Content.Goobstation.Shared.TapeRecorder;
 

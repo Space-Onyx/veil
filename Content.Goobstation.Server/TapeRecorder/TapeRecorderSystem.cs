@@ -14,7 +14,7 @@ using Content.Shared.Speech;
 using Content.Goobstation.Shared.TapeRecorder;
 using Robust.Shared.Prototypes;
 using System.Text;
-using Content.Shared.ADT.SpeechBarks;
+using Content.Shared._Onyx.SpeechBarks;
 
 namespace Content.Goobstation.Server.TapeRecorder;
 

@@ -31,7 +31,7 @@ using Robust.Shared.Random;
 using Robust.Shared.Replays;
 using System.Linq;
 using Content.Shared._CorvaxGoob.TTS;
-using Content.Shared.ADT.SpeechBarks;
+using Content.Shared._Onyx.SpeechBarks;
 
 namespace Content.Server.Telephone;
 

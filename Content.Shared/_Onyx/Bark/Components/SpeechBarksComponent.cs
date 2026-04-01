@@ -1,7 +1,7 @@
 using Robust.Shared.Prototypes;
 using Robust.Shared.GameStates;
 
-namespace Content.Shared.ADT.SpeechBarks;
+namespace Content.Shared._Onyx.SpeechBarks;
 
 [RegisterComponent, NetworkedComponent]
 public sealed partial class SpeechBarksComponent : Component

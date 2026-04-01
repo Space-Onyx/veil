@@ -21,7 +21,7 @@ using Robust.Shared.Prototypes;
 using System.Linq;
 using Robust.Client.GameObjects;
 using Content.Shared.ADT.CCVar;
-using Content.Shared.ADT.SpeechBarks;
+using Content.Shared._Onyx.SpeechBarks;
 
 namespace Content.Client.VoiceMask;
 

@@ -1,6 +1,6 @@
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
-using Content.Shared.ADT.SpeechBarks;
+using Content.Shared._Onyx.SpeechBarks;
 using Content.Shared.Chat;
 using Robust.Shared.Player;
 using Robust.Shared.Audio;
@@ -13,7 +13,7 @@ using Robust.Shared.Timing;
 using Robust.Shared.Map;
 using Robust.Client.Audio;
 
-namespace Content.Client.ADT.SpeechBarks;
+namespace Content.Client._Onyx.SpeechBarks;
 
 public sealed class SpeechBarksSystem : EntitySystem
 {

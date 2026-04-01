@@ -2,7 +2,7 @@ using Content.Shared.Inventory;
 using Robust.Shared.GameStates;
 using Robust.Shared.Audio;
 
-namespace Content.Shared.ADT.SpeechBarks;
+namespace Content.Shared._Onyx.SpeechBarks;
 
 public sealed class TransformSpeakerBarkEvent : EntityEventArgs, IInventoryRelayEvent
 {

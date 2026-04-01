@@ -90,7 +90,7 @@ using Content.Shared.Verbs;
 using Content.Shared.Weapons.Ranged.Events;
 using Content.Shared.Wieldable;
 using Content.Shared.Zombies;
-using Content.Shared.ADT.SpeechBarks;
+using Content.Shared._Onyx.SpeechBarks;
 
 namespace Content.Shared.Inventory;
 

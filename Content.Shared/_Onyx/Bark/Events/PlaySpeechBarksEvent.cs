@@ -1,7 +1,7 @@
 using Robust.Shared.Serialization;
 using Robust.Shared.Audio;
 
-namespace Content.Shared.ADT.SpeechBarks;
+namespace Content.Shared._Onyx.SpeechBarks;
 
 [Serializable, NetSerializable]
 public sealed class PlaySpeechBarksEvent : EntityEventArgs

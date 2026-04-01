@@ -56,7 +56,7 @@ using YamlDotNet.RepresentationModel;
 using Content.Shared._CorvaxGoob.TTS;
 using Content.Corvax.Interfaces.Shared;
 using Robust.Shared.Enums;
-using Content.Shared.ADT.SpeechBarks;
+using Content.Shared._Onyx.SpeechBarks;
 
 namespace Content.Shared.Humanoid;
 

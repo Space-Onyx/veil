@@ -4,7 +4,7 @@ using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 using Robust.Shared.Audio;
 
-namespace Content.Shared.ADT.SpeechBarks;
+namespace Content.Shared._Onyx.SpeechBarks;
 
 [Prototype("speechBark")]
 public sealed partial class BarkPrototype : IPrototype
