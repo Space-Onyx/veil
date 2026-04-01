@@ -1,7 +1,7 @@
 using Robust.Shared.Serialization;
 
 // ReSharper disable once CheckNamespace
-namespace Content.Shared.ADT.SeedDna;
+namespace Content.Shared._Onyx.SeedDna;
 
 // copy-paste from <Content.Server.Botany.SeedChemQuantity>
 [DataDefinition]

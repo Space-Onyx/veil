@@ -21,7 +21,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using Content.Server.ADT.SeedDna.Systems; //ADT-Tweak
+using Content.Server._Onyx.SeedDna.Systems; //ADT-Tweak
 using Content.Server.Botany.Components;
 using Content.Server.Botany.Systems;
 using Content.Server.EntityEffects; //ADT-Tweak

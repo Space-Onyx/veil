@@ -3,7 +3,7 @@ using Robust.Shared.Serialization;
 using System.Diagnostics.CodeAnalysis;
 
 // ReSharper disable once CheckNamespace
-namespace Content.Shared.ADT.SeedDna;
+namespace Content.Shared._Onyx.SeedDna;
 
 /// <summary>
 /// Контейнер для хранения свойств семян.

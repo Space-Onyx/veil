@@ -1,7 +1,7 @@
-using Content.Shared.ADT.SeedDna;
+using Content.Shared._Onyx.SeedDna;
 using Robust.Client.UserInterface.Controls;
 
-namespace Content.Client.ADT.SeedDna.UI;
+namespace Content.Client._Onyx.SeedDna.UI;
 
 public sealed class SeedDnaConsoleWindowRow
 {

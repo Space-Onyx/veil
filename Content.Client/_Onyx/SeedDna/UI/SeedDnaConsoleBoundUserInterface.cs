@@ -1,8 +1,8 @@
-using Content.Shared.ADT.SeedDna;
+using Content.Shared._Onyx.SeedDna;
 using Content.Shared.Containers.ItemSlots;
-using static Content.Shared.ADT.SeedDna.Components.SeedDnaConsoleComponent;
+using static Content.Shared._Onyx.SeedDna.Components.SeedDnaConsoleComponent;
 
-namespace Content.Client.ADT.SeedDna.UI;
+namespace Content.Client._Onyx.SeedDna.UI;
 
 /// <summary>
 /// Контейнер передачи данных от сервера к клиентскому UI.

@@ -1,8 +1,8 @@
-using Content.Shared.ADT.SeedDna.Components;
+using Content.Shared._Onyx.SeedDna.Components;
 using Content.Shared.Containers.ItemSlots;
 using JetBrains.Annotations;
 
-namespace Content.Shared.ADT.SeedDna.Systems;
+namespace Content.Shared._Onyx.SeedDna.Systems;
 
 [UsedImplicitly]
 public abstract class SharedSeedDnaConsoleSystem : EntitySystem

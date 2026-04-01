@@ -1,7 +1,7 @@
 using Robust.Shared.Serialization;
 
 // ReSharper disable once CheckNamespace
-namespace Content.Shared.ADT.SeedDna;
+namespace Content.Shared._Onyx.SeedDna;
 
 /// <summary>
 /// Контейнер для передачи состояния UI между клиентом и сервером

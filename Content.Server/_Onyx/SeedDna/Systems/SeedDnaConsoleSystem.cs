@@ -1,14 +1,14 @@
 using Content.Server.Botany;
 using Content.Server.Botany.Components;
-using Content.Shared.ADT.SeedDna;
-using Content.Shared.ADT.SeedDna.Components;
-using Content.Shared.ADT.SeedDna.Systems;
+using Content.Shared._Onyx.SeedDna;
+using Content.Shared._Onyx.SeedDna.Components;
+using Content.Shared._Onyx.SeedDna.Systems;
 using JetBrains.Annotations;
 using Robust.Server.GameObjects;
 using Robust.Shared.Containers;
 using System.Linq;
 
-namespace Content.Server.ADT.SeedDna.Systems;
+namespace Content.Server._Onyx.SeedDna.Systems;
 
 [UsedImplicitly]
 public sealed class SeedDnaConsoleSystem : SharedSeedDnaConsoleSystem

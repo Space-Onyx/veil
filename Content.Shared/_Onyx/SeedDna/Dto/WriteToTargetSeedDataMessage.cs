@@ -1,7 +1,7 @@
 using Robust.Shared.Serialization;
 
 // ReSharper disable once CheckNamespace
-namespace Content.Shared.ADT.SeedDna;
+namespace Content.Shared._Onyx.SeedDna;
 
 [Serializable, NetSerializable]
 public sealed class WriteToTargetSeedDataMessage(
