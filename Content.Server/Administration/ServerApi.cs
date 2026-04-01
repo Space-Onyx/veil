@@ -85,7 +85,6 @@ public sealed partial class ServerApi : IPostInjectInit
     [Dependency] private readonly ILocalizationManager _loc = default!;
     [Dependency] private readonly IServerDbManager _dbManager = default!;
     [Dependency] private readonly IBanManager _bans = default!;
-    [Dependency] private readonly IDiscordBanInfoSender _discordBanInfoSender = default!;
 
     private string _token = string.Empty;
     private ISawmill _sawmill = default!;
