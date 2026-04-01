@@ -19,3 +19,11 @@
       state: cpu_centcomm
     - type: ComputerBoard
       prototype: ComputerCentCommID
+
+## Minesweeper
+- type: entity
+  parent: BaseComputerCircuitboard
+  id: MinesweeperCircuitboard
+  components:
+    - type: ComputerBoard
+      prototype: MinesweeperArcade
