@@ -14,6 +14,7 @@ public sealed class MsgDiscordIdInfo : NetMessage
     public NetUserId UserId;
     public string? DiscordId;
     public string? DiscordUsername;
+    public string? LinkCode;
 
     public override void ReadFromBuffer(NetIncomingMessage buffer, IRobustSerializer serializer)
     {
@@ -25,6 +26,9 @@ public sealed class MsgDiscordIdInfo : NetMessage
 
         var hasUsername = buffer.ReadBoolean();
         DiscordUsername = hasUsername ? buffer.ReadString() : null;
+
+        var hasLinkCode = buffer.ReadBoolean();
+        LinkCode = hasLinkCode ? buffer.ReadString() : null;
     }
 
     public override void WriteToBuffer(NetOutgoingMessage buffer, IRobustSerializer serializer)
@@ -37,5 +41,9 @@ public sealed class MsgDiscordIdInfo : NetMessage
         buffer.Write(DiscordUsername != null);
         if (DiscordUsername != null)
             buffer.Write(DiscordUsername);
+
+        buffer.Write(LinkCode != null);
+        if (LinkCode != null)
+            buffer.Write(LinkCode);
     }
 }

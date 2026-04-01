@@ -4,6 +4,9 @@ namespace Content.Shared.CCVar;
 
 public sealed partial class CCVars
 {
+    /// <summary>
+    /// Вебхук банов с сервера сски
+    /// </summary>
     public static readonly CVarDef<string> DiscordBansWebhook =
         CVarDef.Create("discord.bans_webhook", string.Empty, CVar.SERVERONLY | CVar.CONFIDENTIAL);
 

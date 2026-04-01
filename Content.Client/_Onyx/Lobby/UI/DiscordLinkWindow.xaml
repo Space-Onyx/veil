@@ -27,8 +27,8 @@
                            VerticalExpand="True" />
 
             <BoxContainer Orientation="Horizontal" SeparationOverride="6" HorizontalExpand="True">
-                <Button Name="CopyUidButton"
-                        Text="{Loc 'ui-lobby-discord-linc-copy-button-uid'}"
+                <Button Name="CopyCodeButton"
+                        Text="{Loc 'ui-lobby-discord-linc-copy-button-code'}"
                         StyleClasses="Button"
                         HorizontalExpand="True" />
 

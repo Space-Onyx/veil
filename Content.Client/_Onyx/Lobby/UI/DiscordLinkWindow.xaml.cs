@@ -24,6 +24,7 @@ public sealed partial class DiscordLinkWindow : DefaultWindow
     private readonly string _defaultChannelLink = "https://discord.com/channels/1474158623834898648/1488907777941307453";
     private string? _discordId;
     private string? _discordUsername;
+    private string? _linkCode;
     private string _channelLink = "";
     private bool _isLinked = false;
     private bool _forcedMode;
@@ -39,10 +40,9 @@ public sealed partial class DiscordLinkWindow : DefaultWindow
         var channelString = _cfg.GetCVar(CCVars.DiscordLinkChannel);
         _channelLink = string.IsNullOrWhiteSpace(channelString) ? _defaultChannelLink : channelString;
 
-        CopyUidButton.OnPressed += _ =>
+        CopyCodeButton.OnPressed += _ =>
         {
-            var uid = _player.LocalSession?.UserId.ToString() ?? UnknownString;
-            _clipboard.SetText(uid);
+            _clipboard.SetText(_linkCode ?? UnknownString);
         };
 
         OpenDiscordButton.OnPressed += _ =>
@@ -108,6 +108,7 @@ public sealed partial class DiscordLinkWindow : DefaultWindow
     {
         _discordId = null;
         _discordUsername = null;
+        _linkCode = null;
         _isLinked = false;
 
         if (_discordIdManager.TryGetDiscordId(out var discordId))
@@ -120,6 +121,9 @@ public sealed partial class DiscordLinkWindow : DefaultWindow
         {
             _discordUsername = discordUsername;
         }
+
+        if (_discordIdManager.TryGetLinkCode(out var linkCode))
+            _linkCode = linkCode;
     }
 
     private void UpdateStatus()
@@ -151,7 +155,7 @@ public sealed partial class DiscordLinkWindow : DefaultWindow
             var instructionLines = new List<string>
             {
                 Loc.GetString("ui-lobby-discord-link-instructions-line1"),
-                Loc.GetString("ui-lobby-discord-link-instructions-line2"),
+                Loc.GetString("ui-lobby-discord-link-instructions-line2", ("code", _linkCode ?? UnknownString)),
                 Loc.GetString("ui-lobby-discord-link-instructions-line3", ("channelLink", _channelLink)),
                 Loc.GetString("ui-lobby-discord-link-instructions-line4")
             };

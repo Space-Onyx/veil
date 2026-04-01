@@ -11,6 +11,7 @@ public sealed class DiscordIdManager
 
     private string? _discordId;
     private string? _discordUsername;
+    private string? _linkCode;
 
     public event Action? DiscordInfoUpdated;
 
@@ -24,6 +25,7 @@ public sealed class DiscordIdManager
     {
         _discordId = msg.DiscordId;
         _discordUsername = msg.DiscordUsername;
+        _linkCode = msg.LinkCode;
         DiscordInfoUpdated?.Invoke();
     }
 
@@ -37,6 +39,12 @@ public sealed class DiscordIdManager
     {
         username = _discordUsername;
         return _discordUsername != null;
+    }
+
+    public bool TryGetLinkCode([NotNullWhen(true)] out string? linkCode)
+    {
+        linkCode = _linkCode;
+        return _linkCode != null;
     }
 
     public void RequestUnlink()

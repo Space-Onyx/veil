@@ -79,6 +79,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Net;
@@ -141,6 +142,8 @@ namespace Content.Server.Database
         Task<string?> GetDiscordIdAsync(Guid userId);
         Task<Guid?> GetUserIdByDiscordIdAsync(string discordId);
         Task UnlinkDiscordIdAsync(Guid userId);
+        Task<string> GetOrCreateDiscordLinkCodeAsync(Guid userId, TimeSpan lifetime);
+        Task RemoveDiscordLinkCodeAsync(Guid userId);
         #endregion
 
         #region Bans
@@ -630,6 +633,18 @@ namespace Content.Server.Database
         {
             DbWriteOpsMetric.Inc();
             return RunDbCommand(() => _db.UnlinkDiscordIdAsync(userId));
+        }
+
+        public Task<string> GetOrCreateDiscordLinkCodeAsync(Guid userId, TimeSpan lifetime)
+        {
+            DbWriteOpsMetric.Inc();
+            return RunDbCommand(() => _db.GetOrCreateDiscordLinkCodeAsync(userId, lifetime));
+        }
+
+        public Task RemoveDiscordLinkCodeAsync(Guid userId)
+        {
+            DbWriteOpsMetric.Inc();
+            return RunDbCommand(() => _db.RemoveDiscordLinkCodeAsync(userId));
         }
         // </Onyx-DiscordAuth>
 

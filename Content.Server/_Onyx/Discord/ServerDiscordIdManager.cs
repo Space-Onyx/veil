@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Content.Server._Onyx.Administration;
 using Content.Server.Database;
@@ -14,6 +15,8 @@ namespace Content.Server._Onyx.Discord;
 
 public sealed class ServerDiscordIdManager : EntitySystem
 {
+    private static readonly TimeSpan LinkCodeLifetime = TimeSpan.FromMinutes(5);
+
     [Dependency] private readonly IServerNetManager _net = default!;
     [Dependency] private readonly IServerDbManager _db = default!;
     [Dependency] private readonly IPlayerManager _players = default!;
@@ -97,19 +100,43 @@ public sealed class ServerDiscordIdManager : EntitySystem
         var userId = channel.UserId;
         var discordId = await LoadDiscordId(userId);
         _cachedDiscordIds[userId] = discordId;
+        string? linkCode = null;
 
         string? discordUsername = null;
 
-        if (discordId != null && ulong.TryParse(discordId, out var discordUlong))
+        if (discordId != null)
         {
+            if (ulong.TryParse(discordId, out var discordUlong))
+            {
+                try
+                {
+                    var botToken = _cfg.GetCVar(CCVars.DiscordTokenBot);
+                    discordUsername = await AuthApiHelper.GetAccountDiscord(discordUlong, botToken);
+                }
+                catch (Exception ex)
+                {
+                    _sawmill.Error($"Failed to fetch Discord username for {discordId}: {ex}");
+                }
+            }
+
             try
             {
-                var botToken = _cfg.GetCVar(CCVars.DiscordTokenBot);
-                discordUsername = await AuthApiHelper.GetAccountDiscord(discordUlong, botToken);
+                await _db.RemoveDiscordLinkCodeAsync(userId.UserId);
             }
             catch (Exception ex)
             {
-                _sawmill.Error($"Failed to fetch Discord username for {discordId}: {ex}");
+                _sawmill.Error($"Failed to remove stale Discord link code for {userId}: {ex}");
+            }
+        }
+        else
+        {
+            try
+            {
+                linkCode = await _db.GetOrCreateDiscordLinkCodeAsync(userId.UserId, LinkCodeLifetime);
+            }
+            catch (Exception ex)
+            {
+                _sawmill.Error($"Failed to get Discord link code for {userId}: {ex}");
             }
         }
 
@@ -117,7 +144,8 @@ public sealed class ServerDiscordIdManager : EntitySystem
         {
             UserId = userId,
             DiscordId = discordId,
-            DiscordUsername = discordUsername
+            DiscordUsername = discordUsername,
+            LinkCode = linkCode
         };
 
         _net.ServerSendMessage(msg, channel);
@@ -131,12 +159,22 @@ public sealed class ServerDiscordIdManager : EntitySystem
         {
             await _db.UnlinkDiscordIdAsync(userId.UserId);
             _cachedDiscordIds[userId] = null;
+            string? linkCode = null;
+            try
+            {
+                linkCode = await _db.GetOrCreateDiscordLinkCodeAsync(userId.UserId, LinkCodeLifetime);
+            }
+            catch (Exception codeEx)
+            {
+                _sawmill.Error($"Failed to create Discord link code after unlink for {userId}: {codeEx}");
+            }
 
             var response = new MsgDiscordIdInfo
             {
                 UserId = userId,
                 DiscordId = null,
-                DiscordUsername = null
+                DiscordUsername = null,
+                LinkCode = linkCode
             };
 
             _net.ServerSendMessage(response, msg.MsgChannel);
@@ -152,3 +190,4 @@ public sealed class ServerDiscordIdManager : EntitySystem
         }
     }
 }
+

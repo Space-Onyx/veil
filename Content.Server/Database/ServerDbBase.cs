@@ -127,11 +127,15 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System;
 using System.Collections.Immutable;
+using System.Data;
+using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -159,6 +163,8 @@ namespace Content.Server.Database
     public abstract class ServerDbBase
     {
         private readonly ISawmill _opsLog;
+        private readonly SemaphoreSlim _discordLinkCodeTableInitLock = new(1, 1);
+        private bool _discordLinkCodeTableReady;
 
         public event Action<DatabaseNotification>? OnNotificationReceived;
 
@@ -552,7 +558,7 @@ namespace Content.Server.Database
         }
         #endregion
 
-        #region Discord ADT
+        #region Onyx Discord
         public async Task<string?> GetDiscordIdAsync(Guid userId)
         {
             await using var db = await GetDb();
@@ -586,6 +592,199 @@ namespace Content.Server.Database
 
             db.DbContext.DiscordUser.RemoveRange(discordUsers);
             await db.DbContext.SaveChangesAsync();
+        }
+        public async Task<string> GetOrCreateDiscordLinkCodeAsync(Guid userId, TimeSpan lifetime)
+        {
+            await using var db = await GetDb();
+            await EnsureDiscordLinkCodeTableAsync(db.DbContext);
+
+            var userIdText = userId.ToString();
+            var nowUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+            await ExecuteDiscordLinkCodeNonQueryAsync(
+                db.DbContext,
+                "DELETE FROM discord_link_code WHERE expires_at <= @now",
+                ("@now", nowUnix));
+
+            var existingCode = await ExecuteDiscordLinkCodeScalarAsync(
+                db.DbContext,
+                "SELECT code FROM discord_link_code WHERE user_id = @userId AND expires_at > @now LIMIT 1",
+                ("@userId", userIdText),
+                ("@now", nowUnix));
+
+            if (!string.IsNullOrWhiteSpace(existingCode))
+                return existingCode;
+
+            for (var attempt = 0; attempt < 10; attempt++)
+            {
+                var code = GenerateDiscordLinkCode();
+                var expiresAtUnix = DateTimeOffset.UtcNow.Add(lifetime).ToUnixTimeSeconds();
+
+                await ExecuteDiscordLinkCodeNonQueryAsync(
+                    db.DbContext,
+                    "DELETE FROM discord_link_code WHERE user_id = @userId",
+                    ("@userId", userIdText));
+
+                try
+                {
+                    await ExecuteDiscordLinkCodeNonQueryAsync(
+                        db.DbContext,
+                        "INSERT INTO discord_link_code (user_id, code, expires_at) VALUES (@userId, @code, @expiresAt)",
+                        ("@userId", userIdText),
+                        ("@code", code),
+                        ("@expiresAt", expiresAtUnix));
+
+                    return code;
+                }
+                catch (DbException)
+                {
+                    // Extremely unlikely collision of 9-hex code. Retry with another code.
+                }
+            }
+
+            throw new InvalidOperationException("Failed to generate a unique Discord link code.");
+        }
+
+        public async Task RemoveDiscordLinkCodeAsync(Guid userId)
+        {
+            await using var db = await GetDb();
+            await EnsureDiscordLinkCodeTableAsync(db.DbContext);
+
+            await ExecuteDiscordLinkCodeNonQueryAsync(
+                db.DbContext,
+                "DELETE FROM discord_link_code WHERE user_id = @userId",
+                ("@userId", userId.ToString()));
+        }
+
+        private static string GenerateDiscordLinkCode()
+        {
+            Span<byte> bytes = stackalloc byte[5];
+            RandomNumberGenerator.Fill(bytes);
+            return Convert.ToHexString(bytes)[..9];
+        }
+
+        private async Task EnsureDiscordLinkCodeTableAsync(ServerDbContext dbContext)
+        {
+            if (_discordLinkCodeTableReady)
+                return;
+
+            await _discordLinkCodeTableInitLock.WaitAsync();
+            try
+            {
+                if (_discordLinkCodeTableReady)
+                    return;
+
+                await dbContext.Database.ExecuteSqlRawAsync(
+                    "CREATE TABLE IF NOT EXISTS discord_link_code (" +
+                    "user_id TEXT NOT NULL PRIMARY KEY, " +
+                    "code TEXT NOT NULL UNIQUE, " +
+                    "expires_at BIGINT NOT NULL)");
+
+                if (!await IsDiscordLinkCodeSchemaValidAsync(dbContext))
+                {
+                    await dbContext.Database.ExecuteSqlRawAsync("DROP TABLE IF EXISTS discord_link_code");
+                    await dbContext.Database.ExecuteSqlRawAsync(
+                        "CREATE TABLE IF NOT EXISTS discord_link_code (" +
+                        "user_id TEXT NOT NULL PRIMARY KEY, " +
+                        "code TEXT NOT NULL UNIQUE, " +
+                        "expires_at BIGINT NOT NULL)");
+                }
+
+                await dbContext.Database.ExecuteSqlRawAsync(
+                    "CREATE INDEX IF NOT EXISTS ix_discord_link_code_expires_at ON discord_link_code (expires_at)");
+
+                _discordLinkCodeTableReady = true;
+            }
+            finally
+            {
+                _discordLinkCodeTableInitLock.Release();
+            }
+        }
+
+        private static async Task<bool> IsDiscordLinkCodeSchemaValidAsync(ServerDbContext dbContext)
+        {
+            var provider = dbContext.Database.ProviderName ?? string.Empty;
+            var connection = dbContext.Database.GetDbConnection();
+            if (connection.State != ConnectionState.Open)
+                await connection.OpenAsync();
+
+            await using var command = connection.CreateCommand();
+
+            if (provider.Contains("Sqlite", StringComparison.OrdinalIgnoreCase))
+            {
+                command.CommandText = "PRAGMA table_info(discord_link_code)";
+                await using var reader = await command.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    var name = reader["name"]?.ToString();
+                    if (!string.Equals(name, "expires_at", StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    var type = reader["type"]?.ToString();
+                    if (string.IsNullOrWhiteSpace(type))
+                        return false;
+
+                    return type.Contains("INT", StringComparison.OrdinalIgnoreCase);
+                }
+
+                return false;
+            }
+
+            command.CommandText =
+                "SELECT data_type FROM information_schema.columns " +
+                "WHERE table_name = 'discord_link_code' AND column_name = 'expires_at' LIMIT 1";
+            var result = await command.ExecuteScalarAsync();
+            var dataType = result?.ToString();
+            if (string.IsNullOrWhiteSpace(dataType))
+                return false;
+
+            return dataType.Contains("int", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static async Task<string?> ExecuteDiscordLinkCodeScalarAsync(
+            ServerDbContext dbContext,
+            string sql,
+            params (string Name, object? Value)[] parameters)
+        {
+            var connection = dbContext.Database.GetDbConnection();
+            if (connection.State != ConnectionState.Open)
+                await connection.OpenAsync();
+
+            await using var command = connection.CreateCommand();
+            command.CommandText = sql;
+            AddDiscordLinkCodeParameters(command, parameters);
+
+            var result = await command.ExecuteScalarAsync();
+            return result is null or DBNull ? null : result.ToString();
+        }
+
+        private static async Task ExecuteDiscordLinkCodeNonQueryAsync(
+            ServerDbContext dbContext,
+            string sql,
+            params (string Name, object? Value)[] parameters)
+        {
+            var connection = dbContext.Database.GetDbConnection();
+            if (connection.State != ConnectionState.Open)
+                await connection.OpenAsync();
+
+            await using var command = connection.CreateCommand();
+            command.CommandText = sql;
+            AddDiscordLinkCodeParameters(command, parameters);
+
+            await command.ExecuteNonQueryAsync();
+        }
+
+        private static void AddDiscordLinkCodeParameters(
+            DbCommand command,
+            params (string Name, object? Value)[] parameters)
+        {
+            foreach (var (name, value) in parameters)
+            {
+                var param = command.CreateParameter();
+                param.ParameterName = name;
+                param.Value = value ?? DBNull.Value;
+                command.Parameters.Add(param);
+            }
         }
         #endregion
 
