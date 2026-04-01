@@ -256,6 +256,15 @@ namespace Content.Client.Options.UI.Tabs
             AddButton(ContentKeyFunctions.MoveStoredItem);
             AddButton(ContentKeyFunctions.RotateStoredItem);
             AddButton(ContentKeyFunctions.SaveItemLocation);
+            // <Onyx-Posing>
+            AddButton(ContentKeyFunctions.TogglePosing);
+            AddButton(ContentKeyFunctions.PosingOffsetLeft);
+            AddButton(ContentKeyFunctions.PosingOffsetRight);
+            AddButton(ContentKeyFunctions.PosingOffsetUp);
+            AddButton(ContentKeyFunctions.PosingOffsetDown);
+            AddButton(ContentKeyFunctions.PosingRotateNegative);
+            AddButton(ContentKeyFunctions.PosingRotatePositive);
+            // </Onyx-Posing>
 
             AddButton(ContentKeyFunctions.OfferItem); // CorvaxGoob-Offer
             AddHeader("ui-options-header-interaction-adv");
