@@ -73,13 +73,13 @@ namespace Content.Client.Lobby.UI
         [Dependency] private readonly IConfigurationManager _cfg = default!;
         private float _updateTimer;
         private bool _panelUpdate = false;
-        // Цвета для кнопок (ADT-Const-Start)
+        // <Onyx-DiscordAuth>
         private static readonly Color ColorBlue = Color.FromHex("#1966ff");   // Синий
         private static readonly Color ColorRed = Color.FromHex("#AB3232"); // Красный
 
         private static readonly Color ColorGreen = Color.FromHex("#5DA130");   // Зелёный
         private static readonly Color ColorOrange = Color.FromHex("#FFA500");  // Оранжевый
-        // (ADT-Const-End)
+        // </Onyx-DiscordAuth>
 
         public LobbyGui()
         {
@@ -138,7 +138,7 @@ namespace Content.Client.Lobby.UI
                     break;
             }
         }
-        // ADT-Tweak-Start: Обновление кнопок
+        // <Onyx-DiscordAuth>
         protected override void FrameUpdate(FrameEventArgs args)
         {
             if (!_panelUpdate)
@@ -154,8 +154,6 @@ namespace Content.Client.Lobby.UI
                 UpdateButtons();
             }
         }
-        // ADT-Tweak-End
-        // ADT-Tweak-Start: Покраска кнопок в зависимости от привязки к Discord
 
         private void UpdateButtons()
         {
@@ -178,7 +176,7 @@ namespace Content.Client.Lobby.UI
             DiscordLinkButton.ModulateSelfOverride = color;
             DiscordLinkButton.Text = text;
         }
-        // ADT-Tweak-end
+        // </Onyx-DiscordAuth>
 
         private void TogglePanel(bool value)
         {

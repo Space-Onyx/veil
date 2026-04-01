@@ -28,6 +28,7 @@ public sealed class ServerDiscordIdManager : EntitySystem
         _sawmill = Logger.GetSawmill("discord-id");
 
         _net.RegisterNetMessage<MsgDiscordIdInfo>();
+        _net.RegisterNetMessage<MsgDiscordUnlinkRequest>(OnDiscordUnlinkRequest);
 
         _players.PlayerStatusChanged += OnPlayerStatusChanged;
         _net.Disconnect += OnDisconnected;
@@ -109,5 +110,30 @@ public sealed class ServerDiscordIdManager : EntitySystem
     public void SetDiscordId(NetUserId userId, string? discordId)
     {
         _cachedDiscordIds[userId] = discordId;
+    }
+
+    private async void OnDiscordUnlinkRequest(MsgDiscordUnlinkRequest msg)
+    {
+        var userId = msg.MsgChannel.UserId;
+
+        try
+        {
+            await _db.UnlinkDiscordIdAsync(userId.UserId);
+            _cachedDiscordIds[userId] = null;
+
+            var response = new MsgDiscordIdInfo
+            {
+                UserId = userId,
+                DiscordId = null,
+                DiscordUsername = null
+            };
+
+            _net.ServerSendMessage(response, msg.MsgChannel);
+            _sawmill.Info($"Discord account unlinked for {userId}.");
+        }
+        catch (Exception ex)
+        {
+            _sawmill.Error($"Failed to unlink Discord for {userId}: {ex}");
+        }
     }
 }

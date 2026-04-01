@@ -19,3 +19,4 @@ ui-lobby-discord-link-instructions-line1 = [color=white]Чтобы привяз�
 ui-lobby-discord-link-instructions-line2 = 1. Скопируйте ваш UID.
 ui-lobby-discord-link-instructions-line3 = 2. Перейдите в канал Discord: [color=yellow]{ $channelLink }[/color].
 ui-lobby-discord-link-instructions-line4 = 3. В Discord нажмите кнопку `Привязать аккаунт` и введите ваш UID.
+ui-lobby-discord-link-unlink-button = Отвязать Discord

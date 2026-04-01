@@ -137,9 +137,10 @@ namespace Content.Server.Database
         Task<NetUserId?> GetAssignedUserIdAsync(string name);
         #endregion
 
-        #region Discord ADT
+        #region Onyx DiscordAuth
         Task<string?> GetDiscordIdAsync(Guid userId);
         Task<Guid?> GetUserIdByDiscordIdAsync(string discordId);
+        Task UnlinkDiscordIdAsync(Guid userId);
         #endregion
 
         #region Bans
@@ -612,7 +613,7 @@ namespace Content.Server.Database
             return RunDbCommand(() => _db.AssignUserIdAsync(name, userId));
         }
 
-        // ADT-Tweak-start: Discord
+        // <Onyx-DiscordAuth>
         public Task<string?> GetDiscordIdAsync(Guid userId)
         {
             DbReadOpsMetric.Inc();
@@ -624,7 +625,13 @@ namespace Content.Server.Database
             DbReadOpsMetric.Inc();
             return RunDbCommand(() => _db.GetUserIdByDiscordIdAsync(discordId));
         }
-        // ADT-Tweak-end
+
+        public Task UnlinkDiscordIdAsync(Guid userId)
+        {
+            DbWriteOpsMetric.Inc();
+            return RunDbCommand(() => _db.UnlinkDiscordIdAsync(userId));
+        }
+        // </Onyx-DiscordAuth>
 
         public Task<NetUserId?> GetAssignedUserIdAsync(string name)
         {

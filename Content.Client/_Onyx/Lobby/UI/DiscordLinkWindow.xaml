@@ -51,6 +51,10 @@
                       Visible="false"
                       HorizontalExpand="True">
             <RichTextLabel Name="SuccessRichText" HorizontalExpand="True" />
+            <Button Name="UnlinkDiscordButton"
+                    Text="{Loc 'ui-lobby-discord-link-unlink-button'}"
+                    StyleClasses="Button"
+                    HorizontalExpand="True" />
         </BoxContainer>
     </BoxContainer>
 </DefaultWindow>

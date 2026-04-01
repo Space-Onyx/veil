@@ -56,6 +56,13 @@ public sealed partial class DiscordLinkWindow : DefaultWindow
                 _clipboard.SetText("");
         };
 
+        UnlinkDiscordButton.OnPressed += _ =>
+        {
+            _discordIdManager.RequestUnlink();
+        };
+
+        _discordIdManager.DiscordInfoUpdated += UpdateStatus;
+
         UpdateStatus();
     }
 
@@ -68,13 +75,17 @@ public sealed partial class DiscordLinkWindow : DefaultWindow
 
     private void CheckLinkDiscord()
     {
+        _discordId = null;
+        _discordUsername = null;
+        _isLinked = false;
+
         if (_discordIdManager.TryGetDiscordId(out var discordId))
         {
             _discordId = discordId;
             _isLinked = true;
         }
 
-        if (_discordIdManager.TryGetDiscordUsername(out var discordUsername))
+        if (_isLinked && _discordIdManager.TryGetDiscordUsername(out var discordUsername))
         {
             _discordUsername = discordUsername;
         }
@@ -83,7 +94,6 @@ public sealed partial class DiscordLinkWindow : DefaultWindow
     private void UpdateStatus()
     {
         CheckLinkDiscord();
-        Logger.Warning("Test UPDATE");
 
         if (_isLinked)
         {
@@ -122,5 +132,13 @@ public sealed partial class DiscordLinkWindow : DefaultWindow
             InstructionContainer.Visible = true;
             SuccessContainer.Visible = false;
         }
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+            _discordIdManager.DiscordInfoUpdated -= UpdateStatus;
+
+        base.Dispose(disposing);
     }
 }

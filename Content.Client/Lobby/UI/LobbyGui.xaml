@@ -72,8 +72,8 @@ SPDX-License-Identifier: AGPL-3.0-or-later
                                     </BoxContainer>
                                 </controls:StripeBack>
                                 <RichTextLabel Name="PlaytimeComment" Visible="False" Access="Public" HorizontalAlignment="Center" />
-                                <!-- ADT-Tweak-Start: Новая панель с двумя кнопками -->
-                                <controls:StripeBack Name="LobbyPanelLeftTop" Margin="1 -10 0 0" Visible="False">
+                                <!-- Onyx-DiscordAuth: Панель привязки дискорд аккаунта -->
+                                <controls:StripeBack Name="LobbyPanelLeftTop" Margin="1 0 0 0" Visible="False">
                                     <BoxContainer Orientation="Horizontal" SeparationOverride="3" Margin="1" Visible="True">
                                         <cc:UICommandButton Name="DiscordLinkButton"
                                                             Command="ui-lobby-discord-linc"
@@ -85,7 +85,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
                                                             Margin="3" />
                                     </BoxContainer>
                                 </controls:StripeBack>
-                                <!-- ADT-Tweak-End -->
+                                <!-- /Onyx-DiscordAuth -->
                             </BoxContainer>
                         </PanelContainer>
                         <!-- Voting Popups -->

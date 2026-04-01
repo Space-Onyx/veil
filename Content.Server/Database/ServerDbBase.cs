@@ -572,6 +572,21 @@ namespace Content.Server.Database
 
             return discordPlayer?.UserId;
         }
+
+        public async Task UnlinkDiscordIdAsync(Guid userId)
+        {
+            await using var db = await GetDb();
+
+            var discordUsers = await db.DbContext.DiscordUser
+                .Where(p => p.UserId == userId)
+                .ToListAsync();
+
+            if (discordUsers.Count == 0)
+                return;
+
+            db.DbContext.DiscordUser.RemoveRange(discordUsers);
+            await db.DbContext.SaveChangesAsync();
+        }
         #endregion
 
         #region Bans
