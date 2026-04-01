@@ -1,6 +1,6 @@
 using Content.Server.Discord;
 
-namespace Content.Server.ADT.Discord.Bans;
+namespace Content.Server._Onyx.Discord.Bans;
 
 public interface IDiscordBanPayloadGenerator
 {

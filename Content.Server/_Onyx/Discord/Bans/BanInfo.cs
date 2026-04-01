@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using Robust.Shared.Player;
 
-namespace Content.Server.ADT.Discord;
+namespace Content.Server._Onyx.Discord;
 
 public sealed class BanInfo
 {
