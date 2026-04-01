@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "license": "CC-BY-SA-3.0",
+  "copyright": "Taken from ADT: https://github.com/AdventureTimeSS14/space_station_ADT/commit/9117615b8e47f917126bcd3d887e5006c67bec85",
+  "size": {
+    "x": 32,
+    "y": 32
+  },
+  "states": [
+    {
+      "name": "icon"
+    },
+    {
+      "name": "arcade",
+      "directions": 4
+    },
+    {
+        "name": "panel",
+        "directions": 4
+    },
+    {
+      "name": "arcade_broken",
+      "directions": 4
+    },
+    {
+      "name": "screen_minesweeper",
+      "directions": 4,
+      "delays": [
+        [
+          0.2,
+          0.2,
+          0.2,
+          0.2,
+          0.2,
+          0.2,
+          0.2,
+          0.2,
+          0.2,
+          0.2,
+          0.2,
+          0.2,
+          0.2,
+          0.2,
+          0.2,
+          0.2,
+          0.2,
+          0.2,
+          0.2,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.5
+        ],
+        [
+          4.8
+        ],
+        [
+          4.8
+        ],
+        [
+          4.8
+        ]
+      ]
+    }
+  ]
+}
