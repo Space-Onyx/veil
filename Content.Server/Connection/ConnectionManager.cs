@@ -128,7 +128,6 @@ using Content.Goobstation.Common.CCVar;
 using Content.Corvax.Interfaces.Shared;
 using Content.Corvax.Interfaces.Server;
 using Content.Shared._CorvaxGoob.CCCVars; // CorvaxGoob - Queue
-using Content.Shared._Onyx.CCVar;
 using Serilog;
 
 /*
@@ -358,7 +357,7 @@ namespace Content.Server.Connection
 
             var adminData = await _db.GetAdminDataForAsync(e.UserId);
             // ADT-Tweak-Start: Check Auth for Discord ID
-            if (_cfg.GetCVar(ADTCCVars.DiscordAuthEnable) && adminData == null)
+            if (_cfg.GetCVar(CCVars.DiscordAuthEnable) && adminData == null)
             {
                 var discordId = await _db.GetDiscordIdAsync(userId);
                 if (discordId != null)

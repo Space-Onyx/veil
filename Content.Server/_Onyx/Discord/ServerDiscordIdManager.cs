@@ -1,8 +1,8 @@
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Content.Server._Onyx.Administration;
 using Content.Server.Database;
-using Content.Shared._Onyx.CCVar;
+using Content.Shared.CCVar;
 using Content.Shared._Onyx.Discord;
 using Robust.Server.Player;
 using Robust.Shared.Configuration;
@@ -17,6 +17,7 @@ public sealed class ServerDiscordIdManager : EntitySystem
     [Dependency] private readonly IServerNetManager _net = default!;
     [Dependency] private readonly IServerDbManager _db = default!;
     [Dependency] private readonly IPlayerManager _players = default!;
+    [Dependency] private readonly IConfigurationManager _cfg = default!;
 
     private readonly Dictionary<NetUserId, string?> _cachedDiscordIds = new();
     private ISawmill _sawmill = default!;
@@ -103,8 +104,7 @@ public sealed class ServerDiscordIdManager : EntitySystem
         {
             try
             {
-                var cfg = IoCManager.Resolve<IConfigurationManager>();
-                var botToken = cfg.GetCVar(ADTCCVars.DiscordTokenBot);
+                var botToken = _cfg.GetCVar(CCVars.DiscordTokenBot);
                 discordUsername = await AuthApiHelper.GetAccountDiscord(discordUlong, botToken);
             }
             catch (Exception ex)
@@ -140,6 +140,10 @@ public sealed class ServerDiscordIdManager : EntitySystem
             };
 
             _net.ServerSendMessage(response, msg.MsgChannel);
+
+            if (_cfg.GetCVar(CCVars.DiscordAuthLinkRequired))
+                _net.DisconnectChannel(msg.MsgChannel, "Отвязка дискорд аккаунта.");
+
             _sawmill.Info($"Discord account unlinked for {userId}.");
         }
         catch (Exception ex)

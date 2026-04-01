@@ -1,6 +1,6 @@
 using Content.Server._Onyx.Administration;
 using Content.Shared.Administration;
-using Content.Shared._Onyx.CCVar;
+using Content.Shared.CCVar;
 using Robust.Shared.Configuration;
 using Robust.Shared.Console;
 
@@ -23,7 +23,7 @@ public sealed class ResolveDiscordNameCommand : IConsoleCommand
         }
 
         var cfg = IoCManager.Resolve<IConfigurationManager>();
-        var botToken = cfg.GetCVar(ADTCCVars.DiscordTokenBot);
+        var botToken = cfg.GetCVar(CCVars.DiscordTokenBot);
 
         if (!ulong.TryParse(args[0], out var discordId))
         {
