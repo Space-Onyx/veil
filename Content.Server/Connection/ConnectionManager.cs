@@ -128,6 +128,8 @@ using Content.Goobstation.Common.CCVar;
 using Content.Corvax.Interfaces.Shared;
 using Content.Corvax.Interfaces.Server;
 using Content.Shared._CorvaxGoob.CCCVars; // CorvaxGoob - Queue
+using Content.Shared._Onyx.CCVar;
+using Serilog;
 
 /*
  * TODO: Remove baby jail code once a more mature gateway process is established. This code is only being issued as a stopgap to help with potential tiding in the immediate future.
@@ -355,8 +357,31 @@ namespace Content.Server.Connection
             }
 
             var adminData = await _db.GetAdminDataForAsync(e.UserId);
-
-            // CorvaxGoob-Start: Allow privileged players bypass bunker
+            // ADT-Tweak-Start: Check Auth for Discord ID
+            if (_cfg.GetCVar(ADTCCVars.DiscordAuthEnable) && adminData == null)
+            {
+                var discordId = await _db.GetDiscordIdAsync(userId);
+                if (discordId != null)
+                {
+                    Log.Debug($"Discord ID for user {userId.ToString()}: {discordId}");
+                }
+                else
+                {
+                    return (
+                        ConnectionDenyReason.DiscordAuth,
+                        $"You are not authorized through discord!\n\n"
+                        + "Присоединитесь к нашему дискорд серверу:\n"
+                        + "https://discord.com/invite/NY3KDNuH9r\n\n"
+                        + "И авторизуйтесь здесь:\n"
+                        + "https://discord.com/channels/901772674865455115/1351213738774237184\n\n"
+                        + $"Введите uid вашего аккаунта: {userId.ToString()}\n"
+                        + "ВНИМАНИЕ: Не показывайте этот uid никому, кроме администрации!",
+                        null
+                    );
+                }
+            }
+            // ADT-Tweak-End
+            // Corvax-Start: Allow privileged players bypass bunker
             var isPrivileged = await HavePrivilegedJoin(e.UserId);
             if (_cfg.GetCVar(CCVars.PanicBunkerEnabled) && adminData == null && !isPrivileged)
             // CorvaxGoob-End

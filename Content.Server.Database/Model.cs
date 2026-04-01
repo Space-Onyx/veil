@@ -45,6 +45,7 @@ namespace Content.Server.Database
         public DbSet<AdminMessage> AdminMessages { get; set; } = null!;
         public DbSet<RoleWhitelist> RoleWhitelists { get; set; } = null!;
         public DbSet<BanTemplate> BanTemplate { get; set; } = null!;
+        public DbSet<DiscordUser> DiscordUser { get; set; } = null!; // ADT-Discord
         public DbSet<IPIntelCache> IPIntelCache { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -668,6 +669,15 @@ namespace Content.Server.Database
         public AdminRank Rank { get; set; } = default!;
     }
 
+    // ADT-Discord-Start
+    public class DiscordUser
+    {
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
+        public Guid UserId { get; set; }
+        public string DiscordId { get; set; } = default!;
+    }
+    // ADT-Discord-End
     public class Round
     {
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -996,6 +1006,7 @@ namespace Content.Server.Database
         BabyJail = 4,
         /// Results from rejected connections with external API checking tools
         IPChecks = 5,
+        DiscordAuth = 6, // ADT-Tweak-add
         /// Results from rejected connections who are authenticated but have no modern hwid associated with them.
         NoHwid = 6
     }

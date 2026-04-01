@@ -160,6 +160,7 @@ using Robust.Shared.Prototypes;
 using Robust.Shared.Replays;
 using Robust.Shared.Timing;
 using Content.Client._White.ItemSlotRenderer;
+using Content.Client._Onyx.Discord;
 
 namespace Content.Client.Entry
 {
@@ -198,6 +199,7 @@ namespace Content.Client.Entry
         [Dependency] private readonly TitleWindowManager _titleWindowManager = default!;
         [Dependency] private readonly IEntitySystemManager _entitySystemManager = default!;
         [Dependency] private readonly ClientsidePlaytimeTrackingManager _clientsidePlaytimeManager = default!;
+        [Dependency] private readonly DiscordIdManager _discordIdManager = default!;  // ADT export
 
         public override void Init()
         {
@@ -300,6 +302,7 @@ namespace Content.Client.Entry
             _voteManager.Initialize();
             _userInterfaceManager.SetDefaultTheme("SS14DefaultTheme");
             _userInterfaceManager.SetActiveTheme(_configManager.GetCVar(CVars.InterfaceTheme));
+            _discordIdManager.Initialize(); // ADT-Discord
             _documentParsingManager.Initialize();
             _titleWindowManager.Initialize();
 

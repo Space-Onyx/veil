@@ -137,6 +137,11 @@ namespace Content.Server.Database
         Task<NetUserId?> GetAssignedUserIdAsync(string name);
         #endregion
 
+        #region Discord ADT
+        Task<string?> GetDiscordIdAsync(Guid userId);
+        Task<Guid?> GetUserIdByDiscordIdAsync(string discordId);
+        #endregion
+
         #region Bans
         /// <summary>
         ///     Looks up a ban by id.
@@ -606,6 +611,20 @@ namespace Content.Server.Database
             DbWriteOpsMetric.Inc();
             return RunDbCommand(() => _db.AssignUserIdAsync(name, userId));
         }
+
+        // ADT-Tweak-start: Discord
+        public Task<string?> GetDiscordIdAsync(Guid userId)
+        {
+            DbReadOpsMetric.Inc();
+            return RunDbCommand(() => _db.GetDiscordIdAsync(userId));
+        }
+
+        public Task<Guid?> GetUserIdByDiscordIdAsync(string discordId)
+        {
+            DbReadOpsMetric.Inc();
+            return RunDbCommand(() => _db.GetUserIdByDiscordIdAsync(discordId));
+        }
+        // ADT-Tweak-end
 
         public Task<NetUserId?> GetAssignedUserIdAsync(string name)
         {

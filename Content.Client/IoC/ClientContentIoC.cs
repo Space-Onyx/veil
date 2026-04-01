@@ -151,6 +151,7 @@ using Content.Shared.Administration.Managers;
 using Content.Shared.Chat;
 using Content.Shared.Players.PlayTimeTracking;
 using Content.Shared.Players.RateLimiting;
+using Content.Client._Onyx.Discord;
 
 namespace Content.Client.IoC
 {
@@ -162,6 +163,7 @@ namespace Content.Client.IoC
 
             collection.Register<IParallaxManager, ParallaxManager>();
             collection.Register<GeneratedParallaxCache>();
+            collection.Register<DiscordIdManager>(); // ADT Discord
             collection.Register<IChatManager, ChatManager>();
             collection.Register<ISharedChatManager, ChatManager>();
             collection.Register<IClientPreferencesManager, ClientPreferencesManager>();
