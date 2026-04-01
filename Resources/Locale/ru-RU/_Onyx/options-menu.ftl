@@ -17,3 +17,11 @@ ui-options-zlevel-hole-shadow-max-distance-12 = 12 тайлов
 ui-options-zlevel-hole-shadow-max-distance-16 = 16 тайлов
 ui-options-zlevel-hole-shadow-max-distance-24 = 24 тайла
 ui-options-zlevel-hole-shadow-max-distance-32 = 32 тайла
+
+ui-options-function-toggle-posing = Переключить режим позирования
+ui-options-function-posing-offset-left = Переместиться влево (позирование)
+ui-options-function-posing-offset-right = Переместиться вправо (позирование)
+ui-options-function-posing-offset-up = Переместиться вверх (позирование)
+ui-options-function-posing-offset-down = Переместиться вниз (позирование)
+ui-options-function-posing-rotate-negative = Повернуть против часовой (позирование)
+ui-options-function-posing-rotate-positive = Повернуть по часовой (позирование)

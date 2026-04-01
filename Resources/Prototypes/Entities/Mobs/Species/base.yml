@@ -516,6 +516,7 @@
   - type: VisibleContraband # Goobstation
   - type: SpeechBarks # Onyx
   - type: MomentumSteering # Goobstation - No steer
+  - type: Posing # <Onyx-Posing>
 
 - type: entity
   save: false
