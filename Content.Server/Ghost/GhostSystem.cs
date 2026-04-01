@@ -119,6 +119,7 @@ using Content.Shared.Popups;
 using Content.Shared.Storage.Components;
 using Content.Shared.Tag;
 using Content.Shared._White.Xenomorphs.Infection;
+using Content.Shared._Onyx.Ghost;
 using Robust.Server.GameObjects;
 using Robust.Shared.Configuration;
 using Robust.Shared.Map;
@@ -198,6 +199,7 @@ namespace Content.Server.Ghost
 
             SubscribeNetworkEvent<GhostWarpsRequestEvent>(OnGhostWarpsRequest);
             SubscribeNetworkEvent<GhostReturnToBodyRequest>(OnGhostReturnToBodyRequest);
+            SubscribeNetworkEvent<GhostReturnToLobbyRequestEvent>(OnGhostReturnToLobbyRequest); // <Onyx-Ghost>
             SubscribeNetworkEvent<GhostWarpToTargetRequestEvent>(OnGhostWarpToTargetRequest);
             SubscribeNetworkEvent<GhostnadoRequestEvent>(OnGhostnadoRequest);
 
@@ -210,6 +212,28 @@ namespace Content.Server.Ghost
 
             SubscribeLocalEvent<GhostComponent, GetVisMaskEvent>(OnGhostVis);
         }
+
+        // <Onyx-Ghost>
+        public override void Update(float frameTime)
+        {
+            base.Update(frameTime);
+
+            var now = _gameTiming.CurTime;
+            var maxPlayers = _configurationManager.GetCVar(CCVars.GhostReturnToLobbyMaxPlayers);
+            var onlinePlayers = _player.PlayerCount;
+            var query = EntityQueryEnumerator<GhostComponent>();
+            while (query.MoveNext(out var uid, out var ghost))
+            {
+                var canReturn = GhostReturnToLobbyLogic.CanReturn(now, ghost.ReturnToLobbyAvailableAt, onlinePlayers, maxPlayers);
+
+                if (ghost.CanReturnToLobby == canReturn)
+                    continue;
+
+                ghost.CanReturnToLobby = canReturn;
+                Dirty(uid, ghost);
+            }
+        }
+        // </Onyx-Ghost>
 
         private void OnGhostVis(Entity<GhostComponent> ent, ref GetVisMaskEvent args)
         {
@@ -307,6 +331,18 @@ namespace Content.Server.Ghost
             _eye.RefreshVisibilityMask(uid);
             var time = _gameTiming.CurTime;
             component.TimeOfDeath = time;
+
+            // <Onyx-Ghost>
+            var delaySeconds = _configurationManager.GetCVar(CCVars.GhostReturnToLobbyDelay);
+            component.ReturnToLobbyAvailableAt = GhostReturnToLobbyLogic.ComputeAvailableAt(time, delaySeconds);
+            var maxPlayers = _configurationManager.GetCVar(CCVars.GhostReturnToLobbyMaxPlayers);
+            component.CanReturnToLobby = GhostReturnToLobbyLogic.CanReturn(
+                time,
+                component.ReturnToLobbyAvailableAt,
+                _player.PlayerCount,
+                maxPlayers);
+            Dirty(uid, component);
+            // </Onyx-Ghost>
         }
 
         private void OnGhostShutdown(EntityUid uid, GhostComponent component, ComponentShutdown args)
@@ -387,6 +423,49 @@ namespace Content.Server.Ghost
 
             _mind.UnVisit(actor.PlayerSession);
         }
+
+        // <Onyx-Ghost>
+        private void OnGhostReturnToLobbyRequest(GhostReturnToLobbyRequestEvent msg, EntitySessionEventArgs args)
+        {
+            if (args.SenderSession.AttachedEntity is not { Valid: true } attached
+                || !_ghostQuery.TryComp(attached, out var ghost)
+                || !TryComp(attached, out ActorComponent? actor))
+            {
+                Log.Warning($"User {args.SenderSession.Name} sent an invalid {nameof(GhostReturnToLobbyRequestEvent)}");
+                return;
+            }
+
+            if (!_configurationManager.GetCVar(CCVars.GhostReturnToLobbyEnabled))
+                return;
+
+            var maxPlayers = _configurationManager.GetCVar(CCVars.GhostReturnToLobbyMaxPlayers);
+            var canReturn = GhostReturnToLobbyLogic.CanReturn(
+                _gameTiming.CurTime,
+                ghost.ReturnToLobbyAvailableAt,
+                _player.PlayerCount,
+                maxPlayers);
+
+            if (!canReturn)
+            {
+                if (ghost.CanReturnToLobby)
+                {
+                    ghost.CanReturnToLobby = false;
+                    Dirty(attached, ghost);
+                }
+                return;
+            }
+
+            if (!ghost.CanReturnToLobby)
+            {
+                ghost.CanReturnToLobby = true;
+                Dirty(attached, ghost);
+            }
+
+            _chatManager.DispatchServerMessage(actor.PlayerSession, Loc.GetString("ghost-return-to-lobby-warning"), true);
+            _gameTicker.Respawn(actor.PlayerSession);
+            _chatManager.DispatchServerMessage(actor.PlayerSession, Loc.GetString("game-ticker-player-join-game-message"));
+        }
+        // </Onyx-Ghost>
 
         #region Warp
 

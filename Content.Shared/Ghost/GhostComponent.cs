@@ -112,6 +112,14 @@ public sealed partial class GhostComponent : Component
     [DataField]
     public bool CanTakeGhostRoles = true;
     // Goobstation end;
+
+    // <Onyx-Ghost>
+    [DataField, AutoPausedField, AutoNetworkedField]
+    public TimeSpan ReturnToLobbyAvailableAt = TimeSpan.Zero;
+
+    [DataField, AutoNetworkedField]
+    public bool CanReturnToLobby;
+    // </Onyx-Ghost>    
 }
 
 public sealed partial class ToggleFoVActionEvent : InstantActionEvent { }

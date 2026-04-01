@@ -24,9 +24,13 @@ using Content.Client.Ghost;
 using Content.Client.UserInterface.Systems.Gameplay;
 using Content.Client.UserInterface.Systems.Ghost.Widgets;
 using Content.Goobstation.Shared.MisandryBox.Thunderdome;
+using Content.Shared.CCVar;
 using Content.Shared.Ghost;
+using Content.Shared._Onyx.Ghost;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controllers;
+using Robust.Shared.Configuration;
+using Robust.Shared.Timing;
 
 namespace Content.Client.UserInterface.Systems.Ghost;
 
@@ -34,7 +38,9 @@ namespace Content.Client.UserInterface.Systems.Ghost;
 public sealed class GhostUIController : UIController, IOnSystemChanged<GhostSystem>
 {
     [Dependency] private readonly IEntityManager _entManager = default!;
+    [Dependency] private readonly IConfigurationManager _cfg = default!; // <Onyx-Ghost>
     [Dependency] private readonly IEntityNetworkManager _net = default!;
+    [Dependency] private readonly IGameTiming _timing = default!; // <Onyx-Ghost>
     [UISystemDependency] private readonly GhostSystem? _system = default;
 
     private GhostGui? Gui => UIManager.GetActiveUIWidgetOrNull<GhostGui>();
@@ -91,7 +97,17 @@ public sealed class GhostUIController : UIController, IOnSystemChanged<GhostSyst
 
         Gui.Visible = _system?.IsGhost ?? false;
         Gui.Update(_system?.AvailableGhostRoleCount, _system?.Player?.CanReturnToBody, _system?.Player?.CanTakeGhostRoles);
+        UpdateReturnToLobbyButton(); // <Onyx-Ghost>
     }
+
+    // <Onyx-Ghost>
+    public override void FrameUpdate(FrameEventArgs args)
+    {
+        if (Gui == null || _system?.IsGhost != true || !Gui.Visible)
+            return;
+        UpdateReturnToLobbyButton();
+    }
+    // </Onyx-Ghost>
 
     private void OnPlayerRemoved(GhostComponent component)
     {
@@ -152,6 +168,7 @@ public sealed class GhostUIController : UIController, IOnSystemChanged<GhostSyst
         Gui.ReturnToBodyPressed += ReturnToBody;
         Gui.GhostRolesPressed += GhostRolesPressed;
         Gui.ThunderdomePressed += ThunderdomePressed; // Goobstation - Thunderdome
+        Gui.ReturnToLobbyPressed += ReturnToLobbyPressed; // <Onyx-Ghost>
         Gui.TargetWindow.WarpClicked += OnWarpClicked;
         Gui.TargetWindow.OnGhostnadoClicked += OnGhostnadoClicked;
 
@@ -167,6 +184,7 @@ public sealed class GhostUIController : UIController, IOnSystemChanged<GhostSyst
         Gui.ReturnToBodyPressed -= ReturnToBody;
         Gui.GhostRolesPressed -= GhostRolesPressed;
         Gui.ThunderdomePressed -= ThunderdomePressed; // Goobstation - Thunderdome
+        Gui.ReturnToLobbyPressed -= ReturnToLobbyPressed; // <Onyx-Ghost>
         Gui.TargetWindow.WarpClicked -= OnWarpClicked;
 
         Gui.Hide();
@@ -189,11 +207,57 @@ public sealed class GhostUIController : UIController, IOnSystemChanged<GhostSyst
         _system?.OpenGhostRoles();
     }
 
+    // <Onyx-Ghost>
+    private void UpdateReturnToLobbyButton()
+    {
+        if (Gui == null)
+            return;
+
+        if (!_cfg.GetCVar(CCVars.GhostReturnToLobbyEnabled)
+            || _system?.Player is not { } player)
+        {
+            Gui.UpdateReturnToLobbyButton(false, false, Loc.GetString("ghost-return-to-lobby-button-ready"));
+            return;
+        }
+
+        var canReturn = player.CanReturnToLobby;
+        var remaining = GhostReturnToLobbyLogic.GetRemaining(_timing.CurTime, player.ReturnToLobbyAvailableAt);
+
+        var text = Loc.GetString("ghost-return-to-lobby-button-ready");
+        if (!canReturn)
+        {
+            if (remaining > TimeSpan.Zero)
+            {
+                var totalSeconds = (int) System.Math.Ceiling(remaining.TotalSeconds);
+                if (totalSeconds < 0)
+                    totalSeconds = 0;
+
+                var minutes = (totalSeconds / 60).ToString("00");
+                var seconds = (totalSeconds % 60).ToString("00");
+                text = Loc.GetString("ghost-return-to-lobby-button-timer", ("minutes", minutes), ("seconds", seconds));
+            }
+            else
+            {
+                text = Loc.GetString("ghost-return-to-lobby-button-player-limit");
+            }
+        }
+
+        Gui.UpdateReturnToLobbyButton(true, canReturn, text);
+    }
+    // </Onyx-Ghost>
+
     // Goobstation - Thunderdome
     private void ThunderdomePressed()
     {
         _net.SendSystemNetworkMessage(new ThunderdomeJoinRequestEvent());
     }
+    
+    // <Onyx-Ghost>
+    private void ReturnToLobbyPressed()
+    {
+        _system?.ReturnToLobby();
+    }
+    // </Onyx-Ghost>
 
     private void OnThunderdomePlayerCount(ThunderdomePlayerCountEvent ev)
     {
