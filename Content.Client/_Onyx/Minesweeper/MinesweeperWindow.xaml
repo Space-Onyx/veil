@@ -6,7 +6,7 @@
     xmlns:gfx="clr-namespace:Robust.Client.Graphics;assembly=Robust.Client"
     Title="{Loc 'minesweeper-window-title'}"
     MinSize="900 700"
-    x:Class="Content.Client.ADT.Minesweeper.MinesweeperWindow">
+    x:Class="Content.Client._Onyx.Minesweeper.MinesweeperWindow">
 
     <!-- Фон и границы окна -->
     <PanelContainer Name="Background" StyleClasses="PdaBackgroundRect" ModulateSelfOverride="#0e0e0eff"/>
