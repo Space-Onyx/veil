@@ -27,7 +27,7 @@ public sealed class ServerDiscordIdManager : EntitySystem
 
         _sawmill = Logger.GetSawmill("discord-id");
 
-        _net.RegisterNetMessage<MsgDiscordIdInfo>();
+        _net.RegisterNetMessage<MsgDiscordIdInfo>(OnDiscordIdInfoRequest);
         _net.RegisterNetMessage<MsgDiscordUnlinkRequest>(OnDiscordUnlinkRequest);
 
         _players.PlayerStatusChanged += OnPlayerStatusChanged;
@@ -53,33 +53,7 @@ public sealed class ServerDiscordIdManager : EntitySystem
             _sawmill.Warning($"Discord ID for {userId} already cached at InGame. Overwriting.");
         }
 
-        var discordId = await LoadDiscordId(userId);
-        _cachedDiscordIds[userId] = discordId;
-
-        string? discordUsername = null;
-
-        if (discordId != null && ulong.TryParse(discordId, out var discordUlong))
-        {
-            try
-            {
-                var cfg = IoCManager.Resolve<IConfigurationManager>();
-                var botToken = cfg.GetCVar(ADTCCVars.DiscordTokenBot);
-                discordUsername = await AuthApiHelper.GetAccountDiscord(discordUlong, botToken);
-            }
-            catch (Exception ex)
-            {
-                _sawmill.Error($"Failed to fetch Discord username for {discordId}: {ex}");
-            }
-        }
-
-        var msg = new MsgDiscordIdInfo
-        {
-            UserId = userId,
-            DiscordId = discordId,
-            DiscordUsername = discordUsername
-        };
-
-        _net.ServerSendMessage(msg, session.Channel);
+        await SendDiscordInfo(session.Channel);
     }
 
     private async Task<string?> LoadDiscordId(NetUserId userId)
@@ -110,6 +84,43 @@ public sealed class ServerDiscordIdManager : EntitySystem
     public void SetDiscordId(NetUserId userId, string? discordId)
     {
         _cachedDiscordIds[userId] = discordId;
+    }
+
+    private async void OnDiscordIdInfoRequest(MsgDiscordIdInfo msg)
+    {
+        await SendDiscordInfo(msg.MsgChannel);
+    }
+
+    private async Task SendDiscordInfo(INetChannel channel)
+    {
+        var userId = channel.UserId;
+        var discordId = await LoadDiscordId(userId);
+        _cachedDiscordIds[userId] = discordId;
+
+        string? discordUsername = null;
+
+        if (discordId != null && ulong.TryParse(discordId, out var discordUlong))
+        {
+            try
+            {
+                var cfg = IoCManager.Resolve<IConfigurationManager>();
+                var botToken = cfg.GetCVar(ADTCCVars.DiscordTokenBot);
+                discordUsername = await AuthApiHelper.GetAccountDiscord(discordUlong, botToken);
+            }
+            catch (Exception ex)
+            {
+                _sawmill.Error($"Failed to fetch Discord username for {discordId}: {ex}");
+            }
+        }
+
+        var msg = new MsgDiscordIdInfo
+        {
+            UserId = userId,
+            DiscordId = discordId,
+            DiscordUsername = discordUsername
+        };
+
+        _net.ServerSendMessage(msg, channel);
     }
 
     private async void OnDiscordUnlinkRequest(MsgDiscordUnlinkRequest msg)

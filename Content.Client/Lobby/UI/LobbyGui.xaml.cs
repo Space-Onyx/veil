@@ -101,6 +101,8 @@ namespace Content.Client.Lobby.UI
             {
                 LobbyPanelLeftTop.Visible = true;
                 _panelUpdate = true;
+                _discordIdManager.DiscordInfoUpdated += OnDiscordInfoUpdated;
+                _discordIdManager.RequestDiscordInfo();
                 UpdateButtons();
             }
             else
@@ -151,8 +153,17 @@ namespace Content.Client.Lobby.UI
             if (_updateTimer > 5.0f)
             {
                 _updateTimer = 0;
+                _discordIdManager.RequestDiscordInfo();
                 UpdateButtons();
             }
+        }
+
+        private void OnDiscordInfoUpdated()
+        {
+            if (!_panelUpdate)
+                return;
+
+            UpdateButtons();
         }
 
         private void UpdateButtons()
@@ -182,6 +193,14 @@ namespace Content.Client.Lobby.UI
         {
             RightSide.Visible = value;
             ExpandPanel.Visible = !value;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+                _discordIdManager.DiscordInfoUpdated -= OnDiscordInfoUpdated;
+
+            base.Dispose(disposing);
         }
 
         public enum LobbyGuiState : byte

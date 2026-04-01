@@ -43,4 +43,9 @@ public sealed class DiscordIdManager
     {
         _netMgr.ClientSendMessage(new MsgDiscordUnlinkRequest());
     }
+
+    public void RequestDiscordInfo()
+    {
+        _netMgr.ClientSendMessage(new MsgDiscordIdInfo());
+    }
 }

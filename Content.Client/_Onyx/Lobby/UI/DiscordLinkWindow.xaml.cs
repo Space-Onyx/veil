@@ -69,6 +69,7 @@ public sealed partial class DiscordLinkWindow : DefaultWindow
     protected override void Opened()
     {
         base.Opened();
+        _discordIdManager.RequestDiscordInfo();
         UpdateStatus();
     }
 
