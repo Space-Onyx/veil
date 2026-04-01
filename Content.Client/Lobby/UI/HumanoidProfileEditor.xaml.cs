@@ -156,7 +156,7 @@
 using System.IO;
 using System.Linq;
 using System.Numerics;
-using Content.Client.ADT.Lobby.UI;
+using Content.Client._Onyx.Lobby.UI;
 using Content.Client.Guidebook;
 using Content.Client.Humanoid;
 using Content.Client.Lobby.UI.Loadouts;
@@ -167,7 +167,7 @@ using Content.Client.Sprite;
 using Content.Client.Stylesheets;
 using Content.Client.UserInterface.Systems.Guidebook;
 using Content.Shared._CorvaxGoob.CCCVars;
-using Content.Shared.ADT.CCVar;
+using Content.Shared._Onyx.CCVar;
 using Content.Shared._Onyx.SpeechBarks;
 using Content.Shared.CCVar;
 using Content.Shared.Clothing;

@@ -24,7 +24,7 @@ using Robust.Shared.Timing;
 using Robust.Shared.Random;
 using Robust.Shared.Configuration;
 using Content.Shared._Onyx.SpeechBarks;
-using Content.Shared.ADT.CCVar;
+using Content.Shared._Onyx.CCVar;
 using Content.Goobstation.Common.Speech;
 
 

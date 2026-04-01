@@ -12,7 +12,7 @@ using Content.Shared._CorvaxGoob;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Audio.Components;
 using Robust.Shared.Spawners;
-using Content.Shared.ADT.CCVar;
+using Content.Shared._Onyx.CCVar;
 
 namespace Content.Client._CorvaxGoob.TTS;
 

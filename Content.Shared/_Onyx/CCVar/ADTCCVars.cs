@@ -1,6 +1,6 @@
 using Robust.Shared.Configuration;
 
-namespace Content.Shared.ADT.CCVar;
+namespace Content.Shared._Onyx.CCVar;
 
 [CVarDefs]
 public sealed class ADTCCVars

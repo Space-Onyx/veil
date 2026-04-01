@@ -1,4 +1,4 @@
-using Content.Shared.ADT.CCVar;
+using Content.Shared._Onyx.CCVar;
 using Content.Shared.VoiceMask;
 using Content.Shared._Onyx.SpeechBarks;
 using Robust.Shared.Configuration;

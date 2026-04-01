@@ -2,7 +2,7 @@ using Robust.Shared.Prototypes;
 using Content.Shared._Onyx.SpeechBarks;
 using Content.Server.Chat.Systems;
 using Robust.Shared.Configuration;
-using Content.Shared.ADT.CCVar;
+using Content.Shared._Onyx.CCVar;
 using Content.Server.Mind;
 using Robust.Shared.Player;
 using Robust.Shared.Audio;

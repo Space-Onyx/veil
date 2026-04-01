@@ -8,7 +8,7 @@ using Robust.Shared.Audio.Systems;
 using Robust.Shared.Configuration;
 using System.Threading.Tasks;
 using Robust.Client.Player;
-using Content.Shared.ADT.CCVar;
+using Content.Shared._Onyx.CCVar;
 using Robust.Shared.Timing;
 using Robust.Shared.Map;
 using Robust.Client.Audio;

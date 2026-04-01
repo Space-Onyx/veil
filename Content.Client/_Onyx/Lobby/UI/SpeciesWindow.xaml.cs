@@ -15,7 +15,7 @@ using Robust.Client.UserInterface.XAML;
 using Robust.Shared.ContentPack;
 using Robust.Shared.Prototypes;
 
-namespace Content.Client.ADT.Lobby.UI;
+namespace Content.Client._Onyx.Lobby.UI;
 
 [GenerateTypedNameReferences]
 public sealed partial class SpeciesWindow : FancyWindow
