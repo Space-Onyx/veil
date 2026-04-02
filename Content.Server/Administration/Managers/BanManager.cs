@@ -96,7 +96,7 @@ public sealed partial class BanManager : IBanManager, IPostInjectInit
     private string _webhookUrl = string.Empty;
     private WebhookData? _webhookData;
     private string _webhookName = "Onyx Bans";
-    private string _webhookAvatarUrl = "https://cdn.discordapp.com/icons/1151571914213564418/d2c5167a0d6b9b5e60be12abfa423411.webp?size=1024";
+    private string _webhookAvatarUrl = "https://images-ext-1.discordapp.net/external/6BfbWgaTaYadOagIrOPkAwAr05u4NGq0EHxmJC5EuFc/https/cdn.discordapp.com/icons/1474158623834898648/253afc0fa0bc68b69a257b3ef30c7cd9.png?format=webp&quality=lossless&width=102&height=102";
     private List<IPAddress?> _ipWhitelist = [];
     public event EventHandler<BanIssuedEventArgs>? BanIssued;
     public event EventHandler<BanPardonedEventArgs>? BanPardoned;
@@ -557,23 +557,12 @@ public sealed partial class BanManager : IBanManager, IPostInjectInit
         foreach (var role in roles)
             rolesString += $"\n> `{role}`";
 
-        string? adminDiscordId = null;
-        string? targetDiscordId = null;
+        var (adminLink, adminDiscordId) = await GetDiscordMention(banDef.BanningAdmin);
+        var (targetLink, targetDiscordId) = await GetDiscordMention(banDef.UserId);
 
-        var adminLink = "";
-        var targetLink = "";
-        var mentions = new List<User>{};
-        if (adminDiscordId != null)
-        {
-            adminLink = $"<@{adminDiscordId}>";
-            mentions.Add(new User(){Id = adminDiscordId});
-        }
-
-        if (targetDiscordId != null)
-        {
-            targetLink = $"<@{targetDiscordId}>";
-            mentions.Add(new User(){Id = targetDiscordId});
-        }
+        var mentions = new List<User>();
+        AddMentionIfExists(mentions, adminDiscordId);
+        AddMentionIfExists(mentions, targetDiscordId);
 
         var allowedMentions = new Dictionary<string, string[]>
         {
@@ -594,7 +583,9 @@ public sealed partial class BanManager : IBanManager, IPostInjectInit
                         Description = Loc.GetString(
             "server-role-ban-string",
             ("targetName", targetName),
+            ("targetDiscord", targetLink),
             ("adminName", adminName),
+            ("adminDiscord", adminLink),
             ("TimeNow", timeNow),
             ("roles", rolesString),
             ("expiresString", expiresString),
@@ -627,7 +618,9 @@ public sealed partial class BanManager : IBanManager, IPostInjectInit
                         Description = Loc.GetString(
             "server-perma-role-ban-string",
             ("targetName", targetName),
+            ("targetDiscord", targetLink),
             ("adminName", adminName),
+            ("adminDiscord", adminLink),
             ("TimeNow", timeNow),
             ("roles", rolesString),
             ("expiresString", expiresString),
@@ -671,23 +664,12 @@ public sealed partial class BanManager : IBanManager, IPostInjectInit
             DateTime.UtcNow,
             TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time"));
 
-        string? adminDiscordId = null;
-        string? targetDiscordId = null;
+        var (adminLink, adminDiscordId) = await GetDiscordMention(banDef.BanningAdmin);
+        var (targetLink, targetDiscordId) = await GetDiscordMention(banDef.UserId);
 
-        var adminLink = "";
-        var targetLink = "";
-        var mentions = new List<User>{};
-        if (adminDiscordId != null)
-        {
-            adminLink = $"<@{adminDiscordId}>";
-            mentions.Add(new User(){Id = adminDiscordId});
-        }
-
-        if (targetDiscordId != null)
-        {
-            targetLink = $"<@{targetDiscordId}>";
-            mentions.Add(new User(){Id = targetDiscordId});
-        }
+        var mentions = new List<User>();
+        AddMentionIfExists(mentions, adminDiscordId);
+        AddMentionIfExists(mentions, targetDiscordId);
 
         var allowedMentions = new Dictionary<string, string[]>
         {
@@ -708,7 +690,9 @@ public sealed partial class BanManager : IBanManager, IPostInjectInit
                         Description = Loc.GetString(
             "server-time-ban-string",
             ("targetName", targetName),
+            ("targetDiscord", targetLink),
             ("adminName", adminName),
+            ("adminDiscord", adminLink),
             ("TimeNow", timeNow),
             ("expiresString", expiresString),
             ("reason", reason),
@@ -740,7 +724,9 @@ public sealed partial class BanManager : IBanManager, IPostInjectInit
                         Description = Loc.GetString(
             "server-perma-ban-string",
             ("targetName", targetName),
+            ("targetDiscord", targetLink),
             ("adminName", adminName),
+            ("adminDiscord", adminLink),
             ("TimeNow", timeNow),
             ("reason", reason),
             ("severity", Loc.GetString($"admin-note-editor-severity-{severity.ToLower()}"))),
@@ -758,6 +744,26 @@ public sealed partial class BanManager : IBanManager, IPostInjectInit
                 },
             };
     }
+    private async Task<(string Mention, string? DiscordId)> GetDiscordMention(NetUserId? userId)
+    {
+        if (userId == null)
+            return (Loc.GetString("ban-webhook-no-discord"), null);
+
+        var discordId = await _db.GetDiscordIdAsync(userId.Value.UserId);
+        if (string.IsNullOrWhiteSpace(discordId))
+            return (Loc.GetString("ban-webhook-no-discord"), null);
+
+        return ($"<@{discordId}>", discordId);
+    }
+
+    private static void AddMentionIfExists(List<User> mentions, string? discordId)
+    {
+        if (string.IsNullOrWhiteSpace(discordId))
+            return;
+
+        mentions.Add(new User { Id = discordId });
+    }
+
     private void OnWebhookChanged(string url)
     {
         _webhookUrl = url;
