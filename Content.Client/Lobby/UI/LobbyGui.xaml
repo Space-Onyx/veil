@@ -47,7 +47,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
             <BoxContainer Name="LeftSide" Orientation="Vertical" HorizontalExpand="False" VerticalExpand="True" SeparationOverride="4">
                 <Control Name="DefaultState" VerticalExpand="True" HorizontalExpand="False">
                     <BoxContainer Orientation="Vertical" VerticalExpand="True" HorizontalExpand="True" SeparationOverride="4">
-                        <PanelContainer Name="TopPanel" StyleClasses="AngleRect" HorizontalExpand="False" HorizontalAlignment="Left" ModulateSelfOverride="#33333380">
+                        <PanelContainer Name="TopPanel" StyleClasses="AngleRect" HorizontalExpand="False" HorizontalAlignment="Left" ModulateSelfOverride="#333333d9">
                             <BoxContainer Orientation="Vertical" HorizontalExpand="False" Margin="8 8 8 8" SeparationOverride="4">
                                 <BoxContainer Name="HeaderContainer" Access="Public" Orientation="Horizontal" HorizontalExpand="False" MinSize="0 30" SeparationOverride="6">
                                     <Label Name="ServerName" Access="Public" StyleClasses="LabelHeadingBigger" VAlign="Center" HorizontalAlignment="Left" />
@@ -72,7 +72,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
                                            Scale="0.5 0.5" />
                         </PanelContainer>
 
-                        <PanelContainer Name="TopExpandPanel" StyleClasses="AngleRect" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0 2 2 0" Visible="False" ModulateSelfOverride="#33333380">
+                        <PanelContainer Name="TopExpandPanel" StyleClasses="AngleRect" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0 2 2 0" Visible="False" ModulateSelfOverride="#333333d9">
                             <TextureButton Name="TopExpandButton"
                                            TexturePath="filled_right_arrow.svg.192dpi"
                                            HorizontalAlignment="Center"
@@ -83,21 +83,17 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 
                         <BoxContainer Orientation="Horizontal" HorizontalExpand="False" VerticalExpand="True">
                             <PanelContainer Name="LeftInfoPanel" StyleClasses="AngleRect" MinWidth="180" HorizontalExpand="False" VerticalExpand="True" ModulateSelfOverride="#333333d9">
-                                <BoxContainer Orientation="Vertical" HorizontalExpand="False" VerticalExpand="True">
+                                <BoxContainer Orientation="Vertical" HorizontalExpand="False" VerticalExpand="True" MaxWidth="390">
                                     <RichTextLabel Text="{Loc 'ui-lobby-server-info-block'}" StyleClasses="LabelHeadingBigger" HorizontalAlignment="Center" />
                                     <controls:HLine Color="{x:Static style:StyleNano.NanoGold}" Thickness="2" />
-                                    <info:ServerInfo Name="ServerInfo" Access="Public" MinSize="0 30" MaxWidth="420" VerticalExpand="False" Margin="3 3 3 3" HorizontalAlignment="Left" />
+                                    <info:ServerInfo Name="ServerInfo" Access="Public" MinSize="0 30" MaxWidth="390" VerticalExpand="False" Margin="3 3 3 3" HorizontalAlignment="Left" />
                                     <Label Name="StationTime" Access="Public" FontColorOverride="{x:Static maths:Color.LightGray}" Margin="3 3 3 3" HorizontalAlignment="Left" />
                                     <controls:HLine Color="{x:Static style:StyleNano.NanoGold}" Thickness="2" />
                                     <BoxContainer Orientation="Vertical" HorizontalAlignment="Center" SeparationOverride="6" MinWidth="280">
                                         <lobbyUi:LobbyCharacterPreviewPanel Name="CharacterPreview" Access="Public" HorizontalAlignment="Center" />
-                                        <controls:HLine Color="{x:Static style:StyleNano.DisabledFore}" Thickness="1" />
-                                        <controls:StripeBack>
-                                            <Label Name="Balance" Access="Public" StyleClasses="LabelHeadingBigger" VAlign="Center" HorizontalExpand="True" HorizontalAlignment="Center" />
-                                        </controls:StripeBack>
-                                        <controls:HLine Color="{x:Static style:StyleNano.DisabledFore}" Thickness="1" />
-                                        <PanelContainer Name="StartTimeContainer" Access="Public" StyleClasses="AngleRect" ModulateSelfOverride="#333333CC" HorizontalExpand="True" Margin="0 2 0 2">
-                                            <Label Name="StartTime" Access="Public" Align="Center" FontColorOverride="{x:Static maths:Color.Gold}" StyleClasses="LabelBig" HorizontalAlignment="Center" HorizontalExpand="True" Margin="3 3" />
+                                        <controls:HLine Color="{x:Static style:StyleNano.NanoGold}" Thickness="2" />
+                                        <PanelContainer Name="StartTimeContainer" Access="Public" StyleClasses="AngleRect" ModulateSelfOverride="#333333CC" HorizontalExpand="True" Margin="0 0 0 2" MaxHeight="24">
+                                            <Label Name="StartTime" Access="Public" Align="Center" HorizontalAlignment="Center" HorizontalExpand="True" Margin="0 -9 0 0"/>
                                         </PanelContainer>
                                         <Button Name="ReadyButton" Access="Public" ToggleMode="True" Text="{Loc 'ui-lobby-ready-up-button'}" StyleClasses="ButtonBig" HorizontalExpand="True" />
                                         <cc:UICommandButton Command="observe" Name="ObserveButton" Access="Public" Text="{Loc 'ui-lobby-observe-button'}" WindowType="{x:Type lobbyUi:ObserveWarningWindow}" HorizontalExpand="True" />
@@ -126,7 +122,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
                                                Scale="0.5 0.5" />
                             </PanelContainer>
 
-                            <PanelContainer Name="LeftExpandPanel" StyleClasses="AngleRect" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0 2 2 0" Visible="False" ModulateSelfOverride="#33333380">
+                            <PanelContainer Name="LeftExpandPanel" StyleClasses="AngleRect" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0 2 2 0" Visible="False" ModulateSelfOverride="#333333d9">
                                 <TextureButton Name="LeftExpandButton"
                                                TexturePath="filled_right_arrow.svg.192dpi"
                                                HorizontalAlignment="Center"
@@ -136,7 +132,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
                             </PanelContainer>
 
                             <BoxContainer Orientation="Vertical" VerticalAlignment="Bottom" VerticalExpand="False" SeparationOverride="2">
-                                <PanelContainer Name="AttributionExpandPanel" StyleClasses="AngleRect" HorizontalAlignment="Left" VerticalAlignment="Bottom" VerticalExpand="False" ModulateSelfOverride="#33333380">
+                                <PanelContainer Name="AttributionExpandPanel" StyleClasses="AngleRect" HorizontalAlignment="Left" VerticalAlignment="Bottom" VerticalExpand="False" ModulateSelfOverride="#333333d9">
                                     <TextureButton Name="AttributionExpandButton"
                                                    TexturePath="filled_right_arrow.svg.192dpi"
                                                    HorizontalAlignment="Center"
