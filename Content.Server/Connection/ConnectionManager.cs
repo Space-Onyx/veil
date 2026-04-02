@@ -356,8 +356,10 @@ namespace Content.Server.Connection
             }
 
             var adminData = await _db.GetAdminDataForAsync(e.UserId);
-            // ADT-Tweak-Start: Check Auth for Discord ID
-            if (_cfg.GetCVar(CCVars.DiscordAuthEnable) && adminData == null)
+            // <Onyx-DiscordAuth>
+            var discordAuthRequired = _cfg.GetCVar(CCVars.DiscordAuthEnable) &&
+                                      _cfg.GetCVar(CCVars.DiscordAuthLinkRequired);
+            if (discordAuthRequired && adminData == null)
             {
                 var discordId = await _db.GetDiscordIdAsync(userId);
                 if (discordId != null)
@@ -366,20 +368,36 @@ namespace Content.Server.Connection
                 }
                 else
                 {
+                    string? linkCode = null;
+                    try
+                    {
+                        linkCode = await _db.GetOrCreateDiscordLinkCodeAsync(
+                            userId.UserId,
+                            global::System.TimeSpan.FromMinutes(5));
+                    }
+                    catch (global::System.Exception ex)
+                    {
+                        _sawmill.Error($"Failed to create Discord link code for {userId}: {ex}");
+                    }
+
+                    var linkCodeLine = linkCode is not null
+                        ? $"Введите временный HEX-код: {linkCode}\n"
+                        : "Не удалось сгенерировать код привязки. Попробуйте снова через несколько секунд.\n";
+
                     return (
                         ConnectionDenyReason.DiscordAuth,
                         $"You are not authorized through discord!\n\n"
                         + "Присоединитесь к нашему дискорд серверу:\n"
-                        + "https://discord.com/invite/NY3KDNuH9r\n\n"
+                        + "https://discord.com/invite/f5rcgkkgzm\n\n"
                         + "И авторизуйтесь здесь:\n"
-                        + "https://discord.com/channels/901772674865455115/1351213738774237184\n\n"
-                        + $"Введите uid вашего аккаунта: {userId.ToString()}\n"
-                        + "ВНИМАНИЕ: Не показывайте этот uid никому, кроме администрации!",
+                        + "https://discord.com/channels/1474158623834898648/1488907777941307453\n\n"
+                        + linkCodeLine
+                        + "ВНИМАНИЕ: Не показывайте этот HEX-код никому, кроме администрации!",
                         null
                     );
                 }
             }
-            // ADT-Tweak-End
+            // </Onyx-DiscordAuth>
             // Corvax-Start: Allow privileged players bypass bunker
             var isPrivileged = await HavePrivilegedJoin(e.UserId);
             if (_cfg.GetCVar(CCVars.PanicBunkerEnabled) && adminData == null && !isPrivileged)

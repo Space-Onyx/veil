@@ -97,6 +97,19 @@ public sealed class ServerDiscordIdManager : EntitySystem
     private async Task SendDiscordInfo(INetChannel channel)
     {
         var userId = channel.UserId;
+        if (!_cfg.GetCVar(CCVars.DiscordAuthEnable))
+        {
+            _cachedDiscordIds[userId] = null;
+            _net.ServerSendMessage(new MsgDiscordIdInfo
+            {
+                UserId = userId,
+                DiscordId = null,
+                DiscordUsername = null,
+                LinkCode = null
+            }, channel);
+            return;
+        }
+
         var discordId = await LoadDiscordId(userId);
         _cachedDiscordIds[userId] = discordId;
         string? linkCode = null;
@@ -153,6 +166,11 @@ public sealed class ServerDiscordIdManager : EntitySystem
     private async void OnDiscordUnlinkRequest(MsgDiscordUnlinkRequest msg)
     {
         var userId = msg.MsgChannel.UserId;
+        if (!_cfg.GetCVar(CCVars.DiscordAuthEnable))
+        {
+            await SendDiscordInfo(msg.MsgChannel);
+            return;
+        }
 
         try
         {
@@ -178,7 +196,7 @@ public sealed class ServerDiscordIdManager : EntitySystem
 
             _net.ServerSendMessage(response, msg.MsgChannel);
 
-            if (_cfg.GetCVar(CCVars.DiscordAuthLinkRequired))
+            if (_cfg.GetCVar(CCVars.DiscordAuthEnable) && _cfg.GetCVar(CCVars.DiscordAuthLinkRequired))
                 _net.DisconnectChannel(msg.MsgChannel, "Отвязка дискорд аккаунта.");
 
             _sawmill.Info($"Discord account unlinked for {userId}.");
