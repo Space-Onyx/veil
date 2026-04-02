@@ -132,15 +132,13 @@ public sealed partial class DiscordLinkWindow : DefaultWindow
 
         if (_isLinked)
         {
-            var uid = _player.LocalSession?.UserId.ToString() ?? UnknownString;
             var icName = _player.LocalSession?.Name ?? UnknownString;
 
             var lines = new List<string>
             {
                 Loc.GetString("ui-lobby-discord-link-success-line1"),
                 Loc.GetString("ui-lobby-discord-link-success-line2", ("username", _discordUsername ?? "UNKNOWN"), ("discordId", _discordId ?? "UNKNOWN")),
-                Loc.GetString("ui-lobby-discord-link-success-line3", ("uid", uid)),
-                Loc.GetString("ui-lobby-discord-link-success-line4", ("icName", icName))
+                Loc.GetString("ui-lobby-discord-link-success-line3", ("icName", icName))
             };
 
             var message = new FormattedMessage();

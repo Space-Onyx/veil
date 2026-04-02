@@ -12,8 +12,7 @@ ui-lobby-discord-menu-error = Статус неизвестен
 
 ui-lobby-discord-link-success-line1 = [color=green]✓ Вы успешно привязали Discord![/color]
 ui-lobby-discord-link-success-line2 = Discord: [color=lightblue]{ $username }[/color] ([color=gray]{ $discordId }[/color])
-ui-lobby-discord-link-success-line3 = UID: [color=yellow]{ $uid }[/color]
-ui-lobby-discord-link-success-line4 = Никнейм: [color=orange]{ $icName }[/color]
+ui-lobby-discord-link-success-line3 = Никнейм: [color=orange]{ $icName }[/color]
 
 ui-lobby-discord-link-instructions-line1 = [color=white]Чтобы привязать Discord:[/color]
 ui-lobby-discord-link-instructions-line2 = 1. Скопируйте временный код: [color=yellow]{ $code }[/color]
