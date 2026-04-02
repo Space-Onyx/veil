@@ -107,6 +107,7 @@ public sealed partial class ServerApi : IPostInjectInit
         RegisterActorHandler(HttpMethod.Patch, "/admin/actions/panic_bunker", ActionPanicPunker);
         RegisterActorHandler(HttpMethod.Post, "/admin/actions/a_chat", ActionAdminChat);                // ADT Tweak
         RegisterActorHandler(HttpMethod.Post, "/admin/actions/server_ban", ActionServerBan);            // ADT Tweak
+        RegisterActorHandler(HttpMethod.Post, "/admin/actions/discord/unlink_local", ActionDiscordUnlinkLocal); // Onyx DiscordAuth
 
         RegisterHandler(HttpMethod.Post, "/admin/actions/send_bwoink", ActionSendBwoink); // Frontier - Discord Ahelp Reply
     }
@@ -883,6 +884,48 @@ public sealed partial class ServerApi : IPostInjectInit
         });
     }
 
+    // <Onyx-DiscordAuth>
+    private async Task ActionDiscordUnlinkLocal(IStatusHandlerContext context, Actor actor)
+    {
+        var body = await ReadJson<ActionDiscordUnlinkBody>(context);
+        if (body == null)
+            return;
+
+        Guid? targetGuid = body.Guid;
+        if (targetGuid == null && !string.IsNullOrWhiteSpace(body.DiscordId))
+        {
+            targetGuid = await _dbManager.GetUserIdByDiscordIdAsync(body.DiscordId.Trim());
+        }
+
+        if (targetGuid == null)
+        {
+            await RespondError(
+                context,
+                ErrorCode.PlayerNotFound,
+                HttpStatusCode.UnprocessableContent,
+                "User not found for provided Guid/DiscordId");
+            return;
+        }
+
+        await _dbManager.UnlinkDiscordIdAsync(targetGuid.Value);
+
+        if (body.DisconnectOnlinePlayer)
+        {
+            await RunOnMainThread(() =>
+            {
+                if (_playerManager.TryGetSessionById(new NetUserId(targetGuid.Value), out var player))
+                    _netManager.DisconnectChannel(player.Channel, "Discord account unlinked.");
+            });
+        }
+
+        _sawmill.Info(
+            $"Local Discord unlink for {targetGuid.Value} by {FormatLogActor(actor)} " +
+            $"(disconnect={body.DisconnectOnlinePlayer}).");
+
+        await RespondOk(context);
+    }
+    // </Onyx-DiscordAuth>
+
     private sealed class AdminChatActionBody
     {
         public required string Message { get; init; }
@@ -902,6 +945,15 @@ public sealed partial class ServerApi : IPostInjectInit
         public required string Reason { get; init; }
         public required string Time { get; init; }
     }
+
+    // <Onyx-DiscordAuth>
+    private sealed class ActionDiscordUnlinkBody
+    {
+        public Guid? Guid { get; init; }
+        public string? DiscordId { get; init; }
+        public bool DisconnectOnlinePlayer { get; init; }
+    }
+    // </Onyx-DiscordAuth>
 
     #endregion
 }
