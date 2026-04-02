@@ -65,7 +65,6 @@ public sealed class ServerDiscordIdManager : EntitySystem
         try
         {
             var discordId = await _db.GetDiscordIdAsync(userId.UserId);
-            _sawmill.Debug($"Loaded Discord ID for {userId}: {discordId ?? "null"}");
             return discordId;
         }
         catch (Exception ex)
