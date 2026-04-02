@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Content.Server._Onyx.Administration;
@@ -189,7 +190,8 @@ public sealed class ServerDiscordIdManager : EntitySystem
 
         using var request = new HttpRequestMessage(HttpMethod.Post, url);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        request.Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
+        var bodyJson = JsonSerializer.Serialize(body);
+        request.Content = new StringContent(bodyJson, Encoding.UTF8, "application/json");
 
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
 
@@ -279,13 +281,19 @@ public sealed class ServerDiscordIdManager : EntitySystem
 
     private sealed class GlobalUnlinkRequestBody
     {
+        [JsonPropertyName("user_id")]
         public required string UserId { get; init; }
+
+        [JsonPropertyName("discord_id")]
         public string? DiscordId { get; init; }
     }
 
     private sealed class GlobalUnlinkResponseBody
     {
+        [JsonPropertyName("ok")]
         public bool Ok { get; init; }
+
+        [JsonPropertyName("message")]
         public string? Message { get; init; }
     }
 }
