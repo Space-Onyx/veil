@@ -48,67 +48,67 @@
   id: OnyxRules0
   name: Не будь мудаком.
   ruleEntry: true
-  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRules0.xml"
+  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRule0.xml"
 
 - type: guideEntry
   id: OnyxRules1
   name: Гриферство
   ruleEntry: true
-  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRules1.xml"
+  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRule1.xml"
 
 - type: guideEntry
   id: OnyxRules2
   name: Убийство
   ruleEntry: true
-  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRules2.xml"
+  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRule2.xml"
   
 - type: guideEntry
   id: OnyxRules3
   name: Нарушение игровой атмосферы.
   ruleEntry: true
-  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRules3.xml"
+  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRule3.xml"
   
 - type: guideEntry
   id: OnyxRules4
   name: Логика персонажей
   ruleEntry: true
-  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRules4.xml"
+  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRule4.xml"
  
 - type: guideEntry
   id: OnyxRules5
   name: Ответственная игра за антагониста
   ruleEntry: true
-  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRules5.xml"
+  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRule5.xml"
 
 - type: guideEntry
   id: OnyxRules6
   name: Самоантагонизм
   ruleEntry: true
-  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRules6.xml"
+  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRule6.xml"
 
 - type: guideEntry
   id: OnyxRules7
   name: Валидхант
   ruleEntry: true
-  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRules7.xml"
+  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRule7.xml"
 
 - type: guideEntry
   id: OnyxRules8
   name: ERP
   ruleEntry: true
-  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRules8.xml"
+  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRule8.xml"
 
 - type: guideEntry
   id: OnyxRules9
   name: Нечестная игра
   ruleEntry: true
-  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRules9.xml"
+  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRule9.xml"
 
 - type: guideEntry
   id: OnyxRules10
   name: Обман администрации
   ruleEntry: true
-  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRules10.xml"
+  text: "/ServerInfo/Guidebook/ServerRules/OnyxRules/OnyxRule10.xml"
 
 
 - type: guideEntry
