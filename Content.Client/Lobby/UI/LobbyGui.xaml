@@ -82,7 +82,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
                         </PanelContainer>
 
                         <BoxContainer Orientation="Horizontal" HorizontalExpand="False" VerticalExpand="True">
-                            <PanelContainer Name="LeftInfoPanel" StyleClasses="AngleRect" MinWidth="180" HorizontalExpand="False" VerticalExpand="True" ModulateSelfOverride="#333333C0">
+                            <PanelContainer Name="LeftInfoPanel" StyleClasses="AngleRect" MinWidth="180" HorizontalExpand="False" VerticalExpand="True" ModulateSelfOverride="#333333d9">
                                 <BoxContainer Orientation="Vertical" HorizontalExpand="False" VerticalExpand="True">
                                     <RichTextLabel Text="{Loc 'ui-lobby-server-info-block'}" StyleClasses="LabelHeadingBigger" HorizontalAlignment="Center" />
                                     <controls:HLine Color="{x:Static style:StyleNano.NanoGold}" Thickness="2" />
@@ -145,12 +145,12 @@ SPDX-License-Identifier: AGPL-3.0-or-later
                                                    Scale="0.5 0.5" />
                                 </PanelContainer>
 
-                                <PanelContainer Name="AttributionPanel" StyleClasses="AngleRect" VerticalExpand="False" ModulateSelfOverride="#333333C0" Visible="False">
+                                <PanelContainer Name="AttributionPanel" StyleClasses="AngleRect" VerticalExpand="False" ModulateSelfOverride="#333333d9" Visible="False">
                                     <BoxContainer Orientation="Vertical" SeparationOverride="2">
-                                        <PanelContainer StyleClasses="AngleRect" ModulateSelfOverride="#333333C0">
+                                        <PanelContainer StyleClasses="AngleRect" ModulateSelfOverride="#333333d9">
                                             <RichTextLabel Name="LobbyBackground" Access="Public" HorizontalAlignment="Left" HorizontalExpand="True" />
                                         </PanelContainer>
-                                        <PanelContainer StyleClasses="AngleRect" ModulateSelfOverride="#333333C0">
+                                        <PanelContainer StyleClasses="AngleRect" ModulateSelfOverride="#333333d9">
                                             <RichTextLabel Name="LobbySong" Access="Public" HorizontalAlignment="Left" HorizontalExpand="True" />
                                         </PanelContainer>
                                     </BoxContainer>
@@ -176,7 +176,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 
             <Control Name="LayoutSpacer" HorizontalExpand="True" />
 
-            <PanelContainer Name="RightSide" Access="Public" StyleClasses="AngleRect" HorizontalExpand="False" VerticalExpand="True" VerticalAlignment="Stretch" MinWidth="220" SetWidth="320" ModulateSelfOverride="#333333C0" HorizontalAlignment="Right">
+            <PanelContainer Name="RightSide" Access="Public" StyleClasses="AngleRect" HorizontalExpand="False" VerticalExpand="True" VerticalAlignment="Stretch" MinWidth="220" SetWidth="320" ModulateSelfOverride="#333333d9" HorizontalAlignment="Right">
                 <BoxContainer Orientation="Vertical" HorizontalExpand="True" VerticalExpand="True" Margin="8 8 8 8">
                     <controls:NanoHeading Text="{Loc 'ui-lobby-chat-title'}" />
                     <widgets:ChatBox Name="Chat" Access="Public" VerticalExpand="True" Margin="3 3 3 3" MinHeight="35" />
