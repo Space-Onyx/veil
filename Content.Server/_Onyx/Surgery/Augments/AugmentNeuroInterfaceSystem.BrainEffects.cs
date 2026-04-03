@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Text;
 using Content.Server.Body.Components;
 using Content.Shared._Onyx.Speech;
@@ -126,8 +125,13 @@ public sealed partial class AugmentNeuroInterfaceSystem
         if (!TryComp<HandsComponent>(body, out var hands))
             return;
 
-        var heldItems = _hands.EnumerateHeld((body, hands)).ToList();
-        foreach (var held in heldItems)
+        _heldItemsBuffer.Clear();
+        foreach (var held in _hands.EnumerateHeld((body, hands)))
+        {
+            _heldItemsBuffer.Add(held);
+        }
+
+        foreach (var held in _heldItemsBuffer)
         {
             if (!_random.Prob(dropChancePerHeldItem))
                 continue;

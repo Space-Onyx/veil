@@ -35,6 +35,7 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
     private List<Entity<MapGridComponent>> _lowerGrids = new();
     private List<Entity<MapGridComponent>> _upperGrids = new();
     private readonly Dictionary<string, List<Entity<MapGridComponent>>> _upperGridsByGroup = new();
+    private readonly Dictionary<string, ulong> _upperSignatureByGroup = new();
     private readonly List<string> _usedUpperGroupKeys = new();
     private readonly HashSet<string> _visibleLowerGroups = new();
     private readonly Dictionary<EntityUid, InteriorHoleCacheEntry> _upperInteriorHoleCache = new();
@@ -190,6 +191,7 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
         }
 
         _usedUpperGroupKeys.Clear();
+        _upperSignatureByGroup.Clear();
         foreach (var upperGrid in _upperGrids)
         {
             if (!_motionLinkQuery.TryComp(upperGrid.Owner, out var upperLink) || string.IsNullOrEmpty(upperLink.GroupId))
@@ -207,6 +209,12 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
                 _usedUpperGroupKeys.Add(upperLink.GroupId);
 
             groupedUpper.Add(upperGrid);
+        }
+
+        foreach (var groupKey in _usedUpperGroupKeys)
+        {
+            if (_upperGridsByGroup.TryGetValue(groupKey, out var linkedUpper))
+                _upperSignatureByGroup[groupKey] = ComputeUpperSignature(linkedUpper);
         }
 
         foreach (var lowerGrid in _lowerGrids)
@@ -228,7 +236,9 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
 
             GetVisibleTileBounds(lowerGrid, args.MapId, args.WorldBounds, out var minX, out var maxX, out var minY, out var maxY);
             var lowerMatrix = _xform.GetWorldMatrix(lowerGrid.Owner);
-            var upperSignature = ComputeUpperSignature(linkedUpperGrids);
+            var upperSignature = _upperSignatureByGroup.TryGetValue(lowerLink.GroupId, out var signature)
+                ? signature
+                : ComputeUpperSignature(linkedUpperGrids);
             var eyeTile = limitByDistance
                 ? lowerGrid.Comp.TileIndicesFor(new MapCoordinates(eyePosition, args.MapId))
                 : default;

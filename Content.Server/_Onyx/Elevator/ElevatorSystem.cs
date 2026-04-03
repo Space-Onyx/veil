@@ -17,7 +17,6 @@ using Robust.Shared.Map;
 using Robust.Shared.Audio;
 using Robust.Shared.Map.Components;
 using Robust.Server.GameObjects;
-using Robust.Shared.Audio;
 using Robust.Shared.Maths;
 using Robust.Shared.Timing;
 using Content.Server.Doors.Systems;
@@ -159,11 +158,15 @@ public sealed class ElevatorSystem : EntitySystem
         var intersectingEntities = _lookup.GetEntitiesIntersecting(elevatorTransform.MapID, aabb, LookupFlags.Uncontained);
 
         var entitiesInElevator = new List<EntityUid>();
+        var entitiesInElevatorSet = new HashSet<EntityUid>();
         foreach (var entUid in intersectingEntities)
         {
             var entTransform = Transform(entUid);
             if (IsEntityValidForTeleport(entUid, elevatorUid, entTransform))
+            {
                 entitiesInElevator.Add(entUid);
+                entitiesInElevatorSet.Add(entUid);
+            }
         }
 
         // Include buckled entities (entities that are anchored to entities in the elevator)
@@ -173,9 +176,10 @@ public sealed class ElevatorSystem : EntitySystem
             if (TryComp<BuckleComponent>(entUid, out var buckleComp) && buckleComp.BuckledTo is not null)
             {
                 var buckledEntity = buckleComp.BuckledTo.Value;
-                if (!entitiesInElevator.Contains(buckledEntity) && IsEntityValidForTeleport(buckledEntity, elevatorUid, null, true))
+                if (!entitiesInElevatorSet.Contains(buckledEntity) && IsEntityValidForTeleport(buckledEntity, elevatorUid, null, true))
                 {
                     buckledEntities.Add(buckledEntity);
+                    entitiesInElevatorSet.Add(buckledEntity);
                 }
             }
         }
@@ -201,7 +205,18 @@ public sealed class ElevatorSystem : EntitySystem
 
     private bool CanMoveWithEntities(Entity<ElevatorComponent> ent)
     {
-        return GetEntitiesInElevator(ent.Owner).Count(e => !HasComp<GhostComponent>(e)) <= ent.Comp.MaxEntitiesToTeleport;
+        var nonGhostCount = 0;
+        foreach (var entity in GetEntitiesInElevator(ent.Owner))
+        {
+            if (HasComp<GhostComponent>(entity))
+                continue;
+
+            nonGhostCount++;
+            if (nonGhostCount > ent.Comp.MaxEntitiesToTeleport)
+                return false;
+        }
+
+        return true;
     }
 
     private void TeleportToFloor(EntityUid uid, string floorId)
@@ -540,6 +555,7 @@ public sealed class ElevatorSystem : EntitySystem
 
             var aabb = _lookup.GetWorldAABB(elevator.Owner, pointTransform);
             var intersectingEntities = _lookup.GetEntitiesIntersecting(pointTransform.MapID, aabb, LookupFlags.Dynamic);
+            var intersectingSet = new HashSet<EntityUid>(intersectingEntities);
 
             foreach (var entUid in intersectingEntities)
             {
@@ -549,8 +565,7 @@ public sealed class ElevatorSystem : EntitySystem
                     if (TryComp<BuckleComponent>(entUid, out var buckleComp) && buckleComp.BuckledTo is not null)
                     {
                         var buckledTo = buckleComp.BuckledTo.Value;
-                        var buckledToTransform = Transform(buckledTo);
-                        if (_lookup.GetEntitiesIntersecting(pointTransform.MapID, aabb, LookupFlags.Dynamic).Contains(buckledTo))
+                        if (intersectingSet.Contains(buckledTo))
                         {
                             // Don't kill buckled entities if their buckled object is also in the area
                             continue;

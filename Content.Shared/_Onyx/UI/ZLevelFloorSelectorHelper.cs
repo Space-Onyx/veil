@@ -67,12 +67,13 @@ public static class ZLevelFloorSelectorHelper
             [sourceDepth] = sourceFloorTarget
         };
 
+        var linkedMaps = new List<(EntityUid MapUid, int Depth)>();
         foreach (var mapUid in zLevels.GetAllMapsBelow((sourceMap.Value, sourceZMap)))
         {
             if (!entityManager.TryGetComponent<CEZLevelMapComponent>(mapUid, out var zMap))
                 continue;
 
-            mapByDepth[zMap.Depth] = ResolveGridForMap(entityManager, mapUid, sourceStation) ?? mapUid;
+            linkedMaps.Add((mapUid, zMap.Depth));
         }
 
         foreach (var mapUid in zLevels.GetAllMapsAbove((sourceMap.Value, sourceZMap)))
@@ -80,7 +81,50 @@ public static class ZLevelFloorSelectorHelper
             if (!entityManager.TryGetComponent<CEZLevelMapComponent>(mapUid, out var zMap))
                 continue;
 
-            mapByDepth[zMap.Depth] = ResolveGridForMap(entityManager, mapUid, sourceStation) ?? mapUid;
+            linkedMaps.Add((mapUid, zMap.Depth));
+        }
+
+        if (linkedMaps.Count > 0)
+        {
+            var targetMaps = new HashSet<EntityUid>();
+            foreach (var (mapUid, _) in linkedMaps)
+            {
+                targetMaps.Add(mapUid);
+            }
+
+            var firstGridByMap = new Dictionary<EntityUid, EntityUid>();
+            Dictionary<EntityUid, EntityUid>? stationGridByMap = null;
+            if (sourceStation != EntityUid.Invalid)
+                stationGridByMap = new Dictionary<EntityUid, EntityUid>();
+
+            var gridQuery = entityManager.EntityQueryEnumerator<MapGridComponent, TransformComponent>();
+            while (gridQuery.MoveNext(out var gridUid, out _, out var gridXform))
+            {
+                if (gridXform.MapUid is not { } mapUid || !targetMaps.Contains(mapUid))
+                    continue;
+
+                if (!firstGridByMap.ContainsKey(mapUid))
+                    firstGridByMap[mapUid] = gridUid;
+
+                if (stationGridByMap == null || stationGridByMap.ContainsKey(mapUid))
+                    continue;
+
+                if (entityManager.TryGetComponent<StationMemberComponent>(gridUid, out var gridStationMember)
+                    && gridStationMember.Station == sourceStation)
+                {
+                    stationGridByMap[mapUid] = gridUid;
+                }
+            }
+
+            foreach (var (mapUid, depth) in linkedMaps)
+            {
+                if (stationGridByMap != null && stationGridByMap.TryGetValue(mapUid, out var stationGrid))
+                    mapByDepth[depth] = stationGrid;
+                else if (firstGridByMap.TryGetValue(mapUid, out var firstGrid))
+                    mapByDepth[depth] = firstGrid;
+                else
+                    mapByDepth[depth] = mapUid;
+            }
         }
 
         var floors = mapByDepth.Keys.OrderBy(x => x).ToList();
@@ -304,9 +348,8 @@ public static class ZLevelFloorSelectorHelper
                 continue;
 
             firstGrid ??= gridUid;
-
             if (sourceStation == EntityUid.Invalid)
-                continue;
+                return firstGrid;
 
             if (entityManager.TryGetComponent<StationMemberComponent>(gridUid, out var stationMember) &&
                 stationMember.Station == sourceStation)

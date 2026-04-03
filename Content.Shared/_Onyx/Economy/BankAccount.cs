@@ -1,4 +1,3 @@
-using System.Linq;
 using Content.Shared.Cargo.Prototypes;
 using Content.Shared.Mind;
 using Robust.Shared.Prototypes;
@@ -20,9 +19,27 @@ public sealed class BankAccount
 
     public List<TransactionRecord> GetTransactions(int count = 1000)
     {
+        if (count <= 0)
+            return new List<TransactionRecord>();
+
         if (count > MaxTransactions)
             count = MaxTransactions;
-        return _transactions.ToList().AsEnumerable().Reverse().Take(count).ToList();
+
+        var transactionCount = _transactions.Count;
+        if (transactionCount == 0)
+            return new List<TransactionRecord>();
+
+        if (count > transactionCount)
+            count = transactionCount;
+
+        var ordered = _transactions.ToArray();
+        var result = new List<TransactionRecord>(count);
+        for (var i = transactionCount - 1; i >= transactionCount - count; i--)
+        {
+            result.Add(ordered[i]);
+        }
+
+        return result;
     }
 
     public readonly int AccountId;

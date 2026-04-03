@@ -252,14 +252,14 @@ public sealed partial class AugmentNeuroInterfaceSystem
             if (brain.Comp2.IntegrityModifiers.Count == 0)
                 continue;
 
-            var toRemove = new List<EntityUid>();
+            _overloadModifierRemovalBuffer.Clear();
             foreach (var (key, _) in brain.Comp2.IntegrityModifiers)
             {
                 if (key.Item1 == NeuroLoadOverloadIdentifier)
-                    toRemove.Add(key.Item2);
+                    _overloadModifierRemovalBuffer.Add(key.Item2);
             }
 
-            foreach (var effectOwner in toRemove)
+            foreach (var effectOwner in _overloadModifierRemovalBuffer)
             {
                 _trauma.TryRemoveOrganDamageModifier(brain.Owner, effectOwner, NeuroLoadOverloadIdentifier, brain.Comp2);
             }

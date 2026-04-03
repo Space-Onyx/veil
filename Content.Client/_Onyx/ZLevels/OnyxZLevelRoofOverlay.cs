@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 using Content.Client.Viewport;
 using Content.Shared.CCVar;
@@ -39,8 +40,10 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
     private readonly HashSet<string> _visibleLowerGroups = new();
     private readonly HashSet<Vector2i> _excludedTiles = new();
     private readonly Dictionary<EntityUid, UpperMaskCacheEntry> _upperMaskCache = new();
+    private readonly Dictionary<EntityUid, RoofRunCacheEntry> _cachedRoofRuns = new();
     private readonly OnyxZLevelProjectionCacheSystem _projectionCache;
     private readonly List<EntityUid> _staleUpperMaskKeys = new();
+    private readonly List<EntityUid> _staleRoofRunKeys = new();
     private static readonly TimeSpan CacheCleanupInterval = TimeSpan.FromSeconds(5);
     private TimeSpan _nextCacheCleanup;
     private readonly Dictionary<int, List<int>> _batchedRows = new();
@@ -160,38 +163,43 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
 
         foreach (var lowerGrid in _lowerGrids)
         {
-            _excludedTiles.Clear();
+            List<Entity<MapGridComponent>>? linkedUpperGrids = null;
             if (_motionLinkQuery.TryComp(lowerGrid.Owner, out var lowerLink)
                 && !string.IsNullOrEmpty(lowerLink.GroupId)
-                && _upperGridsByGroup.TryGetValue(lowerLink.GroupId, out var linkedUpperGrids))
+                && _upperGridsByGroup.TryGetValue(lowerLink.GroupId, out var linkedGrids))
             {
-                foreach (var upperGrid in linkedUpperGrids)
-                {
-                    _excludedTiles.UnionWith(GetProjectedExclusionTiles(lowerGrid, upperGrid));
-                }
+                linkedUpperGrids = linkedGrids;
             }
 
             var gridMatrix = _xformSystem.GetWorldMatrix(lowerGrid.Owner);
-            worldHandle.SetTransform(gridMatrix);
-            ClearBatchedRows();
+            GetVisibleTileBounds(lowerGrid, lowerMapId, bounds, out var minX, out var maxX, out var minY, out var maxY);
 
-            var tileEnumerator = _mapSystem.GetTilesEnumerator(lowerGrid.Owner, lowerGrid, bounds);
-            while (tileEnumerator.MoveNext(out var tileRef))
+            var cacheEntry = GetOrCreateRoofRuns(lowerGrid.Owner);
+            var upperSignature = linkedUpperGrids == null ? 0ul : ComputeUpperSignature(linkedUpperGrids);
+            if (ShouldRebuildRoofRuns(
+                    cacheEntry,
+                    minX,
+                    maxX,
+                    minY,
+                    maxY,
+                    lowerGrid.Comp.LastTileModifiedTick,
+                    gridMatrix,
+                    upperSignature))
             {
-                if (tileRef.Tile.IsEmpty)
-                    continue;
-
-                var def = (ContentTileDefinition) _tileDef[tileRef.Tile.TypeId];
-                if (!_tileZRoof.HasZRoof(lowerGrid, tileRef.GridIndices, def.HasZRoof))
-                    continue;
-
-                if (_excludedTiles.Contains(tileRef.GridIndices))
-                    continue;
-
-                AddBatchedTile(tileRef.GridIndices.X, tileRef.GridIndices.Y);
+                RebuildRoofRuns(lowerGrid, linkedUpperGrids, bounds, cacheEntry.Runs);
+                UpdateRoofRunCacheStamp(
+                    cacheEntry,
+                    minX,
+                    maxX,
+                    minY,
+                    maxY,
+                    lowerGrid.Comp.LastTileModifiedTick,
+                    gridMatrix,
+                    upperSignature);
             }
 
-            DrawBatchedRows(worldHandle, lowerGrid.Comp.TileSize, RoofColor);
+            worldHandle.SetTransform(gridMatrix);
+            DrawCachedRuns(worldHandle, lowerGrid.Comp.TileSize, cacheEntry.Runs, RoofColor);
         }
 
         worldHandle.SetTransform(Matrix3x2.Identity);
@@ -260,6 +268,20 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
         {
             _upperMaskCache.Remove(key);
         }
+
+        _staleRoofRunKeys.Clear();
+        foreach (var gridUid in _cachedRoofRuns.Keys)
+        {
+            if (_entManager.EntityExists(gridUid))
+                continue;
+
+            _staleRoofRunKeys.Add(gridUid);
+        }
+
+        foreach (var key in _staleRoofRunKeys)
+        {
+            _cachedRoofRuns.Remove(key);
+        }
     }
 
     private void ClearBatchedRows()
@@ -286,7 +308,7 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
         row.Add(x);
     }
 
-    private void DrawBatchedRows(DrawingHandleWorld worldHandle, ushort tileSize, Color color)
+    private void AppendBatchedRuns(List<RowRun> runs)
     {
         foreach (var y in _usedBatchRows)
         {
@@ -308,12 +330,20 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
                     continue;
                 }
 
-                DrawHorizontalRun(worldHandle, tileSize, y, runStart, runEnd, color);
+                runs.Add(new RowRun(y, runStart, runEnd));
                 runStart = x;
                 runEnd = x;
             }
 
-            DrawHorizontalRun(worldHandle, tileSize, y, runStart, runEnd, color);
+            runs.Add(new RowRun(y, runStart, runEnd));
+        }
+    }
+
+    private void DrawCachedRuns(DrawingHandleWorld worldHandle, ushort tileSize, List<RowRun> runs, Color color)
+    {
+        foreach (var run in runs)
+        {
+            DrawHorizontalRun(worldHandle, tileSize, run.Y, run.StartX, run.EndX, color);
         }
     }
 
@@ -324,5 +354,146 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
         worldHandle.DrawRect(new Box2(min, max), color);
     }
 
+    private RoofRunCacheEntry GetOrCreateRoofRuns(EntityUid lowerGridUid)
+    {
+        if (_cachedRoofRuns.TryGetValue(lowerGridUid, out var entry))
+            return entry;
+
+        entry = new RoofRunCacheEntry();
+        _cachedRoofRuns[lowerGridUid] = entry;
+        return entry;
+    }
+
+    private void RebuildRoofRuns(
+        Entity<MapGridComponent> lowerGrid,
+        List<Entity<MapGridComponent>>? linkedUpperGrids,
+        Box2Rotated bounds,
+        List<RowRun> runs)
+    {
+        runs.Clear();
+        _excludedTiles.Clear();
+
+        if (linkedUpperGrids != null)
+        {
+            foreach (var upperGrid in linkedUpperGrids)
+            {
+                _excludedTiles.UnionWith(GetProjectedExclusionTiles(lowerGrid, upperGrid));
+            }
+        }
+
+        ClearBatchedRows();
+        var tileEnumerator = _mapSystem.GetTilesEnumerator(lowerGrid.Owner, lowerGrid, bounds);
+        while (tileEnumerator.MoveNext(out var tileRef))
+        {
+            if (tileRef.Tile.IsEmpty)
+                continue;
+
+            var def = (ContentTileDefinition) _tileDef[tileRef.Tile.TypeId];
+            if (!_tileZRoof.HasZRoof(lowerGrid, tileRef.GridIndices, def.HasZRoof))
+                continue;
+
+            if (_excludedTiles.Contains(tileRef.GridIndices))
+                continue;
+
+            AddBatchedTile(tileRef.GridIndices.X, tileRef.GridIndices.Y);
+        }
+
+        AppendBatchedRuns(runs);
+    }
+
+    private void GetVisibleTileBounds(
+        Entity<MapGridComponent> lowerGrid,
+        MapId mapId,
+        Box2Rotated worldBounds,
+        out int minX,
+        out int maxX,
+        out int minY,
+        out int maxY)
+    {
+        var bl = lowerGrid.Comp.TileIndicesFor(new MapCoordinates(worldBounds.BottomLeft, mapId));
+        var br = lowerGrid.Comp.TileIndicesFor(new MapCoordinates(worldBounds.BottomRight, mapId));
+        var tl = lowerGrid.Comp.TileIndicesFor(new MapCoordinates(worldBounds.TopLeft, mapId));
+        var tr = lowerGrid.Comp.TileIndicesFor(new MapCoordinates(worldBounds.TopRight, mapId));
+
+        minX = Math.Min(Math.Min(bl.X, br.X), Math.Min(tl.X, tr.X)) - 1;
+        maxX = Math.Max(Math.Max(bl.X, br.X), Math.Max(tl.X, tr.X)) + 1;
+        minY = Math.Min(Math.Min(bl.Y, br.Y), Math.Min(tl.Y, tr.Y)) - 1;
+        maxY = Math.Max(Math.Max(bl.Y, br.Y), Math.Max(tl.Y, tr.Y)) + 1;
+    }
+
+    private ulong ComputeUpperSignature(List<Entity<MapGridComponent>> linkedUpperGrids)
+    {
+        var signature = (ulong) linkedUpperGrids.Count;
+        foreach (var upperGrid in linkedUpperGrids)
+        {
+            var hash = new HashCode();
+            hash.Add(upperGrid.Owner);
+            hash.Add(upperGrid.Comp.LastTileModifiedTick);
+            hash.Add(_xformSystem.GetWorldMatrix(upperGrid.Owner));
+            signature ^= (ulong) (uint) hash.ToHashCode();
+        }
+
+        return signature;
+    }
+
+    private static bool ShouldRebuildRoofRuns(
+        RoofRunCacheEntry cache,
+        int minX,
+        int maxX,
+        int minY,
+        int maxY,
+        GameTick lowerTileTick,
+        Matrix3x2 lowerMatrix,
+        ulong upperSignature)
+    {
+        if (!cache.Initialized)
+            return true;
+
+        if (cache.MinX != minX || cache.MaxX != maxX || cache.MinY != minY || cache.MaxY != maxY)
+            return true;
+
+        if (cache.LowerTileTick != lowerTileTick || cache.LowerMatrix != lowerMatrix)
+            return true;
+
+        if (cache.UpperSignature != upperSignature)
+            return true;
+
+        return false;
+    }
+
+    private static void UpdateRoofRunCacheStamp(
+        RoofRunCacheEntry cache,
+        int minX,
+        int maxX,
+        int minY,
+        int maxY,
+        GameTick lowerTileTick,
+        Matrix3x2 lowerMatrix,
+        ulong upperSignature)
+    {
+        cache.MinX = minX;
+        cache.MaxX = maxX;
+        cache.MinY = minY;
+        cache.MaxY = maxY;
+        cache.LowerTileTick = lowerTileTick;
+        cache.LowerMatrix = lowerMatrix;
+        cache.UpperSignature = upperSignature;
+        cache.Initialized = true;
+    }
+
     private readonly record struct UpperMaskCacheEntry(GameTick TileTick, HashSet<Vector2i> Tiles);
+    private readonly record struct RowRun(int Y, int StartX, int EndX);
+
+    private sealed class RoofRunCacheEntry
+    {
+        public readonly List<RowRun> Runs = new();
+        public int MinX;
+        public int MaxX;
+        public int MinY;
+        public int MaxY;
+        public GameTick LowerTileTick;
+        public Matrix3x2 LowerMatrix;
+        public ulong UpperSignature;
+        public bool Initialized;
+    }
 }

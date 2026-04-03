@@ -36,7 +36,9 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
     private readonly Dictionary<EntityUid, HashSet<Vector2i>> _holeTilesPerGrid = new();
     private readonly HashSet<EntityUid> _linkedGrids = new();
     private readonly List<(EntityUid Grid, Vector2i Tile)> _pendingTileUpdates = new();
+    private readonly HashSet<(EntityUid Grid, Vector2i Tile)> _pendingTileUpdateSet = new();
     private readonly Dictionary<EntityUid, HashSet<Vector2i>> _interiorHolesCache = new();
+    private readonly List<(EntityUid Below, EntityUid Above)> _staleVerticalLinkKeys = new();
 
     private record struct VerticalLink(
         EntityUid HoleGrid,
@@ -105,7 +107,9 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
 
         foreach (var change in ev.Changes)
         {
-            _pendingTileUpdates.Add((ev.Entity, change.GridIndices));
+            var update = (ev.Entity, change.GridIndices);
+            if (_pendingTileUpdateSet.Add(update))
+                _pendingTileUpdates.Add(update);
         }
     }
 
@@ -150,6 +154,7 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
         }
 
         _pendingTileUpdates.Clear();
+        _pendingTileUpdateSet.Clear();
     }
 
     private void UpdateSingleTileHoleStatus(EntityUid gridUid, Vector2i tilePos)
@@ -307,8 +312,13 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
 
     private void RemoveLinksForTile(EntityUid holeGrid, Vector2i holeTile)
     {
+        _staleVerticalLinkKeys.Clear();
+
         foreach (var (key, links) in _verticalLinks)
         {
+            if (key.Above != holeGrid)
+                continue;
+
             for (var i = links.Count - 1; i >= 0; i--)
             {
                 var link = links[i];
@@ -320,6 +330,14 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
                     links.RemoveAt(i);
                 }
             }
+
+            if (links.Count == 0)
+                _staleVerticalLinkKeys.Add(key);
+        }
+
+        foreach (var key in _staleVerticalLinkKeys)
+        {
+            _verticalLinks.Remove(key);
         }
     }
 
@@ -396,6 +414,7 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
         _linksDirty = false;
         _verticalLinks.Clear();
         _pendingTileUpdates.Clear();
+        _pendingTileUpdateSet.Clear();
         _interiorHolesCache.Clear();
 
         foreach (var grids in _groupCache.Values)
@@ -561,14 +580,16 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
         if (transferSpeed <= 0f)
             return;
 
-        foreach (var links in _verticalLinks.Values)
+        foreach (var ((belowUid, aboveUid), links) in _verticalLinks)
         {
+            if (!_atmosQuery.TryComp(aboveUid, out var holeAtmos) ||
+                !_atmosQuery.TryComp(belowUid, out var targetAtmos))
+            {
+                continue;
+            }
+
             foreach (var link in links)
             {
-                if (!_atmosQuery.TryComp(link.HoleGrid, out var holeAtmos) ||
-                    !_atmosQuery.TryComp(link.TargetGrid, out var targetAtmos))
-                    continue;
-
                 if (!holeAtmos.Tiles.TryGetValue(link.HoleTile, out var holeTile))
                     continue;
 

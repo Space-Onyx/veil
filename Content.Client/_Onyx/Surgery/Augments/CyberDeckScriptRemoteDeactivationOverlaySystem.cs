@@ -32,6 +32,8 @@ public sealed class CyberDeckScriptRemoteDeactivationOverlaySystem : EntitySyste
     [Dependency] private readonly SharedTransformSystem _xform = default!;
 
     private readonly List<CyberDeckScriptOverlayHelper.HighlightShape> _highlightShapes = new();
+    private readonly HashSet<Entity<AirlockComponent>> _airlockCandidates = new();
+    private readonly HashSet<Entity<CyberDeckRemoteDeactivationCameraTargetComponent>> _cameraCandidates = new();
     private CyberDeckScriptRemoteDeactivationOverlay? _overlay;
     private Color _fillColor = DefaultFillColor;
     private Color _outerOutlineColor = DefaultOuterOutlineColor;
@@ -75,10 +77,9 @@ public sealed class CyberDeckScriptRemoteDeactivationOverlaySystem : EntitySyste
             return;
 
         var bodyCoords = Transform(body).Coordinates;
-        foreach (var (airlock, _) in _lookup.GetEntitiesInRange<AirlockComponent>(
-                     bodyCoords,
-                     range,
-                     TargetLookupFlags))
+        _airlockCandidates.Clear();
+        _lookup.GetEntitiesInRange(bodyCoords, range, _airlockCandidates, TargetLookupFlags);
+        foreach (var (airlock, _) in _airlockCandidates)
         {
             if (!MatchesConfiguredAccess(airlock))
                 continue;
@@ -87,10 +88,9 @@ public sealed class CyberDeckScriptRemoteDeactivationOverlaySystem : EntitySyste
                 _highlightShapes.Add(shape);
         }
 
-        foreach (var (camera, _) in _lookup.GetEntitiesInRange<CyberDeckRemoteDeactivationCameraTargetComponent>(
-                     bodyCoords,
-                     range,
-                     TargetLookupFlags))
+        _cameraCandidates.Clear();
+        _lookup.GetEntitiesInRange(bodyCoords, range, _cameraCandidates, TargetLookupFlags);
+        foreach (var (camera, _) in _cameraCandidates)
         {
             if (!Transform(camera).Anchored)
                 continue;

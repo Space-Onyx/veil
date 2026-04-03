@@ -24,6 +24,7 @@ public sealed class CyberDeckScriptOpticsOverloadOverlaySystem : EntitySystem
     [Dependency] private readonly SharedTransformSystem _xform = default!;
 
     private readonly List<CyberDeckScriptOverlayHelper.HighlightShape> _highlightShapes = new();
+    private readonly HashSet<Entity<BodyComponent>> _bodyCandidates = new();
     private CyberDeckScriptOpticsOverloadOverlay? _overlay;
     private Color _fillColor = DefaultFillColor;
     private Color _outerOutlineColor = DefaultOuterOutlineColor;
@@ -65,10 +66,9 @@ public sealed class CyberDeckScriptOpticsOverloadOverlaySystem : EntitySystem
             return;
 
         var bodyCoords = Transform(body).Coordinates;
-        foreach (var (candidate, _) in _lookup.GetEntitiesInRange<BodyComponent>(
-                     bodyCoords,
-                     range,
-                     TargetLookupFlags))
+        _bodyCandidates.Clear();
+        _lookup.GetEntitiesInRange(bodyCoords, range, _bodyCandidates, TargetLookupFlags);
+        foreach (var (candidate, _) in _bodyCandidates)
         {
             if (candidate == body)
                 continue;

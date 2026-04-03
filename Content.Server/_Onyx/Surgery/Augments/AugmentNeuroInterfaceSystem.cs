@@ -78,6 +78,9 @@ public sealed partial class AugmentNeuroInterfaceSystem : EntitySystem
     private readonly Dictionary<EntityUid, BrainPenaltyStage> _brainPenaltyStages = new();
     private readonly Dictionary<EntityUid, TimeSpan> _nextBrainOverloadPopup = new();
     private readonly Dictionary<EntityUid, EntityUid> _adminRemoteControlBodies = new();
+    private readonly List<EntityUid> _controllerRemovalBuffer = new();
+    private readonly List<EntityUid> _heldItemsBuffer = new();
+    private readonly List<EntityUid> _overloadModifierRemovalBuffer = new();
     private TimeSpan _nextOverloadDamageSweep = TimeSpan.Zero;
 
     public override void Initialize()
@@ -142,14 +145,14 @@ public sealed partial class AugmentNeuroInterfaceSystem : EntitySystem
 
     private void RemoveRemoteControllersForBody(EntityUid body)
     {
-        var toRemove = new List<EntityUid>();
+        _controllerRemovalBuffer.Clear();
         foreach (var pair in _adminRemoteControlBodies)
         {
             if (pair.Value == body)
-                toRemove.Add(pair.Key);
+                _controllerRemovalBuffer.Add(pair.Key);
         }
 
-        foreach (var controller in toRemove)
+        foreach (var controller in _controllerRemovalBuffer)
         {
             _adminRemoteControlBodies.Remove(controller);
         }

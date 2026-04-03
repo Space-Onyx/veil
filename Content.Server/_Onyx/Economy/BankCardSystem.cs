@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using Robust.Shared.Console;
 using Content.Shared.CCVar;
 using Robust.Shared.Configuration;
-using System.Linq;
 using Content.Server.Access.Systems;
 using Content.Shared.Cargo.Components;
 using Content.Server.Cargo.Systems;
@@ -51,6 +50,7 @@ public sealed class BankCardSystem : EntitySystem
 
     private SalaryPrototype _salaries = default!;
     private readonly List<BankAccount> _accounts = new();
+    private readonly Dictionary<int, BankAccount> _accountsById = new();
     private float _salaryTimer;
 
     [Dependency] private readonly IConsoleHost _consoleHost = default!;
@@ -165,6 +165,7 @@ public sealed class BankCardSystem : EntitySystem
     private void OnRoundRestart(RoundRestartCleanupEvent ev)
     {
         _accounts.Clear();
+        _accountsById.Clear();
     }
 
     private void OnPlayerSpawned(PlayerSpawnCompleteEvent ev)
@@ -200,8 +201,16 @@ public sealed class BankCardSystem : EntitySystem
             BankCartridgeComponent? comp = null;
 
             var programs = _cartridgeLoader.GetInstalled(pdaUid.Value);
+            EntityUid? program = null;
+            foreach (var installedProgram in programs)
+            {
+                if (!TryComp(installedProgram, out comp))
+                    continue;
 
-            var program = programs.ToList().Find(program => TryComp(program, out comp));
+                program = installedProgram;
+                break;
+            }
+
             if (comp == null)
                 return;
 
@@ -231,19 +240,19 @@ public sealed class BankCardSystem : EntitySystem
         }
 
         _accounts.Add(account);
+        _accountsById[account.AccountId] = account;
 
         return account;
     }
 
     public bool AccountExist(int accountId)
     {
-        return _accounts.Any(x => x.AccountId == accountId);
+        return _accountsById.ContainsKey(accountId);
     }
 
     public bool TryGetAccount(int accountId, [NotNullWhen(true)] out BankAccount? account)
     {
-        account = _accounts.FirstOrDefault(x => x.AccountId == accountId);
-        return account != null;
+        return _accountsById.TryGetValue(accountId, out account);
     }
 
     public int GetBalance(int accountId)
@@ -288,10 +297,10 @@ public sealed class BankCardSystem : EntitySystem
 
     public bool DeleteAccount(int accountId)
     {
-        var account = _accounts.FirstOrDefault(x => x.AccountId == accountId);
-        if (account == null)
+        if (!_accountsById.TryGetValue(accountId, out var account))
             return false;
 
+        _accountsById.Remove(accountId);
         _accounts.Remove(account);
         return true;
     }
