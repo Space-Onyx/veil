@@ -4,6 +4,7 @@
   - !type:SpeciesLoadoutEffect
     species:
     - Human
+    - Feroxi
     - Reptilian
     - SlimePerson
     - Dwarf
@@ -11,7 +12,6 @@
     - Felinid
     - KoboltSpecies
     - DraskSpecies
-    - Moth
     - TajaranSpecies
     - UrsusSpecies
     - VulpkaninSpecies

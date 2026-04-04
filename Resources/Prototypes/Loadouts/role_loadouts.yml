@@ -162,13 +162,12 @@
   - HoPEnvirohelm
   - HoPEnvirosuit
   - HoPEnvirogloves
-  - HoPGloves
   # ADT underwear tweak start
   - ADTTopHOP
   - ADTBottomHOP
   - ADTSocks
   # ADT underwear tweak end
-# Silicons
+
 - type: roleLoadout
   id: JobBorg
   nameDataset: NamesBorg
@@ -445,7 +444,6 @@
   - MimeEnvirohelm
   - MimeEnvirosuit
   - MimeEnvirogloves
-  - MimeGloves
   # ADT underwear tweak start
   - ADTTop
   - ADTBottom
@@ -753,7 +751,6 @@
   - HeadofSecurityEnvirohelm
   - HeadofSecurityEnvirosuit
   - HeadofSecurityEnvirogloves
-  - HeadofSecurityGloves
   # ADT underwear tweak start
   - ADTTopHOS
   - ADTBottomHOS
@@ -835,7 +832,6 @@
   - DetectiveEnvirohelm
   - DetectiveEnvirosuit
   - DetectiveEnvirogloves
-  - DetectiveGloves
   # ADT underwear tweak start
   - ADTTop
   - ADTBottom
