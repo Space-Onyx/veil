@@ -23,7 +23,7 @@
   minHeightCm: 140
   maxHeightCm: 210
   minWeightKg: 40
-  maxWeightKg: 100
+  maxWeightKg: 85
   category: Unusual
   description: "/ServerInfo/ADT/SpeciesDescriptions/Unfinished.xml"
   special:

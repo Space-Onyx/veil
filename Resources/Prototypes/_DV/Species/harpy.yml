@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2024 Adeinitas <147965189+adeinitas@users.noreply.github.com>
+﻿# SPDX-FileCopyrightText: 2024 Adeinitas <147965189+adeinitas@users.noreply.github.com>
 # SPDX-FileCopyrightText: 2024 Aidenkrz <aiden@djkraz.com>
 # SPDX-FileCopyrightText: 2024 Danger Revolution! <142105406+DangerRevolution@users.noreply.github.com>
 # SPDX-FileCopyrightText: 2024 Timemaster99 <57200767+Timemaster99@users.noreply.github.com>
@@ -36,16 +36,11 @@
   minHeightCm: 140
   maxHeightCm: 200
   minWeightKg: 40
-  maxWeightKg: 100
+  maxWeightKg: 85
   # </Onyx>
   category: Unusual
-  description: "/ServerInfo/ADT/SpeciesDescriptions/Unfinished.xml"
-  pros:
-  - Могут летать, значительно повышая скорость но теряя выносливость.
-  special:
-  - Могут петь.
-  cons:
-  - Не могут носить обувь.
+  description: "/ServerInfo/Guidebook/Mobs/Harpy.xml"
+    # </Onyx>
 
 - type: speciesBaseSprites
   id: MobHarpySprites

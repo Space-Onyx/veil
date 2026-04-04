@@ -44,13 +44,7 @@
   minWeightKg: 40
   maxWeightKg: 75
   category: Unusual
-  description: "/ServerInfo/ADT/SpeciesDescriptions/Unfinished.xml"
-  special:
-  - Могут есть различные предметы, в том числе мусор.
-  - Используют когти в рукопашном бою.
-  - Максимальный рост выше человеческого.
-  cons:
-  - Получают урон при вдыхании кислорода.
+  description: "/ServerInfo/Guidebook/Mobs/Vox.xml"
   # </Onyx>
 
 - type: speciesBaseSprites

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2024 ScyronX <166930367+ScyronX@users.noreply.github.com>
+﻿# SPDX-FileCopyrightText: 2024 ScyronX <166930367+ScyronX@users.noreply.github.com>
 # SPDX-FileCopyrightText: 2024 VMSolidus <evilexecutive@gmail.com>
 # SPDX-FileCopyrightText: 2025 Aiden <28298836+Aidenkrz@users.noreply.github.com>
 # SPDX-FileCopyrightText: 2025 BloodfiendishOperator <141253729+Diggy0@users.noreply.github.com>
@@ -28,6 +28,7 @@
   femaleFirstNames: NamesOniFirstFemale
   lastNames: NamesOniLast
   naming: LastNoFirst
+  # <Onyx>
   minHeight: 0.9
   maxHeight: 2
   maxWidth: 2
@@ -37,7 +38,10 @@
   minHeightCm: 160
   maxHeightCm: 215
   minWeightKg: 45
-  maxWeightKg: 100
+  maxWeightKg: 90
+  category: Unusual
+  description: "/ServerInfo/Guidebook/Mobs/_DV/Oni.xml"
+  # </Onyx>
 
 - type: markingPoints
   id: MobOniMarkingLimits

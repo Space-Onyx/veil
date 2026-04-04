@@ -26,18 +26,5 @@
   defaultWeightKg: 70
   minHeightCm: 130
   maxHeightCm: 170
-  minWeightKg: 40
-  maxWeightKg: 80
-  description: "/ServerInfo/ADT/SpeciesDescriptions/Unfinished.xml"
-  pros:
-  - Этанол лечит небольшое количество механического урона.
-  - Желудок вмещает 75 единиц веществ.
-  - Чуют руды на расстоянии в 3 тайла.
-  - Из-за роста могут залазить на стеклянные столы, не разбивая их.
-  - Не могут испытывать рвоту от алгокояля.
-  special:
-  - Атака голыми руками наносит 5 единиц урона.
-  - Меньше биомассы в связи с меньшими размерами.
-  cons:
-  - Легче обезоружить.
+  description: "/ServerInfo/Guidebook/Mobs/Dwarf.xml"
   # </Onyx>

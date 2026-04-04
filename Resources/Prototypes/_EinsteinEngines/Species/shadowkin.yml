@@ -33,8 +33,7 @@
   defaultWeightKg: 65
   minHeightCm: 140
   maxHeightCm: 200
-  minWeightKg: 40
-  maxWeightKg: 95
+  description: "/ServerInfo/Guidebook/Mobs/Shadowkin.xml"
   # </Onyx>
 - type: speciesBaseSprites
   id: MobShadowkinSprites

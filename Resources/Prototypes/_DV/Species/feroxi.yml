@@ -1,4 +1,4 @@
-- type: species
+﻿- type: species
   id: Feroxi
   name: species-name-feroxi
   roundStart: true
@@ -21,7 +21,9 @@
   minHeightCm: 140
   maxHeightCm: 200
   minWeightKg: 40
-  maxWeightKg: 100
+  maxWeightKg: 85
+  category: Unusual
+  description: "/ServerInfo/Guidebook/Mobs/_DV/Feroxi.xml"
   # </Onyx>
 
 - type: speciesBaseSprites

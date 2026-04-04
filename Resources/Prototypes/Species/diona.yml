@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 Morb <14136326+Morb0@users.noreply.github.com>
+﻿# SPDX-FileCopyrightText: 2023 Morb <14136326+Morb0@users.noreply.github.com>
 # SPDX-FileCopyrightText: 2023 Nemanja <98561806+EmoGarbage404@users.noreply.github.com>
 # SPDX-FileCopyrightText: 2024 Adrian16199 <144424013+Adrian16199@users.noreply.github.com>
 # SPDX-FileCopyrightText: 2024 Skubman <ba.fallaria@gmail.com>
@@ -40,21 +40,9 @@
   minHeightCm: 140
   maxHeightCm: 205
   minWeightKg: 40
-  maxWeightKg: 100
+  maxWeightKg: 95
   category: Unusual
-  description: "/ServerInfo/ADT/SpeciesDescriptions/Unfinished.xml"
-  pros:
-  - Не получают негативных эффектов от кудзу.
-  - Могут пускать корни что позволяет им не падать.
-  special:
-  - Пацифисты.
-  - В критическом состоянии дионы могут распасться на нимф, после чего вернуться к жизни. Для этого нужна кровь.
-  - Выпив достаточное количество удобрений, превращаются в дерево.
-  cons:
-  - Получают на 50% больше урона от огня.
-  - Получают на 20% больше урона от электричества.
-  - Не могут сражаться голыми руками, но могут стрелять.
-  - Не могут носить обувь.
+  description: "/ServerInfo/Guidebook/Mobs/Diona.xml"
   # </Onyx>
 
 - type: speciesBaseSprites

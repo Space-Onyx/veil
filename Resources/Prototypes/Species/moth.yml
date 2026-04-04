@@ -44,16 +44,7 @@
   minWeightKg: 40
   maxWeightKg: 95
   category: Unusual
-  description: "/ServerInfo/ADT/SpeciesDescriptions/Unfinished.xml"
-  pros:
-  - Могут быстро и манёвреннее перемещаться без гравитации.
-  - Могут делать рывки крыльями.
-  - Получают на 30% меньше урона от холода.
-  special:
-  - Могут есть только пищу, содержащую хлопок, ткань и тому подобные материалы.
-  - Максимальный рост выше человеческого.
-  cons:
-  - Получают на 30% больше урона от огня.
+  description: "/ServerInfo/Guidebook/Mobs/Moth.xml"
   # </Onyx>
 
 

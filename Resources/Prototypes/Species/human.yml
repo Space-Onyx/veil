@@ -42,11 +42,7 @@
   defaultWeightKg: 65
   minHeightCm: 140
   maxHeightCm: 210
-  minWeightKg: 40
-  maxWeightKg: 100
-  description: "/ServerInfo/ADT/SpeciesDescriptions/Unfinished.xml"
-  special:
-  - Самая распространенная раса. Минусо нет, плюсов тоже.
+  description: "/ServerInfo/Guidebook/Mobs/Human.xml"
   # </Onyx>
 
 # The lack of a layer means that

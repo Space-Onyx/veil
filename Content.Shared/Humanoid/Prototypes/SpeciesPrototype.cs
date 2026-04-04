@@ -249,7 +249,7 @@ public sealed partial class SpeciesPrototype : IPrototype
     /// The maximum weight in kg for this species
     /// </summary>
     [DataField("maxWeightKg")]
-    public int MaxWeightKg = 100;
+    public int MaxWeightKg = 85;
 
     /// <summary>
     /// Whether to scale horizontally or not

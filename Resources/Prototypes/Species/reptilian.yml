@@ -43,17 +43,7 @@
   defaultWeightKg: 70
   minHeightCm: 140
   maxHeightCm: 210
-  minWeightKg: 40
-  maxWeightKg: 100
-  description: "/ServerInfo/ADT/SpeciesDescriptions/Unfinished.xml"
-  pros:
-  - Могут таскать объекты с занятыми руками (хвостом).
-  - Урон голыми руками пробивающего типа (когти), что позволяет ломать структуры.
-  - Максимальный рост выше человеческого.
-  special:
-  - Имеют акцент, добавляющий шипящие "ccc", а также "щщщ".
-  cons:
-  - Получают урон ядами от шоколада.
+  description: "/ServerInfo/Guidebook/Mobs/Reptilian.xml"
   # </Onyx>
 
 - type: speciesBaseSprites

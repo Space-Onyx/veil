@@ -36,17 +36,7 @@
   minWeightKg: 40
   maxWeightKg: 80
   category: Special
-  description: "/ServerInfo/ADT/SpeciesDescriptions/Unfinished.xml"
-  pros:
-  - Ключи шифрования вставляются напрямую в себя.
-  - Не может сгнить.
-  special:
-  - Могут играть музыку.
-  - Вместо голода заряжаются от ЛКП и зарядников боргов.
-  - Вместо медикаментов и реагентов лечит себя сваркой, проводами и стеклом
-  cons:
-  - Отсутствует слот под гарнитуру.
-  - По достижению 100 урона умирает.
+  description: "/ServerInfo/Guidebook/Mobs/IPCs.xml"
   # </Onyx>
 
 

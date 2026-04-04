@@ -31,13 +31,7 @@
   defaultWeightKg: 65
   minHeightCm: 140
   maxHeightCm: 200
-  minWeightKg: 40
-  maxWeightKg: 100
-  description: "/ServerInfo/ADT/SpeciesDescriptions/Unfinished.xml"
-  pros:
-  - Получают меньше урона холодом.
-  cons:
-  - Получают больше урона огнём.
+  description: "/ServerInfo/Guidebook/Mobs/Tajaran.xml"
 # </Onyx>
 
 - type: markingPoints
