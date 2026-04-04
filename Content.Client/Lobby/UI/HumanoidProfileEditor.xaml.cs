@@ -207,6 +207,8 @@ namespace Content.Client.Lobby.UI
     [GenerateTypedNameReferences]
     public sealed partial class HumanoidProfileEditor : BoxContainer
     {
+        private const float WidthPerKilogram = 0.85f; // <Onyx-Height & Weight>
+
         private readonly IClientPreferencesManager _preferencesManager;
         private readonly IConfigurationManager _cfgManager;
         private readonly IEntityManager _entManager;
@@ -417,7 +419,7 @@ namespace Content.Client.Lobby.UI
                 OnSkinColorOnValueChanged();
             };
 
-            // added Onyx - Height & Weight
+            // <Onyx-Height & Weight>
             #region Onyx Width
 
             CDWidth.OnTextChanged += args =>
@@ -431,6 +433,7 @@ namespace Content.Client.Lobby.UI
                 var sliderPercent = (float)(kg - prototype.MinWeightKg) / (prototype.MaxWeightKg - prototype.MinWeightKg);
                 WidthSlider.Value = sliderPercent;
                 var width = kg / (65f * prototype.BaseScale.X);
+                UpdateCalculatedWeightLabel(kg);
                 SetProfileWidth(width);
             };
 
@@ -457,11 +460,12 @@ namespace Content.Client.Lobby.UI
                 kg = Math.Clamp(kg, prototype.MinWeightKg, prototype.MaxWeightKg);
                 CDWidth.Text = kg.ToString(CultureInfo.InvariantCulture);
                 var width = kg / (65f * prototype.BaseScale.X);
+                UpdateCalculatedWeightLabel(kg); // <Onyx-Tweak>
                 SetProfileWidth(width);
             };
 
             #endregion Onyx Width
-            // end Onyx - Height & Weight
+            // </Onyx-Height & Weight>
 
             // ADT Species Window start
             NewSpeciesButton.OnToggled += args =>
@@ -2283,7 +2287,10 @@ namespace Content.Client.Lobby.UI
         private void UpdateWidthControls()
         {
             if (Profile == null)
+            {
+                CalculatedWeightLabel.Text = Loc.GetString("humanoid-profile-editor-calculated-weight-label", ("weight", 0));
                 return;
+            }
             var prototype = _prototypeManager.Index<SpeciesPrototype>(Profile.Species);
 
             // Clamp kg to species limits
@@ -2292,6 +2299,19 @@ namespace Content.Client.Lobby.UI
             var sliderPercent = (float)(clampedKg - prototype.MinWeightKg) / (prototype.MaxWeightKg - prototype.MinWeightKg);
             WidthSlider.Value = sliderPercent;
             CDWidth.Text = clampedKg.ToString(CultureInfo.InvariantCulture);
+            UpdateCalculatedWeightLabel(clampedKg); // <Onyx-Height & Weight>
         }
+        // <Onyx-Height & Weight>
+        private void UpdateCalculatedWeightLabel(float widthValue)
+        {
+            var weight = widthValue / WidthPerKilogram;
+            var halfStepWeight = MathF.Floor(weight * 2f) / 2f;
+            var wholeWeight = MathF.Round(halfStepWeight);
+            var weightText = MathF.Abs(halfStepWeight - wholeWeight) < 0.001f
+                ? wholeWeight.ToString("0", CultureInfo.InvariantCulture)
+                : halfStepWeight.ToString("0.0", CultureInfo.InvariantCulture);
+            CalculatedWeightLabel.Text = Loc.GetString("humanoid-profile-editor-calculated-weight-label", ("weight", weightText));
+        }
+        // </Onyx-Height & Weight>
     }
 }

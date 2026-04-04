@@ -105,6 +105,10 @@ SPDX-License-Identifier: AGPL-3.0-or-later
                                     <LineEdit HorizontalAlignment="Right" Name="CDWidth" MinSize="60 0" Text="1.0" />
                                     <Button Name="WidthReset" Text="{Loc 'humanoid-profile-editor-reset-weight-button'}" HorizontalAlignment="Right"/>
                                 </BoxContainer>
+                                <BoxContainer HorizontalExpand="True">
+                                    <Control HorizontalExpand="True" />
+                                    <Label Name="CalculatedWeightLabel" HorizontalAlignment="Right" Text="{Loc 'humanoid-profile-editor-calculated-weight-default-label'}" />
+                                </BoxContainer>
                                 <!-- end Onyx - Height & Weight -->
                                 <!-- Sex -->
                                 <BoxContainer HorizontalExpand="True">

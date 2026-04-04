@@ -93,5 +93,7 @@ trait-category-quirks = Quirks
 
 humanoid-profile-editor-height-label = Height (cm):
 humanoid-profile-editor-reset-height-button = Reset
-humanoid-profile-editor-weight-label = Weight (kg):
+humanoid-profile-editor-weight-label = Width:
 humanoid-profile-editor-reset-weight-button = Reset
+humanoid-profile-editor-calculated-weight-default-label = Weight: 0kg
+humanoid-profile-editor-calculated-weight-label = Weight: {$weight}kg
