@@ -185,7 +185,7 @@ namespace Content.Client.Viewport
             var drawBoxGlobal = drawBox.Translated(GlobalPixelPosition);
             _viewport!.RenderScreenOverlaysBelow(handle, this, drawBoxGlobal);
             if (_drawLowerZCacheThisFrame && _lowerZViewport != null) // <Onyx-Tweak>
-                handle.DrawingHandleScreen.DrawTextureRect(_lowerZViewport.RenderTarget.Texture, drawBox);
+                handle.DrawingHandleScreen.DrawTextureRect(_lowerZViewport.RenderTarget.Texture, GetLowerZScreenRect(drawBox)); // <Onyx-Tweak>
             handle.DrawingHandleScreen.DrawTextureRect(_viewport.RenderTarget.Texture, drawBox);
             _viewport!.RenderScreenOverlaysAbove(handle, this, drawBoxGlobal);
         }

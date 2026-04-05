@@ -56,6 +56,10 @@ public sealed partial class ScalingViewport
     private static readonly Color TransparentColor = new(0f, 0f, 0f, 0f);
     private const int MinZLevelsBelowRendering = 0;
     private const int MaxZLevelsBelowRendering = 3;
+    private Box2 _apertureWorldAABB;
+    private bool _hasApertureFocus;
+    private const float AperturePadding = 3f;
+    private const float FocusThresholdRatio = 0.7f;
     // </Onyx-Tweak>
 
     private bool TryFindEmptyTilesCached(EntityUid mapUid, Vector2 centerPosition, float searchRadius)
@@ -175,6 +179,132 @@ public sealed partial class ScalingViewport
         var sampleTileDef = (ContentTileDefinition)_tile[sampleTile.Tile.TypeId];
         return sampleTileDef.Transparent;
     }
+
+    private bool CollectApertureAABB(EntityUid mapUid, Vector2 centerPosition, float searchRadius, out Box2 aabb)
+    {
+        aabb = default;
+
+        if (_xformQuery is null || !_xformQuery.Value.TryComp(mapUid, out var xform))
+            return false;
+
+        var drawBox = GetDrawBox();
+        var mapId = xform.MapID;
+
+        var bl = _eyeManager.ScreenToMap(drawBox.BottomLeft).Position;
+        var br = _eyeManager.ScreenToMap(drawBox.BottomRight).Position;
+        var tl = _eyeManager.ScreenToMap(drawBox.TopLeft).Position;
+        var tr = _eyeManager.ScreenToMap(drawBox.TopRight).Position;
+
+        var minX = MathF.Min(MathF.Min(bl.X, br.X), MathF.Min(tl.X, tr.X));
+        var minY = MathF.Min(MathF.Min(bl.Y, br.Y), MathF.Min(tl.Y, tr.Y));
+        var maxX = MathF.Max(MathF.Max(bl.X, br.X), MathF.Max(tl.X, tr.X));
+        var maxY = MathF.Max(MathF.Max(bl.Y, br.Y), MathF.Max(tl.Y, tr.Y));
+
+        if (searchRadius > 0f)
+        {
+            minX = MathF.Max(minX, centerPosition.X - searchRadius);
+            minY = MathF.Max(minY, centerPosition.Y - searchRadius);
+            maxX = MathF.Min(maxX, centerPosition.X + searchRadius);
+            maxY = MathF.Min(maxY, centerPosition.Y + searchRadius);
+
+            if (minX >= maxX || minY >= maxY)
+                return false;
+        }
+
+        var screenWorldSize = new Vector2(maxX - minX, maxY - minY);
+        var foundAny = false;
+        var aMinX = float.MaxValue;
+        var aMinY = float.MaxValue;
+        var aMaxX = float.MinValue;
+        var aMaxY = float.MinValue;
+
+        Vector2[] samples =
+        [
+            new(minX, minY), new(maxX, minY),
+            new(minX, maxY), new(maxX, maxY),
+            new((minX + maxX) * 0.5f, (minY + maxY) * 0.5f)
+        ];
+
+        foreach (var sample in samples)
+        {
+            if (CheckSamplePoint(mapUid, sample, mapId))
+            {
+                foundAny = true;
+                aMinX = MathF.Min(aMinX, sample.X);
+                aMinY = MathF.Min(aMinY, sample.Y);
+                aMaxX = MathF.Max(aMaxX, sample.X);
+                aMaxY = MathF.Max(aMaxY, sample.Y);
+            }
+        }
+
+        var worldBounds = new Box2(minX, minY, maxX, maxY);
+        var mapCoordsBottomLeft = new MapCoordinates(new Vector2(minX, minY), mapId);
+        var mapCoordsTopRight = new MapCoordinates(new Vector2(maxX, maxY), mapId);
+
+        var visibleGrids = _visibleGridsBuffer;
+        visibleGrids.Clear();
+        _mapManager.FindGridsIntersecting(mapId, worldBounds, ref visibleGrids, approx: true, includeMap: false);
+
+        if (visibleGrids.Count == 0 && !foundAny)
+        {
+            aabb = new Box2(minX, minY, maxX, maxY);
+            return true;
+        }
+
+        foreach (var grid in visibleGrids)
+        {
+            var mapGrid = grid.Comp;
+            var xformGrid = _xformQuery.Value.GetComponent(grid);
+            var tileBottomLeft = mapGrid.TileIndicesFor(mapCoordsBottomLeft);
+            var tileTopRight = mapGrid.TileIndicesFor(mapCoordsTopRight);
+
+            for (var x = tileBottomLeft.X - 1; x <= tileTopRight.X + 1; x++)
+            {
+                for (var y = tileBottomLeft.Y - 1; y <= tileTopRight.Y + 1; y++)
+                {
+                    var tile = mapGrid.GetTileRef(new Vector2i(x, y));
+                    var isEmpty = tile.Tile.IsEmpty;
+                    if (!isEmpty)
+                    {
+                        var tileDef = (ContentTileDefinition)_tile[tile.Tile.TypeId];
+                        isEmpty = tileDef.Transparent;
+                    }
+
+                    if (!isEmpty)
+                        continue;
+
+                    foundAny = true;
+                    var tileWorld = mapGrid.GridTileToWorldPos(new Vector2i(x, y));
+                    aMinX = MathF.Min(aMinX, tileWorld.X);
+                    aMinY = MathF.Min(aMinY, tileWorld.Y);
+                    aMaxX = MathF.Max(aMaxX, tileWorld.X + 1f);
+                    aMaxY = MathF.Max(aMaxY, tileWorld.Y + 1f);
+                }
+            }
+        }
+
+        if (!foundAny)
+            return false;
+
+        aMinX -= AperturePadding;
+        aMinY -= AperturePadding;
+        aMaxX += AperturePadding;
+        aMaxY += AperturePadding;
+
+        aMinX = MathF.Max(aMinX, minX);
+        aMinY = MathF.Max(aMinY, minY);
+        aMaxX = MathF.Min(aMaxX, maxX);
+        aMaxY = MathF.Min(aMaxY, maxY);
+
+        aabb = new Box2(aMinX, aMinY, aMaxX, aMaxY);
+
+        var apertureSize = aabb.Size;
+        if (apertureSize.X / screenWorldSize.X > FocusThresholdRatio
+            && apertureSize.Y / screenWorldSize.Y > FocusThresholdRatio)
+            return false;
+
+        return true;
+    }
     // </Onyx-Tweak>
 
     private void RenderZLevels(IClydeViewport viewport)
@@ -241,7 +371,17 @@ public sealed partial class ScalingViewport
         var zLevelOffset = _cachedZLevelOffset;
         Angle rotation = _fallbackEye.Rotation * -1;
         var rotationVector = rotation.ToWorldVec();
-        // <Onyx-Tweak>
+
+        _hasApertureFocus = false;
+        if (lowestDepth < 0)
+        {
+            _hasApertureFocus = CollectApertureAABB(
+                playerXform.MapUid.Value,
+                playerPosition,
+                lowerRenderSearchRadius,
+                out _apertureWorldAABB);
+        }
+        // </Onyx-Tweak>
 
         // <Onyx-Tweak edited>
         _renderingNonBaseZLayer = false;
@@ -345,6 +485,27 @@ public sealed partial class ScalingViewport
                 _sharedZEye.Offset = _fallbackEye.Offset + offset;
                 _sharedZEye.Rotation = _fallbackEye.Rotation;
                 _sharedZEye.Scale = _fallbackEye.Scale;
+
+                // <Onyx-Tweak>
+                if (depth < 0 && _hasApertureFocus)
+                {
+                    var apertureCenter = _apertureWorldAABB.Center;
+                    var apertureSize = _apertureWorldAABB.Size;
+
+                    var vpWorldSize = (Vector2)targetViewport.Size / targetViewport.RenderScale / EyeManager.PixelsPerMeter * _fallbackEye.Zoom;
+
+                    var focusZoomX = apertureSize.X / vpWorldSize.X;
+                    var focusZoomY = apertureSize.Y / vpWorldSize.Y;
+
+                    var focusZoom = new Vector2(
+                        MathF.Min(_fallbackEye.Zoom.X, _fallbackEye.Zoom.X * focusZoomX),
+                        MathF.Min(_fallbackEye.Zoom.Y, _fallbackEye.Zoom.Y * focusZoomY));
+                    _sharedZEye.Position = new MapCoordinates(apertureCenter, mapComp.MapId);
+                    _sharedZEye.Offset = offset;
+                    _sharedZEye.Scale = new Vector2(1f / focusZoom.X, 1f / focusZoom.Y);
+                }
+                // </Onyx-Tweak>
+
                 _renderingNonBaseZLayer = true;
                 targetViewport.Eye = _sharedZEye;
             }
@@ -356,6 +517,29 @@ public sealed partial class ScalingViewport
 
         return renderedAny;
     }
+
+    // <Onyx-ZLevels>
+    private UIBox2i GetLowerZScreenRect(UIBox2i drawBox)
+    {
+        if (!_hasApertureFocus)
+            return drawBox;
+
+        var screenBL = WorldToScreen(_apertureWorldAABB.BottomLeft);
+        var screenTR = WorldToScreen(_apertureWorldAABB.TopRight);
+
+        var sMinX = MathF.Min(screenBL.X, screenTR.X);
+        var sMinY = MathF.Min(screenBL.Y, screenTR.Y);
+        var sMaxX = MathF.Max(screenBL.X, screenTR.X);
+        var sMaxY = MathF.Max(screenBL.Y, screenTR.Y);
+
+        sMinX = MathF.Max(sMinX, drawBox.Left);
+        sMinY = MathF.Max(sMinY, drawBox.Top);
+        sMaxX = MathF.Min(sMaxX, drawBox.Right);
+        sMaxY = MathF.Min(sMaxY, drawBox.Bottom);
+
+        return new UIBox2i((int)sMinX, (int)sMinY, (int)sMaxX, (int)sMaxY);
+    }
+    // </Onyx-ZLevels>
 
     private void EnsureZLevelCvarCache()
     {
@@ -390,5 +574,4 @@ public sealed partial class ScalingViewport
         public int Depth;
         public int HighestDepth;
     }
-    // <Onyx-Tweak edited>
 }
