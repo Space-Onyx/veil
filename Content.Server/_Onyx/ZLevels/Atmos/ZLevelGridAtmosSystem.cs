@@ -64,15 +64,10 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
         SubscribeLocalEvent<GridMotionLinkComponent, EntParentChangedMessage>(OnLinkParentChanged);
         SubscribeLocalEvent<CEZLevelMapComponent, ComponentStartup>(OnZMapChanged);
         SubscribeLocalEvent<CEZLevelMapComponent, ComponentShutdown>(OnZMapChanged);
-        SubscribeLocalEvent<CEZLevelsNetworkComponent, ComponentInit>(OnNetworkInit);
         SubscribeLocalEvent<TileChangedEvent>(OnTileChanged);
         SubscribeLocalEvent<MapGridComponent, GridFixtureChangeEvent>(OnGridFixtureChanged);
     }
 
-    private void OnNetworkInit(EntityUid uid, CEZLevelsNetworkComponent comp, ComponentInit args)
-    {
-        _hasZNetwork = true;
-    }
 
     public bool IsVerticalHoleTile(EntityUid grid, Vector2i pos)
     {
@@ -135,7 +130,11 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
         base.Update(frameTime);
 
         if (!_hasZNetwork)
-            return;
+        {
+            _hasZNetwork = _groupCache.Count > 0 || _groupCacheDirty;
+            if (!_hasZNetwork)
+                return;
+        }
 
         if (++_periodicGroupCheckCounter >= 120)
         {
