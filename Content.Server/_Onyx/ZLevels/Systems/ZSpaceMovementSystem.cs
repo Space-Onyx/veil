@@ -17,6 +17,7 @@ public sealed class ZSpaceMovementSystem : EntitySystem
     private const float CheckInterval = 0.5f;
 
     private float _accumulator;
+    private bool _hasZNetwork;
 
     public override void Initialize()
     {
@@ -27,11 +28,20 @@ public sealed class ZSpaceMovementSystem : EntitySystem
         SubscribeLocalEvent<ZSpaceMoverComponent, ZSpaceMoveDownAction>(OnMoveDown);
         SubscribeLocalEvent<ZSpaceMoverComponent, ZSpaceMoveUpDoAfterEvent>(OnMoveUpComplete);
         SubscribeLocalEvent<ZSpaceMoverComponent, ZSpaceMoveDownDoAfterEvent>(OnMoveDownComplete);
+        SubscribeLocalEvent<CEZLevelsNetworkComponent, ComponentInit>(OnNetworkInit);
+    }
+
+    private void OnNetworkInit(EntityUid uid, CEZLevelsNetworkComponent comp, ComponentInit args)
+    {
+        _hasZNetwork = true;
     }
 
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
+
+        if (!_hasZNetwork)
+            return;
 
         _accumulator += frameTime;
         if (_accumulator < CheckInterval)

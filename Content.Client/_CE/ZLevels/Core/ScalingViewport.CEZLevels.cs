@@ -58,6 +58,11 @@ public sealed partial class ScalingViewport
     private const int MaxZLevelsBelowRendering = 3;
     private Box2 _apertureWorldAABB;
     private bool _hasApertureFocus;
+    private bool _apertureCacheValid;
+    private Box2 _apertureCachedAABB;
+    private bool _apertureCachedResult;
+    private TimeSpan _apertureCacheExpiry;
+    private const float ApertureCacheLifetime = 0.3f;
     private const float AperturePadding = 3f;
     private const float FocusThresholdRatio = 0.7f;
     // </Onyx-Tweak>
@@ -222,18 +227,12 @@ public sealed partial class ScalingViewport
         var aMaxX = float.MinValue;
         var aMaxY = float.MinValue;
 
-        Vector2[] samples =
-        [
-            new(minX, minY), new(maxX, minY),
-            new(minX, maxY), new(maxX, maxY),
-            new((minX + maxX) * 0.5f, (minY + maxY) * 0.5f)
-        ];
-
-        foreach (var sample in samples)
-        {
-            if (IsOpenSpace(mapUid, sample))
-                return false;
-        }
+        if (IsOpenSpace(mapUid, new Vector2(minX, minY))
+            || IsOpenSpace(mapUid, new Vector2(maxX, minY))
+            || IsOpenSpace(mapUid, new Vector2(minX, maxY))
+            || IsOpenSpace(mapUid, new Vector2(maxX, maxY))
+            || IsOpenSpace(mapUid, new Vector2((minX + maxX) * 0.5f, (minY + maxY) * 0.5f)))
+            return false;
 
         var worldBounds = new Box2(minX, minY, maxX, maxY);
         var mapCoordsBottomLeft = new MapCoordinates(new Vector2(minX, minY), mapId);
@@ -369,11 +368,27 @@ public sealed partial class ScalingViewport
         _hasApertureFocus = false;
         if (lowestDepth < 0)
         {
-            _hasApertureFocus = CollectApertureAABB(
-                playerXform.MapUid.Value,
-                playerPosition,
-                lowerRenderSearchRadius,
-                out _apertureWorldAABB);
+            if (_apertureCacheValid && _timing.CurTime < _apertureCacheExpiry)
+            {
+                _hasApertureFocus = _apertureCachedResult;
+                _apertureWorldAABB = _apertureCachedAABB;
+            }
+            else
+            {
+                _hasApertureFocus = CollectApertureAABB(
+                    playerXform.MapUid.Value,
+                    playerPosition,
+                    lowerRenderSearchRadius,
+                    out _apertureWorldAABB);
+                _apertureCachedResult = _hasApertureFocus;
+                _apertureCachedAABB = _apertureWorldAABB;
+                _apertureCacheValid = true;
+                _apertureCacheExpiry = _timing.CurTime + TimeSpan.FromSeconds(ApertureCacheLifetime);
+            }
+        }
+        else
+        {
+            _apertureCacheValid = false;
         }
         // </Onyx-Tweak>
 
