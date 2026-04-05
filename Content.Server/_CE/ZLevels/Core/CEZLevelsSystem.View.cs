@@ -6,7 +6,6 @@
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._CE.ZLevels.Core.EntitySystems;
 using Content.Shared.Actions;
-using Content.Shared.CCVar;
 using Content.Shared.IdentityManagement;
 using Content.Shared.Popups;
 using Robust.Server.GameObjects;
@@ -25,6 +24,7 @@ public sealed partial class CEZLevelsSystem
     [Dependency] private readonly SharedPopupSystem _popup = default!;
 
     private readonly EntProtoId _zEyeProto = "CEZLevelEye";
+    private const int MaxServerLoadedLowerZLevels = 3; // <Onyx-ZLevels>
 
     private readonly TimeSpan _zLevelViewerUpdateRate = TimeSpan.FromSeconds(1f);
     private TimeSpan _nextZLevelViewerUpdate = TimeSpan.Zero;
@@ -146,7 +146,7 @@ public sealed partial class CEZLevelsSystem
 
         var globalPos = _transform.GetWorldPosition(xform);
 
-        for (var i = 1; i <= Cfg.GetCVar(CCVars.MaxZLevelsBelowRendering); i++) // <Onyx-Tweak>
+        for (var i = 1; i <= MaxServerLoadedLowerZLevels; i++) // <Onyx-ZLevels>
         {
             if (!TryMapOffset(map.Value, -i, out var mapUidBelow))
                 break;

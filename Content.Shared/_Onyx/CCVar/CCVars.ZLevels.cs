@@ -12,7 +12,7 @@ public sealed partial class CCVars
         CVarDef.Create("zlevels.chasm_fall_enabled", false, CVar.SERVER | CVar.REPLICATED | CVar.ARCHIVE);
 
     public static readonly CVarDef<int> MaxZLevelsBelowRendering =
-        CVarDef.Create("zlevels.max_z_levels_below_rendering", 3, CVar.SERVER | CVar.REPLICATED | CVar.ARCHIVE);
+        CVarDef.Create("zlevels.max_z_levels_below_rendering", 2, CVar.CLIENTONLY | CVar.ARCHIVE);
 
     public static readonly CVarDef<float> ZLevelOffset =
         CVarDef.Create("zlevels.z_level_offset", 0f, CVar.SERVER | CVar.REPLICATED | CVar.ARCHIVE);
@@ -34,6 +34,7 @@ public sealed partial class CCVars
 
     public static readonly CVarDef<int> ZLevelLowerRenderProbeRadius =
         CVarDef.Create("zlevels.lower_render_radius", 25, CVar.CLIENTONLY | CVar.ARCHIVE);
+
     public static readonly CVarDef<float> ZLevelHoleShadowMaxDistance =
         CVarDef.Create("zlevels.hole_shadow_max_distance", 0f, CVar.CLIENTONLY | CVar.ARCHIVE);
 

@@ -26,6 +26,7 @@
 using System.Numerics;
 using Content.Client.Atmos.Components;
 using Content.Client.Atmos.EntitySystems;
+using Content.Client.Viewport;
 using Content.Shared.Atmos;
 using Content.Shared.Atmos.Components;
 using Content.Shared.Atmos.Prototypes;
@@ -74,6 +75,7 @@ namespace Content.Client.Atmos.Overlays
         private int _gasCount;
 
         public const int GasOverlayZIndex = (int) Shared.DrawDepth.DrawDepth.Effects; // Under ghosts, above mostly everything else
+        private const int LowestGasOverlayDepth = -1; // <Onyx-ZLevels>
 
         public GasTileOverlay(GasTileOverlaySystem system, IEntityManager entManager, IResourceCache resourceCache, IPrototypeManager protoMan, SpriteSystem spriteSys, SharedTransformSystem xformSys)
         {
@@ -177,6 +179,10 @@ namespace Content.Client.Atmos.Overlays
             if (args.MapId == MapId.Nullspace)
                 return;
 
+            // <Onyx-ZLevels>
+            if (args.Viewport.Eye is ScalingViewport.ZEye { Depth: < LowestGasOverlayDepth })
+                return;
+            // </Onyx-ZLevels>
             var drawHandle = args.WorldHandle;
             var xformQuery = _entManager.GetEntityQuery<TransformComponent>();
             var overlayQuery = _entManager.GetEntityQuery<GasTileOverlayComponent>();

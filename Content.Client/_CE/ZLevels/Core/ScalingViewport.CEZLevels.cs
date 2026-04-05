@@ -37,7 +37,7 @@ public sealed partial class ScalingViewport
     private EntityQuery<MapComponent>? _mapQuery;
 
     private IEye? _fallbackEye;
-    // <Onyx-Tweak> 
+    // <Onyx-Tweak>
     private readonly Dictionary<int, EntityUid> _depthMapCache = new();
     private bool _renderingNonBaseZLayer;
     private bool _lowerDepthCacheValid;
@@ -54,6 +54,8 @@ public sealed partial class ScalingViewport
     private int _cachedLowerRenderRadius;
     private readonly ZEye _sharedZEye = new();
     private static readonly Color TransparentColor = new(0f, 0f, 0f, 0f);
+    private const int MinZLevelsBelowRendering = 0;
+    private const int MaxZLevelsBelowRendering = 3;
     // </Onyx-Tweak>
 
     private bool TryFindEmptyTilesCached(EntityUid mapUid, Vector2 centerPosition, float searchRadius)
@@ -202,10 +204,10 @@ public sealed partial class ScalingViewport
         if (playerXform.MapUid is null)
             return;
 
-        // <Onyx-Tweak> 
+        // <Onyx-Tweak>
         _depthMapCache.Clear();
         _depthMapCache[0] = playerXform.MapUid.Value;
-        // </Onyx-Tweak> 
+        // </Onyx-Tweak>
 
         var lookUp = zLevelViewer.LookUp ? 1 : 0;
 
@@ -226,7 +228,7 @@ public sealed partial class ScalingViewport
                     continue;
 
                 checkingMap = mapUidBelow.Value;
-                _depthMapCache[i] = checkingMap; // <Onyx-Tweak> 
+                _depthMapCache[i] = checkingMap; // <Onyx-Tweak>
             }
 
             lowestDepth = i;
@@ -235,13 +237,13 @@ public sealed partial class ScalingViewport
                 break;
         }
 
-        // <Onyx-Tweak> 
+        // <Onyx-Tweak>
         var zLevelOffset = _cachedZLevelOffset;
         Angle rotation = _fallbackEye.Rotation * -1;
         var rotationVector = rotation.ToWorldVec();
-        // <Onyx-Tweak> 
+        // <Onyx-Tweak>
 
-        // <Onyx-Tweak edited> 
+        // <Onyx-Tweak edited>
         _renderingNonBaseZLayer = false;
         try
         {
@@ -354,15 +356,16 @@ public sealed partial class ScalingViewport
 
         return renderedAny;
     }
-    // </Onyx-Tweak edited> 
 
-    // <Onyx-Tweak edited> 
     private void EnsureZLevelCvarCache()
     {
         if (_zLevelCvarsSubscribed)
             return;
 
-        _cfg.OnValueChanged(CCVars.MaxZLevelsBelowRendering, value => _cachedMaxZLevelsBelowRendering = value, true);
+        _cfg.OnValueChanged(CCVars.MaxZLevelsBelowRendering, value =>
+        {
+            _cachedMaxZLevelsBelowRendering = Math.Clamp(value, MinZLevelsBelowRendering, MaxZLevelsBelowRendering);
+        }, true);
         _cfg.OnValueChanged(CCVars.ZLevelOffset, value => _cachedZLevelOffset = value, true);
         _cfg.OnValueChanged(CCVars.ZLevelLowerRenderProbeRadius, value =>
         {
@@ -387,5 +390,5 @@ public sealed partial class ScalingViewport
         public int Depth;
         public int HighestDepth;
     }
-    // <Onyx-Tweak edited> 
+    // <Onyx-Tweak edited>
 }

@@ -141,6 +141,15 @@ public sealed partial class GraphicsTab : Control
                 new OptionDropDownCVar<int>.ValueOption(60, Loc.GetString("ui-options-zlevel-hole-shadow-update-rate-60")),
             ]);
         Control.AddOptionDropDown(
+            CCVars.MaxZLevelsBelowRendering,
+            ZLevelBelowRenderingCountDropDown,
+            [
+                new OptionDropDownCVar<int>.ValueOption(0, Loc.GetString("ui-options-zlevel-below-render-count-0")),
+                new OptionDropDownCVar<int>.ValueOption(1, Loc.GetString("ui-options-zlevel-below-render-count-1")),
+                new OptionDropDownCVar<int>.ValueOption(2, Loc.GetString("ui-options-zlevel-below-render-count-2")),
+                new OptionDropDownCVar<int>.ValueOption(3, Loc.GetString("ui-options-zlevel-below-render-count-3")),
+            ]);
+        Control.AddOptionDropDown(
             CCVars.ZLevelLowerRenderProbeRadius,
             ZLevelLowerRenderRadiusDropDown,
             [
