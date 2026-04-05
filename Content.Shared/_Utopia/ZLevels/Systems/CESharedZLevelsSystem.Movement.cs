@@ -138,7 +138,15 @@ public abstract partial class CESharedZLevelsSystem
             }
             // </Onyx-Tweak>
 
-            // <Onyx-Tweak>
+            // <Onyx-Tweak> Block Z-level fall when no gravity (open space)
+            if (!HasZNetworkGravity(Transform(uid)))
+            {
+                zPhys.LocalPosition = 0;
+                if (zPhys.Velocity < 0)
+                    zPhys.Velocity = 0;
+                return;
+            }
+
             if (!TryMoveDownOrChasm(uid))
             {
                 if (!HasComp<ChasmFallingComponent>(uid))
@@ -149,7 +157,7 @@ public abstract partial class CESharedZLevelsSystem
                 }
                 return;
             }
-            // <Onyx-Tweak>
+            // </Onyx-Tweak>
 
             zPhys.LocalPosition += 1;
 
