@@ -179,6 +179,10 @@ public sealed partial class ScalingViewport
         var sampleTileDef = (ContentTileDefinition)_tile[sampleTile.Tile.TypeId];
         return sampleTileDef.Transparent;
     }
+    private bool IsOpenSpace(EntityUid mapUid, Vector2 sample)
+    {
+        return !_mapManager.TryFindGridAt(mapUid, sample, out _, out _);
+    }
 
     private bool CollectApertureAABB(EntityUid mapUid, Vector2 centerPosition, float searchRadius, out Box2 aabb)
     {
@@ -227,14 +231,8 @@ public sealed partial class ScalingViewport
 
         foreach (var sample in samples)
         {
-            if (CheckSamplePoint(mapUid, sample, mapId))
-            {
-                foundAny = true;
-                aMinX = MathF.Min(aMinX, sample.X);
-                aMinY = MathF.Min(aMinY, sample.Y);
-                aMaxX = MathF.Max(aMaxX, sample.X);
-                aMaxY = MathF.Max(aMaxY, sample.Y);
-            }
+            if (IsOpenSpace(mapUid, sample))
+                return false;
         }
 
         var worldBounds = new Box2(minX, minY, maxX, maxY);
@@ -245,16 +243,12 @@ public sealed partial class ScalingViewport
         visibleGrids.Clear();
         _mapManager.FindGridsIntersecting(mapId, worldBounds, ref visibleGrids, approx: true, includeMap: false);
 
-        if (visibleGrids.Count == 0 && !foundAny)
-        {
-            aabb = new Box2(minX, minY, maxX, maxY);
-            return true;
-        }
+        if (visibleGrids.Count == 0)
+            return false;
 
         foreach (var grid in visibleGrids)
         {
             var mapGrid = grid.Comp;
-            var xformGrid = _xformQuery.Value.GetComponent(grid);
             var tileBottomLeft = mapGrid.TileIndicesFor(mapCoordsBottomLeft);
             var tileTopRight = mapGrid.TileIndicesFor(mapCoordsTopRight);
 
