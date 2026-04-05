@@ -39,8 +39,7 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
     private readonly HashSet<(EntityUid Grid, Vector2i Tile)> _pendingTileUpdateSet = new();
     private readonly Dictionary<EntityUid, HashSet<Vector2i>> _interiorHolesCache = new();
     private readonly List<(EntityUid Below, EntityUid Above)> _staleVerticalLinkKeys = new();
-
-    // Early exit when no Z-levels exist
+    private readonly List<string> _staleGroupIds = new();
     private bool _hasZNetwork;
 
     private record struct VerticalLink(
@@ -344,15 +343,15 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
         {
             _verticalLinks.Remove(key);
         }
-
-        }
+    }
 
     private void RebuildGroupCache()
     {
         _groupCacheDirty = false;
 
-        // Reuse lists where possible instead of allocating new ones
-        var oldKeys = new HashSet<string>(_groupCache.Keys);
+        foreach (var list in _groupCache.Values)
+            list.Clear();
+
         var newLinkedGrids = new HashSet<EntityUid>();
 
         var query = EntityQueryEnumerator<GridMotionLinkComponent, MapGridComponent, TransformComponent>();
@@ -372,19 +371,18 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
                 list = new List<(int, EntityUid)>();
                 _groupCache[link.GroupId] = list;
             }
-            else if (oldKeys.Remove(link.GroupId))
-            {
-                // Reuse existing list, clear it
-                list.Clear();
-            }
 
             list.Add((zMap.Depth, uid));
             newLinkedGrids.Add(uid);
-            oldKeys.Remove(link.GroupId);
         }
 
-        // Remove stale groups
-        foreach (var stale in oldKeys)
+        _staleGroupIds.Clear();
+        foreach (var (groupId, list) in _groupCache)
+        {
+            if (list.Count == 0)
+                _staleGroupIds.Add(groupId);
+        }
+        foreach (var stale in _staleGroupIds)
             _groupCache.Remove(stale);
 
         foreach (var list in _groupCache.Values)
@@ -471,15 +469,11 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
         EntityUid upperGridUid, MapGridComponent upperGrid,
         EntityUid lowerGridUid, MapGridComponent lowerGrid)
     {
-        // Use cached interior holes for upper grid to avoid redundant tile iteration.
-        // Only check lower tiles that correspond to upper holes.
         var upperHoles = GetInteriorHoles(upperGridUid, upperGrid);
 
-        // If no holes in upper grid, nothing to infer
         if (upperHoles.Count == 0)
             return;
 
-        // Iterate upper holes and check if lower grid has solid tile at that position
         foreach (var upperPos in upperHoles)
         {
             var worldPos = _mapSystem.GridTileToWorldPos(upperGridUid, upperGrid, upperPos);
