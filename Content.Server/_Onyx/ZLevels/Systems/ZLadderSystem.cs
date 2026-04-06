@@ -132,12 +132,20 @@ public sealed class ZLadderSystem : EntitySystem
 
     private bool TryFindMatchingLadder(MapId targetMapId, Vector2 sourceWorldPos, ZLadderDirection expectedDir, out Vector2 position)
     {
+        if (_ladderLookupDirty)
+            RebuildLadderLookup();
+
+        if (TryFindMatchingLadderFromLookup(targetMapId, sourceWorldPos, expectedDir, out position))
+            return true;
+
+        return TryFindMatchingLadderLinear(targetMapId, sourceWorldPos, expectedDir, out position);
+    }
+
+    private bool TryFindMatchingLadderFromLookup(MapId targetMapId, Vector2 sourceWorldPos, ZLadderDirection expectedDir, out Vector2 position)
+    {
         position = default;
         var bestDist = MaxMatchDistanceSqr;
         var found = false;
-
-        if (_ladderLookupDirty)
-            RebuildLadderLookup();
 
         var sourceCell = ToLookupCell(sourceWorldPos);
         foreach (var offset in LookupOffsets)
@@ -155,6 +163,31 @@ public sealed class ZLadderSystem : EntitySystem
                     position = worldPos;
                     found = true;
                 }
+            }
+        }
+
+        return found;
+    }
+
+    private bool TryFindMatchingLadderLinear(MapId targetMapId, Vector2 sourceWorldPos, ZLadderDirection expectedDir, out Vector2 position)
+    {
+        position = default;
+        var bestDist = MaxMatchDistanceSqr;
+        var found = false;
+
+        var query = EntityQueryEnumerator<ZLadderComponent, TransformComponent>();
+        while (query.MoveNext(out _, out var ladder, out var xform))
+        {
+            if (xform.MapID != targetMapId || ladder.Direction != expectedDir)
+                continue;
+
+            var worldPos = _transform.GetWorldPosition(xform);
+            var dist = (worldPos - sourceWorldPos).LengthSquared();
+            if (dist < bestDist)
+            {
+                bestDist = dist;
+                position = worldPos;
+                found = true;
             }
         }
 
