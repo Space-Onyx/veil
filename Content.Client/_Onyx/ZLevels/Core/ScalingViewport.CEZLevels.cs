@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 using Content.Client._Onyx.ZLevels.Core;
+using Content.Client.Examine;
 using Content.Shared._Onyx.ZLevels.Core.Components;
 using Content.Shared._Onyx.ZLevels.Core.EntitySystems;
 using Content.Shared._Utopia.ZLevels.Components;
@@ -30,6 +31,7 @@ public sealed partial class ScalingViewport
     [Dependency] private readonly ITileDefinitionManager _tile = default!;
     [Dependency] private readonly IConfigurationManager _cfg = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private readonly ExamineSystem _examine = default!;
 
     private CEClientZLevelsSystem? _zLevels;
 
@@ -59,6 +61,7 @@ public sealed partial class ScalingViewport
     private const int MinZLevelsBelowRendering = 0;
     private const int MaxZLevelsBelowRendering = 3;
     private static readonly TimeSpan LinkedGridLowerRenderGrace = TimeSpan.FromSeconds(0.25f);
+    private const int MaxVisibilityRayChecksPerScan = 128;
     private bool GetViewportScanCached(
         EntityUid mapUid,
         Vector2 centerPosition,
@@ -97,10 +100,10 @@ public sealed partial class ScalingViewport
         return ScanVisibleTiles(mapUid, centerPosition, searchRadius);
     }
 
-    private bool CheckSamplePoint(EntityUid mapUid, Vector2 sample, MapId mapId)
+    private bool CheckSamplePoint(EntityUid mapUid, Vector2 sample, MapId mapId, bool noGridCountsAsOpen)
     {
         if (!_mapManager.TryFindGridAt(mapUid, sample, out _, out var sampleGrid))
-            return true;
+            return noGridCountsAsOpen;
 
         var sampleTile = sampleGrid.GetTileRef(sampleGrid.TileIndicesFor(new MapCoordinates(sample, mapId)));
         if (sampleTile.Tile.IsEmpty)
@@ -144,11 +147,26 @@ public sealed partial class ScalingViewport
 
         var center = new Vector2((minX + maxX) * 0.5f, (minY + maxY) * 0.5f);
 
-        if (CheckSamplePoint(mapUid, new Vector2(minX, minY), mapId)
-            || CheckSamplePoint(mapUid, new Vector2(maxX, minY), mapId)
-            || CheckSamplePoint(mapUid, new Vector2(minX, maxY), mapId)
-            || CheckSamplePoint(mapUid, new Vector2(maxX, maxY), mapId)
-            || CheckSamplePoint(mapUid, center, mapId))
+        var visibilityChecks = 0;
+
+        if (CheckSamplePoint(mapUid, new Vector2(minX, minY), mapId, noGridCountsAsOpen: false)
+            && IsOpenPointVisible(mapId, new Vector2(minX, minY), ref visibilityChecks))
+            return true;
+
+        if (CheckSamplePoint(mapUid, new Vector2(maxX, minY), mapId, noGridCountsAsOpen: false)
+            && IsOpenPointVisible(mapId, new Vector2(maxX, minY), ref visibilityChecks))
+            return true;
+
+        if (CheckSamplePoint(mapUid, new Vector2(minX, maxY), mapId, noGridCountsAsOpen: false)
+            && IsOpenPointVisible(mapId, new Vector2(minX, maxY), ref visibilityChecks))
+            return true;
+
+        if (CheckSamplePoint(mapUid, new Vector2(maxX, maxY), mapId, noGridCountsAsOpen: false)
+            && IsOpenPointVisible(mapId, new Vector2(maxX, maxY), ref visibilityChecks))
+            return true;
+
+        if (CheckSamplePoint(mapUid, center, mapId, noGridCountsAsOpen: true)
+            && IsOpenPointVisible(mapId, center, ref visibilityChecks))
             return true;
 
         var worldBounds = new Box2(minX, minY, maxX, maxY);
@@ -185,12 +203,33 @@ public sealed partial class ScalingViewport
                     if (!isOpen)
                         continue;
 
+                    if (!IsOpenPointVisible(mapId, mapGrid.GridTileToWorldPos(pos), ref visibilityChecks))
+                        continue;
+
                     return true;
                 }
             }
         }
 
         return false;
+    }
+
+    private bool IsOpenPointVisible(MapId mapId, Vector2 worldPos, ref int visibilityChecks)
+    {
+        if (_player.LocalEntity is not { } viewer)
+            return true;
+
+        if (_xformQuery is null || !_xformQuery.Value.TryComp(viewer, out var viewerXform))
+            return false;
+
+        if (viewerXform.MapID != mapId)
+            return false;
+
+        if (visibilityChecks >= MaxVisibilityRayChecksPerScan)
+            return false;
+
+        visibilityChecks++;
+        return _examine.InRangeUnOccluded(viewer, new MapCoordinates(worldPos, mapId), 100f);
     }
 
     private void RenderZLevels(IClydeViewport viewport)
