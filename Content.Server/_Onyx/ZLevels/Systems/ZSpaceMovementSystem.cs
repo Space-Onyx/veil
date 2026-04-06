@@ -298,6 +298,12 @@ public sealed class ZSpaceMovementSystem : EntitySystem
         if (!_zLevels.TryMapOffset(mapUid, direction, out _))
             return false;
 
+        if (direction > 0 && _zLevels.HasTileAbove(uid))
+            return false;
+
+        if (direction < 0 && _zLevels.HasTileBelow(uid))
+            return false;
+
         var doAfterEvent = direction > 0
             ? (SimpleDoAfterEvent) new ZSpaceMoveUpDoAfterEvent()
             : new ZSpaceMoveDownDoAfterEvent();
@@ -330,6 +336,12 @@ public sealed class ZSpaceMovementSystem : EntitySystem
     {
         var xform = Transform(uid);
         if (xform.GridUid != null)
+            return false;
+
+        if (direction > 0 && _zLevels.HasTileAbove(uid))
+            return false;
+
+        if (direction < 0 && _zLevels.HasTileBelow(uid))
             return false;
 
         if (!_zLevels.TryMove(uid, direction))

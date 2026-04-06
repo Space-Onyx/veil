@@ -330,22 +330,9 @@ public abstract partial class CESharedZLevelsSystem
         return target.Comp.LocalPosition - target.Comp.CurrentGroundHeight;
     }
 
-    /// <summary>
-    /// Checks whether there is a ceiling above the specified entity (tiles on the layer above).
-    /// If there are no Z-levels above, false will be returned.
-    /// </summary>
-    [PublicAPI]
-    public bool HasTileAbove(EntityUid ent, Entity<CEZLevelMapComponent?>? currentMapUid = null)
+    private bool HasBlockingTileOnMap(EntityUid ent, EntityUid mapUid)
     {
-        currentMapUid ??= Transform(ent).MapUid;
-
-        if (currentMapUid is null)
-            return false;
-
-        if (!TryMapUp(currentMapUid.Value, out var mapAboveUid))
-            return false;
-
-        if (!_mapQuery.TryComp(mapAboveUid.Value, out var mapComp))
+        if (!_mapQuery.TryComp(mapUid, out var mapComp))
             return false;
 
         var worldPos = _transform.GetWorldPosition(ent);
@@ -361,6 +348,42 @@ public abstract partial class CESharedZLevelsSystem
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Checks whether there is a ceiling above the specified entity (tiles on the layer above).
+    /// If there are no Z-levels above, false will be returned.
+    /// </summary>
+    [PublicAPI]
+    public bool HasTileAbove(EntityUid ent, Entity<CEZLevelMapComponent?>? currentMapUid = null)
+    {
+        currentMapUid ??= Transform(ent).MapUid;
+
+        if (currentMapUid is null)
+            return false;
+
+        if (!TryMapUp(currentMapUid.Value, out var mapAboveUid))
+            return false;
+
+        return HasBlockingTileOnMap(ent, mapAboveUid.Value);
+    }
+
+    /// <summary>
+    /// Checks whether there is a ceiling below the specified entity (tiles on the layer below).
+    /// If there are no Z-levels below, false will be returned.
+    /// </summary>
+    [PublicAPI]
+    public bool HasTileBelow(EntityUid ent, Entity<CEZLevelMapComponent?>? currentMapUid = null)
+    {
+        currentMapUid ??= Transform(ent).MapUid;
+
+        if (currentMapUid is null)
+            return false;
+
+        if (!TryMapDown(currentMapUid.Value, out var mapBelowUid))
+            return false;
+
+        return HasBlockingTileOnMap(ent, mapBelowUid.Value);
     }
 
     /// <summary>
