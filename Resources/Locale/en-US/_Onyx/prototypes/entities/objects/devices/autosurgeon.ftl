@@ -3,6 +3,10 @@ ent-AutosurgeonVoiceModulator = syndicate autosurgeon (voice modulator)
 
 ent-AutosurgeonRTGAugment = autosurgeon (RTG augment)
     .desc = A single-use autosurgeon for implanting an RTG augment.
+ent-AutosurgeonRTGAugmentSyndicate = syndicate autosurgeon (RTG augment)
+    .desc = A single-use syndicate autosurgeon for implanting an RTG augment.
+ent-AutosurgeonPowerCellSlotHyper = syndicate autosurgeon (hyper-capacity power cell slot)
+    .desc = A single-use syndicate autosurgeon for implanting a hyper-capacity power cell slot augment.
 
 ent-AutosurgeonNeuroInterface = autosurgeon (Interdyne Fault neuro-interface)
     .desc = A single-use autosurgeon for implanting an Interdyne Fault neuro-interface augment.

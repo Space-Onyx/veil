@@ -119,9 +119,6 @@
   components:
   - type: Sprite
     state: apc
-  - type: AugmentExamine
-    color: "#3b88ff"
-    examineText: augment-examine-recharger-apc
   - type: Organ
     hiddenFromAnalyzer: true # <Onyx-Augment-Tweak>
     onAdd:
@@ -138,9 +135,6 @@
   components:
   - type: Sprite
     state: station
-  - type: AugmentExamine
-    color: "#3b88ff"
-    examineText: augment-examine-recharger-station
   - type: Organ
     hiddenFromAnalyzer: true # <Onyx-Augment-Tweak>
     onAdd:

@@ -302,6 +302,10 @@ uplink-autosurgeon-neuro-interface-name = Neuro-Interface Autosurgeon (Interdyne
 uplink-autosurgeon-neuro-interface-desc = Implants an Interdyne Fault neuro-interface augment into your head. Comes with a one-use autosurgeon for installation.
 uplink-autosurgeon-voice-modulator-name = Voice Modulator Autosurgeon
 uplink-autosurgeon-voice-modulator-desc = Implants a voice modulator augment into your head, letting you alter your voice identity on demand. Comes with a one-use autosurgeon for installation.
+uplink-autosurgeon-rtg-augment-name = RTG Chest Autosurgeon
+uplink-autosurgeon-rtg-augment-desc = Implants an RTG augment into your chest, providing passive internal power generation. Comes with a one-use syndicate autosurgeon for installation.
+uplink-autosurgeon-power-cell-hyper-name = Hyper Power Cell Slot Autosurgeon
+uplink-autosurgeon-power-cell-hyper-desc = Implants a hyper-capacity power cell slot into your chest with a preinstalled hyper power cell. Comes with a one-use syndicate autosurgeon for installation.
 
 # Wearables
 

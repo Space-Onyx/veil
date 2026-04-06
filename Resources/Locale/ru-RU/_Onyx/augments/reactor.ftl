@@ -21,6 +21,3 @@ ent-AugmentBioReactor = имплант био-реактор
 
 ent-AugmentRTG = имплант РИТЭГ
     .desc = Высокотехнологичный имплант-реактор с повышенной выработкой энергии.
-
-augment-examine-bio-reactor = Био-реактор
-augment-examine-riteg = РИТЭГ

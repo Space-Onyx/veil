@@ -16,7 +16,7 @@ ent-AugmentLaserPistolPanel = имплант панели лазерного п�
 
 # ItemPanel Examine Text
 augment-examine-item-panel = Панель предмета
-augment-examine-mantis-blade-panel = Панель Клинка богомола
+augment-examine-mantis-blade-panel = Неизвестная панель
 augment-examine-stunner-panel = Панель станнера
 augment-examine-stunbaton-panel = Панель дубинки-шокера
 augment-examine-laser-pistol-panel = Панель лазерного пистолета

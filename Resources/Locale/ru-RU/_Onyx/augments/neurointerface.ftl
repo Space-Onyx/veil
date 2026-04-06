@@ -18,7 +18,7 @@ ent-AugmentNeuroInterfaceChip = микросхема нейро-интерфей
 ent-AugmentModuleNeuroCapacity = модуль расширения нейро-лимита
     .desc = Специализированный модуль, увеличивающий максимум нейро-нагрузки нейро-интерфейса на 5.
 
-augment-examine-neuro-interface = Нейро-интерфейс (шея)
+augment-examine-neuro-interface = Разьем на шеё.
 
 neuro-interface-window-title = Нейро-интерфейс
 neuro-interface-window-code = ID-{$code}
@@ -123,6 +123,12 @@ ent-ActionCyberDeckScriptMotorImpairment = Нарушение моторики
     .desc = Временно отключает кибернетические ноги у выбранной цели.
 ent-AugmentModuleCyberDeckScriptMotorImpairment = модуль нарушения моторики
     .desc = Скрипт кибердеки, отключающий кибернетические ноги на 4-5 секунд. Стоимость: 7 ОЗУ за использование.
+ent-AugmentModuleCyberDeckRam = модуль ОЗУ кибердеки
+    .desc = Модуль расширения оперативной памяти для кибердеки. Увеличивает доступную память на 4 единицы.
+ent-ActionCyberDeckScriptCameraControl = Контроль камер
+    .desc = Доступ к сети камер наблюдения станции.
+ent-AugmentModuleCyberDeckScriptCameraControl = модуль контроля камер
+    .desc = Модуль кибердеки, дающий доступ к сети камер наблюдения станции. Стоимость: 4 ОЗУ за использование.
 
 cyberdeck-script-not-enough-ram = Недостаточно ОЗУ для выполнения скрипта!
 cyberdeck-script-aci-blocked = Защита ACI слишком высокая для этого скрипта.

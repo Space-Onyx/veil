@@ -1,6 +1,7 @@
 - type: entity
   parent: AugmentPowerCellSlot
   id: AugmentPowerCellSlotHyper
+  suffix: "Hyper"
   components:
   - type: ItemSlots
     slots:

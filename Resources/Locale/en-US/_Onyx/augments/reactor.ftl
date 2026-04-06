@@ -21,6 +21,3 @@ ent-AugmentBioReactor = bio-reactor augment
 
 ent-AugmentRTG = RTG augment
     .desc = A high-end implant reactor that passively generates power without metabolic cost.
-
-augment-examine-bio-reactor = Bio-reactor
-augment-examine-riteg = RTG reactor

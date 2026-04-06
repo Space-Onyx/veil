@@ -84,9 +84,7 @@
     minimumHungerThreshold: Starving
   - type: AugmentEmp
   - type: AugmentExamine
-    color: "#49b881"
-    examineText: augment-examine-bio-reactor
-    visible: true
+    visible: false
   - type: Construction
     graph: AugmentBioReactor
     node: bioreactor
@@ -109,9 +107,7 @@
     minimumHungerThreshold: Starving
   - type: AugmentEmp
   - type: AugmentExamine
-    color: "#d19b2b"
-    examineText: augment-examine-riteg
-    visible: true
+    visible: false
   - type: Construction
     graph: AugmentRTG
     node: rtg

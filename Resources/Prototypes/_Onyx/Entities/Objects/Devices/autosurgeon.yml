@@ -20,6 +20,26 @@
 
 - type: entity
   parent: BaseAutosurgeonSyndicateSingle
+  id: AutosurgeonRTGAugmentSyndicate
+  name: syndicate autosurgeon (RTG augment)
+  components:
+  - type: AutoSurgeon
+    targetBodyPart: Chest
+    targetOrgan: charger
+    newPartProto: AugmentRTG
+
+- type: entity
+  parent: BaseAutosurgeonSyndicateSingle
+  id: AutosurgeonPowerCellSlotHyper
+  name: syndicate autosurgeon (hyper-capacity power cell slot)
+  components:
+  - type: AutoSurgeon
+    targetBodyPart: Chest
+    targetOrgan: powerCell
+    newPartProto: AugmentPowerCellSlotHyper
+
+- type: entity
+  parent: BaseAutosurgeonSyndicateSingle
   id: AutosurgeonNeuroInterface
   name: autosurgeon (Interdyne Fault neuro-interface)
   components:

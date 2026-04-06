@@ -1246,6 +1246,26 @@
     Telecrystal: 12
   categories:
   - UplinkImplants
+
+- type: listing
+  id: UplinkAutosurgeonRTGAugmentSyndicate
+  name: uplink-autosurgeon-rtg-augment-name
+  description: uplink-autosurgeon-rtg-augment-desc
+  productEntity: AutosurgeonRTGAugmentSyndicate
+  cost:
+    Telecrystal: 12
+  categories:
+  - UplinkImplants
+
+- type: listing
+  id: UplinkAutosurgeonPowerCellSlotHyper
+  name: uplink-autosurgeon-power-cell-hyper-name
+  description: uplink-autosurgeon-power-cell-hyper-desc
+  productEntity: AutosurgeonPowerCellSlotHyper
+  cost:
+    Telecrystal: 12
+  categories:
+  - UplinkImplants
 # </Onyx-Surgery>
 
 # Deception
