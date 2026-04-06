@@ -82,8 +82,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using Content.Server.DeviceNetwork.Components;
+using Content.Server.Medical.CrewMonitoring;
+using Content.Server.Medical.SuitSensors;
 using Content.Server.SurveillanceCamera;
 using Content.Shared._Onyx.ZLevels.Core.EntitySystems;
+using Content.Shared.DeviceLinking;
 using Content.Shared.DeviceNetwork.Events;
 using JetBrains.Annotations;
 
@@ -116,11 +119,10 @@ namespace Content.Server.DeviceNetwork.Systems
 
             if (xform.MapID != args.SenderTransform.MapID)
             {
-                if (!IsSurveillanceDevice(uid) ||
-                    !IsSurveillanceDevice(args.Sender) ||
-                    xform.MapUid == null ||
+                if (xform.MapUid == null ||
                     args.SenderTransform.MapUid == null ||
-                    !_zLevels.AreOnSameZNetwork(xform.MapUid.Value, args.SenderTransform.MapUid.Value))
+                    !_zLevels.AreOnSameZNetwork(xform.MapUid.Value, args.SenderTransform.MapUid.Value) ||
+                    !CanUseCrossMapWireless(uid, args.Sender))
                 {
                     args.Cancel();
                 }
@@ -139,6 +141,26 @@ namespace Content.Server.DeviceNetwork.Systems
             return HasComp<SurveillanceCameraMonitorComponent>(uid) ||
                    HasComp<SurveillanceCameraRouterComponent>(uid) ||
                    HasComp<SurveillanceCameraComponent>(uid);
+        }
+
+        private bool IsCrewMonitoringDevice(EntityUid uid)
+        {
+            return HasComp<CrewMonitoringServerComponent>(uid) ||
+                   HasComp<CrewMonitoringConsoleComponent>(uid) ||
+                   HasComp<SuitSensorComponent>(uid);
+        }
+
+        private bool IsDeviceLinkEndpoint(EntityUid uid)
+        {
+            return HasComp<DeviceLinkSourceComponent>(uid) ||
+                   HasComp<DeviceLinkSinkComponent>(uid);
+        }
+
+        private bool CanUseCrossMapWireless(EntityUid receiver, EntityUid sender)
+        {
+            return (IsSurveillanceDevice(receiver) && IsSurveillanceDevice(sender))
+                || (IsCrewMonitoringDevice(receiver) && IsCrewMonitoringDevice(sender))
+                || (IsDeviceLinkEndpoint(receiver) && IsDeviceLinkEndpoint(sender));
         }
         // </Onyx-Tweak>
     }

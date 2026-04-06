@@ -21,6 +21,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Server.Administration.Logs;
 using Content.Server.Radio.EntitySystems;
+using Content.Shared._Utopia.ZLevels.Components;
+using Content.Shared._Onyx.ZLevels.Core.Components;
 using Content.Shared.Access.Systems;
 using Content.Shared.Popups;
 using Content.Shared.Research.Components;
@@ -37,7 +39,6 @@ namespace Content.Server.Research.Systems
         [Dependency] private readonly IAdminLogManager _adminLog = default!;
         [Dependency] private readonly IGameTiming _timing = default!;
         [Dependency] private readonly AccessReaderSystem _accessReader = default!;
-        [Dependency] private readonly EntityLookupSystem _lookup = default!;
         [Dependency] private readonly UserInterfaceSystem _uiSystem = default!;
         [Dependency] private readonly SharedPopupSystem _popup = default!;
         [Dependency] private readonly RadioSystem _radio = default!;
@@ -82,30 +83,94 @@ namespace Content.Server.Research.Systems
         /// Gets the names of all the servers.
         /// </summary>
         /// <returns></returns>
+        // <Onyx-ZLevels Edited>
         public string[] GetServerNames(EntityUid client)
         {
-            return GetServers(client).Select(x => x.Comp.ServerName).ToArray();
+            var sourceDepth = GetEntityMapDepth(client);
+            return GetServers(client)
+                .OrderBy(x => x.Comp.Id)
+                .Select(x =>
+                {
+                    var serverDepth = GetEntityMapDepth(x);
+                    if (sourceDepth == null || serverDepth == null || sourceDepth.Value == serverDepth.Value)
+                        return x.Comp.ServerName;
+
+                    var relativeFloor = serverDepth.Value - sourceDepth.Value;
+                    return $"{x.Comp.ServerName} ({(relativeFloor > 0 ? $"+{relativeFloor}" : relativeFloor.ToString())})";
+                })
+                .ToArray();
         }
+        // </Onyx-ZLevels Edited>
 
         /// <summary>
         /// Gets the ids of all the servers
         /// </summary>
         /// <returns></returns>
+        // <Onyx-ZLevels Edited>
         public int[] GetServerIds(EntityUid client)
         {
-            return GetServers(client).Select(x => x.Comp.Id).ToArray();
+            return GetServers(client)
+                .OrderBy(x => x.Comp.Id)
+                .Select(x => x.Comp.Id)
+                .ToArray();
         }
-
+        // </Onyx-ZLevels Edited>
+        
         public HashSet<Entity<ResearchServerComponent>> GetServers(EntityUid client)
         {
             var clientXform = Transform(client);
             if (clientXform.GridUid is not { } grid)
                 return [];
 
+            // <Onyx-ZLevels Edited>
+            var linkedGrids = GetLinkedGridFloors(grid);
             var set = new HashSet<Entity<ResearchServerComponent>>();
-            _lookup.GetGridEntities(grid, set);
+            var query = EntityQueryEnumerator<ResearchServerComponent, TransformComponent>();
+            while (query.MoveNext(out var uid, out var server, out var xform))
+            {
+                if (xform.GridUid is not { } serverGrid)
+                    continue;
+
+                if (!linkedGrids.Contains(serverGrid))
+                    continue;
+
+                set.Add((uid, server));
+            }
+            // </Onyx-ZLevels Edited>
             return set;
         }
+
+        // <Onyx-ZLevels>
+        private HashSet<EntityUid> GetLinkedGridFloors(EntityUid sourceGrid)
+        {
+            var result = new HashSet<EntityUid> { sourceGrid };
+            if (!TryComp<GridMotionLinkComponent>(sourceGrid, out var sourceMotion) ||
+                string.IsNullOrWhiteSpace(sourceMotion.GroupId))
+            {
+                return result;
+            }
+
+            var query = EntityQueryEnumerator<GridMotionLinkComponent>();
+            while (query.MoveNext(out var uid, out var motion))
+            {
+                if (motion.GroupId == sourceMotion.GroupId)
+                    result.Add(uid);
+            }
+
+            return result;
+        }
+
+        private int? GetEntityMapDepth(EntityUid uid)
+        {
+            if (!TryComp<TransformComponent>(uid, out var xform) || xform.MapUid is not { } mapUid)
+                return null;
+
+            if (!TryComp<CEZLevelMapComponent>(mapUid, out var zMap))
+                return null;
+
+            return zMap.Depth;
+        }
+        // </Onyx-ZLevels>
 
         public override void Update(float frameTime)
         {

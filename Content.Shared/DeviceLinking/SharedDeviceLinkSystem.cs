@@ -44,6 +44,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System.Linq;
+using Content.Shared._Onyx.ZLevels.Core.EntitySystems;
 using Content.Shared.Administration.Logs;
 using Content.Shared.Database;
 using Content.Shared.DeviceLinking.Events;
@@ -61,6 +62,7 @@ public abstract class SharedDeviceLinkSystem : EntitySystem
     [Dependency] private readonly SharedPopupSystem _popupSystem = default!;
     [Dependency] private readonly ISharedAdminLogManager _adminLogger = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private readonly CESharedZLevelsSystem _zLevels = default!; // <Onyx-ZLevels>
     [Dependency] private readonly IGameTiming _gameTiming = default!;
 
     public const string InvokedPort = "link_port";
@@ -578,11 +580,26 @@ public abstract class SharedDeviceLinkSystem : EntitySystem
         return !linkAttemptEvent.Cancelled;
     }
 
+    // <Onyx-ZLevels Edited>
     private bool InRange(EntityUid sourceUid, EntityUid sinkUid, float range)
     {
-        // TODO: This should be using an existing method and also coordinates inrange instead.
-        return _transform.GetMapCoordinates(sourceUid).InRange(_transform.GetMapCoordinates(sinkUid), range);
+        var sourceCoords = _transform.GetMapCoordinates(sourceUid);
+        var sinkCoords = _transform.GetMapCoordinates(sinkUid);
+
+        if (sourceCoords.MapId == sinkCoords.MapId)
+            return sourceCoords.InRange(sinkCoords, range);
+
+        var sourceMapUid = Transform(sourceUid).MapUid;
+        var sinkMapUid = Transform(sinkUid).MapUid;
+        if (sourceMapUid == null || sinkMapUid == null)
+            return false;
+
+        if (!_zLevels.AreOnSameZNetwork(sourceMapUid.Value, sinkMapUid.Value))
+            return false;
+
+        return (sourceCoords.Position - sinkCoords.Position).LengthSquared() <= range * range;
     }
+    // </Onyx-ZLevels Edited>
 
     private void SendNewLinkEvent(EntityUid? user, EntityUid sourceUid, string source, EntityUid sinkUid, string sink)
     {
