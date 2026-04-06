@@ -45,6 +45,9 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
     private static readonly TimeSpan CacheCleanupInterval = TimeSpan.FromSeconds(5);
     private TimeSpan _nextCacheCleanup;
     private bool _forceShadowRunRebuild = true;
+    private TimeSpan _shadowRunRebuildInterval = TimeSpan.Zero;
+    private TimeSpan _nextShadowRunRebuild = TimeSpan.Zero;
+    private MapId _lastMapId = MapId.Nullspace;
 
     private float _cachedOpacity;
     private Color _cachedShadowBaseColor = Color.Black;
@@ -104,6 +107,13 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
 
     protected override void Draw(in OverlayDrawArgs args)
     {
+        if (args.MapId != _lastMapId)
+        {
+            _lastMapId = args.MapId;
+            _forceShadowRunRebuild = true;
+            _nextShadowRunRebuild = TimeSpan.Zero;
+        }
+
         if (!TryGetMapUid(args.MapId, out var lowerMapUid) || !_zMapQuery.HasComp(lowerMapUid))
             return;
 
@@ -127,7 +137,16 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
             _nextCacheCleanup = _timing.CurTime + CacheCleanupInterval;
         }
 
-        RebuildVisibleShadowRuns(args, upperMapId);
+        var rebuildNow = _forceShadowRunRebuild
+                         || _shadowRunRebuildInterval == TimeSpan.Zero
+                         || _timing.CurTime >= _nextShadowRunRebuild;
+
+        if (rebuildNow)
+        {
+            RebuildVisibleShadowRuns(args, upperMapId);
+            if (_shadowRunRebuildInterval > TimeSpan.Zero)
+                _nextShadowRunRebuild = _timing.CurTime + _shadowRunRebuildInterval;
+        }
 
         var worldHandle = args.WorldHandle;
         var holeShadowFillColor = _cachedFillColor;
@@ -540,7 +559,13 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
 
     private void OnShadowUpdateRateChanged(int _)
     {
+        var rate = _cfg.GetCVar(CCVars.ZLevelHoleShadowUpdateRate);
+        _shadowRunRebuildInterval = rate <= 0
+            ? TimeSpan.Zero
+            : TimeSpan.FromSeconds(1f / rate);
+
         _forceShadowRunRebuild = true;
+        _nextShadowRunRebuild = TimeSpan.Zero;
     }
 
     private void OnShadowMaxDistanceChanged(float maxDistance)

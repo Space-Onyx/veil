@@ -45,10 +45,14 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
     private readonly List<EntityUid> _staleUpperMaskKeys = new();
     private readonly List<EntityUid> _staleRoofRunKeys = new();
     private static readonly TimeSpan CacheCleanupInterval = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan RoofRunRebuildInterval = TimeSpan.FromMilliseconds(50);
     private TimeSpan _nextCacheCleanup;
+    private TimeSpan _nextRoofRunRebuild;
     private readonly Dictionary<int, List<int>> _batchedRows = new();
     private readonly List<int> _usedBatchRows = new();
     private bool _roofOverlayEnabled = true;
+    private bool _forceRoofRunRebuild = true;
+    private MapId _lastMapId = MapId.Nullspace;
 
     private static readonly Color RoofColor = new(0.1f, 0.1f, 0.1f, 1.0f);
 
@@ -70,7 +74,15 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
 
         ZIndex = 1;
 
-        _cfg.OnValueChanged(CCVars.ZLevelRoofOverlayEnabled, value => _roofOverlayEnabled = value, true);
+        _cfg.OnValueChanged(CCVars.ZLevelRoofOverlayEnabled, value =>
+        {
+            _roofOverlayEnabled = value;
+            if (value)
+            {
+                _forceRoofRunRebuild = true;
+                _nextRoofRunRebuild = TimeSpan.Zero;
+            }
+        }, true);
     }
 
     protected override bool BeforeDraw(in OverlayDrawArgs args)
@@ -98,6 +110,12 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
         var worldHandle = args.WorldHandle;
         var bounds = args.WorldBounds;
         var lowerMapId = args.MapId;
+        if (lowerMapId != _lastMapId)
+        {
+            _lastMapId = lowerMapId;
+            _forceRoofRunRebuild = true;
+            _nextRoofRunRebuild = TimeSpan.Zero;
+        }
 
         if (!TryGetMapUid(lowerMapId, out var lowerMapUid) || !_zMapQuery.HasComp(lowerMapUid))
             return;
@@ -115,6 +133,30 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
         if (_lowerGrids.Count == 0)
             return;
 
+        if (_timing.CurTime >= _nextCacheCleanup)
+        {
+            CleanupCaches();
+            _nextCacheCleanup = _timing.CurTime + CacheCleanupInterval;
+        }
+
+        var rebuildNow = _forceRoofRunRebuild || _timing.CurTime >= _nextRoofRunRebuild;
+        if (!rebuildNow)
+        {
+            foreach (var lowerGrid in _lowerGrids)
+            {
+                if (!_cachedRoofRuns.TryGetValue(lowerGrid.Owner, out var cacheEntry) || cacheEntry.Runs.Count == 0)
+                    continue;
+
+                worldHandle.SetTransform(_xformSystem.GetWorldMatrix(lowerGrid.Owner));
+                DrawCachedRuns(worldHandle, lowerGrid.Comp.TileSize, cacheEntry.Runs, RoofColor);
+            }
+
+            worldHandle.SetTransform(Matrix3x2.Identity);
+            return;
+        }
+
+        _forceRoofRunRebuild = false;
+        _nextRoofRunRebuild = _timing.CurTime + RoofRunRebuildInterval;
         _visibleLowerGroups.Clear();
         foreach (var lowerGrid in _lowerGrids)
         {
@@ -122,12 +164,6 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
                 continue;
 
             _visibleLowerGroups.Add(lowerLink.GroupId);
-        }
-
-        if (_timing.CurTime >= _nextCacheCleanup)
-        {
-            CleanupCaches();
-            _nextCacheCleanup = _timing.CurTime + CacheCleanupInterval;
         }
 
         foreach (var key in _usedUpperGroupKeys)
