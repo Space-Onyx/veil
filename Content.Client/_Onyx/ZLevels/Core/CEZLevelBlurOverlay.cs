@@ -17,12 +17,10 @@ public sealed class CEZLevelBlurOverlay : Overlay
 {
     [Dependency] private readonly IPrototypeManager _proto = default!;
     [Dependency] private readonly IEntityManager _entity = default!;
-    [Dependency] private readonly IEyeManager _eyeManager = default!;
     private readonly ShaderInstance? _blurShader;
     private EntityQuery<MapLightComponent>? _mapLightQuery;
 
-    public override bool RequestScreenTexture =>
-        _eyeManager.CurrentEye is ScalingViewport.ZEye zeye && zeye.Depth == -1;
+    public override bool RequestScreenTexture => true;
     public override OverlaySpace Space => OverlaySpace.WorldSpace;
 
     private readonly ProtoId<ShaderPrototype> _zBlurShader = "CEZBlur";
