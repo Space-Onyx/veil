@@ -288,8 +288,6 @@ public sealed partial class ScalingViewport
         {
             _lowerApertureSourceValid = TryCollectVisibleOpenApertureSourceRect(
                 playerXform.MapUid.Value,
-                playerPosition,
-                lowerRenderSearchRadius,
                 out _lowerApertureSourceRect);
         }
         else if (!forceRenderBelow)
@@ -484,8 +482,6 @@ public sealed partial class ScalingViewport
 
     private bool TryCollectVisibleOpenApertureSourceRect(
         EntityUid mapUid,
-        Vector2 centerPosition,
-        float searchRadius,
         out UIBox2i sourceRect)
     {
         sourceRect = default;
@@ -509,17 +505,6 @@ public sealed partial class ScalingViewport
         var maxX = MathF.Max(MathF.Max(bl.X, br.X), MathF.Max(tl.X, tr.X));
         var maxY = MathF.Max(MathF.Max(bl.Y, br.Y), MathF.Max(tl.Y, tr.Y));
 
-        if (searchRadius > 0f)
-        {
-            minX = MathF.Max(minX, centerPosition.X - searchRadius);
-            minY = MathF.Max(minY, centerPosition.Y - searchRadius);
-            maxX = MathF.Min(maxX, centerPosition.X + searchRadius);
-            maxY = MathF.Min(maxY, centerPosition.Y + searchRadius);
-
-            if (minX >= maxX || minY >= maxY)
-                return false;
-        }
-
         var worldBounds = new Box2(minX, minY, maxX, maxY);
         var mapCoordsBottomLeft = new MapCoordinates(new Vector2(minX, minY), mapId);
         var mapCoordsTopRight = new MapCoordinates(new Vector2(maxX, maxY), mapId);
@@ -536,7 +521,6 @@ public sealed partial class ScalingViewport
         var localMinY = float.MaxValue;
         var localMaxX = float.MinValue;
         var localMaxY = float.MinValue;
-        var visibilityChecks = 0;
 
         foreach (var grid in visibleGrids)
         {
@@ -562,9 +546,6 @@ public sealed partial class ScalingViewport
                         continue;
 
                     var worldPos = mapGrid.GridTileToWorldPos(pos);
-                    if (!IsOpenPointVisible(mapId, worldPos, ref visibilityChecks))
-                        continue;
-
                     var local = _viewport.WorldToLocal(worldPos);
                     if (float.IsNaN(local.X) || float.IsNaN(local.Y) || float.IsInfinity(local.X) || float.IsInfinity(local.Y))
                         continue;
