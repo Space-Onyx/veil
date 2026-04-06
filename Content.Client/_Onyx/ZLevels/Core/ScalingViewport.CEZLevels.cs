@@ -49,6 +49,7 @@ public sealed partial class ScalingViewport
     private const int LowerDepthCacheFrameInterval = 1;
     private readonly Dictionary<(EntityUid MapUid, int CellX, int CellY, int Radius), bool> _emptyTileCache = new();
     private TimeSpan _emptyTileCacheExpiry;
+    private TimeSpan _forceRenderBelowUntil = TimeSpan.Zero;
     private bool _zLevelCvarsSubscribed;
     private int _cachedMaxZLevelsBelowRendering;
     private float _cachedZLevelOffset;
@@ -57,6 +58,7 @@ public sealed partial class ScalingViewport
     private static readonly Color TransparentColor = new(0f, 0f, 0f, 0f);
     private const int MinZLevelsBelowRendering = 0;
     private const int MaxZLevelsBelowRendering = 3;
+    private static readonly TimeSpan LinkedGridLowerRenderGrace = TimeSpan.FromSeconds(0.25f);
     private bool GetViewportScanCached(
         EntityUid mapUid,
         Vector2 centerPosition,
@@ -223,36 +225,47 @@ public sealed partial class ScalingViewport
 
         var lookUp = zLevelViewer.LookUp ? 1 : 0;
 
-        var forceRenderBelow = playerXform.GridUid.HasValue
-            && _entityManager.HasComponent<GridMotionLinkComponent>(playerXform.GridUid.Value);
-
         var maxBelow = _cachedMaxZLevelsBelowRendering;
         var lowerRenderSearchRadius = GetEffectiveLowerRenderRadius();
         var playerPosition = playerXform.Coordinates.Position;
+        var currentMapHasOpenTiles = GetViewportScanCached(
+            playerXform.MapUid.Value,
+            playerPosition,
+            lowerRenderSearchRadius);
+
+        var onLinkedGrid = playerXform.GridUid.HasValue
+                           && _entityManager.HasComponent<GridMotionLinkComponent>(playerXform.GridUid.Value);
+
+        if (onLinkedGrid && currentMapHasOpenTiles)
+            _forceRenderBelowUntil = _timing.CurTime + LinkedGridLowerRenderGrace;
+
+        var forceRenderBelow = onLinkedGrid && _timing.CurTime < _forceRenderBelowUntil;
         var lowestDepth = 0;
-        for (var i = 0; i >= -maxBelow; i--)
+        if (maxBelow > 0 && (currentMapHasOpenTiles || forceRenderBelow))
         {
-            var checkingMap = playerXform.MapUid.Value;
-
-            if (i != 0)
+            for (var i = 0; i >= -maxBelow; i--)
             {
-                if (!_zLevels.TryMapOffset(playerXform.MapUid.Value, i, out var mapUidBelow))
-                    continue;
+                var checkingMap = playerXform.MapUid.Value;
 
-                checkingMap = mapUidBelow.Value;
-            }
+                if (i != 0)
+                {
+                    if (!_zLevels.TryMapOffset(playerXform.MapUid.Value, i, out var mapUidBelow))
+                        continue;
 
-            lowestDepth = i;
+                    checkingMap = mapUidBelow.Value;
+                }
 
-            if (!forceRenderBelow)
-            {
-                var hasOpenTiles = GetViewportScanCached(
-                    checkingMap,
-                    playerPosition,
-                    lowerRenderSearchRadius);
+                lowestDepth = i;
 
-                if (!hasOpenTiles)
-                    break;
+                if (!forceRenderBelow)
+                {
+                    var hasOpenTiles = i == 0
+                        ? currentMapHasOpenTiles
+                        : GetViewportScanCached(checkingMap, playerPosition, lowerRenderSearchRadius);
+
+                    if (!hasOpenTiles)
+                        break;
+                }
             }
         }
 
