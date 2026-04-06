@@ -1,5 +1,6 @@
 using System.Numerics;
-using Content.Shared._CE.ZLevels.Core.Components;
+using Content.Shared._Onyx.ZLevels.Core.Components;
+using Content.Shared._Onyx.ZLevels;
 using Content.Shared.CCVar;
 using Content.Shared.Chasm;
 using Content.Shared.Gravity;
@@ -11,7 +12,7 @@ using Robust.Shared.Physics;
 using Robust.Shared.Physics.Collision.Shapes;
 using Robust.Shared.Physics.Components;
 
-namespace Content.Shared._CE.ZLevels.Core.EntitySystems;
+namespace Content.Shared._Onyx.ZLevels.Core.EntitySystems;
 
 public abstract partial class CESharedZLevelsSystem
 {
@@ -27,7 +28,7 @@ public abstract partial class CESharedZLevelsSystem
             RemComp<CEActiveZPhysicsComponent>(uid);
             return;
         }
-        if (!zPhys.GroundCacheValid || zPhys.GroundCacheGeneration != _groundCacheGeneration)
+        if (!IsGroundCacheValidForCurrentMap(zPhys, xform))
         {
             CacheMovement((uid, zPhys));
         }
@@ -84,6 +85,7 @@ public abstract partial class CESharedZLevelsSystem
         var distanceToGround = zPhys.LocalPosition - zPhys.CurrentGroundHeight;
         // <Onyx-Tweak>
         var currentlyGrounded = distanceToGround <= MaxStepHeight || zPhys.CurrentStickyGround;
+        var wasGrounded = zPhys.IsGrounded;
 
         if (currentlyGrounded)
         {
@@ -95,15 +97,13 @@ public abstract partial class CESharedZLevelsSystem
             // </Onyx-Tweak>
         }
 
-        if (currentlyGrounded == zPhys.IsGrounded)
+        if (currentlyGrounded == wasGrounded)
             return;
 
-        landed = !zPhys.IsGrounded && currentlyGrounded;
+        landed = !wasGrounded && currentlyGrounded;
 
         zPhys.IsGrounded = currentlyGrounded;
-
-        if (currentlyGrounded != zPhys.IsGrounded)
-            DirtyField(uid, zPhys, nameof(CEZPhysicsComponent.IsGrounded));
+        DirtyField(uid, zPhys, nameof(CEZPhysicsComponent.IsGrounded));
     }
 
     // <Onyx-Tweak>
@@ -112,7 +112,7 @@ public abstract partial class CESharedZLevelsSystem
         var limit = Cfg.GetCVar(CCVars.ZImpactVelocityLimit);
         if (MathF.Abs(impactVelocity) >= limit)
         {
-            _queuedLandings.Add((uid, -impactVelocity));
+            _queuedLandings.Add((uid, MathF.Abs(impactVelocity)));
         }
 
         zPhys.Velocity = -impactVelocity * zPhys.Bounciness;
@@ -127,13 +127,18 @@ public abstract partial class CESharedZLevelsSystem
             {
                 var xform = Transform(uid);
                 if (xform.MapUid is { } mapUid &&
-                    _zMapQuery.TryComp(mapUid, out var zMap) &&
-                    _timing.CurTime < zMap.SuppressFallsUntil)
+                    _zMapQuery.TryComp(mapUid, out var zMap))
                 {
-                    zPhys.LocalPosition = 0;
-                    if (zPhys.Velocity < 0)
-                        zPhys.Velocity = 0;
-                    return;
+                    if (_timing.CurTime < zMap.SuppressFallsUntil)
+                    {
+                        zPhys.LocalPosition = 0;
+                        if (zPhys.Velocity < 0)
+                            zPhys.Velocity = 0;
+                        return;
+                    }
+
+                    if (zMap.SuppressFallsUntil != TimeSpan.Zero)
+                        zMap.SuppressFallsUntil = TimeSpan.Zero;
                 }
             }
             // </Onyx-Tweak>
@@ -169,7 +174,11 @@ public abstract partial class CESharedZLevelsSystem
                 zPhys.IsGrounded = true;
                 zPhys.Velocity = 0;
                 zPhys.GroundCacheValid = true;
-                zPhys.GroundCacheGeneration = _groundCacheGeneration;
+                if (Transform(uid).MapUid is { } currentMapUid)
+                {
+                    zPhys.GroundCacheMapUid = currentMapUid;
+                    zPhys.GroundCacheGeneration = GetGroundCacheGenerationForMap(currentMapUid);
+                }
                 DirtyField(uid, zPhys, nameof(CEZPhysicsComponent.LocalPosition));
                 DirtyField(uid, zPhys, nameof(CEZPhysicsComponent.Velocity));
                 DirtyField(uid, zPhys, nameof(CEZPhysicsComponent.IsGrounded));
@@ -193,7 +202,7 @@ public abstract partial class CESharedZLevelsSystem
             {
                 if (MathF.Abs(zPhys.Velocity) >= Cfg.GetCVar(CCVars.ZImpactVelocityLimit)) // <Onyx-Tweak>
                 {
-                    _queuedLandings.Add((uid, zPhys.Velocity)); // <Onyx-Tweak Edited>
+                    _queuedLandings.Add((uid, MathF.Abs(zPhys.Velocity))); // <Onyx-Tweak Edited>
                 }
 
                 zPhys.LocalPosition = 1;
@@ -237,6 +246,65 @@ public abstract partial class CESharedZLevelsSystem
             return 0;
 
         var worldPos = _transform.GetWorldPosition(target);
+
+        // Fast and robust fallback: if entity is currently on a grid and the local tile is solid,
+        // treat the current floor as ground even if per-map grid caches are temporarily stale.
+        if (xform.GridUid is { } currentGridUid && _gridQuery.TryComp(currentGridUid, out var currentGrid))
+        {
+            var currentMapCoords = new MapCoordinates(worldPos, xform.MapID);
+            var currentTilePos = _map.CoordinatesToTile(currentGridUid, currentGrid, currentMapCoords);
+
+            var currentTileEnts = _map.GetAnchoredEntitiesEnumerator(currentGridUid, currentGrid, currentTilePos);
+            while (currentTileEnts.MoveNext(out var ent))
+            {
+                if (!_highgroundQuery.TryComp(ent, out var heightComp))
+                    continue;
+
+                var uid = ent.Value;
+                var fix = _fix.GetFixtureOrNull(uid, heightComp.FixtureId);
+                if (fix == null || fix.Shape is not PolygonShape shape)
+                    continue;
+
+                var aabb = shape.ComputeAABB(new Transform(0f), 0);
+                var bottom = aabb.Bottom;
+                var top = aabb.Top;
+                var length = Math.Abs(top - bottom);
+
+                var (pos, rot) = _transform.GetWorldPositionRotation(uid);
+                var bottomPos = rot.RotateVec(new Vector2(0, bottom)) + pos;
+
+                var curve = heightComp.HeightCurve;
+                if (curve.Count == 0)
+                    continue;
+
+                if (curve.Count == 1)
+                    return curve[0];
+
+                var worldDir = rot.RotateVec(new Vector2(0, length));
+                var lengthWorld = worldDir.Length();
+                if (lengthWorld == 0)
+                    continue;
+
+                stickyGround = heightComp.Stick;
+
+                var relPos = worldPos - bottomPos;
+                var tRaw = Vector2.Dot(relPos, worldDir) / (lengthWorld * lengthWorld);
+                var t = Math.Clamp(tRaw, 0f, 1f);
+                t = 1f - t;
+
+                float index = t * (curve.Count - 1);
+                int lower = (int)Math.Floor(index);
+                int upper = Math.Min(lower + 1, curve.Count - 1);
+                float frac = index - lower;
+                return curve[lower] * (1 - frac) + curve[upper] * frac;
+            }
+
+            if (_map.TryGetTileRef(currentGridUid, currentGrid, currentTilePos, out var currentTileRef) &&
+                !currentTileRef.Tile.IsEmpty)
+            {
+                return 0f;
+            }
+        }
 
         // </Onyx-Tweak>
 
@@ -340,152 +408,111 @@ public abstract partial class CESharedZLevelsSystem
     }
 
     // <Onyx-Tweak>
-    private readonly Dictionary<(EntityUid, EntityUid), HashSet<Vector2i>> _upperGridCoverageCache = new();
-    private uint _coverageCacheGeneration;
+    private readonly Dictionary<(EntityUid LowerGrid, EntityUid UpperGrid), UpperGridCoverageCacheEntry> _upperGridCoverageCache = new();
+    private readonly Dictionary<EntityUid, UpperGridInteriorHoleCacheEntry> _upperGridInteriorHolesCache = new();
     private bool IsOverInteriorHole(EntityUid lowerMapUid, Vector2 worldPos)
     {
-        if (!_zMapQuery.HasComp(lowerMapUid))
+        if (!_zMapQuery.HasComp(lowerMapUid) || !_mapQuery.TryComp(lowerMapUid, out var lowerMapComp))
             return false;
 
-        if (!_mapQuery.TryComp(lowerMapUid, out var mapComp))
+        if (!TryMapUp(lowerMapUid, out var upperMap) ||
+            !_mapQuery.TryComp(upperMap.Value.Owner, out var upperMapComp))
             return false;
 
-        foreach (var grid in GetCachedGrids(mapComp.MapId))
+        var lowerGrids = GetCachedGrids(lowerMapComp.MapId);
+        var upperGrids = GetCachedGrids(upperMapComp.MapId);
+
+        foreach (var lowerGrid in lowerGrids)
         {
-            if (!_motionLinkQuery.TryComp(grid.Owner, out var link) || string.IsNullOrEmpty(link.GroupId))
+            if (!_motionLinkQuery.TryComp(lowerGrid.Owner, out var lowerLink) || string.IsNullOrEmpty(lowerLink.GroupId))
                 continue;
 
-            if (!TryMapUp(lowerMapUid, out var upperMap) ||
-                !_mapQuery.TryComp(upperMap.Value.Owner, out var upperMapComp))
-                return false;
+            var lowerTilePos = _map.WorldToTile(lowerGrid.Owner, lowerGrid.Comp, worldPos);
 
-            foreach (var upperGrid in GetCachedGrids(upperMapComp.MapId))
+            foreach (var upperGrid in upperGrids)
             {
                 if (!_motionLinkQuery.TryComp(upperGrid.Owner, out var upperLink))
                     continue;
 
-                if (upperLink.GroupId != link.GroupId)
+                if (upperLink.GroupId != lowerLink.GroupId)
                     continue;
 
-                var holes = GetUpperGridInteriorHoles(grid, upperGrid);
-                var lowerTilePos = _map.WorldToTile(grid.Owner, grid.Comp, worldPos);
+                var holes = GetUpperGridInteriorHoles(lowerGrid, upperGrid);
                 if (holes.Contains(lowerTilePos))
                     return true;
             }
-
-            break;
         }
 
         return false;
     }
+
     private HashSet<Vector2i> GetUpperGridInteriorHoles(Entity<MapGridComponent> lowerGrid, Entity<MapGridComponent> upperGrid)
     {
-        if (_coverageCacheGeneration != _groundCacheGeneration)
-        {
-            _upperGridCoverageCache.Clear();
-            _coverageCacheGeneration = _groundCacheGeneration;
-        }
+        var lowerGridMapUid = Transform(lowerGrid.Owner).MapUid;
+        var upperGridMapUid = Transform(upperGrid.Owner).MapUid;
+        if (lowerGridMapUid is null || upperGridMapUid is null)
+            return new HashSet<Vector2i>();
+
+        var lowerMapGeneration = GetGroundCacheGenerationForMap(lowerGridMapUid.Value);
+        var upperMapGeneration = GetGroundCacheGenerationForMap(upperGridMapUid.Value);
 
         var key = (lowerGrid.Owner, upperGrid.Owner);
-        if (_upperGridCoverageCache.TryGetValue(key, out var cached))
-            return cached;
-
-        var interiorHoles = new HashSet<Vector2i>();
-        var solidTiles = new HashSet<Vector2i>();
-
-        var enumerator = _map.GetAllTilesEnumerator(upperGrid.Owner, upperGrid.Comp, ignoreEmpty: true);
-        while (enumerator.MoveNext(out var upperTileRef))
+        if (_upperGridCoverageCache.TryGetValue(key, out var cached) &&
+            cached.LowerMapGeneration == lowerMapGeneration &&
+            cached.UpperMapGeneration == upperMapGeneration)
         {
-            // <Onyx-Tweak>
-            var def = (ContentTileDefinition) TilDefMan[upperTileRef.Value.Tile.TypeId];
-            if (def.MapAtmosphere)
-                continue;
-            // </Onyx-Tweak>
-
-            solidTiles.Add(upperTileRef.Value.GridIndices);
+            return cached.Coverage;
         }
 
-        if (solidTiles.Count == 0)
+        HashSet<Vector2i> upperInteriorHoles;
+        if (_upperGridInteriorHolesCache.TryGetValue(upperGrid.Owner, out var upperCached) &&
+            upperCached.UpperMapGeneration == upperMapGeneration)
         {
-            _upperGridCoverageCache[key] = interiorHoles;
-            return interiorHoles;
+            upperInteriorHoles = upperCached.Holes;
+        }
+        else
+        {
+            upperInteriorHoles = ZLevelFloodFillHelper.FindInteriorHoles(_map, upperGrid, TilDefMan);
+            _upperGridInteriorHolesCache[upperGrid.Owner] = new UpperGridInteriorHoleCacheEntry(
+                upperMapGeneration,
+                upperInteriorHoles);
         }
 
-        var minX = int.MaxValue;
-        var minY = int.MaxValue;
-        var maxX = int.MinValue;
-        var maxY = int.MinValue;
-        foreach (var pos in solidTiles)
+        var projectedCoverage = new HashSet<Vector2i>(upperInteriorHoles.Count);
+        foreach (var upperTilePos in upperInteriorHoles)
         {
-            if (pos.X < minX) minX = pos.X;
-            if (pos.Y < minY) minY = pos.Y;
-            if (pos.X > maxX) maxX = pos.X;
-            if (pos.Y > maxY) maxY = pos.Y;
-        }
-        minX--; minY--; maxX++; maxY++;
-
-        var outerEmpty = new HashSet<Vector2i>();
-        var queue = new Queue<Vector2i>();
-
-        void TryEnqueue(Vector2i p)
-        {
-            if (solidTiles.Contains(p)) return;
-            if (!outerEmpty.Add(p)) return;
-            queue.Enqueue(p);
+            var worldPos = _map.GridTileToWorldPos(upperGrid.Owner, upperGrid.Comp, upperTilePos);
+            var lowerTilePos = _map.WorldToTile(lowerGrid.Owner, lowerGrid.Comp, worldPos);
+            projectedCoverage.Add(lowerTilePos);
         }
 
-        for (var x = minX; x <= maxX; x++)
-        {
-            TryEnqueue(new Vector2i(x, minY));
-            TryEnqueue(new Vector2i(x, maxY));
-        }
-        for (var y = minY + 1; y < maxY; y++)
-        {
-            TryEnqueue(new Vector2i(minX, y));
-            TryEnqueue(new Vector2i(maxX, y));
-        }
+        _upperGridCoverageCache[key] = new UpperGridCoverageCacheEntry(
+            lowerMapGeneration,
+            upperMapGeneration,
+            projectedCoverage);
 
-        while (queue.Count > 0)
-        {
-            var current = queue.Dequeue();
-            if (current.X < minX || current.X > maxX || current.Y < minY || current.Y > maxY)
-                continue;
-            TryEnqueue(new Vector2i(current.X + 1, current.Y));
-            TryEnqueue(new Vector2i(current.X - 1, current.Y));
-            TryEnqueue(new Vector2i(current.X, current.Y + 1));
-            TryEnqueue(new Vector2i(current.X, current.Y - 1));
-        }
-
-        for (var x = minX + 1; x < maxX; x++)
-        {
-            for (var y = minY + 1; y < maxY; y++)
-            {
-                var pos = new Vector2i(x, y);
-                if (solidTiles.Contains(pos)) continue;
-                if (outerEmpty.Contains(pos)) continue;
-
-                var wp = _map.GridTileToWorldPos(upperGrid.Owner, upperGrid.Comp, pos);
-                var lowerTilePos = _map.WorldToTile(lowerGrid.Owner, lowerGrid.Comp, wp);
-                interiorHoles.Add(lowerTilePos);
-            }
-        }
-
-        _upperGridCoverageCache[key] = interiorHoles;
-        return interiorHoles;
+        return projectedCoverage;
     }
 
     private bool HasGravityOnMap(MapId mapId)
     {
+        if (_mapGravityCache.TryGetValue(mapId, out var cachedGravity))
+            return cachedGravity;
+
         foreach (var grid in GetCachedGrids(mapId))
         {
             if (_gravityQuery.TryComp(grid.Owner, out var gravity) && gravity.Enabled)
+            {
+                _mapGravityCache[mapId] = true;
                 return true;
+            }
         }
 
+        _mapGravityCache[mapId] = false;
         return false;
     }
 
-    private bool HasZNetworkGravity(TransformComponent xform)
+    public bool HasZNetworkGravity(TransformComponent xform)
     {
         if (xform.MapUid is not { } mapUid ||
             !_zMapQuery.TryComp(mapUid, out var zMap) ||

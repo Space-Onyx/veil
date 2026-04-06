@@ -1,7 +1,7 @@
-using Content.Shared._CE.ZLevels.Core.Components;
+using Content.Shared._Onyx.ZLevels.Core.Components;
 using Robust.Shared.Physics.Components;
 
-namespace Content.Shared._CE.ZLevels.Core.EntitySystems;
+namespace Content.Shared._Onyx.ZLevels.Core.EntitySystems;
 
 public static class ZLevelsExtensions
 {

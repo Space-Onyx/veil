@@ -98,6 +98,7 @@
     noRot: true
   - type: Anchorable
   - type: Pullable
+  - type: CEZPhysics # <Onyx-Tweak>
 
 
 - type: entity

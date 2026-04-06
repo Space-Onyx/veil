@@ -2,9 +2,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using System.Text.Json;
-using Content.Server._CE.ZLevels.Core;
+using Content.Server._Onyx.ZLevels.Core;
 using Content.Server._Utopia.ZLevels.Transmission.Systems;
-using Content.Shared._CE.ZLevels.Core.Components;
+using Content.Shared._Onyx.ZLevels.Core.Components;
 using Content.Shared._Utopia.ZLevels.Components;
 using Content.Shared._Utopia.ZLevels.Systems;
 using Robust.Server.GameObjects;
@@ -261,7 +261,7 @@ public sealed class ZNetworkMappingSystem : EntitySystem
             return false;
         }
 
-        for (var m = 0; m > data.LevelPaths.Count; m++)
+        for (var m = 0; m < data.LevelPaths.Count; m++)
         {
             if (_map.TryGetMap(new((int)mapId + m), out _))
             {

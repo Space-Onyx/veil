@@ -1,0 +1,100 @@
+/*
+ * This file is sublicensed under MIT License
+ * https://github.com/space-wizards/space-station-14/blob/master/LICENSE.TXT
+ */
+
+using Content.Server.Administration;
+using Content.Server._Onyx.ZLevels.Core;
+using Content.Server._Utopia.ZLevels.Transmission.Systems;
+using Content.Shared._Onyx.ZLevels.Core.Components;
+using Content.Shared.Administration;
+using Robust.Server.GameObjects;
+using Robust.Shared.Console;
+using Robust.Shared.Map.Components;
+
+namespace Content.Server._Onyx.ZLevels.Mapping;
+
+[AdminCommand(AdminFlags.Server | AdminFlags.Mapping)]
+public sealed class CEInitializeZNetworkCommand : LocalizedEntityCommands
+{
+    [Dependency] private readonly IEntityManager _entities = default!;
+    [Dependency] private readonly MapSystem _map = default!;
+    [Dependency] private readonly CEZLevelsSystem _zLevels = default!;
+    [Dependency] private readonly ZLevelTransmissionSystem _zTransmission = default!;
+
+    public override string Command => "znetwork-initialize";
+    public override string Description => "Initialize all zNetwork maps. Warning! This will not add all components, that writed in gamemap prototype! So i think this command is useless, because all maps dont have lightning or even atmos :(";
+
+    public override CompletionResult GetCompletion(IConsoleShell shell, string[] args)
+    {
+        var options = new List<CompletionOption>();
+        var query = _entities.EntityQueryEnumerator<CEZLevelsNetworkComponent, MetaDataComponent>();
+        while (query.MoveNext(out var uid, out var zLevelComp, out var meta))
+        {
+            options.Add(new CompletionOption(_entities.GetNetEntity(uid).ToString(), meta.EntityName));
+        }
+
+        return CompletionResult.FromHintOptions(options, "zNetwork net entity");
+    }
+
+    public override void Execute(IConsoleShell shell, string argStr, string[] args)
+    {
+        if (args.Length != 1)
+        {
+            shell.WriteError(Loc.GetString("shell-wrong-arguments-number"));
+            return;
+        }
+
+        // get the target
+        EntityUid? target;
+
+        if (!NetEntity.TryParse(args[0], out var targetNet) ||
+            !_entities.TryGetEntity(targetNet, out target))
+        {
+            shell.WriteError($"Unable to find entity {args[1]}");
+            return;
+        }
+
+        if (!_entities.TryGetComponent<CEZLevelsNetworkComponent>(target, out var levelComp))
+        {
+            shell.WriteError($"Target entity doesnt have CEZLevelsNetworkComponent {args[1]}");
+            return;
+        }
+
+        var initializedMaps = new HashSet<EntityUid>();
+
+        foreach (var (_, mapUid) in levelComp.ZLevels)
+        {
+            if (!_entities.TryGetComponent<MapComponent>(mapUid, out var mapComp))
+            {
+                shell.WriteError($"Map entity {mapUid} doesnt have MapComponent.");
+                continue;
+            }
+
+            if (!_map.MapExists(mapComp.MapId))
+            {
+                shell.WriteError($"Map with ID {mapComp.MapId} does not exist.");
+                continue;
+            }
+
+            if (_map.IsInitialized(mapComp.MapId))
+            {
+                shell.WriteLine($"Map with ID {mapComp.MapId} is already initialized.");
+                continue;
+            }
+            _map.InitializeMap(mapComp.MapId);
+            initializedMaps.Add(mapUid.Value);
+            shell.WriteLine($"Map with ID {mapComp.MapId} has been initialized.");
+        }
+
+        _zLevels.StabilizeZPhysicsAfterMapInit(initializedMaps);
+
+        var allNetworkMaps = new HashSet<EntityUid>();
+        foreach (var (_, m) in levelComp.ZLevels)
+        {
+            if (m.HasValue)
+                allNetworkMaps.Add(m.Value);
+        }
+        _zTransmission.RefreshTransmittersOnMaps(allNetworkMaps);
+    }
+}

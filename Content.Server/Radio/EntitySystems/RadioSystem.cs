@@ -66,7 +66,7 @@ using Robust.Shared.Replays;
 using Robust.Shared.Utility;
 using Content.Shared.Whitelist;
 using Robust.Shared.Configuration;
-using Content.Shared._CE.ZLevels.Core.EntitySystems;
+using Content.Shared._Onyx.ZLevels.Core.EntitySystems;
 
 namespace Content.Server.Radio.EntitySystems;
 

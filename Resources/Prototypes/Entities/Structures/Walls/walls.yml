@@ -231,9 +231,6 @@
   - type: ExaminableDamage
     messages: WindowMessages
   # </Goobstation>
-  # <Onyx-Tweak>
-  - type: CEZPhysics
-  # </Onyx-Tweak>
 
 - type: entity
   abstract: true

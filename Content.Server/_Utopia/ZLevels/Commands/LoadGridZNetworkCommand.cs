@@ -45,7 +45,7 @@ public sealed class LoadGridZNetworkCommand : LocalizedEntityCommands
 
     public override void Execute(IConsoleShell shell, string argStr, string[] args)
     {
-        if (args.Length < 2 || args.Length > 6)
+        if (args.Length < 2 || args.Length > 5)
         {
             shell.WriteLine(Help);
             return;
@@ -68,13 +68,15 @@ public sealed class LoadGridZNetworkCommand : LocalizedEntityCommands
 
         var offset = Vector2.Zero;
 
-        if (float.TryParse(args[2], out var x))
+        if (args.Length >= 3 && float.TryParse(args[2], out var x))
             offset.X = x;
 
-        if (float.TryParse(args[3], out var y))
+        if (args.Length >= 4 && float.TryParse(args[3], out var y))
             offset.Y = y;
 
-        float.TryParse(args[4], out var rotation);
+        var rotation = 0f;
+        if (args.Length >= 5)
+            float.TryParse(args[4], out rotation);
 
         if (_zLoader.TryLoadGrid(args[1], mapId, offset, rotation, out var error))
             shell.WriteLine(Loc.GetString("cmd-loadmap-success", ("mapId", mapId), ("path", args[1])));

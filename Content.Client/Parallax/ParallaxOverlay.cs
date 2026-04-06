@@ -20,7 +20,7 @@
 using System.Numerics;
 using Content.Client.Parallax.Managers;
 using Content.Client.Viewport;
-using Content.Shared._CE.ZLevels.Core.EntitySystems;
+using Content.Shared._Onyx.ZLevels.Core.EntitySystems;
 using Content.Shared.CCVar;
 using Content.Shared.Parallax.Biomes;
 using Robust.Client.Graphics;

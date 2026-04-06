@@ -39,5 +39,5 @@ public sealed partial class CCVars
         CVarDef.Create("zlevels.hole_shadow_max_distance", 0f, CVar.CLIENTONLY | CVar.ARCHIVE);
 
     public static readonly CVarDef<float> ZLevelsAtmosTransferSpeed =
-        CVarDef.Create("zlevels.atmos_transfer_speed", 1f, CVar.SERVERONLY | CVar.ARCHIVE);
+        CVarDef.Create("zlevels.atmos_transfer_speed", 5f, CVar.SERVERONLY | CVar.ARCHIVE);
 }

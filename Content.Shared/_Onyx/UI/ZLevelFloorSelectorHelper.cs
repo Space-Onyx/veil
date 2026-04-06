@@ -1,7 +1,7 @@
 using Content.Shared.Pinpointer;
 using Content.Shared.Station.Components;
-using Content.Shared._CE.ZLevels.Core.Components;
-using Content.Shared._CE.ZLevels.Core.EntitySystems;
+using Content.Shared._Onyx.ZLevels.Core.Components;
+using Content.Shared._Onyx.ZLevels.Core.EntitySystems;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;

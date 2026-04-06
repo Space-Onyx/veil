@@ -19,6 +19,7 @@
         unfoldedLayer:
           True: {visible: false}
           False: {visible: true}
+  - type: CEZPhysics # <Onyx-Tweak>
 
 - type: entity
   abstract: true

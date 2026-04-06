@@ -31,7 +31,7 @@ using Content.Shared.NodeContainer;
 using Content.Shared.Pinpointer;
 using Content.Shared.Power;
 using Content.Shared.Station.Components;
-using Content.Shared._CE.ZLevels.Core.EntitySystems;
+using Content.Shared._Onyx.ZLevels.Core.EntitySystems;
 using Content.Shared._Onyx.UI;
 using JetBrains.Annotations;
 using Robust.Server.GameObjects;

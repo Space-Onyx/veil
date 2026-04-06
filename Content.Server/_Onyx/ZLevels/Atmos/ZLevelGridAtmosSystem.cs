@@ -2,7 +2,7 @@ using System.Numerics;
 using Content.Server.Atmos;
 using Content.Server.Atmos.Components;
 using Content.Server.Atmos.EntitySystems;
-using Content.Shared._CE.ZLevels.Core.Components;
+using Content.Shared._Onyx.ZLevels.Core.Components;
 using Content.Shared._Onyx.ZLevels;
 using Content.Shared._Utopia.ZLevels.Components;
 using Content.Shared.Atmos;
@@ -31,6 +31,7 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
     private int _periodicGroupCheckCounter;
 
     private readonly Dictionary<(EntityUid Below, EntityUid Above), List<VerticalLink>> _verticalLinks = new();
+    private readonly Dictionary<EntityUid, List<(EntityUid Below, EntityUid Above)>> _verticalLinkKeysByAboveGrid = new();
     private bool _linksDirty = true;
     private readonly HashSet<(EntityUid Grid, Vector2i Tile)> _managedHoleTiles = new();
     private readonly Dictionary<EntityUid, HashSet<Vector2i>> _holeTilesPerGrid = new();
@@ -38,9 +39,10 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
     private readonly List<(EntityUid Grid, Vector2i Tile)> _pendingTileUpdates = new();
     private readonly HashSet<(EntityUid Grid, Vector2i Tile)> _pendingTileUpdateSet = new();
     private readonly Dictionary<EntityUid, HashSet<Vector2i>> _interiorHolesCache = new();
-    private readonly List<(EntityUid Below, EntityUid Above)> _staleVerticalLinkKeys = new();
+    private readonly List<(EntityUid Below, EntityUid Above)> _verticalLinkKeyBuffer = new();
     private readonly List<string> _staleGroupIds = new();
     private bool _hasZNetwork;
+    private float _cachedAtmosTransferSpeed;
 
     private record struct VerticalLink(
         EntityUid HoleGrid,
@@ -59,19 +61,30 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
         _gridQuery = GetEntityQuery<MapGridComponent>();
         _motionLinkQuery = GetEntityQuery<GridMotionLinkComponent>();
 
-        SubscribeLocalEvent<GridMotionLinkComponent, ComponentStartup>(OnLinkChanged);
-        SubscribeLocalEvent<GridMotionLinkComponent, ComponentShutdown>(OnLinkChanged);
         SubscribeLocalEvent<GridMotionLinkComponent, EntParentChangedMessage>(OnLinkParentChanged);
         SubscribeLocalEvent<CEZLevelMapComponent, ComponentStartup>(OnZMapChanged);
         SubscribeLocalEvent<CEZLevelMapComponent, ComponentShutdown>(OnZMapChanged);
         SubscribeLocalEvent<TileChangedEvent>(OnTileChanged);
         SubscribeLocalEvent<MapGridComponent, GridFixtureChangeEvent>(OnGridFixtureChanged);
+
+        _cfg.OnValueChanged(CCVars.ZLevelsAtmosTransferSpeed, value =>
+        {
+            _cachedAtmosTransferSpeed = MathF.Max(0f, value);
+        }, true);
     }
 
 
     public bool IsVerticalHoleTile(EntityUid grid, Vector2i pos)
     {
         return _managedHoleTiles.Contains((grid, pos));
+    }
+
+    public void CopyVerticalHoleTiles(EntityUid grid, List<Vector2i> buffer)
+    {
+        if (!_holeTilesPerGrid.TryGetValue(grid, out var tiles) || tiles.Count == 0)
+            return;
+
+        buffer.AddRange(tiles);
     }
 
     public bool IsEntityOnVerticalHole(EntityUid uid)
@@ -85,11 +98,6 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
 
         var pos = _mapSystem.CoordinatesToTile(gridUid, grid, xform.Coordinates);
         return IsVerticalHoleTile(gridUid, pos);
-    }
-
-    private void OnLinkChanged<T>(Entity<GridMotionLinkComponent> ent, ref T args)
-    {
-        _groupCacheDirty = true;
     }
 
     private void OnLinkParentChanged(Entity<GridMotionLinkComponent> ent, ref EntParentChangedMessage args)
@@ -300,6 +308,7 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
             {
                 links = new List<VerticalLink>();
                 _verticalLinks[key] = links;
+                RegisterVerticalLinkKey(key);
             }
 
             var newLink = new VerticalLink(holeGrid, holeTile, targetUid, targetPos);
@@ -315,32 +324,37 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
 
     private void RemoveLinksForTile(EntityUid holeGrid, Vector2i holeTile)
     {
-        _staleVerticalLinkKeys.Clear();
+        if (!_verticalLinkKeysByAboveGrid.TryGetValue(holeGrid, out var candidateKeys))
+            return;
 
-        foreach (var (key, links) in _verticalLinks)
+        _verticalLinkKeyBuffer.Clear();
+        _verticalLinkKeyBuffer.AddRange(candidateKeys);
+
+        foreach (var key in _verticalLinkKeyBuffer)
         {
-            if (key.Above != holeGrid)
+            if (!_verticalLinks.TryGetValue(key, out var links))
+            {
+                UnregisterVerticalLinkKey(key);
                 continue;
+            }
 
             for (var i = links.Count - 1; i >= 0; i--)
             {
                 var link = links[i];
-                if (link.HoleGrid == holeGrid && link.HoleTile == holeTile)
-                {
-                    if (_atmosQuery.TryComp(link.TargetGrid, out var targetAtmos))
-                        targetAtmos.InvalidatedCoords.Add(link.TargetTile);
+                if (link.HoleGrid != holeGrid || link.HoleTile != holeTile)
+                    continue;
 
-                    links.RemoveAt(i);
-                }
+                if (_atmosQuery.TryComp(link.TargetGrid, out var targetAtmos))
+                    targetAtmos.InvalidatedCoords.Add(link.TargetTile);
+
+                links.RemoveAt(i);
             }
 
             if (links.Count == 0)
-                _staleVerticalLinkKeys.Add(key);
-        }
-
-        foreach (var key in _staleVerticalLinkKeys)
-        {
-            _verticalLinks.Remove(key);
+            {
+                _verticalLinks.Remove(key);
+                UnregisterVerticalLinkKey(key);
+            }
         }
     }
 
@@ -400,6 +414,7 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
 
         _linksDirty = false;
         _verticalLinks.Clear();
+        _verticalLinkKeysByAboveGrid.Clear();
         _pendingTileUpdates.Clear();
         _pendingTileUpdateSet.Clear();
         _interiorHolesCache.Clear();
@@ -436,10 +451,36 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
                         lowerGridUid: belowUid, lowerGrid: belowGrid);
 
                     if (links.Count > 0)
-                        _verticalLinks[(belowUid, aboveUid)] = links;
+                    {
+                        var key = (belowUid, aboveUid);
+                        _verticalLinks[key] = links;
+                        RegisterVerticalLinkKey(key);
+                    }
                 }
             }
         }
+    }
+
+    private void RegisterVerticalLinkKey((EntityUid Below, EntityUid Above) key)
+    {
+        if (!_verticalLinkKeysByAboveGrid.TryGetValue(key.Above, out var keys))
+        {
+            keys = new List<(EntityUid Below, EntityUid Above)>();
+            _verticalLinkKeysByAboveGrid[key.Above] = keys;
+        }
+
+        if (!keys.Contains(key))
+            keys.Add(key);
+    }
+
+    private void UnregisterVerticalLinkKey((EntityUid Below, EntityUid Above) key)
+    {
+        if (!_verticalLinkKeysByAboveGrid.TryGetValue(key.Above, out var keys))
+            return;
+
+        keys.Remove(key);
+        if (keys.Count == 0)
+            _verticalLinkKeysByAboveGrid.Remove(key.Above);
     }
 
     private void BuildHoleLinks(
@@ -551,7 +592,7 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
         if (_verticalLinks.Count == 0)
             return;
 
-        var transferSpeed = MathF.Max(0f, _cfg.GetCVar(CCVars.ZLevelsAtmosTransferSpeed));
+        var transferSpeed = _cachedAtmosTransferSpeed;
         if (transferSpeed <= 0f)
             return;
 
@@ -587,47 +628,82 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
         if (targetTile.Air == null || targetTile.Air.Immutable || targetTile.MapAtmosphere)
             return;
 
-        var deltaP = holeTile.Air.Pressure - targetTile.Air.Pressure;
-        if (MathF.Abs(deltaP) < Atmospherics.MinimumMolesDeltaToMove)
+        var pressureDelta = holeTile.Air.Pressure - targetTile.Air.Pressure;
+        if (MathF.Abs(pressureDelta) <= 0.001f)
             return;
 
-        GasMixture srcAir, dstAir;
-        TileAtmosphere srcTile, dstTile;
-        GridAtmosphereComponent srcAtmos, dstAtmos;
+        GasMixture highPressureAir;
+        GasMixture lowPressureAir;
+        TileAtmosphere highPressureTile;
+        TileAtmosphere lowPressureTile;
+        GridAtmosphereComponent highPressureAtmos;
+        GridAtmosphereComponent lowPressureAtmos;
 
-        if (deltaP > 0)
+        if (pressureDelta > 0)
         {
-            srcAir = holeTile.Air;
-            dstAir = targetTile.Air;
-            srcTile = holeTile;
-            dstTile = targetTile;
-            srcAtmos = holeAtmos;
-            dstAtmos = targetAtmos;
+            highPressureAir = holeTile.Air;
+            lowPressureAir = targetTile.Air;
+            highPressureTile = holeTile;
+            lowPressureTile = targetTile;
+            highPressureAtmos = holeAtmos;
+            lowPressureAtmos = targetAtmos;
         }
         else
         {
-            srcAir = targetTile.Air;
-            dstAir = holeTile.Air;
-            srcTile = targetTile;
-            dstTile = holeTile;
-            srcAtmos = targetAtmos;
-            dstAtmos = holeAtmos;
+            highPressureAir = targetTile.Air;
+            lowPressureAir = holeTile.Air;
+            highPressureTile = targetTile;
+            lowPressureTile = holeTile;
+            highPressureAtmos = targetAtmos;
+            lowPressureAtmos = holeAtmos;
         }
 
-        if (srcAir.TotalMoles <= 0f || srcAir.Temperature <= 0f)
+        if (highPressureAir.TotalMoles <= 0f ||
+            highPressureAir.Temperature <= 0f ||
+            lowPressureAir.Temperature <= 0f)
             return;
 
-        var transferMoles = (srcAir.TotalMoles - dstAir.TotalMoles) * 0.5f * transferFactor;
-        transferMoles = MathF.Max(0f, MathF.Min(transferMoles, srcAir.TotalMoles));
+        var transferMoles = ComputeVerticalEqualizationTransferMoles(highPressureAir, lowPressureAir, transferFactor);
+        if (!float.IsFinite(transferMoles))
+            return;
 
         if (transferMoles < Atmospherics.MinimumMolesDeltaToMove)
             return;
 
-        var removed = srcAir.Remove(transferMoles);
-        _atmos.Merge(dstAir, removed);
+        transferMoles = MathF.Min(transferMoles, highPressureAir.TotalMoles);
+        if (transferMoles <= 0f)
+            return;
 
-        ActivateTile(srcAtmos, srcTile);
-        ActivateTile(dstAtmos, dstTile);
+        var removed = highPressureAir.Remove(transferMoles);
+        _atmos.Merge(lowPressureAir, removed);
+
+        ActivateTile(highPressureAtmos, highPressureTile);
+        ActivateTile(lowPressureAtmos, lowPressureTile);
+    }
+
+    private float ComputeVerticalEqualizationTransferMoles(GasMixture highPressureAir, GasMixture lowPressureAir, float transferFactor)
+    {
+        if (highPressureAir.TotalMoles <= 0f || transferFactor <= 0f)
+            return 0f;
+
+        var fraction = _atmos.FractionToEqualizePressure(highPressureAir, lowPressureAir);
+
+        // Fallback for rare unstable states (e.g. degenerate heat capacity ratios).
+        if (!float.IsFinite(fraction))
+        {
+            if (highPressureAir.Temperature <= 0f)
+                return 0f;
+
+            var pressureDelta = MathF.Max(0f, highPressureAir.Pressure - lowPressureAir.Pressure);
+            var idealTransfer = pressureDelta * lowPressureAir.Volume / (highPressureAir.Temperature * Atmospherics.R);
+            fraction = idealTransfer / highPressureAir.TotalMoles;
+        }
+
+        fraction = Math.Clamp(fraction, 0f, 1f);
+        if (fraction <= 0f)
+            return 0f;
+
+        return highPressureAir.TotalMoles * fraction * transferFactor;
     }
 
     private static void ActivateTile(GridAtmosphereComponent atmos, TileAtmosphere tile)

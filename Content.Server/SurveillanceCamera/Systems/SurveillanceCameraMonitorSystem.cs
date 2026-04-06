@@ -79,7 +79,7 @@ using Content.Shared.SurveillanceCamera;
 using Content.Shared._Onyx.UI;
 using Robust.Server.GameObjects;
 using Robust.Shared.Player;
-using Content.Shared._CE.ZLevels.Core.EntitySystems;
+using Content.Shared._Onyx.ZLevels.Core.EntitySystems;
 
 // Goobstation
 using Content.Goobstation.Common.SurveillanceCamera;

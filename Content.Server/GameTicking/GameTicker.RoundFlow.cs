@@ -317,6 +317,7 @@ namespace Content.Server.GameTicking
                 }
 
                 var hasMainMap = false;
+                var mainMapUid = EntityUid.Invalid;
                 foreach (var zMap in zMaps)
                 {
                     _metaData.SetEntityName(zMap.Owner, proto.MapName);
@@ -324,10 +325,25 @@ namespace Content.Server.GameTicking
                     if (!HasComp<MainZMapComponent>(zMap.Owner) || hasMainMap)
                         continue;
 
-                    mapId = zMap.Comp.MapId;
+                    mainMapUid = zMap.Owner;
                     hasMainMap = true;
-                    RaiseLocalEvent(new PostGameMapLoad(proto, mapId, zGrids.Select(x => x.Owner).ToList(), stationName));
                 }
+
+                if (!hasMainMap)
+                {
+                    if (zMaps.Count == 0)
+                        throw new Exception($"Failed to load ZNetwork map {ev.GameMap.ID}: no maps were loaded.");
+
+                    mainMapUid = zMaps[0].Owner;
+                }
+
+                if (!TryComp<MapComponent>(mainMapUid, out var mainMapComp))
+                    throw new Exception($"Failed to load ZNetwork map {ev.GameMap.ID}: main map entity has no MapComponent.");
+
+                mapId = mainMapComp.MapId;
+                var zGridUids = zGrids.Select(x => x.Owner).ToList();
+                RaiseLocalEvent(new PostGameMapLoad(proto, mapId, zGridUids, stationName));
+                return zGridUids;
             }
             // ECHO-Tweak-end
 

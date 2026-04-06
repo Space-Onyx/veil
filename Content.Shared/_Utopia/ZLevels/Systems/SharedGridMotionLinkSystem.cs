@@ -24,7 +24,11 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
     private readonly HashSet<string> _groupsMovedSet = new();
     // <Onyx-Tweak>
     private readonly Dictionary<string, List<Entity<GridMotionLinkComponent, MapGridComponent, PhysicsComponent>>> _groupDictionary = new();
+    private readonly List<string> _staleGroupKeys = new();
     private bool _groupDictionaryBuilt;
+    private bool _groupDictionaryDirty = true;
+    private int _groupDictionaryHealthCheckCounter;
+    private const int GroupDictionaryHealthCheckInterval = 300;
     // </Onyx-Tweak>
     public override void Initialize()
     {
@@ -32,12 +36,26 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
 
         UpdatesAfter.Add(typeof(SharedPhysicsSystem));
         // <Onyx-Tweak>
+        SubscribeLocalEvent<GridMotionLinkComponent, ComponentStartup>(OnGridMotionLinkStartup);
+        SubscribeLocalEvent<GridMotionLinkComponent, ComponentShutdown>(OnGridMotionLinkShutdown);
         SubscribeLocalEvent<GridMotionLinkComponent, MapInitEvent>(OnGridMotionLinkInit);
         SubscribeLocalEvent<GridMotionLinkComponent, ComponentRemove>(OnGridMotionLinkRemove);
         SubscribeLocalEvent<TileChangedEvent>(OnTileChangedGridMotion);
         // </Onyx-Tweak>
     }
     // <Onyx-Tweak Edited>
+
+    private void OnGridMotionLinkStartup(Entity<GridMotionLinkComponent> ent, ref ComponentStartup args)
+    {
+        _groupDictionaryDirty = true;
+        _biggestGridCacheDirty = true;
+    }
+
+    private void OnGridMotionLinkShutdown(Entity<GridMotionLinkComponent> ent, ref ComponentShutdown args)
+    {
+        _groupDictionaryDirty = true;
+        _biggestGridCacheDirty = true;
+    }
 
     private void OnGridMotionLinkInit(Entity<GridMotionLinkComponent> ent, ref MapInitEvent args)
     {
@@ -50,6 +68,7 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
             _gridTileCountCache[ent] = count;
         }
         _biggestGridCacheDirty = true;
+        _groupDictionaryDirty = true;
         OnGridMotionLinkMapInit(ent, ref args);
     }
 
@@ -57,6 +76,7 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
     {
         _gridTileCountCache.Remove(ent);
         _biggestGridCacheDirty = true;
+        _groupDictionaryDirty = true;
     }
 
     protected virtual void OnGridMotionLinkMapInit(Entity<GridMotionLinkComponent> ent, ref MapInitEvent args)
@@ -222,9 +242,11 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
     // <Onyx-Tweak>
     private void EnsureGroupDictionary()
     {
-        if (_groupDictionaryBuilt)
+        if (_groupDictionaryBuilt && !_groupDictionaryDirty)
             return;
+
         _groupDictionaryBuilt = true;
+        _groupDictionaryDirty = false;
 
         foreach (var list in _groupDictionary.Values)
             list.Clear();
@@ -241,6 +263,18 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
                 _groupDictionary[link.GroupId] = list;
             }
             list.Add((targetUid, link, grid, phys));
+        }
+
+        _staleGroupKeys.Clear();
+        foreach (var (groupId, list) in _groupDictionary)
+        {
+            if (list.Count == 0)
+                _staleGroupKeys.Add(groupId);
+        }
+
+        foreach (var stale in _staleGroupKeys)
+        {
+            _groupDictionary.Remove(stale);
         }
     }
 
@@ -260,8 +294,13 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
-        _groupDictionaryBuilt = false; // <Onyx-Tweak>
         // <Onyx-Tweak>
+        if (++_groupDictionaryHealthCheckCounter >= GroupDictionaryHealthCheckInterval)
+        {
+            _groupDictionaryHealthCheckCounter = 0;
+            _groupDictionaryDirty = true;
+        }
+
         if (_biggestGridCacheDirty)
         {
             _biggestGridCache.Clear();
