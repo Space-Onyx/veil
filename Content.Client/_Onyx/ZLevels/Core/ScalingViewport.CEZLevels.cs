@@ -31,9 +31,9 @@ public sealed partial class ScalingViewport
     [Dependency] private readonly ITileDefinitionManager _tile = default!;
     [Dependency] private readonly IConfigurationManager _cfg = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly ExamineSystem _examine = default!;
 
     private CEClientZLevelsSystem? _zLevels;
+    private ExamineSystem? _examine;
 
     private EntityQuery<TransformComponent>? _xformQuery;
     private EntityQuery<MapComponent>? _mapQuery;
@@ -229,6 +229,7 @@ public sealed partial class ScalingViewport
             return false;
 
         visibilityChecks++;
+        _examine ??= _entityManager.System<ExamineSystem>();
         return _examine.InRangeUnOccluded(viewer, new MapCoordinates(worldPos, mapId), 100f);
     }
 
