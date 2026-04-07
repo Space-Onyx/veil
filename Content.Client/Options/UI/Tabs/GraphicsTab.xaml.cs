@@ -129,7 +129,7 @@ public sealed partial class GraphicsTab : Control
         Control.AddOptionCheckBox(CCVars.ViewportScaleRender, ViewportLowResCheckBox, invert: true);
         Control.AddOptionCheckBox(CCVars.ParallaxLowQuality, ParallaxLowQualityCheckBox);
         Control.AddOptionCheckBox(CCVars.HudFpsCounterVisible, FpsCounterCheckBox);
-        // <Onyx-Tweak>
+        // <Onyx-Zlevels>
         Control.AddOptionCheckBox(CCVars.ZLevelHoleShadowEnabled, ZLevelHoleShadowCheckBox);
         Control.AddOptionDropDown(
             CCVars.ZLevelHoleShadowUpdateRate,
@@ -170,7 +170,7 @@ public sealed partial class GraphicsTab : Control
                 new OptionDropDownCVar<float>.ValueOption(24f, Loc.GetString("ui-options-zlevel-hole-shadow-max-distance-24")),
                 new OptionDropDownCVar<float>.ValueOption(32f, Loc.GetString("ui-options-zlevel-hole-shadow-max-distance-32")),
             ]);
-        // </Onyx-Tweak>
+        // </Onyx-Zlevels>
         Control.Initialize();
 
         _cfg.OnValueChanged(CCVars.ViewportMinimumWidth, _ => UpdateViewportWidthRange());

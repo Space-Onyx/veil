@@ -36,7 +36,7 @@ public sealed partial class SurveillanceCameraMonitorWindow : FancyWindow // Goo
     public event Action? SubnetRefresh;
     public event Action? CameraSwitchTimer;
     public event Action? CameraDisconnect;
-    public event Action<int>? FloorSelected; // <Onyx-Tweak>s
+    public event Action<int>? FloorSelected; // <Onyx-Zlevels>
 
     private string _currentAddress = string.Empty;
     private bool _isSwitching;
@@ -44,11 +44,11 @@ public sealed partial class SurveillanceCameraMonitorWindow : FancyWindow // Goo
     private readonly SpriteSystem _spriteSystem; // Goobstation
     private readonly Dictionary<NetEntity, string> _reverseCameras = new(); // Goobstation
     private readonly Dictionary<string, string> _resolveCameraName = new(); // Goobstation
-    private readonly List<int> _knownFloors = new(); // <Onyx-Tweak>
+    private readonly List<int> _knownFloors = new(); // <Onyx-Zlevels>
     private Texture? _blipTexture; // Goobstation
-    private EntityUid? _monitorMapUid; // <Onyx-Tweak>
-    private bool _updatingFloorSelector; // <Onyx-Tweak>
-    private int _monitorFloor; // <Onyx-Tweak>
+    private EntityUid? _monitorMapUid; // <Onyx-Zlevels>
+    private bool _updatingFloorSelector; // <Onyx-Zlevels>
+    private int _monitorFloor; // <Onyx-Zlevels>
 
     public SurveillanceCameraMonitorWindow()
     {
@@ -73,7 +73,7 @@ public sealed partial class SurveillanceCameraMonitorWindow : FancyWindow // Goo
         SubnetRefreshButton.OnPressed += _ => SubnetRefresh!();
         CameraRefreshButton.OnPressed += _ => CameraRefresh!();
         CameraDisconnectButton.OnPressed += _ => CameraDisconnect!();
-        FloorSelector.OnItemSelected += OnFloorSelected; // <Onyx-Tweak>
+        FloorSelector.OnItemSelected += OnFloorSelected; // <Onyx-Zlevels>
     }
 
     // Goobstation start
@@ -145,7 +145,7 @@ public sealed partial class SurveillanceCameraMonitorWindow : FancyWindow // Goo
     }
     // Goobstation End
 
-    // <Onyx-Tweak>
+    // <Onyx-Zlevels>
     private void OnFloorSelected(OptionButton.ItemSelectedEventArgs args)
     {
         args.Button.SelectId(args.Id);
@@ -155,7 +155,7 @@ public sealed partial class SurveillanceCameraMonitorWindow : FancyWindow // Goo
 
         FloorSelected?.Invoke(_knownFloors[args.Id]);
     }
-    // </Onyx-Tweak>
+    // </Onyx-Zlevels>
 
     // The UI class should get the eye from the entity, and then
     // pass it here so that the UI can change its view.
@@ -267,7 +267,7 @@ public sealed partial class SurveillanceCameraMonitorWindow : FancyWindow // Goo
         // Goobstation end
     }
 
-    // <Onyx-Tweak>
+    // <Onyx-Zlevels>
     private void UpdateFloors(List<int> floors, int selectedFloor, int monitorFloor)
     {
         _monitorFloor = monitorFloor;
@@ -289,5 +289,5 @@ public sealed partial class SurveillanceCameraMonitorWindow : FancyWindow // Goo
 
         FloorSelectorContainer.Visible = floors.Count > 1;
     }
-    // </Onyx-Tweak>
+    // </Onyx-Zlevels>
 }

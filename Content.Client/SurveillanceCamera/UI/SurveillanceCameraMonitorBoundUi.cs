@@ -50,7 +50,7 @@ public sealed class SurveillanceCameraMonitorBoundUserInterface : BoundUserInter
         _window.SubnetRefresh += OnSubnetRefresh;
         _window.CameraSwitchTimer += OnCameraSwitchTimer;
         _window.CameraDisconnect += OnCameraDisconnect;
-        _window.FloorSelected += OnFloorSelected; // <Onyx-Tweak>
+        _window.FloorSelected += OnFloorSelected; // <Onyx-Zlevels>
 
         _window.SetEntity(Owner); // Goobstation
     }
@@ -80,12 +80,12 @@ public sealed class SurveillanceCameraMonitorBoundUserInterface : BoundUserInter
         SendMessage(new SurveillanceCameraDisconnectMessage());
     }
 
-    // <Onyx-Tweak>
+    // <Onyx-Zlevels>
     private void OnFloorSelected(int floor)
     {
         SendMessage(new SurveillanceCameraMonitorSelectFloorMessage(floor));
     }
-    // </Onyx-Tweak>
+    // </Onyx-Zlevels>
 
     // <Onyx-Fix edited>
     protected override void UpdateState(BoundUserInterfaceState state)

@@ -12,7 +12,7 @@ public sealed class ZCableSystem : EntitySystem
 {
     private readonly Dictionary<ZCableNode, HashSet<ZCableNode>> _connections = new();
 
-    // <Onyx-Tweak>
+    // <Onyx-Zlevels>
     public override void Initialize()
     {
         SubscribeLocalEvent<ZCableComponent, ComponentShutdown>(OnShutdown);
@@ -23,9 +23,6 @@ public sealed class ZCableSystem : EntitySystem
         if (TryComp(uid, out NodeContainerComponent? container))
             ClearAll(container);
     }
-    // </Onyx-Tweak>
-
-    // <Onyx-Tweak> Filter out nodes from deleted entities
     public IEnumerable<Node> GetZReachable(ZCableNode node)
     {
         if (!_connections.TryGetValue(node, out var set))
@@ -37,8 +34,8 @@ public sealed class ZCableSystem : EntitySystem
                 yield return other;
         }
     }
-    // </Onyx-Tweak>
-    
+    // </Onyx-Zlevels>
+
     public void AddZConnection(ZCableNode a, ZCableNode b)
     {
         GetOrAdd(a).Add(b);

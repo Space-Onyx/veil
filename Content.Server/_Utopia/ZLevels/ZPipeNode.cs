@@ -12,7 +12,7 @@ public sealed partial class ZPipeNode : PipeNode
     [DataField(required: true)]
     public ZNodeDirection ZDirection;
 
-    // <Onyx-Tweak>
+    // <Onyx-Zlevels>
     public override IEnumerable<Node> GetReachableNodes(TransformComponent xform,
         EntityQuery<NodeContainerComponent> nodeQuery,
         EntityQuery<TransformComponent> xformQuery,
@@ -35,7 +35,7 @@ public sealed partial class ZPipeNode : PipeNode
             }
         }
     }
-    // </Onyx-Tweak>
+    // </Onyx-Zlevels>
 }
 
 [DataDefinition]

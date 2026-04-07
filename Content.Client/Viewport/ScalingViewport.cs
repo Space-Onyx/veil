@@ -36,7 +36,7 @@ namespace Content.Client.Viewport
 
         // Internal viewport creation is deferred.
         private IClydeViewport? _viewport;
-        private IClydeViewport? _lowerZViewport; // <Onyx-Tweak>
+        private IClydeViewport? _lowerZViewport; // <Onyx-Zlevels>
         private IEye? _eye;
         private Vector2i _viewportSize;
         private int _curRenderScale;
@@ -61,7 +61,7 @@ namespace Content.Client.Viewport
 
                 if (_viewport != null)
                     _viewport.Eye = value;
-                if (_lowerZViewport != null) // <Onyx-Tweak>
+                if (_lowerZViewport != null) // <Onyx-Zlevels>
                     _lowerZViewport.Eye = value;
             }
         }
@@ -184,8 +184,8 @@ namespace Content.Client.Viewport
             var drawBox = GetDrawBox();
             var drawBoxGlobal = drawBox.Translated(GlobalPixelPosition);
             _viewport!.RenderScreenOverlaysBelow(handle, this, drawBoxGlobal);
-            if (_drawLowerZCacheThisFrame && _lowerZViewport != null) // <Onyx-Tweak>
-                DrawLowerZComposite(handle.DrawingHandleScreen, drawBox); // <Onyx-Tweak>
+            if (_drawLowerZCacheThisFrame && _lowerZViewport != null) // <Onyx-Zlevels>
+                DrawLowerZComposite(handle.DrawingHandleScreen, drawBox); // <Onyx-Zlevels>
             handle.DrawingHandleScreen.DrawTextureRect(_viewport.RenderTarget.Texture, drawBox);
             _viewport!.RenderScreenOverlaysAbove(handle, this, drawBoxGlobal);
         }
@@ -260,12 +260,12 @@ namespace Content.Client.Viewport
             renderScale = Math.Max(1, renderScale);
 
             _curRenderScale = renderScale;
-            // <Onyx-Tweak>
+            // <Onyx-Zlevels>
             var sampleParams = new TextureSampleParameters
             {
                 Filter = StretchMode == ScalingViewportStretchMode.Bilinear,
             };
-            // </Onyx-Tweak>
+            // </Onyx-Zlevels>
 
             _viewport = _clyde.CreateViewport(
                 ViewportSize * renderScale,
@@ -275,13 +275,13 @@ namespace Content.Client.Viewport
 
             _viewport.Eye = _eye;
 
-            // <Onyx-Tweak>
+            // <Onyx-Zlevels>
             _lowerZViewport = _clyde.CreateViewport(
                 ViewportSize * renderScale,
                 sampleParams);
             _lowerZViewport.RenderScale = new Vector2(renderScale, renderScale);
             _lowerZViewport.Eye = _eye;
-            // </Onyx-Tweak>
+            // </Onyx-Zlevels>
         }
 
         protected override void Resized()
@@ -322,15 +322,15 @@ namespace Content.Client.Viewport
                 return default;
 
             EnsureViewportCreated();
-            var viewport = _viewport!; // <Onyx-Tweak>
+            var viewport = _viewport!; // </Onyx-Zlevels>
 
             Matrix3x2.Invert(GetLocalToScreenMatrix(), out var matrix);
             coords = Vector2.Transform(coords, matrix);
 
-            var ev = new PixelToMapEvent(coords, this, viewport); // <Onyx-Tweak edited>
+            var ev = new PixelToMapEvent(coords, this, viewport); // <Onyx-ZLevels edited>
             _entityManager.EventBus.RaiseEvent(EventSource.Local, ref ev);
 
-            // <Onyx-Tweak edited> 
+            // <Onyx-ZLevels edited> 
             if (_renderingNonBaseZLayer && _fallbackEye != null && viewport.Eye is ZEye { Depth: not 0 })
             {
                 var previousEye = viewport.Eye;
@@ -346,7 +346,7 @@ namespace Content.Client.Viewport
             }
 
             return viewport.LocalToWorld(ev.VisiblePosition);
-            // </Onyx-Tweak edited> 
+            // </Onyx-ZLevels edited> 
         }
 
         public Vector2 WorldToScreen(Vector2 map)

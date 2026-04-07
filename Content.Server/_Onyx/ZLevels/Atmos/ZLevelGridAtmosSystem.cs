@@ -89,20 +89,10 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
 
     public void EnsureInteriorHolesRegistered(EntityUid gridUid, MapGridComponent grid)
     {
-        if (_holeTilesPerGrid.TryGetValue(gridUid, out var existing) && existing.Count > 0)
-            return;
-
         var interiorHoles = GetInteriorHoles(gridUid, grid);
         foreach (var hole in interiorHoles)
         {
-            _managedHoleTiles.Add((gridUid, hole));
-
-            if (!_holeTilesPerGrid.TryGetValue(gridUid, out var set))
-            {
-                set = new HashSet<Vector2i>();
-                _holeTilesPerGrid[gridUid] = set;
-            }
-            set.Add(hole);
+            AddHoleTile(gridUid, hole);
         }
     }
 
@@ -448,6 +438,14 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
 
         foreach (var grids in _groupCache.Values)
         {
+            foreach (var (_, gridUid) in grids)
+            {
+                if (!_gridQuery.TryComp(gridUid, out var gridComp))
+                    continue;
+
+                EnsureInteriorHolesRegistered(gridUid, gridComp);
+            }
+
             for (var i = 0; i < grids.Count - 1; i++)
             {
                 var (depthBelow, belowUid) = grids[i];

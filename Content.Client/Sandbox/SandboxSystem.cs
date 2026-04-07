@@ -58,7 +58,7 @@ namespace Content.Client.Sandbox
         [Dependency] private readonly ContentEyeSystem _contentEye = default!;
         [Dependency] private readonly SharedTransformSystem _transform = default!;
         [Dependency] private readonly SharedMapSystem _mapSystem = default!;
-        [Dependency] private readonly IConfigurationManager _cfg = default!; // <Onyx-Tweak>
+        [Dependency] private readonly IConfigurationManager _cfg = default!; // <Onyx-Zlevels>
 
         private bool _sandboxEnabled;
         public bool SandboxAllowed { get; private set; }
@@ -199,7 +199,7 @@ namespace Content.Client.Sandbox
             _consoleHost.ExecuteCommand("physics shapes");
         }
 
-        // <Onyx-Tweak>
+        // <Onyx-Zlevels>
         public bool IsRoofOverlayEnabled()
         {
             return _cfg.GetCVar(CCVars.ZLevelRoofOverlayEnabled);
@@ -210,6 +210,6 @@ namespace Content.Client.Sandbox
             var enabled = _cfg.GetCVar(CCVars.ZLevelRoofOverlayEnabled);
             _cfg.SetCVar(CCVars.ZLevelRoofOverlayEnabled, !enabled);
         }
-        // </Onyx-Tweak>
+        // </Onyx-Zlevels>
     }
 }

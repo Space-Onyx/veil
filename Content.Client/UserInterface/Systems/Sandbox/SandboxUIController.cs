@@ -146,7 +146,7 @@ public sealed class SandboxUIController : UIController, IOnStateChanged<Gameplay
         _window.ToggleLightButton.Pressed = !_light.Enabled;
         _window.ToggleFovButton.Pressed = !_eye.CurrentEye.DrawFov;
         _window.ToggleShadowsButton.Pressed = !_light.DrawShadows;
-        _window.ToggleRoofOverlayButton.Pressed = _sandbox.IsRoofOverlayEnabled(); // <Onyx-Tweak>
+        _window.ToggleRoofOverlayButton.Pressed = _sandbox.IsRoofOverlayEnabled(); // <Onyx-Zlevels>
         _window.ShowMarkersButton.Pressed = _marker.MarkersVisible;
         _window.ShowBbButton.Pressed = (_debugPhysics.Flags & PhysicsDebugFlags.Shapes) != 0x0;
 
@@ -174,7 +174,7 @@ public sealed class SandboxUIController : UIController, IOnStateChanged<Gameplay
         _window.ToggleLightButton.OnToggled += _ => _sandbox.ToggleLight();
         _window.ToggleFovButton.OnToggled += _ => _sandbox.ToggleFov();
         _window.ToggleShadowsButton.OnToggled += _ => _sandbox.ToggleShadows();
-        _window.ToggleRoofOverlayButton.OnToggled += _ => _sandbox.ToggleRoofOverlay(); // <Onyx-Tweak>
+        _window.ToggleRoofOverlayButton.OnToggled += _ => _sandbox.ToggleRoofOverlay(); // <Onyx-Zlevels>
         _window.SuicideButton.OnPressed += _ => _sandbox.Suicide();
         _window.ToggleSubfloorButton.OnPressed += _ => _sandbox.ToggleSubFloor();
         _window.ShowMarkersButton.OnPressed += _ => _sandbox.ShowMarkers();
