@@ -124,8 +124,8 @@
   suffix: Filled
   components:
   - type: Minesweeper
-    soundLost: /Audio/ADT/Machines/minesweeaper_lost_boom.ogg
-    soundWin: /Audio/ADT/Machines/win.ogg
-    soundTick: /Audio/ADT/Machines/tick.ogg
+    soundLost: /Audio/_Onyx/Machines/minesweeaper_lost_boom.ogg
+    soundWin: /Audio/_Onyx/Machines/win.ogg
+    soundTick: /Audio/_Onyx/Machines/tick.ogg
     rewardMinAmount: 5
     rewardMaxAmount: 8

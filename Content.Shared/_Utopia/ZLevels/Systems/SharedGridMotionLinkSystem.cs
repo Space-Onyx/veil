@@ -385,6 +385,14 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
             if (link.GroupId != group)
                 continue;
 
+            // <Onyx-Tweak> ForceRoot always wins
+            if (link.ForceRoot)
+            {
+                biggest = new(int.MaxValue, uid);
+                break;
+            }
+            // </Onyx-Tweak>
+
             var tilesCount = GetCachedTileCount(uid, grid);
 
             if (biggest.Key < tilesCount)
