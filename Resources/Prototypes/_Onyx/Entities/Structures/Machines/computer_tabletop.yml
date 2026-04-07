@@ -16,6 +16,13 @@
             - TabletopMachineMask
           layer:
             - TabletopMachineLayer
+    - type: EdgeConnection
+      allowedDirections: None
+    - type: GenericVisualizer
+      visuals:
+        enum.EdgeConnectionVisuals.ConnectionMask:
+          computerLayerBody:
+            None: { state: computer, sprite: _Onyx/Structures/Machines/computer_tabletop.rsi }
     - type: InteractionOutline
     - type: Rotatable
     - type: Anchorable
@@ -99,6 +106,9 @@
   id: ComputerTabletopBroken
   suffix: Tabletop
   components:
+  - type: Construction
+    graph: ComputerTabletop
+    node: monitorBroken
   - type: Sprite
     drawdepth: SmallObjects
     sprite: _Onyx/Structures/Machines/computer_tabletop.rsi
