@@ -120,6 +120,7 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
     private void OnLinkParentChanged(Entity<GridMotionLinkComponent> ent, ref EntParentChangedMessage args)
     {
         _groupCacheDirty = true;
+        _linksDirty = true;
     }
 
     private void OnZMapChanged<T>(Entity<CEZLevelMapComponent> ent, ref T args)

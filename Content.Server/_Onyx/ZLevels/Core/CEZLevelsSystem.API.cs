@@ -72,6 +72,8 @@ public sealed partial class CEZLevelsSystem
         if (initializedMaps.Count == 0)
             return;
 
+        _zLevelGridAtmos.ForceRebuildLinks();
+
         foreach (var mapUid in initializedMaps)
         {
             if (!TryComp<CEZLevelMapComponent>(mapUid, out var zMap))

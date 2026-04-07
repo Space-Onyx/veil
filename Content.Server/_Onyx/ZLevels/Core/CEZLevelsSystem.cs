@@ -11,6 +11,7 @@ using Content.Server.Station.Components;
 using Content.Server.Station.Systems;
 using Content.Server.Station.Events;
 using Content.Server._Utopia.ZLevels.Transmission.Systems;
+using Content.Server._Onyx.ZLevels.Atmos;
 using Robust.Shared.EntitySerialization.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
@@ -27,6 +28,7 @@ public sealed partial class CEZLevelsSystem : CESharedZLevelsSystem
     [Dependency] private readonly StationSystem _station = default!;
     [Dependency] private readonly CEZLevelsSystem _zLevels = default!;
     [Dependency] private readonly ZLevelTransmissionSystem _zTransmission = default!;
+    [Dependency] private readonly ZLevelGridAtmosSystem _zLevelGridAtmos = default!;
 
     public override void Initialize()
     {
