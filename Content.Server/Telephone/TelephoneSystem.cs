@@ -32,6 +32,7 @@ using Robust.Shared.Replays;
 using System.Linq;
 using Content.Shared._CorvaxGoob.TTS;
 using Content.Shared._Onyx.SpeechBarks;
+using Content.Shared._Onyx.ZLevels.Core.EntitySystems;
 
 namespace Content.Server.Telephone;
 
@@ -48,6 +49,7 @@ public sealed class TelephoneSystem : SharedTelephoneSystem
     [Dependency] private readonly IAdminLogManager _adminLogger = default!;
     [Dependency] private readonly IReplayRecordingManager _replay = default!;
     [Dependency] private readonly LanguageSystem _language = default!; // Einstein Engines - Language
+    [Dependency] private readonly CESharedZLevelsSystem _zLevels = default!; // <Onyx-ZLevels>
 
     // Has set used to prevent telephone feedback loops
     private HashSet<(EntityUid, string, Entity<TelephoneComponent>)> _recentChatMessages = new();
@@ -503,7 +505,12 @@ public sealed class TelephoneSystem : SharedTelephoneSystem
                 return sourceXform.GridUid == receiverXform.GridUid;
 
             case TelephoneRange.Map:
-                return sourceXform.MapID == receiverXform.MapID;
+                // <Onyx-ZLevels>
+                return sourceXform.MapID == receiverXform.MapID
+                    || (sourceXform.MapUid is { } srcMap
+                        && receiverXform.MapUid is { } rcvMap
+                        && _zLevels.AreOnSameZNetwork(srcMap, rcvMap));
+                // </Onyx-ZLevels>
 
             case TelephoneRange.Unlimited:
                 return true;

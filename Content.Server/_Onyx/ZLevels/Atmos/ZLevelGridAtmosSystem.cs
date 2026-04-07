@@ -694,7 +694,7 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
         if (!float.IsFinite(transferMoles))
             return;
 
-        if (transferMoles < Atmospherics.MinimumMolesDeltaToMove)
+        if (transferMoles < Atmospherics.MinimumMolesDeltaToMove * 0.01f)
             return;
 
         transferMoles = MathF.Min(transferMoles, highPressureAir.TotalMoles);
