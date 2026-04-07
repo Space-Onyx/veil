@@ -182,7 +182,15 @@ public sealed partial class AtmosphereSystem
 
         // <Onyx-Zlevels>
         _zLevelGridAtmos ??= EntityManager.System<ZLevelGridAtmosSystem>();
+        _zLevelGridAtmos.ForceRebuildLinks();
+
         var holeTiles = new List<Vector2i>();
+        _zLevelGridAtmos.CopyVerticalHoleTiles(ent.Owner, holeTiles);
+
+        if (holeTiles.Count == 0)
+            _zLevelGridAtmos.EnsureInteriorHolesRegistered(ent.Owner, ent.Comp3);
+
+        holeTiles.Clear();
         _zLevelGridAtmos.CopyVerticalHoleTiles(ent.Owner, holeTiles);
 
         foreach (var indices in holeTiles)

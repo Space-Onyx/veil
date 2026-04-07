@@ -12,7 +12,7 @@
           zDirection: Up
     - type: ZCable
     - type: ZLevelTransmitter
-      range: 0.08
+      range: 0.1
       allowUp: true
     - type: ZLevelEntityLink
     - type: Construction
@@ -33,7 +33,7 @@
           zDirection: Down
     - type: ZCable
     - type: ZLevelTransmitter
-      range: 0.08
+      range: 0.1
       allowDown: true
     - type: ZLevelEntityLink
     - type: Construction
@@ -54,7 +54,7 @@
           zDirection: Up
     - type: ZCable
     - type: ZLevelTransmitter
-      range: 0.08
+      range: 0.1
       allowUp: true
     - type: ZLevelEntityLink
     - type: Construction
@@ -75,7 +75,7 @@
           zDirection: Down
     - type: ZCable
     - type: ZLevelTransmitter
-      range: 0.08
+      range: 0.1
       allowDown: true
     - type: ZLevelEntityLink
     - type: Construction
@@ -96,7 +96,7 @@
           zDirection: Up
     - type: ZCable
     - type: ZLevelTransmitter
-      range: 0.08
+      range: 0.1
       allowUp: true
     - type: ZLevelEntityLink
     - type: Construction
@@ -117,7 +117,7 @@
           zDirection: Down
     - type: ZCable
     - type: ZLevelTransmitter
-      range: 0.08
+      range: 0.1
       allowDown: true
     - type: ZLevelEntityLink
     - type: Construction

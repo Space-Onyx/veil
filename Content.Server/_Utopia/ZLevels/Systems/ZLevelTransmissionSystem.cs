@@ -28,12 +28,36 @@ public sealed class ZLevelTransmissionSystem : EntitySystem
     [Dependency] private readonly ZCableSystem _zCables = default!;
     [Dependency] private readonly NodeGroupSystem _nodeGroup = default!; // <Onyx-Tweak>
 
+    // <Onyx-Tweak> Deferred refresh to wait for broadphase update after grid repositioning
+    private HashSet<EntityUid>? _pendingRefreshMaps;
+    private int _pendingRefreshDelay;
+    // </Onyx-Tweak>
+
     public override void Initialize()
     {
         SubscribeLocalEvent<ZLevelTransmitterComponent, ComponentStartup>(OnRefresh);
         SubscribeLocalEvent<ZLevelTransmitterComponent, ComponentShutdown>(OnShutdown);
         SubscribeLocalEvent<ZLevelTransmitterComponent, MoveEvent>(OnMove);
     }
+
+    // <Onyx-Tweak>
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+
+        if (_pendingRefreshMaps == null)
+            return;
+
+        if (++_pendingRefreshDelay < 2)
+            return;
+
+        var maps = _pendingRefreshMaps;
+        _pendingRefreshMaps = null;
+        _pendingRefreshDelay = 0;
+
+        RefreshTransmittersImmediate(maps);
+    }
+    // </Onyx-Tweak>
 
     // <Onyx-Tweak>
     private void OnShutdown(EntityUid uid, ZLevelTransmitterComponent comp, ComponentShutdown args)
@@ -51,6 +75,16 @@ public sealed class ZLevelTransmissionSystem : EntitySystem
 
     // <Onyx-Tweak>
     public void RefreshTransmittersOnMaps(HashSet<EntityUid> maps)
+    {
+        if (_pendingRefreshMaps == null)
+            _pendingRefreshMaps = new HashSet<EntityUid>(maps);
+        else
+            _pendingRefreshMaps.UnionWith(maps);
+
+        _pendingRefreshDelay = 0;
+    }
+
+    private void RefreshTransmittersImmediate(HashSet<EntityUid> maps)
     {
         var query = EntityQueryEnumerator<ZLevelTransmitterComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var comp, out var xform))

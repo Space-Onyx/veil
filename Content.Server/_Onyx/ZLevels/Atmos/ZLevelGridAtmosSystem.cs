@@ -79,6 +79,33 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
         return _managedHoleTiles.Contains((grid, pos));
     }
 
+    public void ForceRebuildLinks()
+    {
+        _groupCacheDirty = true;
+        RebuildGroupCache();
+        _linksDirty = true;
+        RebuildVerticalLinks();
+    }
+
+    public void EnsureInteriorHolesRegistered(EntityUid gridUid, MapGridComponent grid)
+    {
+        if (_holeTilesPerGrid.TryGetValue(gridUid, out var existing) && existing.Count > 0)
+            return;
+
+        var interiorHoles = GetInteriorHoles(gridUid, grid);
+        foreach (var hole in interiorHoles)
+        {
+            _managedHoleTiles.Add((gridUid, hole));
+
+            if (!_holeTilesPerGrid.TryGetValue(gridUid, out var set))
+            {
+                set = new HashSet<Vector2i>();
+                _holeTilesPerGrid[gridUid] = set;
+            }
+            set.Add(hole);
+        }
+    }
+
     public void CopyVerticalHoleTiles(EntityUid grid, List<Vector2i> buffer)
     {
         if (!_holeTilesPerGrid.TryGetValue(grid, out var tiles) || tiles.Count == 0)
