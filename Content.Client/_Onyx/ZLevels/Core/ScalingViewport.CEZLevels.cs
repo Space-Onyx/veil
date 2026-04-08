@@ -57,7 +57,7 @@ public sealed partial class ScalingViewport
     private const int MinZLevelsBelowRendering = 0;
     private const int MaxZLevelsBelowRendering = 3;
     private static readonly TimeSpan LinkedGridLowerRenderGrace = TimeSpan.FromSeconds(0.25f);
-    private const int MaxVisibilityRayChecksPerScan = 128;
+    private const int MaxVisibilityRayChecksPerScan = 512;
 
     private bool GetViewportScanCached(EntityUid mapUid)
     {
@@ -109,15 +109,6 @@ public sealed partial class ScalingViewport
         var maxX = MathF.Max(MathF.Max(bl.X, br.X), MathF.Max(tl.X, tr.X));
         var maxY = MathF.Max(MathF.Max(bl.Y, br.Y), MathF.Max(tl.Y, tr.Y));
 
-        // Get viewer world position for proximity-based visibility
-        var viewerWorldPos = new Vector2((minX + maxX) * 0.5f, (minY + maxY) * 0.5f);
-        if (_player.LocalEntity is { } viewer
-            && _xformQuery.Value.TryComp(viewer, out var viewerXform)
-            && viewerXform.MapID == mapId)
-        {
-            viewerWorldPos = viewerXform.WorldPosition;
-        }
-
         var worldBounds = new Box2(minX, minY, maxX, maxY);
         var mapCoordsBottomLeft = new MapCoordinates(new Vector2(minX, minY), mapId);
         var mapCoordsTopRight = new MapCoordinates(new Vector2(maxX, maxY), mapId);
@@ -127,15 +118,26 @@ public sealed partial class ScalingViewport
         _mapManager.FindGridsIntersecting(mapId, worldBounds, ref visibleGrids, approx: true, includeMap: false);
 
         if (visibleGrids.Count == 0)
-            return false;
+            return true;
 
         var visibilityChecks = 0;
 
         foreach (var grid in visibleGrids)
         {
             var mapGrid = grid.Comp;
-            var tileBottomLeft = mapGrid.TileIndicesFor(mapCoordsBottomLeft);
-            var tileTopRight = mapGrid.TileIndicesFor(mapCoordsTopRight);
+            var viewTileBottomLeft = mapGrid.TileIndicesFor(mapCoordsBottomLeft);
+            var viewTileTopRight = mapGrid.TileIndicesFor(mapCoordsTopRight);
+
+            var gridLocalBounds = mapGrid.LocalAABB;
+            var gridTileBL = new Vector2i((int) MathF.Floor(gridLocalBounds.Left / mapGrid.TileSize),
+                                          (int) MathF.Floor(gridLocalBounds.Bottom / mapGrid.TileSize));
+            var gridTileTR = new Vector2i((int) MathF.Ceiling(gridLocalBounds.Right / mapGrid.TileSize),
+                                          (int) MathF.Ceiling(gridLocalBounds.Top / mapGrid.TileSize));
+
+            var tileBottomLeft = new Vector2i(Math.Max(viewTileBottomLeft.X, gridTileBL.X - 1),
+                                              Math.Max(viewTileBottomLeft.Y, gridTileBL.Y - 1));
+            var tileTopRight = new Vector2i(Math.Min(viewTileTopRight.X, gridTileTR.X + 1),
+                                            Math.Min(viewTileTopRight.Y, gridTileTR.Y + 1));
 
             for (var x = tileBottomLeft.X - 1; x <= tileTopRight.X + 1; x++)
             {
@@ -155,11 +157,6 @@ public sealed partial class ScalingViewport
                         continue;
 
                     var tileWorldPos = mapGrid.GridTileToWorldPos(pos);
-                    var distSq = (tileWorldPos - viewerWorldPos).LengthSquared();
-
-                    if (distSq < 225f)
-                        return true;
-
                     if (!IsOpenPointVisible(mapId, tileWorldPos, ref visibilityChecks))
                         continue;
 
