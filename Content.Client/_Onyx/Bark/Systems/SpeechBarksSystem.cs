@@ -12,6 +12,7 @@ using Content.Shared._Onyx.CCVar;
 using Robust.Shared.Timing;
 using Robust.Shared.Map;
 using Robust.Client.Audio;
+using System.Text;
 
 namespace Content.Client._Onyx.SpeechBarks;
 
@@ -74,14 +75,93 @@ public sealed class SpeechBarksSystem : EntitySystem
         if (!TryGetEntity(ev.Source, out var source) || Transform(source.Value).MapID == MapId.Nullspace)
             return;
 
+        var barkMessage = RemoveInlineActions(ev.Message);
+        if (string.IsNullOrWhiteSpace(barkMessage))
+            return;
+
         var bark = new ActiveBark(source,
                                   ev.SoundSpecifier,
-                                  AdjustVolume(ev.Message, ev.IsWhisper),
+                                  AdjustVolume(barkMessage, ev.IsWhisper),
                                   ev.Pitch,
                                   AdjustDistance(ev.IsWhisper),
                                   (ev.LowVar, ev.HighVar),
-                                  ev.Message.Length / 3 + 1);
+                                  barkMessage.Length / 3 + 1);
         _activeBarks.Add(bark);
+    }
+
+    private static string RemoveInlineActions(string message)
+    {
+        if (string.IsNullOrEmpty(message))
+            return message;
+
+        StringBuilder? builder = null;
+        var cursor = 0;
+        var searchStart = 0;
+
+        while (searchStart < message.Length)
+        {
+            var openIndex = message.IndexOf('*', searchStart);
+            if (openIndex == -1)
+                break;
+
+            var closeIndex = message.IndexOf('*', openIndex + 1);
+            if (closeIndex == -1)
+                break;
+
+            if (!IsActionBounded(message, openIndex, closeIndex))
+            {
+                searchStart = openIndex + 1;
+                continue;
+            }
+
+            if (!HasVisibleText(message, openIndex + 1, closeIndex))
+            {
+                searchStart = closeIndex + 1;
+                continue;
+            }
+
+            builder ??= new StringBuilder(message.Length);
+            if (openIndex > cursor)
+                builder.Append(message, cursor, openIndex - cursor);
+
+            cursor = closeIndex + 1;
+            searchStart = cursor;
+        }
+
+        if (builder == null)
+            return message;
+
+        if (cursor < message.Length)
+            builder.Append(message, cursor, message.Length - cursor);
+
+        return builder.ToString().Trim();
+    }
+
+    private static bool HasVisibleText(string text, int start, int endExclusive)
+    {
+        for (var i = start; i < endExclusive; i++)
+        {
+            if (!char.IsWhiteSpace(text[i]))
+                return true;
+        }
+
+        return false;
+    }
+
+    private static bool IsActionBounded(string message, int openIndex, int closeIndex)
+    {
+        if (closeIndex <= openIndex + 1)
+            return false;
+
+        var leftBoundary = openIndex == 0
+                           || char.IsWhiteSpace(message[openIndex - 1])
+                           || char.IsPunctuation(message[openIndex - 1]);
+
+        var rightBoundary = closeIndex == message.Length - 1
+                            || char.IsWhiteSpace(message[closeIndex + 1])
+                            || char.IsPunctuation(message[closeIndex + 1]);
+
+        return leftBoundary && rightBoundary;
     }
 
     public void PlayDataPreview(string protoId, float pitch, float lowVar, float highVar)

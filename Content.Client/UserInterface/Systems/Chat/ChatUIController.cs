@@ -808,6 +808,15 @@ public sealed partial class ChatUIController : UIController
         if (text.Length == 0)
             return (ChatSelectChannel.None, text, null, null); // Goobstation - Starlight collective mind port
 
+        // <Onyx-InlineActions>
+        if (text.Length > 1
+            && text[0] == SharedChatSystem.EmotesAltPrefix
+            && text[1] == SharedChatSystem.EmotesAltPrefix)
+        {
+            return (ChatSelectChannel.None, text[1..], null, null);
+        }
+        // </Onyx-InlineActions>
+
         // We only cut off prefix only if it is not a radio or local channel, which both map to the same /say command
         // because ????????
 

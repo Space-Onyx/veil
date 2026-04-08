@@ -115,6 +115,7 @@ using Content.Goobstation.Shared.Loudspeaker.Events; // goob - loudspeakers
 using Content.Server._CorvaxGoob.Announcer;
 using Content.Server._EinsteinEngines.Language; // Einstein Engines - Language
 using Content.Server._Goobstation.Wizard.Systems;
+using Content.Server._Onyx.Chat;
 using Content.Server.Administration.Logs;
 using Content.Server.Administration.Managers;
 using Content.Server.Chat.Managers;
@@ -402,7 +403,7 @@ public sealed partial class ChatSystem : SharedChatSystem
         {
             if (TryProccessRadioMessage(source, message, out var modMessage, out var channel))
             {
-                SendEntityWhisper(source, modMessage, range, channel, nameOverride, language, hideLog, ignoreActionBlocker, colorOverride); // Goob edit & Einstein Engines - Language
+                SendEntityWhisper(source, modMessage, range, channel, nameOverride, language, hideLog, ignoreActionBlocker, colorOverride, forced); // Goob edit & Einstein Engines - Language & <Onyx-InlineActions>
                 return;
             }
         }
@@ -428,10 +429,10 @@ public sealed partial class ChatSystem : SharedChatSystem
         switch (desiredType)
         {
             case InGameICChatType.Speak:
-                SendEntitySpeak(source, message, range, nameOverride, language, hideLog, ignoreActionBlocker, colorOverride); // Goob edit & Einstein Engines - Language
+                SendEntitySpeak(source, message, range, nameOverride, language, hideLog, ignoreActionBlocker, colorOverride, forced); // Goob edit & Einstein Engines - Language
                 break;
             case InGameICChatType.Whisper:
-                SendEntityWhisper(source, message, range, null, nameOverride, language, hideLog, ignoreActionBlocker, colorOverride); // Goob edit & Einstein Engines - Language
+                SendEntityWhisper(source, message, range, null, nameOverride, language, hideLog, ignoreActionBlocker, colorOverride, forced); // Goob edit & Einstein Engines - Language
                 break;
             case InGameICChatType.Emote:
                 SendEntityEmote(source, message, range, nameOverride, language, hideLog: hideLog, ignoreActionBlocker: ignoreActionBlocker, forced: forced); // Einstein Engines - Language
@@ -703,11 +704,14 @@ public sealed partial class ChatSystem : SharedChatSystem
         LanguagePrototype language, // Einstein Engines - Language
         bool hideLog = false,
         bool ignoreActionBlocker = false,
-        Color? colorOverride = null // Goobstation
+        Color? colorOverride = null, // Goobstation
+        bool forced = false // <Onyx-InlineActions>
         )
     {
         if (!_actionBlocker.CanSpeak(source) && !ignoreActionBlocker)
             return;
+
+        TryTriggerInlineActionEmotes(source, originalMessage, forced, ignoreActionBlocker); // <Onyx-InlineActions>
 
         // The Original Message [-] Einstein Engines - Language
         var message = FormattedMessage.RemoveMarkupOrThrow(originalMessage);  // Remove markup before transforming.
@@ -811,11 +815,14 @@ public sealed partial class ChatSystem : SharedChatSystem
         LanguagePrototype language, // Einstein Engines - Language
         bool hideLog = false,
         bool ignoreActionBlocker = false,
-        Color? colorOverride = null // Goobstation
+        Color? colorOverride = null, // Goobstation
+        bool forced = false // <Onyx-InlineActions>
         )
     {
         if (!_actionBlocker.CanSpeak(source) && !ignoreActionBlocker)
             return;
+
+        TryTriggerInlineActionEmotes(source, originalMessage, forced, ignoreActionBlocker); // <Onyx-InlineActions>
 
         // Goob edit start
         var message = FormattedMessage.RemoveMarkupOrThrow(originalMessage);
@@ -1321,6 +1328,8 @@ public sealed partial class ChatSystem : SharedChatSystem
                 }
             }
 
+        var inlineFormattedMessage = InlineActionFormatter.Format(message); // <Onyx-InlineActions>
+
         // goob end
 
         return Loc.GetString(wrapId,
@@ -1330,7 +1339,7 @@ public sealed partial class ChatSystem : SharedChatSystem
             ("fontType", language.SpeechOverride.FontId ?? speech.FontId),
             ("fontSize", loudSpeakFont ?? language.SpeechOverride.FontSize ?? speech.FontSize), // goob edit - "loudSpeakFont"
             ("boldFontType", language.SpeechOverride.BoldFontId ?? language.SpeechOverride.FontId ?? speech.FontId), // Goob Edit - Custom Bold Fonts
-            ("message", message),
+            ("message", inlineFormattedMessage), // <Onyx-InlineActions>
             ("language", languageDisplay));
     }
     // Einstein Engines - Language end
