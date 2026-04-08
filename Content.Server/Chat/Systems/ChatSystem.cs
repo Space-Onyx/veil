@@ -417,7 +417,9 @@ public sealed partial class ChatSystem : SharedChatSystem
 
                 if (collective != null && collective.RespectAccents)
                 {
+                    modMessage = InlineActionFormatter.ProtectActions(modMessage, out var inlineReplacementsCM, out _); // <Onyx-InlineActions>
                     modMessage = TransformSpeech(source, modMessage, language); // Einstein Engines - Languages (I made null since it requires a language input)
+                    modMessage = InlineActionFormatter.RestoreActions(modMessage, inlineReplacementsCM); // <Onyx-InlineActions>
                 }
 
                 SendCollectiveMindChat(source, modMessage, channel);
@@ -711,12 +713,13 @@ public sealed partial class ChatSystem : SharedChatSystem
         if (!_actionBlocker.CanSpeak(source) && !ignoreActionBlocker)
             return;
 
-        TryTriggerInlineActionEmotes(source, originalMessage, forced, ignoreActionBlocker); // <Onyx-InlineActions>
-
         // The Original Message [-] Einstein Engines - Language
         var message = FormattedMessage.RemoveMarkupOrThrow(originalMessage);  // Remove markup before transforming.
         message = FormattedMessage.EscapeText(message); // Escape after removing markup
+        message = InlineActionFormatter.ProtectActions(message, out var inlineReplacements, out var inlineActions); // <Onyx-InlineActions>
+        TryTriggerInlineActionEmotes(source, inlineActions, forced, ignoreActionBlocker); // <Onyx-InlineActions>
         message = TransformSpeech(source, message, language);
+        message = InlineActionFormatter.RestoreActions(message, inlineReplacements); // <Onyx-InlineActions>
 
         if (message.Length == 0)
             return;
@@ -822,12 +825,13 @@ public sealed partial class ChatSystem : SharedChatSystem
         if (!_actionBlocker.CanSpeak(source) && !ignoreActionBlocker)
             return;
 
-        TryTriggerInlineActionEmotes(source, originalMessage, forced, ignoreActionBlocker); // <Onyx-InlineActions>
-
         // Goob edit start
         var message = FormattedMessage.RemoveMarkupOrThrow(originalMessage);
         message = FormattedMessage.EscapeText(message);
+        message = InlineActionFormatter.ProtectActions(message, out var inlineReplacements, out var inlineActions); // <Onyx-InlineActions>
+        TryTriggerInlineActionEmotes(source, inlineActions, forced, ignoreActionBlocker); // <Onyx-InlineActions>
         message = TransformSpeech(source, message, language); // Einstein Engines - Language
+        message = InlineActionFormatter.RestoreActions(message, inlineReplacements); // <Onyx-InlineActions>
         // Goob edit end
         if (message.Length == 0)
             return;

@@ -61,14 +61,23 @@ internal static class InlineActionFormatter
         return builder.ToString();
     }
 
-    public static IReadOnlyList<string> ExtractActions(string message)
+
+    public static string ProtectActions(
+        string message,
+        out List<(string placeholder, string original)>? replacements,
+        out List<string>? extractedActions)
     {
-        var actions = new List<string>();
+        replacements = null;
+        extractedActions = null;
 
         if (string.IsNullOrEmpty(message))
-            return actions;
+            return message;
 
+        StringBuilder? builder = null;
+        var cursor = 0;
         var searchStart = 0;
+        var index = 0;
+
         while (searchStart < message.Length)
         {
             var openIndex = message.IndexOf(ActionDelimiter, searchStart);
@@ -92,11 +101,43 @@ internal static class InlineActionFormatter
                 continue;
             }
 
-            actions.Add(actionText);
-            searchStart = closeIndex + 1;
+            replacements ??= new List<(string, string)>();
+            extractedActions ??= new List<string>();
+            builder ??= new StringBuilder(message.Length);
+
+            var placeholder = $"\uFFFC{index}\uFFFC";
+            var original = message[openIndex..(closeIndex + 1)];
+            replacements.Add((placeholder, original));
+            extractedActions.Add(actionText);
+
+            builder.Append(message, cursor, openIndex - cursor);
+            builder.Append(placeholder);
+
+            cursor = closeIndex + 1;
+            searchStart = cursor;
+            index++;
         }
 
-        return actions;
+        if (builder == null)
+            return message;
+
+        if (cursor < message.Length)
+            builder.Append(message, cursor, message.Length - cursor);
+
+        return builder.ToString();
+    }
+
+    public static string RestoreActions(string message, List<(string placeholder, string original)>? replacements)
+    {
+        if (replacements == null)
+            return message;
+
+        foreach (var (placeholder, original) in replacements)
+        {
+            message = message.Replace(placeholder, original);
+        }
+
+        return message;
     }
 
     private static bool IsBoundaryPair(string message, int openIndex, int closeIndex)
