@@ -19,8 +19,9 @@ public sealed class CEZLevelBlurOverlay : Overlay
     [Dependency] private readonly IEntityManager _entity = default!;
     private readonly ShaderInstance? _blurShader;
     private EntityQuery<MapLightComponent>? _mapLightQuery;
+    private static bool _captureScreenTexture;
 
-    public override bool RequestScreenTexture => true;
+    public override bool RequestScreenTexture => _captureScreenTexture;
     public override OverlaySpace Space => OverlaySpace.WorldSpace;
 
     private readonly ProtoId<ShaderPrototype> _zBlurShader = "CEZBlur";
@@ -29,6 +30,11 @@ public sealed class CEZLevelBlurOverlay : Overlay
     {
         IoCManager.InjectDependencies(this);
         _blurShader = _proto.Index(_zBlurShader).InstanceUnique();
+    }
+
+    internal static void SetCaptureScreenTexture(bool capture)
+    {
+        _captureScreenTexture = capture;
     }
 
     protected override bool BeforeDraw(in OverlayDrawArgs args)

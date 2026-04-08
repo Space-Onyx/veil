@@ -19,6 +19,7 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
     // <Onyx-Tweak>
     private readonly Dictionary<EntityUid, int> _gridTileCountCache = new();
     private readonly Dictionary<string, EntityUid> _biggestGridCache = new();
+    private readonly Dictionary<EntityUid, string> _knownGroupIds = new();
     private bool _biggestGridCacheDirty = true;
     private readonly List<Entity<GridMotionLinkComponent, MapGridComponent, PhysicsComponent>> _groupMatchBuffer = new();
     private readonly HashSet<string> _groupsMovedSet = new();
@@ -27,8 +28,6 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
     private readonly List<string> _staleGroupKeys = new();
     private bool _groupDictionaryBuilt;
     private bool _groupDictionaryDirty = true;
-    private int _groupDictionaryHealthCheckCounter;
-    private const int GroupDictionaryHealthCheckInterval = 300;
     // </Onyx-Tweak>
     public override void Initialize()
     {
@@ -47,12 +46,14 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
 
     private void OnGridMotionLinkStartup(Entity<GridMotionLinkComponent> ent, ref ComponentStartup args)
     {
+        _knownGroupIds[ent] = ent.Comp.GroupId;
         _groupDictionaryDirty = true;
         _biggestGridCacheDirty = true;
     }
 
     private void OnGridMotionLinkShutdown(Entity<GridMotionLinkComponent> ent, ref ComponentShutdown args)
     {
+        _knownGroupIds.Remove(ent);
         _groupDictionaryDirty = true;
         _biggestGridCacheDirty = true;
     }
@@ -67,6 +68,7 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
                 count++;
             _gridTileCountCache[ent] = count;
         }
+        _knownGroupIds[ent] = ent.Comp.GroupId;
         _biggestGridCacheDirty = true;
         _groupDictionaryDirty = true;
         OnGridMotionLinkMapInit(ent, ref args);
@@ -75,6 +77,7 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
     private void OnGridMotionLinkRemove(Entity<GridMotionLinkComponent> ent, ref ComponentRemove args)
     {
         _gridTileCountCache.Remove(ent);
+        _knownGroupIds.Remove(ent);
         _biggestGridCacheDirty = true;
         _groupDictionaryDirty = true;
     }
@@ -295,12 +298,6 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
     {
         base.Update(frameTime);
         // <Onyx-Tweak>
-        if (++_groupDictionaryHealthCheckCounter >= GroupDictionaryHealthCheckInterval)
-        {
-            _groupDictionaryHealthCheckCounter = 0;
-            _groupDictionaryDirty = true;
-        }
-
         if (_biggestGridCacheDirty)
         {
             _biggestGridCache.Clear();
@@ -326,12 +323,24 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
         var linkQuery = EntityQueryEnumerator<GridMotionLinkComponent>();
         while (linkQuery.MoveNext(out var uid, out var link))
         {
+            TrackGroupIdChange(uid, link);
+
             if (link.AutoCalculateOffset)
                 continue;
 
             UpdateOffset((uid, link));
         }
         // <Onyx-Tweak>
+    }
+
+    private void TrackGroupIdChange(EntityUid uid, GridMotionLinkComponent link)
+    {
+        if (_knownGroupIds.TryGetValue(uid, out var oldGroupId) && oldGroupId == link.GroupId)
+            return;
+
+        _knownGroupIds[uid] = link.GroupId;
+        _groupDictionaryDirty = true;
+        _biggestGridCacheDirty = true;
     }
 
     public void SetGridPosition(EntityUid origin, Vector2 position, GridMotionLinkComponent? link = null)

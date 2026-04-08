@@ -42,6 +42,7 @@ public sealed class ParallaxOverlay : Overlay
     private readonly SharedMapSystem _mapSystem;
     private readonly ParallaxSystem _parallax;
     private readonly CESharedZLevelsSystem _zLevel; //CrystallEdge
+    private readonly Dictionary<string, ShaderInstance> _shaderCache = new(); // <Onyx-ZLevels Edited>
 
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowWorld;
 
@@ -83,14 +84,22 @@ public sealed class ParallaxOverlay : Overlay
         var layers = _parallax.GetParallaxLayers(args.MapId);
         var realTime = (float) _timing.RealTime.TotalSeconds;
 
+        // <Onyx-ZLevels Edited>
         foreach (var layer in layers)
         {
-            ShaderInstance? shader;
+            ShaderInstance? shader = null;
+            var shaderId = layer.Config.Shader;
+            if (!string.IsNullOrEmpty(shaderId))
+            {
+                if (!_shaderCache.TryGetValue(shaderId, out var cachedShader))
+                {
+                    cachedShader = _prototypeManager.Index<ShaderPrototype>(shaderId).Instance();
+                    _shaderCache[shaderId] = cachedShader;
+                }
 
-            if (!string.IsNullOrEmpty(layer.Config.Shader))
-                shader = _prototypeManager.Index<ShaderPrototype>(layer.Config.Shader).Instance();
-            else
-                shader = null;
+                shader = cachedShader;
+            }
+            // </Onyx-ZLevels Edited>
 
             worldHandle.UseShader(shader);
             var tex = layer.Texture;

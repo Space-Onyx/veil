@@ -212,6 +212,18 @@ public abstract partial class CESharedZLevelsSystem : EntitySystem
         }
     }
 
+    private static int CountInitializedNetworkMaps(CEZLevelsNetworkComponent network)
+    {
+        var count = 0;
+        foreach (var (_, mapUid) in network.ZLevels)
+        {
+            if (mapUid.HasValue)
+                count++;
+        }
+
+        return count;
+    }
+
     [PublicAPI]
     public bool AreOnSameZNetwork(EntityUid mapUidA, EntityUid mapUidB)
     {
@@ -307,11 +319,21 @@ public abstract partial class CESharedZLevelsSystem : EntitySystem
         if (!_mapToNetwork.TryGetValue(inputMapUid, out var networkUid))
             return result;
 
-        if (!_sortedMaps.TryGetValue(networkUid, out var sorted))
+        if (!TryComp<CEZLevelsNetworkComponent>(networkUid, out var networkComp))
+            return result;
+
+        if (!_sortedMaps.TryGetValue(networkUid, out var sortedMaps) ||
+            sortedMaps.Count != CountInitializedNetworkMaps(networkComp))
+        {
+            _networkCacheDirty = true;
+            EnsureNetworkCache();
+        }
+
+        if (!_sortedMaps.TryGetValue(networkUid, out sortedMaps))
             return result;
 
         var inputDepth = inputMapUid.Comp.Depth;
-        foreach (var (depth, mapUid) in sorted)
+        foreach (var (depth, mapUid) in sortedMaps)
         {
             if (depth > inputDepth)
                 result.Add(mapUid);
@@ -332,13 +354,23 @@ public abstract partial class CESharedZLevelsSystem : EntitySystem
         if (!_mapToNetwork.TryGetValue(inputMapUid, out var networkUid))
             return result;
 
-        if (!_sortedMaps.TryGetValue(networkUid, out var sorted))
+        if (!TryComp<CEZLevelsNetworkComponent>(networkUid, out var networkComp))
+            return result;
+
+        if (!_sortedMaps.TryGetValue(networkUid, out var sortedMaps) ||
+            sortedMaps.Count != CountInitializedNetworkMaps(networkComp))
+        {
+            _networkCacheDirty = true;
+            EnsureNetworkCache();
+        }
+
+        if (!_sortedMaps.TryGetValue(networkUid, out sortedMaps))
             return result;
 
         var inputDepth = inputMapUid.Comp.Depth;
-        for (var i = sorted.Count - 1; i >= 0; i--)
+        for (var i = sortedMaps.Count - 1; i >= 0; i--)
         {
-            var (depth, mapUid) = sorted[i];
+            var (depth, mapUid) = sortedMaps[i];
             if (depth < inputDepth)
                 result.Add(mapUid);
         }

@@ -297,9 +297,7 @@ namespace Content.Client.Viewport
             _viewport = null;
             _lowerZViewport?.Dispose();
             _lowerZViewport = null;
-            _lowerDepthCacheValid = false;
             _drawLowerZCacheThisFrame = false;
-            _lowerDepthCacheFrameCounter = 0;
         }
 
         public MapCoordinates ScreenToMap(Vector2 coords)

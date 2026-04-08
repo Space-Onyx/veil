@@ -21,8 +21,9 @@ public sealed class OnyxZLevelProjectionCacheSystem : EntitySystem
     [Dependency] private readonly SharedTransformSystem _xformSystem = default!;
 
     private readonly Dictionary<ProjectionKey, ProjectionCacheEntry> _pairProjectionCache = new();
-    private readonly List<ProjectionKey> _stalePairProjectionKeys = new();
+    private readonly Queue<ProjectionKey> _pairProjectionCleanupQueue = new();
     private static readonly TimeSpan CacheCleanupInterval = TimeSpan.FromSeconds(5);
+    private const int ProjectionCleanupBudget = 64;
     private TimeSpan _nextCacheCleanup;
 
     public HashSet<Vector2i> GetProjectedTiles(
@@ -42,7 +43,8 @@ public sealed class OnyxZLevelProjectionCacheSystem : EntitySystem
         var lowerMatrix = _xformSystem.GetWorldMatrix(lowerGrid.Owner);
         var upperMatrix = _xformSystem.GetWorldMatrix(upperGrid.Owner);
 
-        if (_pairProjectionCache.TryGetValue(key, out var cachedProjection)
+        var hadCachedProjection = _pairProjectionCache.TryGetValue(key, out var cachedProjection);
+        if (hadCachedProjection
             && cachedProjection.UpperTileTick == upperTileTick
             && cachedProjection.LowerMatrix == lowerMatrix
             && cachedProjection.UpperMatrix == upperMatrix)
@@ -69,22 +71,30 @@ public sealed class OnyxZLevelProjectionCacheSystem : EntitySystem
         }
 
         _pairProjectionCache[key] = new ProjectionCacheEntry(upperTileTick, lowerMatrix, upperMatrix, projected);
+        if (!hadCachedProjection)
+            _pairProjectionCleanupQueue.Enqueue(key);
         return projected;
     }
 
     private void CleanupCaches()
     {
-        _stalePairProjectionKeys.Clear();
-        foreach (var key in _pairProjectionCache.Keys)
+        if (_pairProjectionCleanupQueue.Count == 0)
+            return;
+
+        var checks = Math.Min(ProjectionCleanupBudget, _pairProjectionCleanupQueue.Count);
+        for (var i = 0; i < checks; i++)
         {
-            if (_entManager.EntityExists(key.LowerGrid) && _entManager.EntityExists(key.UpperGrid))
+            var key = _pairProjectionCleanupQueue.Dequeue();
+
+            if (!_pairProjectionCache.ContainsKey(key))
                 continue;
 
-            _stalePairProjectionKeys.Add(key);
-        }
+            if (_entManager.EntityExists(key.LowerGrid) && _entManager.EntityExists(key.UpperGrid))
+            {
+                _pairProjectionCleanupQueue.Enqueue(key);
+                continue;
+            }
 
-        foreach (var key in _stalePairProjectionKeys)
-        {
             _pairProjectionCache.Remove(key);
         }
     }

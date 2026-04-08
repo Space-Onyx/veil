@@ -40,9 +40,10 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
     private readonly HashSet<string> _visibleLowerGroups = new();
     private readonly Dictionary<EntityUid, InteriorHoleCacheEntry> _upperInteriorHoleCache = new();
     private readonly Dictionary<EntityUid, ShadowRunCacheEntry> _cachedShadowRuns = new();
-    private readonly List<EntityUid> _staleUpperGridCacheKeys = new();
-    private readonly List<EntityUid> _staleLowerRunCacheKeys = new();
+    private readonly Queue<EntityUid> _upperInteriorHoleCleanupQueue = new();
+    private readonly Queue<EntityUid> _shadowRunCleanupQueue = new();
     private static readonly TimeSpan CacheCleanupInterval = TimeSpan.FromSeconds(5);
+    private const int CacheCleanupBudget = 64;
     private TimeSpan _nextCacheCleanup;
     private bool _forceShadowRunRebuild = true;
     private TimeSpan _shadowRunRebuildInterval = TimeSpan.Zero;
@@ -325,6 +326,7 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
 
         entry = new ShadowRunCacheEntry();
         _cachedShadowRuns[lowerGridUid] = entry;
+        _shadowRunCleanupQueue.Enqueue(lowerGridUid);
         return entry;
     }
 
@@ -344,6 +346,8 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
         }
 
         var holes = ZLevelFloodFillHelper.FindInteriorHoles(_mapSystem, upperGrid, _tileDef);
+        if (!_upperInteriorHoleCache.ContainsKey(upperGrid.Owner))
+            _upperInteriorHoleCleanupQueue.Enqueue(upperGrid.Owner);
         _upperInteriorHoleCache[upperGrid.Owner] = new InteriorHoleCacheEntry(tileTick, holes);
         return holes;
     }
@@ -376,32 +380,42 @@ public sealed class OnyxZLevelHoleShadowOverlay : Overlay
 
     private void CleanupCaches()
     {
-        _staleUpperGridCacheKeys.Clear();
-        foreach (var gridUid in _upperInteriorHoleCache.Keys)
+        if (_upperInteriorHoleCleanupQueue.Count > 0)
         {
-            if (_entManager.EntityExists(gridUid))
-                continue;
+            var checks = Math.Min(CacheCleanupBudget, _upperInteriorHoleCleanupQueue.Count);
+            for (var i = 0; i < checks; i++)
+            {
+                var gridUid = _upperInteriorHoleCleanupQueue.Dequeue();
+                if (!_upperInteriorHoleCache.ContainsKey(gridUid))
+                    continue;
 
-            _staleUpperGridCacheKeys.Add(gridUid);
+                if (_entManager.EntityExists(gridUid))
+                {
+                    _upperInteriorHoleCleanupQueue.Enqueue(gridUid);
+                    continue;
+                }
+
+                _upperInteriorHoleCache.Remove(gridUid);
+            }
         }
 
-        foreach (var key in _staleUpperGridCacheKeys)
+        if (_shadowRunCleanupQueue.Count > 0)
         {
-            _upperInteriorHoleCache.Remove(key);
-        }
+            var checks = Math.Min(CacheCleanupBudget, _shadowRunCleanupQueue.Count);
+            for (var i = 0; i < checks; i++)
+            {
+                var lowerGridUid = _shadowRunCleanupQueue.Dequeue();
+                if (!_cachedShadowRuns.ContainsKey(lowerGridUid))
+                    continue;
 
-        _staleLowerRunCacheKeys.Clear();
-        foreach (var lowerGridUid in _cachedShadowRuns.Keys)
-        {
-            if (_entManager.EntityExists(lowerGridUid))
-                continue;
+                if (_entManager.EntityExists(lowerGridUid))
+                {
+                    _shadowRunCleanupQueue.Enqueue(lowerGridUid);
+                    continue;
+                }
 
-            _staleLowerRunCacheKeys.Add(lowerGridUid);
-        }
-
-        foreach (var key in _staleLowerRunCacheKeys)
-        {
-            _cachedShadowRuns.Remove(key);
+                _cachedShadowRuns.Remove(lowerGridUid);
+            }
         }
     }
 

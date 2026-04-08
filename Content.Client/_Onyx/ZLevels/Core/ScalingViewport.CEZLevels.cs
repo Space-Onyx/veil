@@ -43,17 +43,12 @@ public sealed partial class ScalingViewport
     private readonly Dictionary<int, (EntityUid MapUid, uint Frame)> _depthMapCache = new();
     private uint _depthMapCacheFrame;
     private bool _renderingNonBaseZLayer;
-    private bool _lowerDepthCacheValid;
     private bool _drawLowerZCacheThisFrame;
-    private int _lowerDepthCacheFrameCounter;
     private readonly List<Entity<MapGridComponent>> _visibleGridsBuffer = new();
     private const float EmptyTileCacheLifetime = 0.5f;
-    private const int LowerDepthCacheFrameInterval = 1;
     private readonly Dictionary<(EntityUid MapUid, int CellX, int CellY, int Radius), bool> _emptyTileCache = new();
     private TimeSpan _emptyTileCacheExpiry;
     private TimeSpan _forceRenderBelowUntil = TimeSpan.Zero;
-    private bool _lowerApertureSourceValid;
-    private UIBox2i _lowerApertureSourceRect;
     private bool _zLevelCvarsSubscribed;
     private int _cachedMaxZLevelsBelowRendering;
     private float _cachedZLevelOffset;
@@ -64,7 +59,6 @@ public sealed partial class ScalingViewport
     private const int MaxZLevelsBelowRendering = 3;
     private static readonly TimeSpan LinkedGridLowerRenderGrace = TimeSpan.FromSeconds(0.25f);
     private const int MaxVisibilityRayChecksPerScan = 128;
-    private const float LowerAperturePaddingPixels = 24f;
     private bool GetViewportScanCached(
         EntityUid mapUid,
         Vector2 centerPosition,
@@ -284,17 +278,6 @@ public sealed partial class ScalingViewport
 
         var forceRenderBelow = onLinkedGrid && _timing.CurTime < _forceRenderBelowUntil;
 
-        if (currentMapHasOpenTiles)
-        {
-            _lowerApertureSourceValid = TryCollectVisibleOpenApertureSourceRect(
-                playerXform.MapUid.Value,
-                out _lowerApertureSourceRect);
-        }
-        else if (!forceRenderBelow)
-        {
-            _lowerApertureSourceValid = false;
-        }
-
         var lowestDepth = 0;
         if (maxBelow > 0 && (currentMapHasOpenTiles || forceRenderBelow))
         {
@@ -333,31 +316,20 @@ public sealed partial class ScalingViewport
             var hasLowerDepths = lowestDepth < 0;
             if (hasLowerDepths && _lowerZViewport != null)
             {
-                _lowerDepthCacheFrameCounter++;
-                var refreshLowerCache = !_lowerDepthCacheValid || _lowerDepthCacheFrameCounter >= LowerDepthCacheFrameInterval;
-                if (refreshLowerCache)
-                {
-                    _lowerDepthCacheFrameCounter = 0;
-                    _lowerDepthCacheValid = RenderDepthRange(
-                        _lowerZViewport,
-                        playerXform,
-                        lowestDepth,
-                        -1,
-                        lowestDepth,
-                        -1,
-                        rotationVector,
-                        zLevelOffset,
-                        Color.Black);
-                }
-
-                _drawLowerZCacheThisFrame = _lowerDepthCacheValid;
+                _drawLowerZCacheThisFrame = RenderDepthRange(
+                    _lowerZViewport,
+                    playerXform,
+                    lowestDepth,
+                    -1,
+                    lowestDepth,
+                    -1,
+                    rotationVector,
+                    zLevelOffset,
+                    Color.Black);
             }
             else
             {
-                _lowerDepthCacheValid = false;
                 _drawLowerZCacheThisFrame = false;
-                _lowerDepthCacheFrameCounter = 0;
-                _lowerApertureSourceValid = false;
             }
 
             var firstBaseClear = _drawLowerZCacheThisFrame ? TransparentColor : Color.Black;
@@ -374,6 +346,7 @@ public sealed partial class ScalingViewport
         }
         finally
         {
+            CEZLevelBlurOverlay.SetCaptureScreenTexture(false);
             _renderingNonBaseZLayer = false;
             // Restore the Eye
             Eye = _fallbackEye;
@@ -434,8 +407,16 @@ public sealed partial class ScalingViewport
                 targetViewport.Eye = _sharedZEye;
             }
 
-            targetViewport.ClearColor = renderedAny ? null : firstClearColor;
-            targetViewport.Render();
+            CEZLevelBlurOverlay.SetCaptureScreenTexture(depth == -1);
+            try
+            {
+                targetViewport.ClearColor = renderedAny ? null : firstClearColor;
+                targetViewport.Render();
+            }
+            finally
+            {
+                CEZLevelBlurOverlay.SetCaptureScreenTexture(false);
+            }
             renderedAny = true;
         }
 
@@ -444,135 +425,10 @@ public sealed partial class ScalingViewport
 
     private void DrawLowerZComposite(DrawingHandleScreen screenHandle, UIBox2i drawBox)
     {
-        if (_lowerZViewport == null || _viewport == null)
+        if (_lowerZViewport == null)
             return;
 
-        if (!_lowerApertureSourceValid)
-        {
-            screenHandle.DrawTextureRect(_lowerZViewport.RenderTarget.Texture, drawBox);
-            return;
-        }
-
-        var sourceRect = _lowerApertureSourceRect;
-        if (sourceRect.Width <= 0 || sourceRect.Height <= 0)
-        {
-            screenHandle.DrawTextureRect(_lowerZViewport.RenderTarget.Texture, drawBox);
-            return;
-        }
-
-        var destination = SourceRectToDrawRect(sourceRect, drawBox);
-        var source = new UIBox2(sourceRect.Left, sourceRect.Top, sourceRect.Right, sourceRect.Bottom);
-        screenHandle.DrawTextureRectRegion(_lowerZViewport.RenderTarget.Texture, destination, source);
-    }
-
-    private UIBox2 SourceRectToDrawRect(UIBox2i sourceRect, UIBox2i drawBox)
-    {
-        if (_viewport == null || _viewport.Size.X <= 0 || _viewport.Size.Y <= 0)
-            return drawBox;
-
-        var scaleX = (float) drawBox.Width / _viewport.Size.X;
-        var scaleY = (float) drawBox.Height / _viewport.Size.Y;
-
-        return new UIBox2(
-            drawBox.Left + sourceRect.Left * scaleX,
-            drawBox.Top + sourceRect.Top * scaleY,
-            drawBox.Left + sourceRect.Right * scaleX,
-            drawBox.Top + sourceRect.Bottom * scaleY);
-    }
-
-    private bool TryCollectVisibleOpenApertureSourceRect(
-        EntityUid mapUid,
-        out UIBox2i sourceRect)
-    {
-        sourceRect = default;
-
-        if (_viewport == null)
-            return false;
-
-        if (_xformQuery is null || !_xformQuery.Value.TryComp(mapUid, out var xform))
-            return false;
-
-        var drawBox = GetDrawBox();
-        var mapId = xform.MapID;
-
-        var bl = _eyeManager.ScreenToMap(drawBox.BottomLeft).Position;
-        var br = _eyeManager.ScreenToMap(drawBox.BottomRight).Position;
-        var tl = _eyeManager.ScreenToMap(drawBox.TopLeft).Position;
-        var tr = _eyeManager.ScreenToMap(drawBox.TopRight).Position;
-
-        var minX = MathF.Min(MathF.Min(bl.X, br.X), MathF.Min(tl.X, tr.X));
-        var minY = MathF.Min(MathF.Min(bl.Y, br.Y), MathF.Min(tl.Y, tr.Y));
-        var maxX = MathF.Max(MathF.Max(bl.X, br.X), MathF.Max(tl.X, tr.X));
-        var maxY = MathF.Max(MathF.Max(bl.Y, br.Y), MathF.Max(tl.Y, tr.Y));
-
-        var worldBounds = new Box2(minX, minY, maxX, maxY);
-        var mapCoordsBottomLeft = new MapCoordinates(new Vector2(minX, minY), mapId);
-        var mapCoordsTopRight = new MapCoordinates(new Vector2(maxX, maxY), mapId);
-
-        var visibleGrids = _visibleGridsBuffer;
-        visibleGrids.Clear();
-        _mapManager.FindGridsIntersecting(mapId, worldBounds, ref visibleGrids, approx: true, includeMap: false);
-
-        if (visibleGrids.Count == 0)
-            return false;
-
-        var found = false;
-        var localMinX = float.MaxValue;
-        var localMinY = float.MaxValue;
-        var localMaxX = float.MinValue;
-        var localMaxY = float.MinValue;
-
-        foreach (var grid in visibleGrids)
-        {
-            var mapGrid = grid.Comp;
-            var tileBottomLeft = mapGrid.TileIndicesFor(mapCoordsBottomLeft);
-            var tileTopRight = mapGrid.TileIndicesFor(mapCoordsTopRight);
-
-            for (var x = tileBottomLeft.X - 1; x <= tileTopRight.X + 1; x++)
-            {
-                for (var y = tileBottomLeft.Y - 1; y <= tileTopRight.Y + 1; y++)
-                {
-                    var pos = new Vector2i(x, y);
-                    var tile = mapGrid.GetTileRef(pos);
-                    var isOpen = tile.Tile.IsEmpty;
-
-                    if (!isOpen)
-                    {
-                        var tileDef = (ContentTileDefinition) _tile[tile.Tile.TypeId];
-                        isOpen = tileDef.Transparent;
-                    }
-
-                    if (!isOpen)
-                        continue;
-
-                    var worldPos = mapGrid.GridTileToWorldPos(pos);
-                    var local = _viewport.WorldToLocal(worldPos);
-                    if (float.IsNaN(local.X) || float.IsNaN(local.Y) || float.IsInfinity(local.X) || float.IsInfinity(local.Y))
-                        continue;
-
-                    found = true;
-                    localMinX = MathF.Min(localMinX, local.X);
-                    localMinY = MathF.Min(localMinY, local.Y);
-                    localMaxX = MathF.Max(localMaxX, local.X);
-                    localMaxY = MathF.Max(localMaxY, local.Y);
-                }
-            }
-        }
-
-        if (!found)
-            return false;
-
-        var padding = MathF.Max(LowerAperturePaddingPixels, LowerAperturePaddingPixels * _curRenderScale);
-        var left = Math.Clamp((int) MathF.Floor(localMinX - padding), 0, _viewport.Size.X);
-        var top = Math.Clamp((int) MathF.Floor(localMinY - padding), 0, _viewport.Size.Y);
-        var right = Math.Clamp((int) MathF.Ceiling(localMaxX + padding), 0, _viewport.Size.X);
-        var bottom = Math.Clamp((int) MathF.Ceiling(localMaxY + padding), 0, _viewport.Size.Y);
-
-        if (right <= left || bottom <= top)
-            return false;
-
-        sourceRect = new UIBox2i(left, top, right, bottom);
-        return true;
+        screenHandle.DrawTextureRect(_lowerZViewport.RenderTarget.Texture, drawBox);
     }
 
     private void AdvanceDepthMapCacheFrame()

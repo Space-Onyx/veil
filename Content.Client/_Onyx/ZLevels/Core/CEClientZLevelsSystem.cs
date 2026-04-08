@@ -36,7 +36,7 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
     private float _nonActiveReconcileAccumulator;
     private const int OverMobsDrawDepth = (int)Shared.DrawDepth.DrawDepth.OverMobs;
     private const float VisualEpsilon = 0.001f;
-    private const float NonActiveReconcileInterval = 0.10f;
+    private const float NonActiveReconcileInterval = 0.25f;
 
     public static float ZLevelOffset = 0.7f;
 

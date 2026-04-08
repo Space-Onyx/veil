@@ -42,12 +42,13 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
     private readonly Dictionary<EntityUid, UpperMaskCacheEntry> _upperMaskCache = new();
     private readonly Dictionary<EntityUid, RoofRunCacheEntry> _cachedRoofRuns = new();
     private readonly OnyxZLevelProjectionCacheSystem _projectionCache;
-    private readonly List<EntityUid> _staleUpperMaskKeys = new();
-    private readonly List<EntityUid> _staleRoofRunKeys = new();
+    private readonly Queue<EntityUid> _upperMaskCleanupQueue = new();
+    private readonly Queue<EntityUid> _roofRunCleanupQueue = new();
     private static readonly TimeSpan CacheCleanupInterval = TimeSpan.FromSeconds(5);
-    private static readonly TimeSpan RoofRunRebuildInterval = TimeSpan.FromMilliseconds(50);
+    private const int CacheCleanupBudget = 64;
     private TimeSpan _nextCacheCleanup;
     private TimeSpan _nextRoofRunRebuild;
+    private TimeSpan _roofRunRebuildInterval = TimeSpan.FromMilliseconds(50);
     private readonly Dictionary<int, List<int>> _batchedRows = new();
     private readonly List<int> _usedBatchRows = new();
     private bool _roofOverlayEnabled = true;
@@ -83,6 +84,7 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
                 _nextRoofRunRebuild = TimeSpan.Zero;
             }
         }, true);
+        _cfg.OnValueChanged(CCVars.ZLevelHoleShadowUpdateRate, OnRoofUpdateRateChanged, true);
     }
 
     protected override bool BeforeDraw(in OverlayDrawArgs args)
@@ -139,7 +141,9 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
             _nextCacheCleanup = _timing.CurTime + CacheCleanupInterval;
         }
 
-        var rebuildNow = _forceRoofRunRebuild || _timing.CurTime >= _nextRoofRunRebuild;
+        var rebuildNow = _forceRoofRunRebuild ||
+                         _roofRunRebuildInterval == TimeSpan.Zero ||
+                         _timing.CurTime >= _nextRoofRunRebuild;
         if (!rebuildNow)
         {
             foreach (var lowerGrid in _lowerGrids)
@@ -156,7 +160,8 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
         }
 
         _forceRoofRunRebuild = false;
-        _nextRoofRunRebuild = _timing.CurTime + RoofRunRebuildInterval;
+        if (_roofRunRebuildInterval > TimeSpan.Zero)
+            _nextRoofRunRebuild = _timing.CurTime + _roofRunRebuildInterval;
         _visibleLowerGroups.Clear();
         foreach (var lowerGrid in _lowerGrids)
         {
@@ -285,38 +290,50 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
         if (solidTiles.Count > 0)
             maskTiles.UnionWith(ZLevelFloodFillHelper.FindInteriorHolesFromSolid(solidTiles));
 
+        if (!_upperMaskCache.ContainsKey(upperGrid.Owner))
+            _upperMaskCleanupQueue.Enqueue(upperGrid.Owner);
         _upperMaskCache[upperGrid.Owner] = new UpperMaskCacheEntry(tileTick, maskTiles);
         return maskTiles;
     }
 
     private void CleanupCaches()
     {
-        _staleUpperMaskKeys.Clear();
-        foreach (var gridUid in _upperMaskCache.Keys)
+        if (_upperMaskCleanupQueue.Count > 0)
         {
-            if (_entManager.EntityExists(gridUid))
-                continue;
+            var checks = Math.Min(CacheCleanupBudget, _upperMaskCleanupQueue.Count);
+            for (var i = 0; i < checks; i++)
+            {
+                var gridUid = _upperMaskCleanupQueue.Dequeue();
+                if (!_upperMaskCache.ContainsKey(gridUid))
+                    continue;
 
-            _staleUpperMaskKeys.Add(gridUid);
+                if (_entManager.EntityExists(gridUid))
+                {
+                    _upperMaskCleanupQueue.Enqueue(gridUid);
+                    continue;
+                }
+
+                _upperMaskCache.Remove(gridUid);
+            }
         }
 
-        foreach (var key in _staleUpperMaskKeys)
+        if (_roofRunCleanupQueue.Count > 0)
         {
-            _upperMaskCache.Remove(key);
-        }
+            var checks = Math.Min(CacheCleanupBudget, _roofRunCleanupQueue.Count);
+            for (var i = 0; i < checks; i++)
+            {
+                var gridUid = _roofRunCleanupQueue.Dequeue();
+                if (!_cachedRoofRuns.ContainsKey(gridUid))
+                    continue;
 
-        _staleRoofRunKeys.Clear();
-        foreach (var gridUid in _cachedRoofRuns.Keys)
-        {
-            if (_entManager.EntityExists(gridUid))
-                continue;
+                if (_entManager.EntityExists(gridUid))
+                {
+                    _roofRunCleanupQueue.Enqueue(gridUid);
+                    continue;
+                }
 
-            _staleRoofRunKeys.Add(gridUid);
-        }
-
-        foreach (var key in _staleRoofRunKeys)
-        {
-            _cachedRoofRuns.Remove(key);
+                _cachedRoofRuns.Remove(gridUid);
+            }
         }
     }
 
@@ -397,6 +414,7 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
 
         entry = new RoofRunCacheEntry();
         _cachedRoofRuns[lowerGridUid] = entry;
+        _roofRunCleanupQueue.Enqueue(lowerGridUid);
         return entry;
     }
 
@@ -515,6 +533,16 @@ public sealed class OnyxZLevelRoofOverlay : Overlay
         cache.LowerMatrix = lowerMatrix;
         cache.UpperSignature = upperSignature;
         cache.Initialized = true;
+    }
+
+    private void OnRoofUpdateRateChanged(int rate)
+    {
+        _roofRunRebuildInterval = rate <= 0
+            ? TimeSpan.Zero
+            : TimeSpan.FromSeconds(1f / rate);
+
+        _forceRoofRunRebuild = true;
+        _nextRoofRunRebuild = TimeSpan.Zero;
     }
 
     private readonly record struct UpperMaskCacheEntry(GameTick TileTick, HashSet<Vector2i> Tiles);

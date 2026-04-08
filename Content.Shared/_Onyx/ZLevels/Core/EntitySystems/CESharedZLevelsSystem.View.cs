@@ -7,16 +7,18 @@ using Content.Shared._Onyx.ZLevels.Core.Components;
 using Content.Shared.Actions;
 using Content.Shared.Maps;
 using Robust.Shared.Map;
+using Robust.Shared.Map.Components;
+using Robust.Shared.Maths;
+using System.Collections.Generic;
+using System.Numerics;
 
 namespace Content.Shared._Onyx.ZLevels.Core.EntitySystems;
 
 public abstract partial class CESharedZLevelsSystem
 {
     [Dependency] protected readonly ITileDefinitionManager TilDefMan = default!;
-    private static readonly TimeSpan NetworkCacheRefreshInterval = TimeSpan.FromSeconds(0.5f);
     private static readonly TimeSpan OpaqueAboveCacheCleanupInterval = TimeSpan.FromSeconds(5f);
     private const int OpaqueAboveCacheSoftLimit = 8192;
-    private TimeSpan _nextNetworkCacheRefresh = TimeSpan.Zero;
     private TimeSpan _nextOpaqueAboveCacheCleanup = TimeSpan.Zero;
     private void InitView()
     {
@@ -28,12 +30,6 @@ public abstract partial class CESharedZLevelsSystem
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
-
-        if (_timing.CurTime >= _nextNetworkCacheRefresh)
-        {
-            _nextNetworkCacheRefresh = _timing.CurTime + NetworkCacheRefreshInterval;
-            _networkCacheDirty = true;
-        }
 
         UpdateView();
         UpdateMovement(frameTime);
@@ -103,6 +99,7 @@ public abstract partial class CESharedZLevelsSystem
     }
 
     private readonly Dictionary<(EntityUid MapAbove, Vector2i TilePos), bool> _opaqueAboveCache = new();
+    private List<Entity<MapGridComponent>> _opaqueProbeGrids = new();
     private bool _opaqueAboveCacheDirty;
     public bool HasOpaqueAbove(EntityUid ent, Entity<CEZLevelMapComponent?>? currentMapUid = null)
     {
@@ -125,7 +122,14 @@ public abstract partial class CESharedZLevelsSystem
             return cached;
 
         var result = false;
-        foreach (var grid in GetCachedGrids(mapComp.MapId))
+        _opaqueProbeGrids.Clear();
+        const float probeHalfExtents = 0.01f;
+        var probeBounds = new Box2(
+            worldPosition - new Vector2(probeHalfExtents, probeHalfExtents),
+            worldPosition + new Vector2(probeHalfExtents, probeHalfExtents));
+        _mapManager.FindGridsIntersecting(mapComp.MapId, probeBounds, ref _opaqueProbeGrids, approx: true, includeMap: false);
+
+        foreach (var grid in _opaqueProbeGrids)
         {
             if (!_map.TryGetTileRef(grid.Owner, grid.Comp, worldPosition, out var tileRef))
                 continue;
