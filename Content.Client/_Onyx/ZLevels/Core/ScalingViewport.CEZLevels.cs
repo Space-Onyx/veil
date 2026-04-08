@@ -52,17 +52,14 @@ public sealed partial class ScalingViewport
     private bool _zLevelCvarsSubscribed;
     private int _cachedMaxZLevelsBelowRendering;
     private float _cachedZLevelOffset;
-    private int _cachedLowerRenderRadius;
     private readonly ZEye _sharedZEye = new();
     private static readonly Color TransparentColor = new(0f, 0f, 0f, 0f);
     private const int MinZLevelsBelowRendering = 0;
     private const int MaxZLevelsBelowRendering = 3;
     private static readonly TimeSpan LinkedGridLowerRenderGrace = TimeSpan.FromSeconds(0.25f);
     private const int MaxVisibilityRayChecksPerScan = 128;
-    private bool GetViewportScanCached(
-        EntityUid mapUid,
-        Vector2 centerPosition,
-        float searchRadius)
+
+    private bool GetViewportScanCached(EntityUid mapUid)
     {
         if (_timing.CurTime >= _emptyTileCacheExpiry)
         {
@@ -70,50 +67,31 @@ public sealed partial class ScalingViewport
             _emptyTileCacheExpiry = _timing.CurTime + TimeSpan.FromSeconds(EmptyTileCacheLifetime);
         }
 
-        var radius = searchRadius > 0f ? (int) MathF.Ceiling(searchRadius) : 0;
-        var cacheKey = radius > 0
-            ? (mapUid, (int) MathF.Floor(centerPosition.X), (int) MathF.Floor(centerPosition.Y), radius)
-            : (mapUid, int.MinValue, int.MinValue, 0);
+        var cacheKey = (mapUid, int.MinValue, int.MinValue, 0);
 
         if (_emptyTileCache.TryGetValue(cacheKey, out var cached))
             return cached;
 
-        var result = ScanVisibleTiles(mapUid, centerPosition, searchRadius);
+        var result = ScanVisibleTiles(mapUid);
         _emptyTileCache[cacheKey] = result;
         return result;
     }
 
-    private bool TryFindEmptyTilesCached(EntityUid mapUid, Vector2 centerPosition, float searchRadius)
+    private bool TryFindEmptyTilesCached(EntityUid mapUid)
     {
-        return GetViewportScanCached(mapUid, centerPosition, searchRadius);
+        return GetViewportScanCached(mapUid);
     }
 
     /// <summary>
     /// We are looking for at least one empty tile on the screen.
     /// This is used to ensure that it makes sense to draw the z-planes and that they are visible.
     /// </summary>
-    public bool TryFindEmptyTiles(EntityUid mapUid, Vector2 centerPosition, float searchRadius)
+    public bool TryFindEmptyTiles(EntityUid mapUid)
     {
-        return ScanVisibleTiles(mapUid, centerPosition, searchRadius);
+        return ScanVisibleTiles(mapUid);
     }
 
-    private bool CheckSamplePoint(EntityUid mapUid, Vector2 sample, MapId mapId, bool noGridCountsAsOpen)
-    {
-        if (!_mapManager.TryFindGridAt(mapUid, sample, out _, out var sampleGrid))
-            return noGridCountsAsOpen;
-
-        var sampleTile = sampleGrid.GetTileRef(sampleGrid.TileIndicesFor(new MapCoordinates(sample, mapId)));
-        if (sampleTile.Tile.IsEmpty)
-            return true;
-
-        var sampleTileDef = (ContentTileDefinition)_tile[sampleTile.Tile.TypeId];
-        return sampleTileDef.Transparent;
-    }
-
-    private bool ScanVisibleTiles(
-        EntityUid mapUid,
-        Vector2 centerPosition,
-        float searchRadius)
+    private bool ScanVisibleTiles(EntityUid mapUid)
     {
         if (_xformQuery is null || !_xformQuery.Value.TryComp(mapUid, out var xform))
             return true;
@@ -131,40 +109,14 @@ public sealed partial class ScalingViewport
         var maxX = MathF.Max(MathF.Max(bl.X, br.X), MathF.Max(tl.X, tr.X));
         var maxY = MathF.Max(MathF.Max(bl.Y, br.Y), MathF.Max(tl.Y, tr.Y));
 
-        if (searchRadius > 0f)
+        // Get viewer world position for proximity-based visibility
+        var viewerWorldPos = new Vector2((minX + maxX) * 0.5f, (minY + maxY) * 0.5f);
+        if (_player.LocalEntity is { } viewer
+            && _xformQuery.Value.TryComp(viewer, out var viewerXform)
+            && viewerXform.MapID == mapId)
         {
-            minX = MathF.Max(minX, centerPosition.X - searchRadius);
-            minY = MathF.Max(minY, centerPosition.Y - searchRadius);
-            maxX = MathF.Min(maxX, centerPosition.X + searchRadius);
-            maxY = MathF.Min(maxY, centerPosition.Y + searchRadius);
-
-            if (minX >= maxX || minY >= maxY)
-                return false;
+            viewerWorldPos = viewerXform.WorldPosition;
         }
-
-        var center = new Vector2((minX + maxX) * 0.5f, (minY + maxY) * 0.5f);
-
-        var visibilityChecks = 0;
-
-        if (CheckSamplePoint(mapUid, new Vector2(minX, minY), mapId, noGridCountsAsOpen: false)
-            && IsOpenPointVisible(mapId, new Vector2(minX, minY), ref visibilityChecks))
-            return true;
-
-        if (CheckSamplePoint(mapUid, new Vector2(maxX, minY), mapId, noGridCountsAsOpen: false)
-            && IsOpenPointVisible(mapId, new Vector2(maxX, minY), ref visibilityChecks))
-            return true;
-
-        if (CheckSamplePoint(mapUid, new Vector2(minX, maxY), mapId, noGridCountsAsOpen: false)
-            && IsOpenPointVisible(mapId, new Vector2(minX, maxY), ref visibilityChecks))
-            return true;
-
-        if (CheckSamplePoint(mapUid, new Vector2(maxX, maxY), mapId, noGridCountsAsOpen: false)
-            && IsOpenPointVisible(mapId, new Vector2(maxX, maxY), ref visibilityChecks))
-            return true;
-
-        if (CheckSamplePoint(mapUid, center, mapId, noGridCountsAsOpen: true)
-            && IsOpenPointVisible(mapId, center, ref visibilityChecks))
-            return true;
 
         var worldBounds = new Box2(minX, minY, maxX, maxY);
         var mapCoordsBottomLeft = new MapCoordinates(new Vector2(minX, minY), mapId);
@@ -175,7 +127,9 @@ public sealed partial class ScalingViewport
         _mapManager.FindGridsIntersecting(mapId, worldBounds, ref visibleGrids, approx: true, includeMap: false);
 
         if (visibleGrids.Count == 0)
-            return true;
+            return false;
+
+        var visibilityChecks = 0;
 
         foreach (var grid in visibleGrids)
         {
@@ -200,7 +154,13 @@ public sealed partial class ScalingViewport
                     if (!isOpen)
                         continue;
 
-                    if (!IsOpenPointVisible(mapId, mapGrid.GridTileToWorldPos(pos), ref visibilityChecks))
+                    var tileWorldPos = mapGrid.GridTileToWorldPos(pos);
+                    var distSq = (tileWorldPos - viewerWorldPos).LengthSquared();
+
+                    if (distSq < 225f)
+                        return true;
+
+                    if (!IsOpenPointVisible(mapId, tileWorldPos, ref visibilityChecks))
                         continue;
 
                     return true;
@@ -263,12 +223,7 @@ public sealed partial class ScalingViewport
         var lookUp = zLevelViewer.LookUp ? 1 : 0;
 
         var maxBelow = _cachedMaxZLevelsBelowRendering;
-        var lowerRenderSearchRadius = GetEffectiveLowerRenderRadius();
-        var playerPosition = playerXform.Coordinates.Position;
-        var currentMapHasOpenTiles = GetViewportScanCached(
-            playerXform.MapUid.Value,
-            playerPosition,
-            lowerRenderSearchRadius);
+        var currentMapHasOpenTiles = GetViewportScanCached(playerXform.MapUid.Value);
 
         var onLinkedGrid = playerXform.GridUid.HasValue
                            && _entityManager.HasComponent<GridMotionLinkComponent>(playerXform.GridUid.Value);
@@ -299,7 +254,7 @@ public sealed partial class ScalingViewport
                 {
                     var hasOpenTiles = i == 0
                         ? currentMapHasOpenTiles
-                        : GetViewportScanCached(checkingMap, playerPosition, lowerRenderSearchRadius);
+                        : GetViewportScanCached(checkingMap);
 
                     if (!hasOpenTiles)
                         break;
@@ -463,21 +418,7 @@ public sealed partial class ScalingViewport
             _cachedMaxZLevelsBelowRendering = Math.Clamp(value, MinZLevelsBelowRendering, MaxZLevelsBelowRendering);
         }, true);
         _cfg.OnValueChanged(CCVars.ZLevelOffset, value => _cachedZLevelOffset = value, true);
-        _cfg.OnValueChanged(CCVars.ZLevelLowerRenderProbeRadius, value =>
-        {
-            _cachedLowerRenderRadius = Math.Max(0, value);
-            _emptyTileCache.Clear();
-        }, true);
         _zLevelCvarsSubscribed = true;
-    }
-
-    private float GetEffectiveLowerRenderRadius()
-    {
-        var radius = Math.Max(0, _cachedLowerRenderRadius);
-        if (radius == 0)
-            return 0f;
-
-        return radius;
     }
 
     public sealed class ZEye : Robust.Shared.Graphics.Eye

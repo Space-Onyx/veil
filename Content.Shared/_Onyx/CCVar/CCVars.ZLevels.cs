@@ -32,9 +32,6 @@ public sealed partial class CCVars
     public static readonly CVarDef<int> ZLevelHoleShadowUpdateRate =
         CVarDef.Create("zlevels.hole_shadow_update_rate", 20, CVar.CLIENTONLY | CVar.ARCHIVE);
 
-    public static readonly CVarDef<int> ZLevelLowerRenderProbeRadius =
-        CVarDef.Create("zlevels.lower_render_radius", 25, CVar.CLIENTONLY | CVar.ARCHIVE);
-
     public static readonly CVarDef<float> ZLevelHoleShadowMaxDistance =
         CVarDef.Create("zlevels.hole_shadow_max_distance", 0f, CVar.CLIENTONLY | CVar.ARCHIVE);
 

@@ -150,16 +150,6 @@ public sealed partial class GraphicsTab : Control
                 new OptionDropDownCVar<int>.ValueOption(3, Loc.GetString("ui-options-zlevel-below-render-count-3")),
             ]);
         Control.AddOptionDropDown(
-            CCVars.ZLevelLowerRenderProbeRadius,
-            ZLevelLowerRenderRadiusDropDown,
-            [
-                new OptionDropDownCVar<int>.ValueOption(10, Loc.GetString("ui-options-zlevel-lower-render-radius-10")),
-                new OptionDropDownCVar<int>.ValueOption(15, Loc.GetString("ui-options-zlevel-lower-render-radius-15")),
-                new OptionDropDownCVar<int>.ValueOption(25, Loc.GetString("ui-options-zlevel-lower-render-radius-25")),
-                new OptionDropDownCVar<int>.ValueOption(35, Loc.GetString("ui-options-zlevel-lower-render-radius-35")),
-                new OptionDropDownCVar<int>.ValueOption(50, Loc.GetString("ui-options-zlevel-lower-render-radius-50")),
-            ]);
-        Control.AddOptionDropDown(
             CCVars.ZLevelHoleShadowMaxDistance,
             ZLevelHoleShadowMaxDistanceDropDown,
             [
