@@ -351,6 +351,18 @@ public abstract class SharedDeviceLinkSystem : EntitySystem
     /// <param name="links">List of source and sink ids to link</param>
     /// <param name="sourceComponent"></param>
     /// <param name="sinkComponent"></param>
+    // <Onyx-ZLevels> Restore links without range check — used for Z-network map load
+    public void RestoreLinks(
+        EntityUid sourceUid,
+        EntityUid sinkUid,
+        List<(string source, string sink)> links,
+        DeviceLinkSourceComponent? sourceComponent = null,
+        DeviceLinkSinkComponent? sinkComponent = null)
+    {
+        SaveLinksInternal(null, sourceUid, sinkUid, links, skipRange: true, sourceComponent, sinkComponent);
+    }
+    // </Onyx-ZLevels>
+
     public void SaveLinks(
         EntityUid? userId,
         EntityUid sourceUid,
@@ -359,10 +371,24 @@ public abstract class SharedDeviceLinkSystem : EntitySystem
         DeviceLinkSourceComponent? sourceComponent = null,
         DeviceLinkSinkComponent? sinkComponent = null)
     {
+        SaveLinksInternal(userId, sourceUid, sinkUid, links, skipRange: false, sourceComponent, sinkComponent); // <Onyx-ZLevels>
+    }
+
+    // <Onyx-ZLevels>
+    private void SaveLinksInternal(
+        EntityUid? userId,
+        EntityUid sourceUid,
+        EntityUid sinkUid,
+        List<(string source, string sink)> links,
+        bool skipRange,
+        DeviceLinkSourceComponent? sourceComponent = null,
+        DeviceLinkSinkComponent? sinkComponent = null)
+    // </Onyx-ZLevels>
+    {
         if (!Resolve(sourceUid, ref sourceComponent) || !Resolve(sinkUid, ref sinkComponent))
             return;
 
-        if (!InRange(sourceUid, sinkUid, sourceComponent.Range))
+        if (!skipRange && !InRange(sourceUid, sinkUid, sourceComponent.Range)) // <Onyx-ZLevels Edited>
         {
             if (userId != null)
                 _popupSystem.PopupCursor(Loc.GetString("signal-linker-component-out-of-range"), userId.Value);

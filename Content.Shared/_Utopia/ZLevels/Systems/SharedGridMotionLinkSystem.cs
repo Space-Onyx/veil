@@ -190,6 +190,11 @@ public abstract class SharedGridMotionLinkSystem : EntitySystem
 
     private void SetOffsetPos(EntityUid biggest, Entity<GridMotionLinkComponent> ent)
     {
+        // <Onyx-ZLevels>
+        if (ent.Comp.ForceRoot || ent.Owner == ent.Comp.Root)
+            return;
+        // </Onyx-ZLevels>
+
         var rootRot = _transformSystem.GetWorldRotation(biggest);
         var rootPos = _transformSystem.GetWorldPosition(biggest);
 

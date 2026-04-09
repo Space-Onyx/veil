@@ -7,12 +7,14 @@ using Content.Server._Utopia.ZLevels.Transmission.Systems;
 using Content.Shared._Onyx.ZLevels.Core.Components;
 using Content.Shared._Utopia.ZLevels.Components;
 using Content.Shared._Utopia.ZLevels.Systems;
+using Content.Shared.DeviceLinking;
 using Robust.Server.GameObjects;
 using Robust.Shared.ContentPack;
 using Robust.Shared.EntitySerialization.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Physics;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization.Manager;
 using Robust.Shared.Utility;
 
@@ -26,7 +28,8 @@ public sealed class ZNetworkMappingSystem : EntitySystem
     [Dependency] private readonly CEZLevelsSystem _zLevels = default!;
     [Dependency] private readonly TransformSystem _transform = default!;
     [Dependency] private readonly SharedGridMotionLinkSystem _motionLink = default!;
-    [Dependency] private readonly ZLevelTransmissionSystem _zTransmission = default!; // <Onyx-Tweak>
+    [Dependency] private readonly ZLevelTransmissionSystem _zTransmission = default!; // <Onyx-ZLevels>
+    [Dependency] private readonly SharedDeviceLinkSystem _deviceLink = default!; // <Onyx-ZLevels>
 
     #region Saving
     public bool TrySaveMap(string path, EntityUid target, [NotNullWhen(false)] out string? error)
@@ -93,6 +96,10 @@ public sealed class ZNetworkMappingSystem : EntitySystem
             error ??= $"Unknkown error occured during map saving.";
             return false;
         }
+
+        // <Onyx-ZLevels> Save cross-map device links
+        CollectCrossMapDeviceLinks(levelComp, data);
+        // <Onyx-ZLevels>
 
         var resPath = new ResPath($"{path}/map-data.json");
         var jsonData = JsonSerializer.Serialize<SavedZNetworkMapData>(data, new JsonSerializerOptions(JsonSerializerDefaults.General));
@@ -381,7 +388,11 @@ public sealed class ZNetworkMappingSystem : EntitySystem
         foreach (var linked in ents)
             Dirty(linked);
 
-        _zTransmission.RefreshTransmittersOnMaps(new HashSet<EntityUid>(maps.Keys)); // <Onyx-Tweak>
+        _zTransmission.RefreshTransmittersOnMaps(new HashSet<EntityUid>(maps.Keys)); // <Onyx-ZLevels>
+
+        // <Onyx-ZLevels> Restore cross-map device links
+        RestoreCrossMapDeviceLinks(data, maps);
+        // <Onyx-ZLevels>
 
         return true;
     }
@@ -456,5 +467,161 @@ public sealed class ZNetworkMappingSystem : EntitySystem
 
         return true;
     }
+    #endregion
+
+    #region Cross-Map Device Links Onyx ZLevels
+
+    /// <summary>
+    /// Collects device links between entities on different Z-level maps and saves them to metadata.
+    /// </summary>
+    private void CollectCrossMapDeviceLinks(CEZLevelsNetworkComponent levelComp, SavedZNetworkMapData data)
+    {
+        // Build mapUid → depth lookup
+        var depthByMap = new Dictionary<EntityUid, int>();
+        var idx = 0;
+        foreach (var (depth, mapUid) in levelComp.ZLevels)
+        {
+            if (mapUid is not { } uid)
+                continue;
+            depthByMap[uid] = idx;
+            idx++;
+        }
+
+        var sourceQuery = EntityManager.AllEntityQueryEnumerator<DeviceLinkSourceComponent, TransformComponent>();
+        while (sourceQuery.MoveNext(out var sourceUid, out var source, out var sourceXform))
+        {
+            var sourceMapUid = sourceXform.MapUid;
+            if (sourceMapUid == null || !depthByMap.TryGetValue(sourceMapUid.Value, out var sourceDepth))
+                continue;
+
+            foreach (var (sinkUid, links) in source.LinkedPorts)
+            {
+                if (!EntityManager.TryGetComponent<TransformComponent>(sinkUid, out var sinkXform))
+                    continue;
+
+                var sinkMapUid = sinkXform.MapUid;
+                if (sinkMapUid == null || !depthByMap.TryGetValue(sinkMapUid.Value, out var sinkDepth))
+                    continue;
+
+                // Only save cross-map links — same-map links are handled by normal serialization
+                if (sourceMapUid == sinkMapUid)
+                    continue;
+
+                var sourceProto = EntityManager.GetComponent<MetaDataComponent>(sourceUid).EntityPrototype?.ID ?? "";
+                var sinkProto = EntityManager.GetComponent<MetaDataComponent>(sinkUid).EntityPrototype?.ID ?? "";
+
+                var sourcePos = sourceXform.LocalPosition;
+                var sinkPos = sinkXform.LocalPosition;
+
+                var savedLink = new SavedDeviceLink
+                {
+                    SourceDepth = sourceDepth,
+                    SourceX = MathF.Round(sourcePos.X, 2),
+                    SourceY = MathF.Round(sourcePos.Y, 2),
+                    SourcePrototype = sourceProto,
+                    SinkDepth = sinkDepth,
+                    SinkX = MathF.Round(sinkPos.X, 2),
+                    SinkY = MathF.Round(sinkPos.Y, 2),
+                    SinkPrototype = sinkProto,
+                };
+
+                foreach (var (srcPort, snkPort) in links)
+                {
+                    savedLink.PortLinks.Add(new[] { srcPort.Id, snkPort.Id });
+                }
+
+                data.DeviceLinks.Add(savedLink);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Restores cross-map device links after all maps in a Z-network have been loaded.
+    /// </summary>
+    private void RestoreCrossMapDeviceLinks(SavedZNetworkMapData data, Dictionary<EntityUid, int> maps)
+    {
+        if (data.DeviceLinks.Count == 0)
+            return;
+
+        // Build depth → mapUid lookup
+        var mapByDepth = new Dictionary<int, EntityUid>();
+        foreach (var (mapUid, depth) in maps)
+        {
+            mapByDepth[depth] = mapUid;
+        }
+
+        // Build lookup: (depth, roundedX, roundedY, protoId) → EntityUid for all device link entities
+        var entityLookup = new Dictionary<(int Depth, float X, float Y, string Proto), EntityUid>();
+
+        var sourceEnum = EntityManager.AllEntityQueryEnumerator<DeviceLinkSourceComponent, TransformComponent, MetaDataComponent>();
+        while (sourceEnum.MoveNext(out var uid, out _, out var xform, out var meta))
+        {
+            var mapUid = xform.MapUid;
+            if (mapUid == null)
+                continue;
+
+            foreach (var (mu, d) in maps)
+            {
+                if (mu != mapUid.Value)
+                    continue;
+
+                var proto = meta.EntityPrototype?.ID ?? "";
+                var pos = xform.LocalPosition;
+                var key = (d, MathF.Round(pos.X, 2), MathF.Round(pos.Y, 2), proto);
+                entityLookup.TryAdd(key, uid);
+                break;
+            }
+        }
+
+        var sinkEnum = EntityManager.AllEntityQueryEnumerator<DeviceLinkSinkComponent, TransformComponent, MetaDataComponent>();
+        while (sinkEnum.MoveNext(out var uid, out _, out var xform, out var meta))
+        {
+            var mapUid = xform.MapUid;
+            if (mapUid == null)
+                continue;
+
+            foreach (var (mu, d) in maps)
+            {
+                if (mu != mapUid.Value)
+                    continue;
+
+                var proto = meta.EntityPrototype?.ID ?? "";
+                var pos = xform.LocalPosition;
+                var key = (d, MathF.Round(pos.X, 2), MathF.Round(pos.Y, 2), proto);
+                entityLookup.TryAdd(key, uid);
+                break;
+            }
+        }
+
+        // Restore links via SharedDeviceLinkSystem API
+        foreach (var link in data.DeviceLinks)
+        {
+            var sourceKey = (link.SourceDepth, link.SourceX, link.SourceY, link.SourcePrototype);
+            var sinkKey = (link.SinkDepth, link.SinkX, link.SinkY, link.SinkPrototype);
+
+            if (!entityLookup.TryGetValue(sourceKey, out var sourceUid))
+                continue;
+            if (!entityLookup.TryGetValue(sinkKey, out var sinkUid))
+                continue;
+
+            if (!EntityManager.TryGetComponent<DeviceLinkSourceComponent>(sourceUid, out var sourceComp))
+                continue;
+            if (!EntityManager.HasComponent<DeviceLinkSinkComponent>(sinkUid))
+                continue;
+
+            var portLinks = new List<(string source, string sink)>();
+            foreach (var portLink in link.PortLinks)
+            {
+                if (portLink.Length == 2)
+                    portLinks.Add((portLink[0], portLink[1]));
+            }
+
+            if (portLinks.Count == 0)
+                continue;
+
+            _deviceLink.RestoreLinks(sourceUid, sinkUid, portLinks);
+        }
+    }
+
     #endregion
 }
