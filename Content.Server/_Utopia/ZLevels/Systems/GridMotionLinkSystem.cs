@@ -1,3 +1,4 @@
+using Content.Shared._Onyx.ZLevels.Core.Components;
 using Content.Shared._Utopia.ZLevels.Components;
 using Content.Shared._Utopia.ZLevels.Systems;
 
@@ -14,6 +15,12 @@ public sealed class GridMotionLinkSystem : SharedGridMotionLinkSystem
 
     protected override void OnGridMotionLinkMapInit(Entity<GridMotionLinkComponent> ent, ref MapInitEvent args)
     {
+        // <Onyx-ZLevels>
+        var xform = Transform(ent);
+        if (xform.MapUid.HasValue && HasComp<CEZLevelMapComponent>(xform.MapUid.Value))
+            return;
+        // <Onyx-ZLevels>
+
         UpdateOffset(ent);
     }
 

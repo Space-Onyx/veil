@@ -154,9 +154,7 @@ public sealed partial class CEZLevelsSystem : CESharedZLevelsSystem
         StabilizeZPhysicsAfterMapInit(mapSet);
         _zTransmission.RefreshTransmittersOnMaps(mapSet);
 
-        // <Onyx-Tweak> Restore cross-map device links
         RestoreCrossMapDeviceLinks(dict);
-        // </Onyx-Tweak>
     }
 
     private void OnGameMapLoad(PostGameMapLoad ev)
@@ -173,10 +171,7 @@ public sealed partial class CEZLevelsSystem : CESharedZLevelsSystem
 
         EntityManager.AddComponents(mainMap, ev.GameMap.ZLevelsComponentOverrides);
 
-        // <Onyx-Tweak> Initialize the main map BEFORE loading child Z-level maps.
-        if (!_map.IsInitialized(ev.Map))
-            _map.InitializeMap(ev.Map);
-        // </Onyx-Tweak>
+        var mapsToInit = new List<MapId>();
 
         //Loading maps below first
         var depth = ev.GameMap.MapsBelow.Count * -1;
@@ -190,9 +185,9 @@ public sealed partial class CEZLevelsSystem : CESharedZLevelsSystem
 
             Log.Info($"Created map {mapEnt.Value.Comp.MapId} for Station zNetwork at level {depth}");
             EntityManager.AddComponents(mapEnt.Value, ev.GameMap.ZLevelsComponentOverrides);
-            _map.InitializeMap(mapEnt.Value.Comp.MapId);
             _meta.SetEntityName(mapEnt.Value, $"{ev.GameMap.MapName} [{depth}]");
             dict.Add(mapEnt.Value, depth);
+            mapsToInit.Add(mapEnt.Value.Comp.MapId);
             depth++;
         }
 
@@ -208,20 +203,24 @@ public sealed partial class CEZLevelsSystem : CESharedZLevelsSystem
 
             Log.Info($"Created map {mapEnt.Value.Comp.MapId} for Station zNetwork at level {depth}");
             EntityManager.AddComponents(mapEnt.Value, ev.GameMap.ZLevelsComponentOverrides);
-            _map.InitializeMap(mapEnt.Value.Comp.MapId);
             _meta.SetEntityName(mapEnt.Value, $"{ev.GameMap.MapName} [{depth}]");
             dict.Add(mapEnt.Value, depth);
+            mapsToInit.Add(mapEnt.Value.Comp.MapId);
             depth++;
         }
 
         TryAddMapsIntoZNetwork(stationNetwork, dict);
+
+        foreach (var mapId in mapsToInit)
+        {
+            _map.InitializeMap(mapId);
+        }
+
         var mapSet = new HashSet<EntityUid>(dict.Keys);
         StabilizeZPhysicsAfterMapInit(mapSet);
         _zTransmission.RefreshTransmittersOnMaps(mapSet);
 
-        // <Onyx-Tweak> Restore cross-map device links
         RestoreCrossMapDeviceLinks(dict);
-        // </Onyx-Tweak>
     }
 
     #region Cross-Map Device Links // <Onyx-Tweak>

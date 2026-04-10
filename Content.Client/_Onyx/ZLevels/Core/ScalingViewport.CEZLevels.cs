@@ -134,10 +134,15 @@ public sealed partial class ScalingViewport
             var gridTileTR = new Vector2i((int) MathF.Ceiling(gridLocalBounds.Right / mapGrid.TileSize),
                                           (int) MathF.Ceiling(gridLocalBounds.Top / mapGrid.TileSize));
 
-            var tileBottomLeft = new Vector2i(Math.Max(viewTileBottomLeft.X, gridTileBL.X - 1),
-                                              Math.Max(viewTileBottomLeft.Y, gridTileBL.Y - 1));
-            var tileTopRight = new Vector2i(Math.Min(viewTileTopRight.X, gridTileTR.X + 1),
-                                            Math.Min(viewTileTopRight.Y, gridTileTR.Y + 1));
+            var viewMinX = Math.Min(viewTileBottomLeft.X, viewTileTopRight.X);
+            var viewMaxX = Math.Max(viewTileBottomLeft.X, viewTileTopRight.X);
+            var viewMinY = Math.Min(viewTileBottomLeft.Y, viewTileTopRight.Y);
+            var viewMaxY = Math.Max(viewTileBottomLeft.Y, viewTileTopRight.Y);
+
+            var tileBottomLeft = new Vector2i(Math.Max(viewMinX, gridTileBL.X - 1),
+                                              Math.Max(viewMinY, gridTileBL.Y - 1));
+            var tileTopRight = new Vector2i(Math.Min(viewMaxX, gridTileTR.X + 1),
+                                            Math.Min(viewMaxY, gridTileTR.Y + 1));
 
             for (var x = tileBottomLeft.X - 1; x <= tileTopRight.X + 1; x++)
             {
