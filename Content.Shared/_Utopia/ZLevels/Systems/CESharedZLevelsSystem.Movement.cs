@@ -22,7 +22,7 @@ public abstract partial class CESharedZLevelsSystem
                                 PhysicsComponent physics,
                                 float frameTime)
     {
-        // <Onyx-Tweak>
+        // <Onyx-ZLevels>
         if (xform.ParentUid != xform.MapUid && !_gridQuery.HasComp(xform.ParentUid))
         {
             RemComp<CEActiveZPhysicsComponent>(uid);
@@ -39,18 +39,18 @@ public abstract partial class CESharedZLevelsSystem
                 RemComp<CEActiveZPhysicsComponent>(uid);
                 return;
             }
-            if (!zPhys.IsGrounded && zPhys.CurrentGroundHeight < -0.5f && !HasZNetworkGravity(xform))
+            if (!zPhys.IsGrounded && zPhys.CurrentGroundHeight < -0.5f && !HasZNetworkGravity(xform) && zPhys.GravityMultiplier == 0f)
             {
                 RemComp<CEActiveZPhysicsComponent>(uid);
                 return;
             }
         }
-        // </Onyx-Tweak>
+        // </Onyx-ZLevels>
 
         var oldVelocity = zPhys.Velocity;
         var oldHeight = zPhys.LocalPosition;
 
-        // <Onyx-Tweak>
+        // <Onyx-ZLevels>
         if (physics.BodyStatus == BodyStatus.OnGround || HasZNetworkGravity(xform))
         {
             var velocityEv = new CEGetZVelocityEvent((uid, zPhys));
@@ -58,13 +58,13 @@ public abstract partial class CESharedZLevelsSystem
 
             zPhys.Velocity += velocityEv.VelocityDelta * frameTime;
         }
-        // </Onyx-Tweak>
+        // </Onyx-ZLevels>
 
         //Movement application
         zPhys.LocalPosition += zPhys.Velocity * frameTime;
         zPhys.Velocity = Math.Clamp(zPhys.Velocity, -ZVelocityLimit, ZVelocityLimit);
 
-        var preGroundVelocity = zPhys.Velocity; // <Onyx-Tweak>
+        var preGroundVelocity = zPhys.Velocity; // <Onyx-ZLevels>
         UpdateGrounded(uid, zPhys, out var landed);
         HandleLevelChange(uid, zPhys);
 
@@ -83,7 +83,7 @@ public abstract partial class CESharedZLevelsSystem
         landed = false;
 
         var distanceToGround = zPhys.LocalPosition - zPhys.CurrentGroundHeight;
-        // <Onyx-Tweak>
+        // <Onyx-ZLevels>
         var currentlyGrounded = distanceToGround <= MaxStepHeight || zPhys.CurrentStickyGround;
         var wasGrounded = zPhys.IsGrounded;
 
@@ -91,10 +91,10 @@ public abstract partial class CESharedZLevelsSystem
         {
             zPhys.LocalPosition -= distanceToGround; //Sticky move
 
-            // <Onyx-Tweak>
+            // <Onyx-ZLevels>
             if (zPhys.Velocity < 0)
                 zPhys.Velocity = 0;
-            // </Onyx-Tweak>
+            // </Onyx-ZLevels>
         }
 
         if (currentlyGrounded == wasGrounded)
@@ -106,7 +106,7 @@ public abstract partial class CESharedZLevelsSystem
         DirtyField(uid, zPhys, nameof(CEZPhysicsComponent.IsGrounded));
     }
 
-    // <Onyx-Tweak>
+    // <Onyx-ZLevels>
     private void HandleFalling(EntityUid uid, CEZPhysicsComponent zPhys, float impactVelocity)
     {
         var limit = Cfg.GetCVar(CCVars.ZImpactVelocityLimit);
@@ -122,7 +122,7 @@ public abstract partial class CESharedZLevelsSystem
     {
         if (zPhys.LocalPosition < 0) //Need teleport to ZLevel down
         {
-            // <Onyx-Tweak>
+            // <Onyx-ZLevels>
             if (_net.IsServer)
             {
                 var xform = Transform(uid);
@@ -141,10 +141,10 @@ public abstract partial class CESharedZLevelsSystem
                         zMap.SuppressFallsUntil = TimeSpan.Zero;
                 }
             }
-            // </Onyx-Tweak>
+            // </Onyx-ZLevels>
 
-            // <Onyx-Tweak> Block Z-level fall when no gravity (open space)
-            if (!HasZNetworkGravity(Transform(uid)))
+            // <Onyx-ZLevels> Block Z-level fall when no gravity (open space)
+            if (!HasZNetworkGravity(Transform(uid)) && zPhys.GravityMultiplier == 0f)
             {
                 zPhys.LocalPosition = 0;
                 if (zPhys.Velocity < 0)
@@ -162,11 +162,11 @@ public abstract partial class CESharedZLevelsSystem
                 }
                 return;
             }
-            // </Onyx-Tweak>
+            // </Onyx-ZLevels>
 
             zPhys.LocalPosition += 1;
 
-            // <Onyx-Tweak>
+            // <Onyx-ZLevels>
             if (zPhys.CurrentGroundHeight > 0)
             {
                 zPhys.LocalPosition = 0;
@@ -185,7 +185,7 @@ public abstract partial class CESharedZLevelsSystem
                 return;
             }
             zPhys.GroundCacheValid = false;
-            // </Onyx-Tweak>
+            // </Onyx-ZLevels>
 
             if (zPhys.CurrentStickyGround)
                 return;
@@ -200,7 +200,7 @@ public abstract partial class CESharedZLevelsSystem
 
             if (hasTile) //Hit roof
             {
-                if (MathF.Abs(zPhys.Velocity) >= Cfg.GetCVar(CCVars.ZImpactVelocityLimit)) // <Onyx-Tweak>
+                if (MathF.Abs(zPhys.Velocity) >= Cfg.GetCVar(CCVars.ZImpactVelocityLimit)) // <Onyx-ZLevels>
                 {
                     _queuedLandings.Add((uid, MathF.Abs(zPhys.Velocity))); // <Onyx-Tweak Edited>
                 }
@@ -214,7 +214,7 @@ public abstract partial class CESharedZLevelsSystem
                 {
                     zPhys.LocalPosition -= 1;
 
-                    // <Onyx-Tweak>
+                    // <Onyx-ZLevels>
                     zPhys.LocalPosition = 0;
                     zPhys.CurrentGroundHeight = 0;
                     zPhys.IsGrounded = true;
@@ -224,7 +224,7 @@ public abstract partial class CESharedZLevelsSystem
                     DirtyField(uid, zPhys, nameof(CEZPhysicsComponent.LocalPosition));
                     DirtyField(uid, zPhys, nameof(CEZPhysicsComponent.Velocity));
                     DirtyField(uid, zPhys, nameof(CEZPhysicsComponent.IsGrounded));
-                    // </Onyx-Tweak>
+                    // </Onyx-ZLevels>
                 }
             }
         }
@@ -306,7 +306,7 @@ public abstract partial class CESharedZLevelsSystem
             }
         }
 
-        // </Onyx-Tweak>
+        // </Onyx-ZLevels>
 
         //Select current map by default
         Entity<CEZLevelMapComponent> checkingMap = (xform.MapUid.Value, zMapComp);
@@ -407,7 +407,7 @@ public abstract partial class CESharedZLevelsSystem
         return -maxFloors;
     }
 
-    // <Onyx-Tweak>
+    // <Onyx-ZLevels>
     private readonly Dictionary<(EntityUid LowerGrid, EntityUid UpperGrid), UpperGridCoverageCacheEntry> _upperGridCoverageCache = new();
     private readonly Dictionary<EntityUid, UpperGridInteriorHoleCacheEntry> _upperGridInteriorHolesCache = new();
     private bool IsOverInteriorHole(EntityUid lowerMapUid, Vector2 worldPos)
@@ -494,7 +494,7 @@ public abstract partial class CESharedZLevelsSystem
         return projectedCoverage;
     }
 
-    private bool HasGravityOnMap(MapId mapId)
+    public bool HasGravityOnMap(MapId mapId)
     {
         if (_mapGravityCache.TryGetValue(mapId, out var cachedGravity))
             return cachedGravity;
@@ -507,9 +507,19 @@ public abstract partial class CESharedZLevelsSystem
                 return true;
             }
         }
+        if (HasMapEntityGravity(mapId))
+        {
+            _mapGravityCache[mapId] = true;
+            return true;
+        }
 
         _mapGravityCache[mapId] = false;
         return false;
+    }
+    public bool HasMapEntityGravity(MapId mapId)
+    {
+        var mapEntityId = _mapManager.GetMapEntityId(mapId);
+        return mapEntityId.IsValid() && _gravityQuery.TryComp(mapEntityId, out var mapGravity) && mapGravity.Enabled;
     }
 
     public bool HasZNetworkGravity(TransformComponent xform)
@@ -550,5 +560,5 @@ public abstract partial class CESharedZLevelsSystem
 
         return false;
     }
-    // </Onyx-Tweak>
+    // </Onyx-ZLevels>
 }

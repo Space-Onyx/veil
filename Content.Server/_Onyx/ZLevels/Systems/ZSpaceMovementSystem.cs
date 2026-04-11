@@ -4,10 +4,9 @@ using Content.Shared._Onyx.ZLevels.Core.EntitySystems;
 using Content.Shared._Onyx.ZLevels;
 using Content.Shared._Onyx.ZLevels.Components;
 using Content.Shared.DoAfter;
+using Content.Shared.Popups;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
-using Robust.Shared.GameObjects;
-using Robust.Shared.Timing;
 
 namespace Content.Server._Onyx.ZLevels.Systems;
 
@@ -18,18 +17,15 @@ public sealed class ZSpaceMovementSystem : EntitySystem
     [Dependency] private readonly ActionsSystem _actions = default!;
     [Dependency] private readonly IMapManager _mapManager = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private readonly SharedPopupSystem _popup = default!;
 
     private const float MoveDuration = 1f;
     private const float CheckInterval = 0.5f;
-    private const float SpaceIntersectRecheckInterval = 1.5f;
     private const float CandidateRescanInterval = 10f;
 
     private float _accumulator;
     private float _candidateRescanAccumulator;
     private int _zNetworkCount;
-    private List<Entity<MapGridComponent>> _gridBuffer = new();
-    private readonly Dictionary<EntityUid, TimeSpan> _nextIntersectCheck = new();
     private readonly Dictionary<EntityUid, bool> _mapHasAdjacentLayerCache = new();
     private readonly HashSet<EntityUid> _floatingCandidates = new();
     private readonly List<EntityUid> _entityBuffer = new();
@@ -48,7 +44,6 @@ public sealed class ZSpaceMovementSystem : EntitySystem
         _transform.OnGlobalMoveEvent += OnGlobalMove;
 
         RefreshNetworkCount();
-
         RebuildFloatingCandidates();
     }
 
@@ -113,6 +108,7 @@ public sealed class ZSpaceMovementSystem : EntitySystem
             }
 
             var hasMover = TryComp<ZSpaceMoverComponent>(uid, out var spaceMover);
+            var hasZPhysics = TryComp<CEZPhysicsComponent>(uid, out var zPhysics);
 
             if (xform.GridUid != null || xform.MapUid == null)
             {
@@ -120,6 +116,10 @@ public sealed class ZSpaceMovementSystem : EntitySystem
                     RemoveFloatingCandidate(uid, spaceMover!);
                 else
                     RemoveFloatingCandidate(uid);
+
+                if (hasZPhysics && zPhysics!.GravityMultiplier == 0f)
+                    _zLevels.SetZGravity((uid, zPhysics), 1f);
+
                 continue;
             }
 
@@ -130,48 +130,48 @@ public sealed class ZSpaceMovementSystem : EntitySystem
                     RemoveFloatingCandidate(uid, spaceMover!);
                 else
                     RemoveFloatingCandidate(uid);
+
+                if (hasZPhysics && zPhysics!.GravityMultiplier == 0f)
+                    _zLevels.SetZGravity((uid, zPhysics), 1f);
+
                 continue;
             }
 
             var worldPos = _transform.GetWorldPosition(xform);
+            var mapHasGravity = HasGravityOnMap(xform);
 
-            // Fast path: if there is a grid tile under the entity, it is definitely not in open space.
             if (_mapManager.TryFindGridAt(mapUid, worldPos, out _, out _))
             {
-                _nextIntersectCheck.Remove(uid);
                 if (hasMover)
                     RemoveMover(uid, spaceMover!);
+
+                if (hasZPhysics)
+                {
+                    if (mapHasGravity && zPhysics!.GravityMultiplier == 0f)
+                        _zLevels.SetZGravity((uid, zPhysics), 1f);
+                    else if (!mapHasGravity && zPhysics!.GravityMultiplier != 0f)
+                        _zLevels.SetZGravity((uid, zPhysics), 0f);
+                }
+
                 continue;
             }
 
-            if (hasMover
-                && _nextIntersectCheck.TryGetValue(uid, out var nextCheckAt)
-                && _timing.CurTime < nextCheckAt)
+            if (mapHasGravity)
             {
-                continue;
-            }
+                if (hasMover)
+                    RemoveMover(uid, spaceMover!);
 
-            // Entity has no GridUid and no tile underfoot; it may still overlap a grid AABB via hole tiles.
-            var pointBox = new Box2(worldPos, worldPos);
-            _gridBuffer.Clear();
-            _mapManager.FindGridsIntersecting(mapUid, pointBox, ref _gridBuffer, approx: true);
-
-            var inSpace = _gridBuffer.Count == 0;
-
-            if (inSpace && !hasMover)
-                AddMover(uid);
-
-            if (inSpace)
-            {
-                _nextIntersectCheck[uid] = _timing.CurTime + TimeSpan.FromSeconds(SpaceIntersectRecheckInterval);
+                if (hasZPhysics && zPhysics!.GravityMultiplier == 0f)
+                    _zLevels.SetZGravity((uid, zPhysics), 1f);
             }
             else
             {
-                _nextIntersectCheck.Remove(uid);
-            }
+                if (!hasMover)
+                    AddMover(uid);
 
-            if (!inSpace && hasMover)
-                RemoveMover(uid, spaceMover!);
+                if (hasZPhysics && zPhysics!.GravityMultiplier != 0f)
+                    _zLevels.SetZGravity((uid, zPhysics), 0f);
+            }
         }
     }
 
@@ -183,6 +183,17 @@ public sealed class ZSpaceMovementSystem : EntitySystem
         hasAdjacent = _zLevels.TryMapOffset(mapUid, 1, out _) || _zLevels.TryMapOffset(mapUid, -1, out _);
         _mapHasAdjacentLayerCache[mapUid] = hasAdjacent;
         return hasAdjacent;
+    }
+
+    private bool HasGravityOnMap(TransformComponent xform)
+    {
+        if (xform.MapUid is not { } mapUid)
+            return false;
+
+        if (!TryComp<MapComponent>(mapUid, out var mapComp))
+            return false;
+
+        return _zLevels.HasMapEntityGravity(mapComp.MapId);
     }
 
     private void RefreshNetworkCount()
@@ -207,14 +218,12 @@ public sealed class ZSpaceMovementSystem : EntitySystem
         _actions.RemoveAction(mover.UpActionEntity);
         _actions.RemoveAction(mover.DownActionEntity);
         RemComp<ZSpaceMoverComponent>(uid);
-        _nextIntersectCheck.Remove(uid);
     }
 
     private void OnRemove(EntityUid uid, ZSpaceMoverComponent comp, ComponentRemove args)
     {
         _actions.RemoveAction(comp.UpActionEntity);
         _actions.RemoveAction(comp.DownActionEntity);
-        _nextIntersectCheck.Remove(uid);
     }
 
     private void RefreshFloatingCandidate(EntityUid uid)
@@ -238,7 +247,6 @@ public sealed class ZSpaceMovementSystem : EntitySystem
     private void RemoveFloatingCandidate(EntityUid uid, ZSpaceMoverComponent? mover = null)
     {
         _floatingCandidates.Remove(uid);
-        _nextIntersectCheck.Remove(uid);
 
         if (mover != null)
             RemoveMover(uid, mover);
@@ -257,7 +265,6 @@ public sealed class ZSpaceMovementSystem : EntitySystem
     private void ClearMoversAndCaches()
     {
         _floatingCandidates.Clear();
-        _nextIntersectCheck.Clear();
         _mapHasAdjacentLayerCache.Clear();
         _candidateRescanAccumulator = 0f;
 
@@ -299,10 +306,16 @@ public sealed class ZSpaceMovementSystem : EntitySystem
             return false;
 
         if (direction > 0 && _zLevels.HasTileAbove(uid))
+        {
+            _popup.PopupEntity(Loc.GetString("z-space-move-blocked-above"), uid, uid, PopupType.SmallCaution);
             return false;
+        }
 
         if (direction < 0 && _zLevels.HasTileBelow(uid))
+        {
+            _popup.PopupEntity(Loc.GetString("z-space-move-blocked-below"), uid, uid, PopupType.SmallCaution);
             return false;
+        }
 
         var doAfterEvent = direction > 0
             ? (SimpleDoAfterEvent) new ZSpaceMoveUpDoAfterEvent()
@@ -339,15 +352,20 @@ public sealed class ZSpaceMovementSystem : EntitySystem
             return false;
 
         if (direction > 0 && _zLevels.HasTileAbove(uid))
+        {
+            _popup.PopupEntity(Loc.GetString("z-space-move-blocked-above"), uid, uid, PopupType.SmallCaution);
             return false;
+        }
 
         if (direction < 0 && _zLevels.HasTileBelow(uid))
+        {
+            _popup.PopupEntity(Loc.GetString("z-space-move-blocked-below"), uid, uid, PopupType.SmallCaution);
             return false;
+        }
 
         if (!_zLevels.TryMove(uid, direction))
             return false;
 
-        // Prevent immediate fall-back after transition
         if (TryComp<CEZPhysicsComponent>(uid, out var zPhys))
         {
             _zLevels.SetZVelocity((uid, zPhys), 0);

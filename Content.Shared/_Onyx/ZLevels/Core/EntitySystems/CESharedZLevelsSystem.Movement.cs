@@ -264,6 +264,9 @@ public abstract partial class CESharedZLevelsSystem
         var knockdownTime = MathF.Min(args.ImpactPower * 0.25f, 5f);
         _stun.TryKnockdown(ent.Owner, TimeSpan.FromSeconds(knockdownTime));
 
+        if (HasComp<OnyxZFallDamageImmuneComponent>(ent.Owner))
+            return;
+
         var damageType = _proto.Index<DamageTypePrototype>("Blunt");
         var damageAmount = args.ImpactPower * 2f;
 
@@ -433,8 +436,14 @@ public abstract partial class CESharedZLevelsSystem
         if (!Resolve(ent.Owner, ref ent.Comp))
             return;
 
+        if (Math.Abs(ent.Comp.GravityMultiplier - newGravityMultiplier) < 0.001f)
+            return;
+
         ent.Comp.GravityMultiplier = newGravityMultiplier;
         DirtyField(ent, ent.Comp, nameof(CEZPhysicsComponent.GravityMultiplier));
+
+        if (newGravityMultiplier > 0f && !_timing.ApplyingState)
+            EnsureComp<CEActiveZPhysicsComponent>(ent);
     }
 
     /// <summary>
