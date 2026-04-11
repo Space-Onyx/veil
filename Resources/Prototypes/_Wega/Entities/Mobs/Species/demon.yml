@@ -1,8 +1,8 @@
 - type: entity
   save: false
-  name: Urisst' Mzhand Demon
+  name: Urisst' Mzhand Arcan
   parent: BaseMobSpeciesOrganic
-  id: BaseMobDemon
+  id: BaseMobArcan
   abstract: true
   components:
   - type: HumanoidAppearance

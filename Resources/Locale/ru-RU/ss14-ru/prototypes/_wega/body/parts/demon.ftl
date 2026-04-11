@@ -20,3 +20,5 @@ ent-LeftFootDemon = левая стопа арканы
     .desc = { ent-PartDemon.desc }
 ent-RightFootDemon = правая стопа арканы
     .desc = { ent-PartDemon.desc }
+ent-GroinDemon = таз арканы
+    .desc = { ent-PartDemon.desc }

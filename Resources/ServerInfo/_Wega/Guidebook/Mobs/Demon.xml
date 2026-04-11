@@ -1,7 +1,7 @@
 <Document>
   # Арканы
   <Box>
-    <GuideEntityEmbed Entity="MobDemon" Caption=""/>
+    <GuideEntityEmbed Entity="MobArcan" Caption=""/>
   </Box>
 
   Арканы — раса демоновидных, обладающая устойчивостью к неблагоприятной среде и расширенным температурным диапазоном.

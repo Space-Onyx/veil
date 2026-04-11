@@ -49,6 +49,7 @@
     tags:
       - Head
 
+# <Onyx-Tweak>
 - type: entity
   id: GroinDemon
   name: "demon groin"
@@ -60,6 +61,7 @@
   - type: Icon
     sprite: _Wega/Mobs/Species/Demon/parts.rsi
     state: "groin_m"
+# </Onyx-Tweak>
 
 - type: entity
   id: LeftArmDemon

@@ -10,7 +10,7 @@
       organs:
         brain: OrganHumanBrain
         eyes: OrganHumanEyes
-        tongue: OrganHumanTongue # Onyx-Surgery
+        tongue: OrganHumanTongue
     chest:
       part: TorsoDemon
       organs:

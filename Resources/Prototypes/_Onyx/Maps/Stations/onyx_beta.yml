@@ -13,7 +13,7 @@
           nameGenerator:
             !type:NanotrasenNameGenerator
             prefix: 'ИСН'
-            prefixCreator: '14'
+            prefixCreator: 'S14'
         - type: StationJobs
           availableJobs:
             #service

@@ -4,5 +4,5 @@ ent-TailCarp = хвост карпа
     .desc = Уникальные железы в этом хвосте позволяют космическому карпу летать в вакууме.
 ent-ChestCarp = торс карпа
     .desc = { ent-PartCarpBase.desc }
-ent-GroinCarp = пах карпа
+ent-GroinCarp = таз карпа
     .desc = { ent-PartCarpBase.desc }

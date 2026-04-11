@@ -1,2 +1,2 @@
-ent-MobDemon = Урист МакАркана
-    .desc = { ent-BaseMobDemon.desc }
+ent-MobArcan = Урист МакАркана
+    .desc = { ent-BaseMobArcan.desc }
