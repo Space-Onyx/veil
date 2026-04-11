@@ -156,6 +156,17 @@ public sealed class ZSpaceMovementSystem : EntitySystem
                 continue;
             }
 
+            if (_zLevels.IsEntityOverInteriorHole(xform))
+            {
+                if (hasMover)
+                    RemoveMover(uid, spaceMover!);
+
+                if (hasZPhysics && zPhysics!.GravityMultiplier == 0f)
+                    _zLevels.SetZGravity((uid, zPhysics), 1f);
+
+                continue;
+            }
+
             if (mapHasGravity)
             {
                 if (hasMover)

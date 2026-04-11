@@ -522,6 +522,27 @@ public abstract partial class CESharedZLevelsSystem
         return mapEntityId.IsValid() && _gravityQuery.TryComp(mapEntityId, out var mapGravity) && mapGravity.Enabled;
     }
 
+    public bool IsEntityOverInteriorHole(TransformComponent xform)
+    {
+        if (xform.GridUid != null)
+            return false;
+
+        if (xform.MapUid is not { } mapUid ||
+            !_zMapQuery.TryComp(mapUid, out var zMap))
+            return false;
+
+        var worldPos = _transform.GetWorldPosition(xform);
+
+        if (IsOverInteriorHole(mapUid, worldPos))
+            return true;
+
+        if (TryMapDown((mapUid, zMap), out var belowMap) &&
+            IsOverInteriorHole(belowMap.Value.Owner, worldPos))
+            return true;
+
+        return false;
+    }
+
     public bool HasZNetworkGravity(TransformComponent xform)
     {
         if (xform.MapUid is not { } mapUid ||
