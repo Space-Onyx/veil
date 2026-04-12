@@ -108,6 +108,9 @@
   id: Welder
   description: "Melts anything as long as it's fueled, don't forget your eye protection!"
   components:
+  # <Onyx-ZLevels>
+  - type: ZCeilingCutter
+  # </Onyx-ZLevels>
   # Goobstation edit start
   - type: EmitSoundOnPickup
     sound:

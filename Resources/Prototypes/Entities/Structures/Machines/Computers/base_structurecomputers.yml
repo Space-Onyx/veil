@@ -36,6 +36,7 @@
   placement:
     mode: SnapgridCenter
   components:
+  - type: CEZPhysics # <Onyx-ZLevels>
   - type: Animateable
   - type: MeleeSound
     soundGroups:
