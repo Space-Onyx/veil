@@ -439,14 +439,6 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
 
         foreach (var grids in _groupCache.Values)
         {
-            foreach (var (_, gridUid) in grids)
-            {
-                if (!_gridQuery.TryComp(gridUid, out var gridComp))
-                    continue;
-
-                EnsureInteriorHolesRegistered(gridUid, gridComp);
-            }
-
             for (var i = 0; i < grids.Count - 1; i++)
             {
                 var (depthBelow, belowUid) = grids[i];

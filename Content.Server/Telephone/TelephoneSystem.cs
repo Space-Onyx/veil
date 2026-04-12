@@ -22,6 +22,7 @@ using Content.Shared.Silicons.Borgs.Components;
 using Content.Shared.Speech;
 using Content.Shared.Speech.Components;
 using Content.Shared.Telephone;
+using Content.Shared._Utopia.ZLevels.Components;
 using Robust.Server.GameObjects;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Timing;
@@ -502,7 +503,20 @@ public sealed class TelephoneSystem : SharedTelephoneSystem
         switch (source.Comp.TransmissionRange)
         {
             case TelephoneRange.Grid:
-                return sourceXform.GridUid == receiverXform.GridUid;
+                // <Onyx-ZLevels>
+                if (sourceXform.GridUid == receiverXform.GridUid)
+                    return true;
+
+                if (sourceXform.GridUid is { } srcGrid
+                    && receiverXform.GridUid is { } rcvGrid
+                    && TryComp<GridMotionLinkComponent>(srcGrid, out var srcLink)
+                    && TryComp<GridMotionLinkComponent>(rcvGrid, out var rcvLink)
+                    && !string.IsNullOrEmpty(srcLink.GroupId)
+                    && srcLink.GroupId == rcvLink.GroupId)
+                    return true;
+
+                return false;
+                // </Onyx-ZLevels>
 
             case TelephoneRange.Map:
                 // <Onyx-ZLevels>

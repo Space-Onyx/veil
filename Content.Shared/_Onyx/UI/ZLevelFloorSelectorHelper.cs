@@ -2,6 +2,7 @@ using Content.Shared.Pinpointer;
 using Content.Shared.Station.Components;
 using Content.Shared._Onyx.ZLevels.Core.Components;
 using Content.Shared._Onyx.ZLevels.Core.EntitySystems;
+using Content.Shared._Utopia.ZLevels.Components;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
@@ -92,7 +93,15 @@ public static class ZLevelFloorSelectorHelper
                 targetMaps.Add(mapUid);
             }
 
-            var firstGridByMap = new Dictionary<EntityUid, EntityUid>();
+            string? sourceGroupId = null;
+            if (sourceGrid != null &&
+                entityManager.TryGetComponent<GridMotionLinkComponent>(sourceGrid.Value, out var sourceLink) &&
+                !string.IsNullOrEmpty(sourceLink.GroupId))
+            {
+                sourceGroupId = sourceLink.GroupId;
+            }
+
+            var linkedGridByMap = new Dictionary<EntityUid, EntityUid>();
             Dictionary<EntityUid, EntityUid>? stationGridByMap = null;
             if (sourceStation != EntityUid.Invalid)
                 stationGridByMap = new Dictionary<EntityUid, EntityUid>();
@@ -103,8 +112,12 @@ public static class ZLevelFloorSelectorHelper
                 if (gridXform.MapUid is not { } mapUid || !targetMaps.Contains(mapUid))
                     continue;
 
-                if (!firstGridByMap.ContainsKey(mapUid))
-                    firstGridByMap[mapUid] = gridUid;
+                if (sourceGroupId != null && !linkedGridByMap.ContainsKey(mapUid) &&
+                    entityManager.TryGetComponent<GridMotionLinkComponent>(gridUid, out var gridLink) &&
+                    gridLink.GroupId == sourceGroupId)
+                {
+                    linkedGridByMap[mapUid] = gridUid;
+                }
 
                 if (stationGridByMap == null || stationGridByMap.ContainsKey(mapUid))
                     continue;
@@ -118,10 +131,10 @@ public static class ZLevelFloorSelectorHelper
 
             foreach (var (mapUid, depth) in linkedMaps)
             {
-                if (stationGridByMap != null && stationGridByMap.TryGetValue(mapUid, out var stationGrid))
+                if (linkedGridByMap.TryGetValue(mapUid, out var linkedGrid))
+                    mapByDepth[depth] = linkedGrid;
+                else if (stationGridByMap != null && stationGridByMap.TryGetValue(mapUid, out var stationGrid))
                     mapByDepth[depth] = stationGrid;
-                else if (firstGridByMap.TryGetValue(mapUid, out var firstGrid))
-                    mapByDepth[depth] = firstGrid;
                 else
                     mapByDepth[depth] = mapUid;
             }

@@ -48,7 +48,7 @@ public sealed class ZLevelTransmissionSystem : EntitySystem
         if (_pendingRefreshMaps == null)
             return;
 
-        if (++_pendingRefreshDelay < 2)
+        if (++_pendingRefreshDelay < 10)
             return;
 
         var maps = _pendingRefreshMaps;

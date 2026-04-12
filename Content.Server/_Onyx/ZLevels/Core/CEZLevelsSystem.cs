@@ -14,6 +14,7 @@ using Content.Server.Station.Systems;
 using Content.Server.Station.Events;
 using Content.Server._Utopia.ZLevels.Transmission.Systems;
 using Content.Server._Onyx.ZLevels.Atmos;
+using Robust.Shared.EntitySerialization;
 using Robust.Shared.EntitySerialization.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
@@ -88,12 +89,13 @@ public sealed partial class CEZLevelsSystem : CESharedZLevelsSystem
         dict.Add(mainMap.Value, 0);
 
         var mapsToInit = new List<MapId>();
+        var loadOptions = new DeserializationOptions { PauseMaps = true };
 
         //Loading maps below first
         var depth = ent.Comp.MapsBelow.Count * -1;
         foreach (var mapBelow in ent.Comp.MapsBelow)
         {
-            if (!_mapLoader.TryLoadMap(mapBelow, out var mapEnt, out var grids))
+            if (!_mapLoader.TryLoadMap(mapBelow, out var mapEnt, out var grids, loadOptions))
             {
                 Log.Error($"Failed to load map for Station zNetwork at depth {depth}!");
                 continue;
@@ -120,7 +122,7 @@ public sealed partial class CEZLevelsSystem : CESharedZLevelsSystem
         depth = 1;
         foreach (var mapAbove in ent.Comp.MapsAbove)
         {
-            if (!_mapLoader.TryLoadMap(mapAbove, out var mapEnt, out var grids))
+            if (!_mapLoader.TryLoadMap(mapAbove, out var mapEnt, out var grids, loadOptions))
             {
                 Log.Error($"Failed to load map for Station zNetwork at depth {depth}!");
                 continue;
@@ -147,7 +149,7 @@ public sealed partial class CEZLevelsSystem : CESharedZLevelsSystem
 
         foreach (var mapId in mapsToInit)
         {
-            _map.InitializeMap(mapId);
+            _map.InitializeMap(mapId, unpause: true);
         }
 
         var mapSet = new HashSet<EntityUid>(dict.Keys);
@@ -172,12 +174,13 @@ public sealed partial class CEZLevelsSystem : CESharedZLevelsSystem
         EntityManager.AddComponents(mainMap, ev.GameMap.ZLevelsComponentOverrides);
 
         var mapsToInit = new List<MapId>();
+        var loadOptions = new DeserializationOptions { PauseMaps = true };
 
         //Loading maps below first
         var depth = ev.GameMap.MapsBelow.Count * -1;
         foreach (var mapBelow in ev.GameMap.MapsBelow)
         {
-            if (!_mapLoader.TryLoadMap(mapBelow, out var mapEnt, out _))
+            if (!_mapLoader.TryLoadMap(mapBelow, out var mapEnt, out _, loadOptions))
             {
                 Log.Error($"Failed to load map for Station zNetwork at depth {depth}!");
                 continue;
@@ -195,7 +198,7 @@ public sealed partial class CEZLevelsSystem : CESharedZLevelsSystem
         depth = 1;
         foreach (var mapAbove in ev.GameMap.MapsAbove)
         {
-            if (!_mapLoader.TryLoadMap(mapAbove, out var mapEnt, out _))
+            if (!_mapLoader.TryLoadMap(mapAbove, out var mapEnt, out _, loadOptions))
             {
                 Log.Error($"Failed to load map for Station zNetwork at depth {depth}!");
                 continue;
@@ -213,7 +216,7 @@ public sealed partial class CEZLevelsSystem : CESharedZLevelsSystem
 
         foreach (var mapId in mapsToInit)
         {
-            _map.InitializeMap(mapId);
+            _map.InitializeMap(mapId, unpause: true);
         }
 
         var mapSet = new HashSet<EntityUid>(dict.Keys);

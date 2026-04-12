@@ -187,7 +187,6 @@ public sealed partial class AtmosphereSystem
         var holeTiles = new List<Vector2i>();
         _zLevelGridAtmos.CopyVerticalHoleTiles(ent.Owner, holeTiles);
 
-        _zLevelGridAtmos.EnsureInteriorHolesRegistered(ent.Owner, ent.Comp3);
         _verticalHoleTileCache.Clear();
 
         holeTiles.Clear();
