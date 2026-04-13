@@ -160,6 +160,9 @@ public sealed class ZCeilingPrySystem : EntitySystem
         if (_doAfter.TryStartDoAfter(doAfterArgs))
         {
             _popup.PopupEntity(Loc.GetString("z-ceiling-pry-start"), user, user);
+
+            var toolUseAttempt = new ToolUseAttemptEvent(user, 0f);
+            RaiseLocalEvent(ent, toolUseAttempt);
         }
 
         args.Handled = true;
