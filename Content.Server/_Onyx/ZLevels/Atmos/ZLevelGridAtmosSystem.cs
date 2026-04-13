@@ -27,6 +27,7 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
     private EntityQuery<GridMotionLinkComponent> _motionLinkQuery;
 
     private readonly Dictionary<string, List<(int Depth, EntityUid Grid)>> _groupCache = new();
+    private readonly Dictionary<string, Dictionary<int, List<EntityUid>>> _groupDepthIndex = new();
     private bool _groupCacheDirty = true;
     private int _periodicGroupCheckCounter;
 
@@ -211,6 +212,9 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
         if (!_groupCache.TryGetValue(link.GroupId, out var groupGrids))
             return;
 
+        if (!_groupDepthIndex.TryGetValue(link.GroupId, out var depthIndex))
+            return;
+
         var wasHole = _managedHoleTiles.Contains((gridUid, tilePos));
         var worldPos = _mapSystem.GridTileToWorldPos(gridUid, gridComp, tilePos);
 
@@ -220,18 +224,21 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
         if (isCurrentlyHole)
         {
             var hasSolidBelow = false;
-            foreach (var (depth, otherUid) in groupGrids)
+            if (depthIndex.TryGetValue(myDepth - 1, out var belowGrids))
             {
-                if (depth != myDepth - 1 || otherUid == gridUid)
-                    continue;
-
-                if (!_gridQuery.TryComp(otherUid, out var otherGrid))
-                    continue;
-
-                if (IsSolidDeckTileAtWorld(otherUid, otherGrid, worldPos))
+                foreach (var otherUid in belowGrids)
                 {
-                    hasSolidBelow = true;
-                    break;
+                    if (otherUid == gridUid)
+                        continue;
+
+                    if (!_gridQuery.TryComp(otherUid, out var otherGrid))
+                        continue;
+
+                    if (IsSolidDeckTileAtWorld(otherUid, otherGrid, worldPos))
+                    {
+                        hasSolidBelow = true;
+                        break;
+                    }
                 }
             }
 
@@ -252,29 +259,32 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
             RemoveLinksForTile(gridUid, tilePos);
         }
 
-        foreach (var (depth, otherUid) in groupGrids)
+        if (depthIndex.TryGetValue(myDepth + 1, out var aboveGrids))
         {
-            if (depth != myDepth + 1 || otherUid == gridUid)
-                continue;
-
-            if (!_gridQuery.TryComp(otherUid, out var otherGrid))
-                continue;
-
-            var otherPos = _mapSystem.WorldToTile(otherUid, otherGrid, worldPos);
-            var otherInteriorHoles = GetInteriorHoles(otherUid, otherGrid);
-            var otherIsHole = otherInteriorHoles.Contains(otherPos);
-            var otherWasManaged = _managedHoleTiles.Contains((otherUid, otherPos));
-            var currentIsSolid = IsSolidDeckTile(gridUid, gridComp, tilePos);
-
-            if (otherIsHole && currentIsSolid && !otherWasManaged)
+            foreach (var otherUid in aboveGrids)
             {
-                AddHoleTile(otherUid, otherPos);
-                RebuildLinksForTile(otherUid, otherPos, worldPos, myDepth + 1, groupGrids);
-            }
-            else if ((!otherIsHole || !currentIsSolid) && otherWasManaged)
-            {
-                RemoveHoleTile(otherUid, otherPos);
-                RemoveLinksForTile(otherUid, otherPos);
+                if (otherUid == gridUid)
+                    continue;
+
+                if (!_gridQuery.TryComp(otherUid, out var otherGrid))
+                    continue;
+
+                var otherPos = _mapSystem.WorldToTile(otherUid, otherGrid, worldPos);
+                var otherInteriorHoles = GetInteriorHoles(otherUid, otherGrid);
+                var otherIsHole = otherInteriorHoles.Contains(otherPos);
+                var otherWasManaged = _managedHoleTiles.Contains((otherUid, otherPos));
+                var currentIsSolid = IsSolidDeckTile(gridUid, gridComp, tilePos);
+
+                if (otherIsHole && currentIsSolid && !otherWasManaged)
+                {
+                    AddHoleTile(otherUid, otherPos);
+                    RebuildLinksForTile(otherUid, otherPos, worldPos, myDepth + 1, groupGrids);
+                }
+                else if ((!otherIsHole || !currentIsSolid) && otherWasManaged)
+                {
+                    RemoveHoleTile(otherUid, otherPos);
+                    RemoveLinksForTile(otherUid, otherPos);
+                }
             }
         }
     }
@@ -414,10 +424,29 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
                 _staleGroupIds.Add(groupId);
         }
         foreach (var stale in _staleGroupIds)
+        {
             _groupCache.Remove(stale);
+            _groupDepthIndex.Remove(stale);
+        }
 
         foreach (var list in _groupCache.Values)
             list.Sort((a, b) => a.Depth.CompareTo(b.Depth));
+
+        _groupDepthIndex.Clear();
+        foreach (var (groupId, list) in _groupCache)
+        {
+            var depthDict = new Dictionary<int, List<EntityUid>>();
+            foreach (var (depth, grid) in list)
+            {
+                if (!depthDict.TryGetValue(depth, out var grids))
+                {
+                    grids = new List<EntityUid>();
+                    depthDict[depth] = grids;
+                }
+                grids.Add(grid);
+            }
+            _groupDepthIndex[groupId] = depthDict;
+        }
 
         if (!newLinkedGrids.SetEquals(_linkedGrids))
             _linksDirty = true;
@@ -646,82 +675,56 @@ public sealed class ZLevelGridAtmosSystem : EntitySystem
         if (targetTile.Air == null || targetTile.Air.Immutable || targetTile.MapAtmosphere)
             return;
 
-        var pressureDelta = holeTile.Air.Pressure - targetTile.Air.Pressure;
-        if (MathF.Abs(pressureDelta) <= 0.001f)
-            return;
+        var holeAir = holeTile.Air;
+        var targetAir = targetTile.Air;
 
-        GasMixture highPressureAir;
-        GasMixture lowPressureAir;
-        TileAtmosphere highPressureTile;
-        TileAtmosphere lowPressureTile;
-        GridAtmosphereComponent highPressureAtmos;
-        GridAtmosphereComponent lowPressureAtmos;
+        var anyTransfer = false;
 
-        if (pressureDelta > 0)
+        for (var i = 0; i < Atmospherics.TotalNumberOfGases; i++)
         {
-            highPressureAir = holeTile.Air;
-            lowPressureAir = targetTile.Air;
-            highPressureTile = holeTile;
-            lowPressureTile = targetTile;
-            highPressureAtmos = holeAtmos;
-            lowPressureAtmos = targetAtmos;
-        }
-        else
-        {
-            highPressureAir = targetTile.Air;
-            lowPressureAir = holeTile.Air;
-            highPressureTile = targetTile;
-            lowPressureTile = holeTile;
-            highPressureAtmos = targetAtmos;
-            lowPressureAtmos = holeAtmos;
+            var holeMoles = holeAir.GetMoles(i);
+            var targetMoles = targetAir.GetMoles(i);
+            var delta = holeMoles - targetMoles;
+
+            if (MathF.Abs(delta) < Atmospherics.GasMinMoles)
+                continue;
+
+            var transfer = delta * transferFactor * 0.5f;
+
+            if (MathF.Abs(transfer) < Atmospherics.GasMinMoles)
+                continue;
+
+            holeAir.AdjustMoles(i, -transfer);
+            targetAir.AdjustMoles(i, transfer);
+            anyTransfer = true;
         }
 
-        if (highPressureAir.TotalMoles <= 0f ||
-            highPressureAir.Temperature <= 0f ||
-            lowPressureAir.Temperature <= 0f)
+        if (!anyTransfer)
             return;
 
-        var transferMoles = ComputeVerticalEqualizationTransferMoles(highPressureAir, lowPressureAir, transferFactor);
-        if (!float.IsFinite(transferMoles))
-            return;
+        var holeTotalMoles = holeAir.TotalMoles;
+        var targetTotalMoles = targetAir.TotalMoles;
 
-        if (transferMoles < Atmospherics.MinimumMolesDeltaToMove * 0.01f)
-            return;
-
-        transferMoles = MathF.Min(transferMoles, highPressureAir.TotalMoles);
-        if (transferMoles <= 0f)
-            return;
-
-        var removed = highPressureAir.Remove(transferMoles);
-        _atmos.Merge(lowPressureAir, removed);
-
-        ActivateTile(highPressureAtmos, highPressureTile);
-        ActivateTile(lowPressureAtmos, lowPressureTile);
-    }
-
-    private float ComputeVerticalEqualizationTransferMoles(GasMixture highPressureAir, GasMixture lowPressureAir, float transferFactor)
-    {
-        if (highPressureAir.TotalMoles <= 0f || transferFactor <= 0f)
-            return 0f;
-
-        var fraction = _atmos.FractionToEqualizePressure(highPressureAir, lowPressureAir);
-
-        // Fallback for rare unstable states (e.g. degenerate heat capacity ratios).
-        if (!float.IsFinite(fraction))
+        if (holeTotalMoles > Atmospherics.GasMinMoles && targetTotalMoles > Atmospherics.GasMinMoles)
         {
-            if (highPressureAir.Temperature <= 0f)
-                return 0f;
+            var tempDelta = holeAir.Temperature - targetAir.Temperature;
+            if (MathF.Abs(tempDelta) > Atmospherics.MinimumTemperatureDeltaToConsider)
+            {
+                var holeHeatCap = _atmos.GetHeatCapacity(holeAir, true);
+                var targetHeatCap = _atmos.GetHeatCapacity(targetAir, true);
+                var totalHeatCap = holeHeatCap + targetHeatCap;
 
-            var pressureDelta = MathF.Max(0f, highPressureAir.Pressure - lowPressureAir.Pressure);
-            var idealTransfer = pressureDelta * lowPressureAir.Volume / (highPressureAir.Temperature * Atmospherics.R);
-            fraction = idealTransfer / highPressureAir.TotalMoles;
+                if (totalHeatCap > Atmospherics.MinimumHeatCapacity)
+                {
+                    var avgTemp = (holeHeatCap * holeAir.Temperature + targetHeatCap * targetAir.Temperature) / totalHeatCap;
+                    holeAir.Temperature = avgTemp;
+                    targetAir.Temperature = avgTemp;
+                }
+            }
         }
 
-        fraction = Math.Clamp(fraction, 0f, 1f);
-        if (fraction <= 0f)
-            return 0f;
-
-        return highPressureAir.TotalMoles * fraction * transferFactor;
+        ActivateTile(holeAtmos, holeTile);
+        ActivateTile(targetAtmos, targetTile);
     }
 
     private static void ActivateTile(GridAtmosphereComponent atmos, TileAtmosphere tile)

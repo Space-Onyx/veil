@@ -27,6 +27,7 @@ public sealed class ZSpaceMovementSystem : EntitySystem
     private float _candidateRescanAccumulator;
     private int _zNetworkCount;
     private readonly Dictionary<EntityUid, bool> _mapHasAdjacentLayerCache = new();
+    private bool _adjacentLayerCacheDirty = true;
     private readonly HashSet<EntityUid> _floatingCandidates = new();
     private readonly List<EntityUid> _entityBuffer = new();
 
@@ -75,27 +76,22 @@ public sealed class ZSpaceMovementSystem : EntitySystem
     {
         base.Update(frameTime);
 
-        var hadNetworks = _zNetworkCount > 0;
-        RefreshNetworkCount();
-        if (_zNetworkCount <= 0)
-        {
-            if (hadNetworks)
-                ClearMoversAndCaches();
-            return;
-        }
-
         _candidateRescanAccumulator += frameTime;
         if (_candidateRescanAccumulator >= CandidateRescanInterval)
         {
             _candidateRescanAccumulator = 0f;
+            RefreshNetworkCount();
             RebuildFloatingCandidates();
         }
+
+        if (_zNetworkCount <= 0)
+            return;
 
         _accumulator += frameTime;
         if (_accumulator < CheckInterval)
             return;
         _accumulator -= CheckInterval;
-        _mapHasAdjacentLayerCache.Clear();
+        _adjacentLayerCacheDirty = true;
 
         _entityBuffer.Clear();
         _entityBuffer.AddRange(_floatingCandidates);
@@ -188,6 +184,12 @@ public sealed class ZSpaceMovementSystem : EntitySystem
 
     private bool HasAdjacentZLayer(EntityUid mapUid)
     {
+        if (_adjacentLayerCacheDirty)
+        {
+            _mapHasAdjacentLayerCache.Clear();
+            _adjacentLayerCacheDirty = false;
+        }
+
         if (_mapHasAdjacentLayerCache.TryGetValue(mapUid, out var hasAdjacent))
             return hasAdjacent;
 
@@ -277,6 +279,7 @@ public sealed class ZSpaceMovementSystem : EntitySystem
     {
         _floatingCandidates.Clear();
         _mapHasAdjacentLayerCache.Clear();
+        _adjacentLayerCacheDirty = true;
         _candidateRescanAccumulator = 0f;
 
         _entityBuffer.Clear();

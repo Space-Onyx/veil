@@ -343,10 +343,14 @@ public sealed partial class CEZLevelsSystem : CESharedZLevelsSystem
         if (savedLinks == null || savedLinks.Count == 0)
             return;
 
-        // Build depth → mapUid
+        // Build depth → mapUid and mapUid → depth for O(1) lookups
         var mapByDepth = new Dictionary<int, EntityUid>();
+        var depthByMapUid = new Dictionary<EntityUid, int>();
         foreach (var (mapUid, depth) in maps)
+        {
             mapByDepth[depth] = mapUid;
+            depthByMapUid[mapUid] = depth;
+        }
 
         // Build entity lookup: (depth, x, y, proto) → EntityUid
         var entityLookup = new Dictionary<(int, float, float, string), EntityUid>();
@@ -354,31 +358,19 @@ public sealed partial class CEZLevelsSystem : CESharedZLevelsSystem
         var sourceEnum = EntityManager.AllEntityQueryEnumerator<DeviceLinkSourceComponent, TransformComponent, MetaDataComponent>();
         while (sourceEnum.MoveNext(out var uid, out _, out var xform, out var meta))
         {
-            if (xform.MapUid == null)
+            if (xform.MapUid is not { } srcMapUid || !depthByMapUid.TryGetValue(srcMapUid, out var d))
                 continue;
-            foreach (var (mu, d) in maps)
-            {
-                if (mu != xform.MapUid.Value)
-                    continue;
-                var key = (d, MathF.Round(xform.LocalPosition.X, 2), MathF.Round(xform.LocalPosition.Y, 2), meta.EntityPrototype?.ID ?? "");
-                entityLookup.TryAdd(key, uid);
-                break;
-            }
+            var key = (d, MathF.Round(xform.LocalPosition.X, 2), MathF.Round(xform.LocalPosition.Y, 2), meta.EntityPrototype?.ID ?? "");
+            entityLookup.TryAdd(key, uid);
         }
 
         var sinkEnum = EntityManager.AllEntityQueryEnumerator<DeviceLinkSinkComponent, TransformComponent, MetaDataComponent>();
         while (sinkEnum.MoveNext(out var uid, out _, out var xform, out var meta))
         {
-            if (xform.MapUid == null)
+            if (xform.MapUid is not { } snkMapUid || !depthByMapUid.TryGetValue(snkMapUid, out var d))
                 continue;
-            foreach (var (mu, d) in maps)
-            {
-                if (mu != xform.MapUid.Value)
-                    continue;
-                var key = (d, MathF.Round(xform.LocalPosition.X, 2), MathF.Round(xform.LocalPosition.Y, 2), meta.EntityPrototype?.ID ?? "");
-                entityLookup.TryAdd(key, uid);
-                break;
-            }
+            var key = (d, MathF.Round(xform.LocalPosition.X, 2), MathF.Round(xform.LocalPosition.Y, 2), meta.EntityPrototype?.ID ?? "");
+            entityLookup.TryAdd(key, uid);
         }
 
         // Restore links
@@ -400,9 +392,9 @@ public sealed partial class CEZLevelsSystem : CESharedZLevelsSystem
             var portLinks = new List<(string source, string sink)>();
             foreach (var portStr in link.PortLinks)
             {
-                var parts = portStr.Split(':');
-                if (parts.Length == 2)
-                    portLinks.Add((parts[0], parts[1]));
+                var sepIdx = portStr.IndexOf(':');
+                if (sepIdx > 0 && sepIdx < portStr.Length - 1)
+                    portLinks.Add((portStr[..sepIdx], portStr[(sepIdx + 1)..]));
             }
 
             if (portLinks.Count > 0)

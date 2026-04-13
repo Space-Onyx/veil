@@ -3,7 +3,6 @@
  * https://github.com/space-wizards/space-station-14/blob/master/LICENSE.TXT
  */
 
-using System.Linq;
 using Content.Server._Onyx.ZLevels.Core;
 using Content.Shared._Onyx.ZLevels.Core.Components;
 using Content.Shared._Onyx.ZLevels.Roof;
@@ -16,6 +15,7 @@ namespace Content.Server._Onyx.ZLevels.Roof;
 public sealed class CERoofSystem : CESharedRoofSystem
 {
     private readonly HashSet<Vector2i> _roofMap = new();
+    private readonly List<(int Depth, EntityUid MapUid)> _sortedMapsBuffer = new();
 
     public override void Initialize()
     {
@@ -32,18 +32,17 @@ public sealed class CERoofSystem : CESharedRoofSystem
     public void RecalculateNetworkRoofs(Entity<CEZLevelsNetworkComponent> network)
     {
         _roofMap.Clear();
+        _sortedMapsBuffer.Clear();
 
-        List<EntityUid> sortedMaps = new();
-        foreach (var mapUid in network.Comp.ZLevels
-                     .OrderByDescending(kv => kv.Key) // depth sorting
-                     .Select(kv => kv.Value)
-                     .Where(uid => uid.HasValue)
-                     .Select(uid => uid!.Value))
+        foreach (var (depth, mapUid) in network.Comp.ZLevels)
         {
-            sortedMaps.Add(mapUid);
+            if (mapUid.HasValue)
+                _sortedMapsBuffer.Add((depth, mapUid.Value));
         }
 
-        foreach (var map in sortedMaps)
+        _sortedMapsBuffer.Sort((a, b) => b.Depth.CompareTo(a.Depth));
+
+        foreach (var (_, map) in _sortedMapsBuffer)
         {
             if (!GridQuery.TryComp(map, out var mapGrid))
                 continue;
