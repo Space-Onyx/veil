@@ -50,6 +50,7 @@ using Robust.Shared.Audio;
 using Robust.Shared.Audio.Components;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 using JukeboxComponent = Content.Shared.Audio.Jukebox.JukeboxComponent;
 
 namespace Content.Server.Audio.Jukebox;
@@ -59,6 +60,7 @@ public sealed class JukeboxSystem : SharedJukeboxSystem
 {
     [Dependency] private readonly IPrototypeManager _protoManager = default!;
     [Dependency] private readonly AppearanceSystem _appearanceSystem = default!;
+    [Dependency] private readonly IGameTiming _gameTiming = default!; // <Onyx>
 
     public override void Initialize()
     {
@@ -68,6 +70,8 @@ public sealed class JukeboxSystem : SharedJukeboxSystem
         SubscribeLocalEvent<JukeboxComponent, JukeboxPauseMessage>(OnJukeboxPause);
         SubscribeLocalEvent<JukeboxComponent, JukeboxStopMessage>(OnJukeboxStop);
         SubscribeLocalEvent<JukeboxComponent, JukeboxSetTimeMessage>(OnJukeboxSetTime);
+        SubscribeLocalEvent<JukeboxComponent, JukeboxSetVolumeMessage>(OnJukeboxSetVolume); // <Onyx>
+        SubscribeLocalEvent<JukeboxComponent, JukeboxToggleLoopMessage>(OnJukeboxToggleLoop); // <Onyx>
         SubscribeLocalEvent<JukeboxComponent, ComponentInit>(OnComponentInit);
         SubscribeLocalEvent<JukeboxComponent, ComponentShutdown>(OnComponentShutdown);
 
@@ -87,6 +91,15 @@ public sealed class JukeboxSystem : SharedJukeboxSystem
         if (Exists(component.AudioStream))
         {
             Audio.SetState(component.AudioStream, AudioState.Playing);
+
+            // <Onyx>
+            if (component.PlaybackStartTime == null && component.CurrentPlaybackOffset > 0)
+            {
+                Audio.SetPlaybackPosition(component.AudioStream, component.CurrentPlaybackOffset);
+            }
+            component.PlaybackStartTime = _gameTiming.CurTime;
+            Dirty(uid, component);
+            // <Onyx>
         }
         else
         {
@@ -98,7 +111,11 @@ public sealed class JukeboxSystem : SharedJukeboxSystem
                 return;
             }
 
-            component.AudioStream = Audio.PlayPvs(jukeboxProto.Path, uid, AudioParams.Default.WithMaxDistance(10f).WithVolume(-6f))?.Entity; // Goobstation - the jukebox doesn't break your ears anymore
+            component.AudioStream = Audio.PlayPvs(jukeboxProto.Path, uid, AudioParams.Default.WithMaxDistance(10f).WithVolume(MapToRange(component.Volume, component.MinSlider, component.MaxSlider, component.MinVolume, component.MaxVolume)))?.Entity; // <Onyx Edited>
+            // <Onyx>
+            component.PlaybackStartTime = _gameTiming.CurTime;
+            component.CurrentPlaybackOffset = 0f;
+            // </Onyx>
             Dirty(uid, component);
         }
     }
@@ -106,16 +123,50 @@ public sealed class JukeboxSystem : SharedJukeboxSystem
     private void OnJukeboxPause(Entity<JukeboxComponent> ent, ref JukeboxPauseMessage args)
     {
         Audio.SetState(ent.Comp.AudioStream, AudioState.Paused);
+
+        // <Onyx>
+        if (!ent.Comp.PlaybackStartTime.HasValue)
+            return;
+
+        var elapsed = (float)(_gameTiming.CurTime - ent.Comp.PlaybackStartTime.Value).TotalSeconds;
+        ent.Comp.CurrentPlaybackOffset += elapsed;
+        ent.Comp.PlaybackStartTime = null;
+        Dirty(ent);
+        // </Onyx>
     }
 
     private void OnJukeboxSetTime(EntityUid uid, JukeboxComponent component, JukeboxSetTimeMessage args)
     {
-        if (TryComp(args.Actor, out ActorComponent? actorComp))
-        {
-            var offset = actorComp.PlayerSession.Channel.Ping * 1.5f / 1000f;
-            Audio.SetPlaybackPosition(component.AudioStream, args.SongTime + offset);
-        }
+        if (!TryComp(args.Actor, out ActorComponent? actorComp))
+            return;
+
+        var offset = actorComp.PlayerSession.Channel.Ping * 1.5f / 1000f;
+        var newPosition = args.SongTime + offset; // <Onyx>
+        Audio.SetPlaybackPosition(component.AudioStream, newPosition); // <Onyx Edited>
+
+        // <Onyx>
+        component.CurrentPlaybackOffset = newPosition;
+        component.PlaybackStartTime = _gameTiming.CurTime;
+        Dirty(uid, component);
+        // </Onyx>
     }
+
+    // <Onyx>
+    private void OnJukeboxSetVolume(EntityUid uid, JukeboxComponent component, JukeboxSetVolumeMessage args)
+    {
+        SetJukeboxVolume(uid, component, args.Volume);
+
+        if (!TryComp<AudioComponent>(component.AudioStream, out _))
+            return;
+
+        Audio.SetVolume(component.AudioStream, MapToRange(args.Volume, component.MinSlider, component.MaxSlider, component.MinVolume, component.MaxVolume));
+    }
+
+    private void OnJukeboxToggleLoop(EntityUid uid, JukeboxComponent component, JukeboxToggleLoopMessage args)
+    {
+        ToggleLoop(uid, component);
+    }
+    // </Onyx>
 
     private void OnPowerChanged(Entity<JukeboxComponent> entity, ref PowerChangedEvent args)
     {
@@ -135,6 +186,10 @@ public sealed class JukeboxSystem : SharedJukeboxSystem
     private void Stop(Entity<JukeboxComponent> entity)
     {
         Audio.SetState(entity.Comp.AudioStream, AudioState.Stopped);
+        // <Onyx>
+        entity.Comp.CurrentPlaybackOffset = 0f;
+        entity.Comp.PlaybackStartTime = null;
+        // </Onyx>
         Dirty(entity);
     }
 
@@ -169,8 +224,42 @@ public sealed class JukeboxSystem : SharedJukeboxSystem
                     TryUpdateVisualState(uid, comp);
                 }
             }
+
+            // </Onyx>
+            if (!comp.LoopEnabled || !comp.PlaybackStartTime.HasValue || !Exists(comp.AudioStream) ||
+                !TryComp<AudioComponent>(comp.AudioStream, out var audioComp))
+                continue;
+
+            var audioLength = Audio.GetAudioLength(audioComp.FileName);
+            var elapsed = (float)(_gameTiming.CurTime - comp.PlaybackStartTime.Value).TotalSeconds;
+            var currentPosition = comp.CurrentPlaybackOffset + elapsed;
+
+            if (!(currentPosition >= audioLength.TotalSeconds))
+                continue;
+
+            // Restart track
+            Audio.SetPlaybackPosition(comp.AudioStream, 0f);
+            Audio.SetState(comp.AudioStream, AudioState.Playing);
+            comp.CurrentPlaybackOffset = 0f;
+            comp.PlaybackStartTime = _gameTiming.CurTime;
+            Dirty(uid, comp);
+            // <Onyx>
         }
     }
+
+    // <Onyx>
+    private void SetJukeboxVolume(EntityUid uid, JukeboxComponent component, float volume)
+    {
+        component.Volume = volume;
+        Dirty(uid, component);
+    }
+
+    private void ToggleLoop(EntityUid uid, JukeboxComponent component)
+    {
+        component.LoopEnabled = !component.LoopEnabled;
+        Dirty(uid, component);
+    }
+    // </Onyx>
 
     private void OnComponentShutdown(EntityUid uid, JukeboxComponent component, ComponentShutdown args)
     {

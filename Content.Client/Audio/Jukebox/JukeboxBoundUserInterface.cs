@@ -49,9 +49,17 @@ public sealed class JukeboxBoundUserInterface : BoundUserInterface
             SendMessage(new JukeboxStopMessage());
         };
 
+        // <Onyx>
+        _menu.OnLoopToggled += () =>
+        {
+            SendMessage(new JukeboxToggleLoopMessage());
+        };
+        // </Onyx>
+
         _menu.OnSongSelected += SelectSong;
 
         _menu.SetTime += SetTime;
+        _menu.SetVolume += SetVolume; // <Onyx>
         PopulateMusic();
         Reload();
     }
@@ -65,6 +73,8 @@ public sealed class JukeboxBoundUserInterface : BoundUserInterface
             return;
 
         _menu.SetAudioStream(jukebox.AudioStream);
+        _menu.SetVolumeSlider(jukebox.Volume); // <Onyx>
+        _menu.SetLoopButton(jukebox.LoopEnabled); // <Onyx>
 
         if (_protoManager.TryIndex(jukebox.SelectedSongId, out var songProto))
         {
@@ -105,4 +115,25 @@ public sealed class JukeboxBoundUserInterface : BoundUserInterface
 
         SendMessage(new JukeboxSetTimeMessage(sentTime));
     }
+    // <Onyx>
+    /// First applies the volume locally for prediction (if components are available),
+    /// then sends a message to the server for synchronization.
+    /// Uses MapToRange to convert the slider value to the actual audio component volume range.
+    /// </summary>
+    /// <param name="volume">Volume value from the UI slider (typically from 0 to 1).</param>
+
+    public void SetVolume(float volume)
+    {
+        var sentVolume = volume;
+
+        // Prediction
+        if (EntMan.TryGetComponent(Owner, out JukeboxComponent? jukebox) &&
+            EntMan.TryGetComponent(jukebox.AudioStream, out AudioComponent? audioComp))
+        {
+            audioComp.Volume = SharedJukeboxSystem.MapToRange(volume, jukebox.MinSlider, jukebox.MaxSlider, jukebox.MinVolume, jukebox.MaxVolume);
+        }
+
+        SendMessage(new JukeboxSetVolumeMessage(sentVolume));
+    }
+    // </Onyx>
 }
