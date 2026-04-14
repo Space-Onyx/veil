@@ -3,10 +3,12 @@
  * https://github.com/space-wizards/space-station-14/blob/master/LICENSE.TXT
  */
 
+using System.Numerics;
 using Content.Server.GameTicking;
 using Content.Server._Onyx.ZLevels.Core.Components;
 using Content.Shared._Onyx.ZLevels.Core.Components;
 using Content.Shared._Onyx.ZLevels.Core.EntitySystems;
+using Content.Shared._Utopia.ZLevels.Components;
 using Content.Shared.DeviceLinking;
 using Robust.Server.GameObjects;
 using Content.Server.Station.Components;
@@ -19,6 +21,7 @@ using Robust.Shared.EntitySerialization.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Map.Events;
+using Robust.Shared.Physics;
 using Robust.Shared.Timing;
 
 namespace Content.Server._Onyx.ZLevels.Core;
@@ -34,6 +37,14 @@ public sealed partial class CEZLevelsSystem : CESharedZLevelsSystem
     [Dependency] private readonly ZLevelTransmissionSystem _zTransmission = default!;
     [Dependency] private readonly ZLevelGridAtmosSystem _zLevelGridAtmos = default!;
     [Dependency] private readonly SharedDeviceLinkSystem _deviceLink = default!;
+    private readonly List<PendingZNetworkInit> _pendingInits = new();
+
+    private sealed class PendingZNetworkInit
+    {
+        public EntityUid MainMapUid;
+        public List<MapId> SubMapsToInit = new();
+        public Dictionary<EntityUid, int> AllMaps = new();
+    }
 
     public override void Initialize()
     {
@@ -49,6 +60,7 @@ public sealed partial class CEZLevelsSystem : CESharedZLevelsSystem
     {
         base.Update(frameTime);
 
+        ProcessPendingMapInits();
         UpdateView(frameTime);
     }
 
@@ -147,16 +159,20 @@ public sealed partial class CEZLevelsSystem : CESharedZLevelsSystem
 
         TryAddMapsIntoZNetwork(stationNetwork, dict);
 
-        foreach (var mapId in mapsToInit)
+        if (_map.IsInitialized(mainMap.Value))
         {
-            _map.InitializeMap(mapId, unpause: true);
+            InitializeSubMaps(mapsToInit, dict);
         }
-
-        var mapSet = new HashSet<EntityUid>(dict.Keys);
-        StabilizeZPhysicsAfterMapInit(mapSet);
-        _zTransmission.RefreshTransmittersOnMaps(mapSet);
-
-        RestoreCrossMapDeviceLinks(dict);
+        else
+        {
+            Log.Info($"Main map {mainMap.Value} is not yet initialized. Deferring Z-level sub-map initialization.");
+            _pendingInits.Add(new PendingZNetworkInit
+            {
+                MainMapUid = mainMap.Value,
+                SubMapsToInit = mapsToInit,
+                AllMaps = dict,
+            });
+        }
     }
 
     private void OnGameMapLoad(PostGameMapLoad ev)
@@ -214,16 +230,128 @@ public sealed partial class CEZLevelsSystem : CESharedZLevelsSystem
 
         TryAddMapsIntoZNetwork(stationNetwork, dict);
 
+        if (_map.IsInitialized(mainMap))
+        {
+            InitializeSubMaps(mapsToInit, dict);
+        }
+        else
+        {
+            Log.Info($"Main map {mainMap} is not yet initialized. Deferring Z-level sub-map initialization.");
+            _pendingInits.Add(new PendingZNetworkInit
+            {
+                MainMapUid = mainMap,
+                SubMapsToInit = mapsToInit,
+                AllMaps = dict,
+            });
+        }
+    }
+
+    private void ProcessPendingMapInits()
+    {
+        if (_pendingInits.Count == 0)
+            return;
+
+        for (var i = _pendingInits.Count - 1; i >= 0; i--)
+        {
+            var pending = _pendingInits[i];
+            if (!_map.IsInitialized(pending.MainMapUid))
+                continue;
+
+            _pendingInits.RemoveAt(i);
+            Log.Info($"Main map {pending.MainMapUid} initialized. Initializing {pending.SubMapsToInit.Count} deferred Z-level sub-maps.");
+            InitializeSubMaps(pending.SubMapsToInit, pending.AllMaps);
+        }
+    }
+
+    private void InitializeSubMaps(List<MapId> mapsToInit, Dictionary<EntityUid, int> allMaps)
+    {
         foreach (var mapId in mapsToInit)
         {
             _map.InitializeMap(mapId, unpause: true);
         }
 
-        var mapSet = new HashSet<EntityUid>(dict.Keys);
+        AlignLinkedGridsToRoot(allMaps);
+
+        var mapSet = new HashSet<EntityUid>(allMaps.Keys);
         StabilizeZPhysicsAfterMapInit(mapSet);
         _zTransmission.RefreshTransmittersOnMaps(mapSet);
 
-        RestoreCrossMapDeviceLinks(dict);
+        RestoreCrossMapDeviceLinks(allMaps);
+    }
+
+    public void AlignLinkedGridsToRoot(Dictionary<EntityUid, int> allMaps)
+    {
+        AlignLinkedGridsToRoot(new HashSet<EntityUid>(allMaps.Keys));
+    }
+
+    public void AlignLinkedGridsToRoot(HashSet<EntityUid> networkMapUids)
+    {
+
+        var groups = new Dictionary<string, List<Entity<GridMotionLinkComponent, TransformComponent>>>();
+
+        var query = EntityQueryEnumerator<GridMotionLinkComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out var link, out var xform))
+        {
+            if (string.IsNullOrEmpty(link.GroupId))
+                continue;
+
+            if (xform.MapUid is not { } mapUid || !networkMapUids.Contains(mapUid))
+                continue;
+
+            if (!groups.TryGetValue(link.GroupId, out var list))
+            {
+                list = new List<Entity<GridMotionLinkComponent, TransformComponent>>();
+                groups[link.GroupId] = list;
+            }
+
+            list.Add((uid, link, xform));
+        }
+
+        foreach (var (_, grids) in groups)
+        {
+            EntityUid rootUid = default;
+            var bestTiles = -1;
+
+            foreach (var (uid, link, _) in grids)
+            {
+                if (link.ForceRoot)
+                {
+                    rootUid = uid;
+                    break;
+                }
+
+                if (!TryComp<MapGridComponent>(uid, out var gridComp))
+                    continue;
+
+                var count = 0;
+                var tileEnum = _map.GetAllTilesEnumerator(uid, gridComp, ignoreEmpty: true);
+                while (tileEnum.MoveNext(out _))
+                    count++;
+
+                if (count > bestTiles)
+                {
+                    bestTiles = count;
+                    rootUid = uid;
+                }
+            }
+
+            if (!rootUid.Valid)
+                continue;
+
+            var rootPos = _transform.GetWorldPosition(rootUid);
+            var rootRot = _transform.GetWorldRotation(rootUid);
+            var q = new Quaternion2D(rootRot);
+
+            foreach (var (uid, link, _) in grids)
+            {
+                if (uid == rootUid)
+                    continue;
+
+                var newPos = rootPos + Quaternion2D.RotateVector(q, link.Offset);
+                _transform.SetWorldPosition(uid, newPos);
+                _transform.SetWorldRotation(uid, rootRot);
+            }
+        }
     }
 
     #region Cross-Map Device Links // <Onyx-Tweak>
