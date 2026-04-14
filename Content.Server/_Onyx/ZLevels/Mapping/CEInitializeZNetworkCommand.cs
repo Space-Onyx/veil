@@ -87,14 +87,15 @@ public sealed class CEInitializeZNetworkCommand : LocalizedEntityCommands
             shell.WriteLine($"Map with ID {mapComp.MapId} has been initialized.");
         }
 
-        _zLevels.StabilizeZPhysicsAfterMapInit(initializedMaps);
-
         var allNetworkMaps = new HashSet<EntityUid>();
         foreach (var (_, m) in levelComp.ZLevels)
         {
             if (m.HasValue)
                 allNetworkMaps.Add(m.Value);
         }
+
+        _zLevels.AlignLinkedGridsToRoot(allNetworkMaps);
+        _zLevels.StabilizeZPhysicsAfterMapInit(initializedMaps);
         _zTransmission.RefreshTransmittersOnMaps(allNetworkMaps);
     }
 }
