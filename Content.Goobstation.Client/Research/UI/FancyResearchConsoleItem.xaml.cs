@@ -93,20 +93,7 @@ public sealed partial class FancyResearchConsoleItem : LayoutContainer
     // Onyx added
     public void SetFiltered(bool filtered)
     {
-        // Show/hide darkening overlay instead of changing colors
         FilterOverlay.Visible = filtered;
-
-        // Always maintain original colors based on availability
-        (Color, HoveredColor, BorderColor) = Availability switch
-        {
-            ResearchAvailability.Researched => (Color.DarkOliveGreen, Color.PaleGreen, Color.LimeGreen),
-            ResearchAvailability.Available => (Color.FromHex("#7c7d2a"), Color.FromHex("#ecfa52"), Color.FromHex("#e8fa25")),
-            ResearchAvailability.PrereqsMet => (Color.FromHex("#6b572f"), Color.FromHex("#fad398"), Color.FromHex("#cca031")),
-            ResearchAvailability.Unavailable => (Color.DarkRed, Color.PaleVioletRed, Color.Crimson),
-            _ => (Color.DarkRed, Color.PaleVioletRed, Color.Crimson)
-        };
-
-        UpdateColor();
     }
     // Onyx end
 }

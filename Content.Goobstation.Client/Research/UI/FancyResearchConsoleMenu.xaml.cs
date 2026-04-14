@@ -28,7 +28,6 @@ using Robust.Client.UserInterface.XAML;
 using Robust.Shared.Input;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
-using static Robust.Client.Input.Keyboard; // Onyx added
 
 namespace Content.Goobstation.Client.Research.UI;
 
@@ -89,11 +88,12 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
 
     private string? _lastSelectedTechId;
     private DateTime _lastSelectTime;
-    // Onyx added
+    // <Onyx>
     private string _searchText = "";
     private List<(TechnologyPrototype tech, ResearchAvailability availability)> _matchingTechnologies = new();
+    private readonly HashSet<string> _matchingTechIds = new();
     private int _currentMatchIndex = -1;
-    // Onyx end
+    // </Onyx>
 
     // UI Elements (resolved at runtime to avoid dependency on source generator)
     private readonly Control _staticSprite;
@@ -101,7 +101,7 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
     private readonly Control _dragContainer;
     private readonly Button _recenterButton;
     private readonly RichTextLabel _researchAmountLabel;
-    private readonly LineEdit _recipeSearchLineEdit; // Onyx added
+    private readonly LineEdit _recipeSearchLineEdit; // <Onyx>
     private readonly BoxContainer _disciplineTabsContainer;
     private readonly BoxContainer _disciplineProgressContainer;
     private readonly BoxContainer _infoContainer;
@@ -120,7 +120,7 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
         _dragContainer = this.FindControl<Control>("DragContainer");
         _recenterButton = this.FindControl<Button>("RecenterButton");
         _researchAmountLabel = this.FindControl<RichTextLabel>("ResearchAmountLabel");
-        _recipeSearchLineEdit = this.FindControl<LineEdit>("RecipeSearchLineEdit"); // Onyx added
+        _recipeSearchLineEdit = this.FindControl<LineEdit>("RecipeSearchLineEdit"); // <Onyx>
         _disciplineTabsContainer = this.FindControl<BoxContainer>("DisciplineTabsContainer");
         _disciplineProgressContainer = this.FindControl<BoxContainer>("DisciplineProgressContainer");
         _infoContainer = this.FindControl<BoxContainer>("InfoContainer");
@@ -140,10 +140,10 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
         _dragContainer.OnKeyBindDown += OnKeybindDown;
         _dragContainer.OnKeyBindUp += OnKeybindUp;
         _recenterButton.OnPressed += _ => Recenter();
-        // Onyx added
+        // <Onyx>
         _recipeSearchLineEdit.OnTextChanged += OnSearchTextChanged;
         _recipeSearchLineEdit.OnTextEntered += OnSearchTextEntered;
-        // Onyx end
+        // </Onyx>
 
         UpdatePanels(List);
         Recenter();
@@ -155,8 +155,7 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
     public void UpdatePanels(Dictionary<string, ResearchAvailability> list)
     {
         List = list;
-        
-        // Group technologies by discipline
+
         _technologiesByDiscipline.Clear();
         foreach (var techProto in _prototype.EnumeratePrototypes<TechnologyPrototype>())
         {
@@ -166,11 +165,10 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
             }
             _technologiesByDiscipline[techProto.Discipline].Add(techProto);
         }
-        
+
         UpdateInformationPanel(Points);
         UpdateDisciplineTabs();
-        
-        // Update visible technologies based on selected discipline
+
         if (_selectedDiscipline != null)
         {
             UpdateActiveTab(_selectedDiscipline);
@@ -181,8 +179,7 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
     {
         Points = points;
         _researchAmountLabel.SetMessage(Loc.GetString("research-console-menu-research-points-text", ("points", Points)));
-        
-        // Update progress for all disciplines
+
         if (_entity.TryGetComponent<TechnologyDatabaseComponent>(Entity, out var database))
         {
             foreach (var (disciplineId, (_, progressControl)) in _disciplineControls)
@@ -193,37 +190,33 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
             }
         }
     }
-    
+
     private void UpdateDisciplineTabs()
     {
         if (!_entity.TryGetComponent<TechnologyDatabaseComponent>(Entity, out var database))
             return;
-            
-        // Clear existing tabs and progress controls
+
         _disciplineTabsContainer.RemoveAllChildren();
         _disciplineProgressContainer.RemoveAllChildren();
         _disciplineControls.Clear();
-        
-        // Create a tab and progress control for each discipline
+
         foreach (var disciplineId in database.SupportedDisciplines)
         {
             var discipline = _prototype.Index<TechDisciplinePrototype>(disciplineId);
             var percentage = _research.GetTierCompletionPercentage(database, discipline, _prototype);
-            
-            // Create tab button
+
             var tabButton = new Button
             {
                 Text = Loc.GetString(discipline.Name),
                 ToggleMode = true,
                 MinWidth = 0,
-                MinHeight = 46, // Onyx edited
+                MinHeight = 46, // <Onyx Edited>
                 HorizontalExpand = true,
                 SizeFlagsStretchRatio = 1,
                 Margin = new Thickness(2)
             };
-            // Onyx edited
+            // <Onyx Edited>
 
-            // Wrap tab button in StripeBack like crew monitoring station name
             var stripeBack = new StripeBack
             {
                 HorizontalExpand = true,
@@ -235,8 +228,6 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
             var panelContainer = new PanelContainer();
             panelContainer.AddChild(tabButton);
             stripeBack.AddChild(panelContainer);
-            // Onyx end
-            // Create progress control (ICON: PERCENT), left-aligned
             var percentLabel = new Label
             {
                 Text = $"{percentage:0}%",
@@ -270,14 +261,10 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
                 }
             };
 
-            // Store controls
             _disciplineControls[disciplineId] = (tabButton, progressBox);
 
-            // Add to UI
-            _disciplineTabsContainer.AddChild(stripeBack); // Onyx edited
+            _disciplineTabsContainer.AddChild(stripeBack);
             _disciplineProgressContainer.AddChild(progressBox);
-            
-            // Set up tab selection
             tabButton.OnToggled += args =>
             {
                 if (args.Pressed)
@@ -286,16 +273,17 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
                     UpdateActiveTab(disciplineId);
                 }
             };
-            
-            // Select first discipline by default
+
+
             if (_selectedDiscipline == null)
             {
                 tabButton.Pressed = true;
                 _selectedDiscipline = disciplineId;
             }
+            // </Onyx Edited>
         }
     }
-    
+
     private void UpdateDisciplineProgress(string disciplineId, float percentage)
     {
         if (_disciplineControls.TryGetValue(disciplineId, out var controls))
@@ -307,7 +295,7 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
             }
         }
     }
-    
+
     private void UpdateActiveTab(string selectedDisciplineId)
     {
         // Update tab styles and enable/disable based on search results
@@ -320,22 +308,21 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
             {
                 tab.StyleClasses.Add("tab-active");
             }
-            // Onyx added
-            // Disable tab if no technologies in this discipline match the search
-            var hasMatchingTechs = !string.IsNullOrEmpty(_searchText) &&
+            // <Onyx>
+            var hasMatchingTechs = _matchingTechIds.Count > 0 &&
                                    _technologiesByDiscipline.TryGetValue(disciplineId, out var disciplineTechs) &&
-                                   disciplineTechs.Any(tech => MatchesSearchFilter(tech));
+                                   disciplineTechs.Any(tech => _matchingTechIds.Contains(tech.ID));
             tab.Disabled = !string.IsNullOrEmpty(_searchText) && !hasMatchingTechs;
-            // Onyx end
+            // </Onyx>
         }
-        
+
         // Clear existing tech items
         foreach (var item in _techItems)
         {
             _dragContainer.RemoveChild(item);
         }
         _techItems.Clear();
-        
+
         // Add technologies for selected discipline
         if (_technologiesByDiscipline.TryGetValue(selectedDisciplineId, out var technologies))
         {
@@ -346,11 +333,10 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
 
                 var techItem = new FancyResearchConsoleItem(techProto, _sprite, availability);
                 techItem.SelectAction += (p, a) => SelectTech(p, a);
-                // Onyx edited
-                // Apply search filtering
-                var isFiltered = !string.IsNullOrEmpty(_searchText) && !MatchesSearchFilter(techProto);
+                // </Onyx>
+                var isFiltered = !string.IsNullOrEmpty(_searchText) && !_matchingTechIds.Contains(techProto.ID);
                 techItem.SetFiltered(isFiltered);
-                // Onyx end
+                // <Onyx>
                 // Position the technology in the research tree
                 var pos = techProto.Position * 150 * _zoom;
                 LayoutContainer.SetPosition(techItem, _position + pos);
@@ -360,14 +346,12 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
                 _techItems.Add(techItem);
             }
         }
-        
+
         // Don't auto-recenter to preserve user's scroll/zoom position
 
         // Force UI update to ensure search results are displayed immediately
         _dragContainer.InvalidateMeasure();
     }
-
-    
 
     #region Drag handle
     protected override void MouseMove(GUIMouseMoveEventArgs args)
@@ -435,7 +419,7 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
     protected override DragMode GetDragModeFor(Vector2 relativeMousePos)
         => _draggin ? DragMode.None : base.GetDragModeFor(relativeMousePos);
     #endregion
-    // Onyx added
+    // <Onyx>
     private void OnSearchTextChanged(LineEdit.LineEditEventArgs args)
     {
         _searchText = args.Text.ToLowerInvariant();
@@ -453,6 +437,13 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
         {
             _currentMatchIndex = (_currentMatchIndex + 1) % _matchingTechnologies.Count;
             var (tech, availability) = _matchingTechnologies[_currentMatchIndex];
+
+            if (_selectedDiscipline! != tech.Discipline)
+            {
+                _selectedDiscipline = tech.Discipline;
+                UpdateActiveTab(tech.Discipline);
+            }
+
             SelectTech(tech, availability);
         }
     }
@@ -460,6 +451,10 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
     private void UpdateMatchingTechnologies()
     {
         _matchingTechnologies.Clear();
+        _matchingTechIds.Clear();
+
+        if (string.IsNullOrEmpty(_searchText))
+            return;
 
         foreach (var (_, technologies) in _technologiesByDiscipline)
         {
@@ -471,11 +466,11 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
                 if (MatchesSearchFilter(tech))
                 {
                     _matchingTechnologies.Add((tech, availability));
+                    _matchingTechIds.Add(tech.ID);
                 }
             }
         }
 
-        // Sort by technology ID for consistent ordering
         _matchingTechnologies.Sort((a, b) => string.Compare(a.tech.ID, b.tech.ID, StringComparison.Ordinal));
     }
 
@@ -485,15 +480,12 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
         if (string.IsNullOrEmpty(_searchText))
             return true;
 
-        // Check technology name
         var techName = Loc.GetString(techProto.Name).ToLowerInvariant();
         if (techName.Contains(_searchText))
             return true;
 
-        // Check if any of the recipes unlocked by this technology contain the search text
         foreach (var recipeId in techProto.RecipeUnlocks)
         {
-            // Search by recipe result name (the actual item/machine being crafted)
             var recipe = _prototype.Index(recipeId);
             if (recipe.Result is {} resultId)
             {
@@ -501,13 +493,8 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
                 var resultNameString = resultProto.Name?.ToString();
                 if (!string.IsNullOrEmpty(resultNameString))
                 {
-                    // Try localized result name
                     var localizedResultName = Loc.GetString(resultNameString).ToLowerInvariant();
                     if (localizedResultName.Contains(_searchText))
-                        return true;
-
-                    // Also try direct result name if different
-                    if (resultNameString.ToLowerInvariant().Contains(_searchText))
                         return true;
                 }
             }
@@ -515,7 +502,7 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
 
         return false;
     }
-    // Onyx end
+    // </Onyx>
 
     /// <summary>
     /// Selects a tech prototype and opens info panel
@@ -572,10 +559,10 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
     public override void Close()
     {
         base.Close();
-        // Onyx added
+        // <Onyx>
         _recipeSearchLineEdit.OnTextChanged -= OnSearchTextChanged;
         _recipeSearchLineEdit.OnTextEntered -= OnSearchTextEntered;
-        // Onyx end
+        // </Onyx>
 
         foreach (var item in _techItems)
         {
