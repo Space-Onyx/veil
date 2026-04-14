@@ -113,6 +113,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System.Numerics;
+using Content.Shared._Onyx.Bed.Systems;
 using Content.Shared.Alert;
 using Content.Shared.Whitelist;
 using Robust.Shared.Audio;
@@ -123,7 +124,7 @@ using Robust.Shared.Serialization;
 namespace Content.Shared.Buckle.Components;
 
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
-[Access(typeof(SharedBuckleSystem))]
+[Access(typeof(SharedBuckleSystem), typeof(DoubleBedSystem))] // <Onyx-Double bed>
 public sealed partial class StrapComponent : Component
 {
     /// <summary>
@@ -156,6 +157,14 @@ public sealed partial class StrapComponent : Component
     /// </summary>
     [DataField, AutoNetworkedField]
     public Vector2 BuckleOffset = Vector2.Zero;
+
+    // <Onyx-Double bed>
+    /// <summary>
+    /// Per-entity buckle offsets keyed by buckled entity.
+    /// </summary>
+    [DataField, AutoNetworkedField]
+    public Dictionary<EntityUid, Vector2> BuckleOffsets = new();
+    // </Onyx-Double bed>
 
     /// <summary>
     /// The angle to rotate the player by when they get strapped
