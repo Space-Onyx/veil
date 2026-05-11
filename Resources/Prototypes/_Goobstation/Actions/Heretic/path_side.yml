@@ -28,7 +28,8 @@
     event: !type:EventHereticIceSpear
   - type: HereticAction
     requireMagicItem: true
-    messageLoc: heretic-speech-ice-spear
+  - type: SpeakOnAction
+    sentence: heretic-speech-ice-spear
   - type: IceSpearAction
 
 - type: entity
@@ -53,4 +54,5 @@
     event: !type:EventHereticCleave
   - type: HereticAction
     requireMagicItem: true
-    messageLoc: heretic-speech-cleave
+  - type: SpeakOnAction
+    sentence: heretic-speech-cleave

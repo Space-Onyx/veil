@@ -251,7 +251,7 @@ public sealed class GhostUIController : UIController, IOnSystemChanged<GhostSyst
     {
         _net.SendSystemNetworkMessage(new ThunderdomeJoinRequestEvent());
     }
-    
+
     // <Onyx-Ghost>
     private void ReturnToLobbyPressed()
     {

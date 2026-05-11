@@ -21,8 +21,8 @@
       connections:
       - chest
       organs:
-        brain: OrganHumanBrain
-        eyes: OrganHumanEyes
+        brain: OrganResomiBrain # CorvaxGoob resprite
+        eyes: OrganResomiEyes # CorvaxGoob resprite
         tongue: OrganHumanTongue # Onyx-Surgery
     chest:
       part: ChestResomi
@@ -32,8 +32,8 @@
       - left arm
       - head # Shitmed Change
       organs:
-        heart: OrganHumanHeart
-        lungs: OrganHumanLungs
+        heart: OrganResomiHeart # CorvaxGoob resprite
+        lungs: OrganResomiLungs # CorvaxGoob resprite
     groin:
       part: GroinResomi
       connections:
@@ -41,8 +41,8 @@
       - left leg
       organs:
         stomach: OrganResomiStomach # Goobstation - classic furries can eat everything except chocolate :)
-        liver: OrganHumanLiver
-        kidneys: OrganHumanKidneys
+        liver: OrganResomiLiver # CorvaxGoob resprite
+        kidneys: OrganResomiKidneys # CorvaxGoob resprite
     right arm:
       part: RightArmResomi
       connections:

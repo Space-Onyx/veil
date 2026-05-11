@@ -161,6 +161,7 @@
     - ActionAIViewLaws
     - ActionOpenRemoteDevicesMenu # Corvax-Next-AiRemoteControl
     - ActionOpenCameraWarpMenu # Goobstation-Ai-Camera-Jumping
+    - ActionOpenPDA # CorvaxGoob-AiPDA
   - type: UserInterface
     interfaces:
       enum.RadarConsoleUiKey.Key:
@@ -318,6 +319,11 @@
   - type: ContainerComp
     proto: AiHeld
     container: station_ai_mind_slot
+  - type: ContainerContainer # CorvaxGoob-StationAiPda
+    containers:
+      station_ai_pda: !type:ContainerSlot
+      station_ai_mind_slot: !type:ContainerSlot
+        showEnts: True
   - type: Destructible
     thresholds:
     - trigger:
@@ -334,6 +340,7 @@
     needsPower: false
   - type: StationAiCore
   - type: StationAiVision
+  - type: StationAiEarlyLeave # Goobstation
   - type: InteractionOutline
   - type: Sprite
     sprite: Mobs/Silicon/station_ai.rsi

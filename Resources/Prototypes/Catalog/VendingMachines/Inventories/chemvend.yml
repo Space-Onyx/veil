@@ -46,33 +46,6 @@
     ChemistryBottleLead: 2
   emaggedInventory: # Goobsation
     VestineChemistryVial: 1
-  prices:
-    Jug: 18
-    JugAluminium: 30
-    JugCarbon: 30
-    JugChlorine: 30
-    JugCopper: 30
-    JugEthanol: 30
-    JugFluorine: 30
-    JugHydrogen: 30
-    JugIodine: 30
-    JugIron: 30
-    JugLithium: 30
-    JugMercury: 30
-    JugNitrogen: 30
-    JugOxygen: 30
-    JugPhosphorus: 30
-    JugPotassium: 30
-    JugRadium: 30
-    JugSilicon: 30
-    JugSodium: 30
-    JugSugar: 30
-    JugSulfur: 30
-    DrinkLithiumFlask: 20
-    StrangePill: 6
-    ChemistryBottleToxin: 30
-    ChemistryBottleLead: 30
-    VestineChemistryVial: 50
 
 - type: vendingMachineInventory
   id: ChemVendInventorySyndicate

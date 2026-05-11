@@ -101,8 +101,8 @@
       collection: MaleDeathGasp
     Gulp: # Goob
       path: /Audio/_Goobstation/Voice/Human/gulp.ogg
-    Surprised: # Goob
-      path: /Audio/_Goobstation/Voice/surprised.ogg
+    # Surprised: # Goob Commented by CorvaxGoob
+      # path: /Audio/_Goobstation/Voice/surprised.ogg
 
 - type: emoteSounds
   id: FemaleHuman
@@ -147,8 +147,8 @@
       collection: FemaleDeathGasp
     Gulp: # Goob
       path: /Audio/_Goobstation/Voice/Human/gulp.ogg
-    Surprised: # Goob
-      path: /Audio/_Goobstation/Voice/surprised.ogg
+    # Surprised: # Goob Commented by CorvaxGoob
+      # path: /Audio/_Goobstation/Voice/surprised.ogg
 
 - type: emoteSounds ## GOOB CONTENT START
   id: MonkeyMode
@@ -227,8 +227,14 @@
     # Floof end
     Gulp: # Goob
       path: /Audio/_Goobstation/Voice/gulpexotic.ogg
-    Surprised: # Goob
-      path: /Audio/_Goobstation/Voice/surprised.ogg
+    # Surprised: # Goob Commented by CorvaxGoob
+      # path: /Audio/_Goobstation/Voice/surprised.ogg
+    Sigh: # Goob
+      collection: MaleSigh
+    Cough: # Goob
+      collection: MaleCoughs
+    Yawn: # Goob
+      collection: MaleYawn
 
 - type: emoteSounds
   id: FemaleReptilian
@@ -263,8 +269,14 @@
     # Floof end
     Gulp: # Goob
       path: /Audio/_Goobstation/Voice/gulpexotic.ogg
-    Surprised: # Goob
-      path: /Audio/_Goobstation/Voice/surprised.ogg
+    # Surprised: # Goob Commented by CorvaxGoob
+      # path: /Audio/_Goobstation/Voice/surprised.ogg
+    Sigh: # Goob
+      collection: FemaleSigh
+    Cough: # Goob
+      collection: FemaleCoughs
+    Yawn: # Goob
+      collection: FemaleYawn
 
 - type: emoteSounds
   id: MaleSlime
@@ -313,8 +325,8 @@
       collection: MaleDeathGasp
     Gulp: # Goob
       path: /Audio/_Goobstation/Voice/gulpexotic.ogg
-    Surprised: # Goob
-      path: /Audio/_Goobstation/Voice/surprised.ogg
+    # Surprised: # Goob Commented by CorvaxGoob
+      # path: /Audio/_Goobstation/Voice/surprised.ogg
   params:
     variation: 0.125
 
@@ -365,8 +377,8 @@
       collection: FemaleDeathGasp
     Gulp: # Goob
       path: /Audio/_Goobstation/Voice/gulpexotic.ogg
-    Surprised: # Goob
-      path: /Audio/_Goobstation/Voice/surprised.ogg
+    # Surprised: # Goob Commented by CorvaxGoob
+      # path: /Audio/_Goobstation/Voice/surprised.ogg
   params:
     variation: 0.125
 
@@ -449,8 +461,8 @@
       collection: DeathGasp
     Gulp: # Goob
       path: /Audio/_Goobstation/Voice/gulpexotic.ogg
-    Surprised: # Goob
-      path: /Audio/_Goobstation/Voice/surprised.ogg
+    # Surprised: # Goob Commented by CorvaxGoob
+      # path: /Audio/_Goobstation/Voice/surprised.ogg
     Crying: #goob
       collection: Dionacry
     Whistle: #goob
@@ -489,8 +501,8 @@
       collection: MaleGasp
     DefaultDeathgasp:
       collection: DeathGasp
-    Surprised: # Goob
-      path: /Audio/_Goobstation/Voice/surprised.ogg
+    # Surprised: # Goob Commented by CorvaxGoob
+      # path: /Audio/_Goobstation/Voice/surprised.ogg
     Gulp: # Goob
       path: /Audio/_Goobstation/Voice/gulpexotic.ogg
 
@@ -535,8 +547,8 @@
       collection: MaleDeathGasp
     Gulp: # Goob
       path: /Audio/_Goobstation/Voice/Human/gulp.ogg
-    Surprised: # Goob
-      path: /Audio/_Goobstation/Voice/surprised.ogg
+    # Surprised: # Goob Commented by CorvaxGoob
+      # path: /Audio/_Goobstation/Voice/surprised.ogg
   params:
     variation: 0.125
     pitch: 0.75
@@ -582,8 +594,8 @@
       collection: FemaleDeathGasp
     Gulp: # Goob
       path: /Audio/_Goobstation/Voice/Human/gulp.ogg
-    Surprised: # Goob
-      path: /Audio/_Goobstation/Voice/surprised.ogg
+    # Surprised: # Goob Commented by CorvaxGoob
+      # path: /Audio/_Goobstation/Voice/surprised.ogg
   params:
     variation: 0.125
     pitch: 0.75
@@ -619,8 +631,8 @@
       path: /Audio/_Goobstation/Voice/Moth/moth_flap.ogg
     Gulp: # Goob
       path: /Audio/_Goobstation/Voice/gulpexotic.ogg
-    Surprised: # Goob
-      path: /Audio/_Goobstation/Voice/surprised.ogg
+    # Surprised: # Goob Commented by CorvaxGoob
+      # path: /Audio/_Goobstation/Voice/surprised.ogg
     RobotBeep:
       collection: RobotBeeps
     Yawn:
@@ -669,8 +681,8 @@
       path: /Audio/_Goobstation/Voice/Moth/moth_flap.ogg
     Gulp: # Goob
       path: /Audio/_Goobstation/Voice/gulpexotic.ogg
-    Surprised: # Goob
-      path: /Audio/_Goobstation/Voice/surprised.ogg
+    # Surprised: # Goob Commented by CorvaxGoob
+      # path: /Audio/_Goobstation/Voice/surprised.ogg
     RobotBeep:
       collection: RobotBeeps
     Yawn:
@@ -719,8 +731,8 @@
       path: /Audio/_Goobstation/Voice/Moth/moth_flap.ogg
     Gulp: # Goob
       path: /Audio/_Goobstation/Voice/gulpexotic.ogg
-    Surprised: # Goob
-      path: /Audio/_Goobstation/Voice/surprised.ogg
+    # Surprised: # Goob Commented by CorvaxGoob
+      # path: /Audio/_Goobstation/Voice/surprised.ogg
     RobotBeep:
       collection: RobotBeeps
     Yawn:
@@ -783,8 +795,8 @@
       path: /Audio/_EinsteinEngines/Voice/IPC/pai_whistle.ogg
       params:
         variation: 0.125
-    Surprised: # Goob
-      path: /Audio/_Goobstation/Voice/surprised.ogg
+    # Surprised: # Goob Commented by CorvaxGoob
+      # path: /Audio/_Goobstation/Voice/surprised.ogg
 
 - type: emoteSounds
   id: UnisexSiliconSyndicate
@@ -823,8 +835,8 @@
       path: /Audio/_EinsteinEngines/Voice/IPC/pai_whistle.ogg
       params:
         variation: 0.125
-    Surprised: # Goob
-      path: /Audio/_Goobstation/Voice/surprised.ogg
+    # Surprised: # Goob Commented by CorvaxGoob
+      # path: /Audio/_Goobstation/Voice/surprised.ogg
 
 - type: emoteSounds
   id: UnisexSiliconXenoborg
@@ -860,8 +872,8 @@
       path: /Audio/Voice/Xenoborg/xenoborg_chime.ogg
       params:
         variation: 0.125
-    Surprised: # Goob
-      path: /Audio/_Goobstation/Voice/surprised.ogg
+    # Surprised: # Goob Commented by CorvaxGoob
+      # path: /Audio/_Goobstation/Voice/surprised.ogg
 
 # body emotes
 - type: emoteSounds

@@ -135,7 +135,6 @@
   - CaptainEnvirohelm
   - CaptainEnvirosuit
   - CaptainEnvirogloves
-  - CaptainGloves
   # ADT underwear tweak start
   - ADTTopCap
   - ADTBottomCap
@@ -168,6 +167,8 @@
   - ADTSocks
   # ADT underwear tweak end
 
+
+# Silicons
 - type: roleLoadout
   id: JobBorg
   nameDataset: NamesBorg

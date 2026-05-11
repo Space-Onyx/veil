@@ -18,7 +18,8 @@
     event: !type:EventHereticCosmicRune
   - type: HereticAction
     requireMagicItem: true
-    messageLoc: heretic-speech-cosmic-rune
+  - type: SpeakOnAction
+    sentence: heretic-speech-cosmic-rune
   - type: HereticCosmicRuneAction
 
 - type: entity
@@ -62,7 +63,8 @@
     event: !type:EventHereticStarBlast
   - type: HereticAction
     requireMagicItem: true
-    messageLoc: heretic-speech-star-blast
+  - type: SpeakOnAction
+    sentence: heretic-speech-star-blast
   - type: StarBlastAction
 
 - type: entity
@@ -85,7 +87,8 @@
     event: !type:EventHereticCosmicExpansion
   - type: HereticAction
     requireMagicItem: true
-    messageLoc: heretic-speech-cosmic-expansion
+  - type: SpeakOnAction
+    sentence: heretic-speech-cosmic-expansion
 
 - type: entity
   id: ActionStarGaze
@@ -104,7 +107,8 @@
   - type: InstantAction
     event: !type:StarGazeEvent
   - type: HereticAction
-    messageLoc: heretic-speech-stargaze
+  - type: SpeakOnAction
+    sentence: heretic-speech-stargaze
 
 - type: entity
   id: ActionResetStarGazerConsciousness

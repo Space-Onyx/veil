@@ -165,7 +165,7 @@
   id: RingBase
   components:
   - type: Clothing
-    slots: [ ring, neck ]
+    slots: [ gloves, neck ]
   - type: Sprite
     sprite: Clothing/Hands/Rings/basic.rsi
   - type: Appearance
@@ -179,10 +179,9 @@
   abstract: true
   id: GoldRingBase
   components:
-  # <Onyx>
-  - type: SlotBlock
-    slots: [gloves]
-  # </Onyx>
+  - type: PhysicalComposition #Goobstation
+    materialComposition:
+      Gold: 200
   - type: StaticPrice
     price: 300
 
@@ -192,10 +191,6 @@
   name: silver ring
   description: Looks slightly less valuable than a gold one.
   components:
-  # <Onyx>
-    - type: SlotBlock
-      slots: [gloves]
-  # </Onyx>
     - type: PhysicalComposition
       materialComposition:
         Silver: 200 # 2 bars

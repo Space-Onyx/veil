@@ -122,8 +122,9 @@ public partial class InventorySystem
         SubscribeLocalEvent<InventoryComponent, BeforeEmoteEvent>(RelayInventoryEvent);
         SubscribeLocalEvent<InventoryComponent, TransformSpeakerBarkEvent>(RelayInventoryEvent); // ADT Barks
 
-        // CorvaxGoob-TTS
+        // CorvaxGoob
         SubscribeLocalEvent<InventoryComponent, TransformSpeakerVoiceEvent>(RelayInventoryEvent);
+        SubscribeLocalEvent<InventoryComponent, CoefficientStaminaQueryEvent>(RelayInventoryEvent);
 
         // by-ref events
         SubscribeLocalEvent<InventoryComponent, RefreshFrictionModifiersEvent>(RefRelayInventoryEvent);

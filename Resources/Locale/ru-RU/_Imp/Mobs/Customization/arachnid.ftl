@@ -75,20 +75,36 @@ marking-ArachnidLLegSegments = Сегментированная нога (лев
 marking-ArachnidLLegSegments-segments1 = Бедро
 marking-ArachnidLLegSegments-segments2 = Голень
 
-# LFoot
+# UndergarmentBottom
 
+# UndergarmentTop
+
+marking-UndergarmentTopBinderA = Биндер
+marking-UndergarmentTopBinderA-binder = Биндер
+marking-UndergarmentTopTanktopA = Майка
+marking-UndergarmentTopTanktopA-tanktop = Майка
+marking-UndershirtBraSportsA = Спортивный бюстгальтер
+marking-UndershirtBraSportsA-sports = Бюстгальтер
+marking-UndershirtBraStraplessA = Бюстгальтер без бретелек
+marking-UndershirtBraStraplessA-strapless = Бюстгальтер
+marking-UndershirtDefaultA = Майка (под одежду)
+marking-UndershirtDefaultA-undershirt = Майка
+marking-UndershirtGrossSleevelessA = Майка (грязная)
+marking-UndershirtGrossSleevelessA-grosssleeveless = Майка
+marking-UndershirtNanotrasenA = Майка (NanoTrasen)
+marking-UndershirtNanotrasenA-nanotrasen = Майка
+marking-UndershirtRolledA = Майка (короткая)
+marking-UndershirtRolledA-rolledundershirt = Майка
+
+# LFoot
 
 # RFoot
 
-
 # LHand
-
 
 # RHand
 
-
 # FacialHair
-
 
 # Hair
 
@@ -102,7 +118,6 @@ marking-ArachnidCheliceraeSmall = Малые хелицеры
 marking-ArachnidCheliceraeSmall-small = Хелицеры
 
 # HeadTop
-
 
 # Tail
 

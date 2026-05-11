@@ -69,19 +69,6 @@
     species:
     - Plasmaman
 
-- type: loadout # Goobstation - Ensembles
-  id: SalvageEspecialistEnsemble
-  equipment:
-    neck: ClothingNeckEnsembleSalvager
-  effects:
-  - !type:GroupLoadoutEffect
-    proto: GrandMasterSalvageSpecialist
-
-- type: startingGear # Goobstation - Ensembles
-  id: SalvageEspecialistEnsemble
-  equipment:
-    neck: ClothingNeckEnsembleSalvager
-
 # Salvage
 - type: loadout
   id: SalvageSpecialistJumpsuit
