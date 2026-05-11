@@ -83,7 +83,7 @@ public sealed class ZCeilingPrySystem : EntitySystem
         if (!ent.Comp.CeilingMode)
             return;
 
-        if (args.Target != null)
+        if (args.Target != null && IsTargetBlockingCeilingAccess(args.Target.Value))
             return;
 
         if (!args.CanReach)
@@ -273,6 +273,18 @@ public sealed class ZCeilingPrySystem : EntitySystem
             }
         }
 
+        return false;
+    }
+    private bool IsTargetBlockingCeilingAccess(EntityUid target)
+    {
+        if (!_fixturesQuery.TryComp(target, out var fixtures))
+            return false;
+
+        foreach (var fixture in fixtures.Fixtures.Values)
+        {
+            if ((fixture.CollisionLayer & (int) CollisionGroup.Impassable) != 0)
+                return true;
+        }
         return false;
     }
 }
