@@ -94,6 +94,7 @@ neuro-interface-status-tooltip-deactivated = Аугмент деактивиро
 neuro-interface-status-tooltip-no-power = Аугмент не активен, отсутствует питание.
 
 neuro-interface-modules-label = Модули:
+neuro-interface-submodules-label = Подмодули:
 neuro-interface-module-line = {$slot}: {$name}
 
 augment-modules-slot-neuro-interface-capacity = нейро-лимит

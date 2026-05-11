@@ -95,6 +95,7 @@ neuro-interface-status-tooltip-deactivated = Implant is deactivated.
 neuro-interface-status-tooltip-no-power = Implant is inactive: insufficient power.
 
 neuro-interface-modules-label = Modules:
+neuro-interface-submodules-label = Submodules:
 neuro-interface-module-line = {$slot}: {$name}
 
 augment-modules-slot-neuro-interface-capacity = neuro-capacity module slot
@@ -103,9 +104,9 @@ augment-modules-slot-neuro-interface-cyberdeck = cyberdeck module slot
 augment-modules-slot-cyberdeck-program = program slot
 augment-modules-slot-cyberdeck-ram = RAM module slot
 
-ent-AugmentModuleCyberDeck = NanoTrasen «Pulsar»
+ent-AugmentModuleCyberDeck = NanoTrasen Â«PulsarÂ»
     .desc = A cyberdeck for the neuro-interface. Provides slots for program modules.
-ent-AugmentModuleCyberDeckInterdyne = Interdyne «Fallen»
+ent-AugmentModuleCyberDeckInterdyne = Interdyne Â«FallenÂ»
     .desc = A cyberdeck for the neuro-interface. Provides slots for program modules.
 ent-AugmentModuleCyberDeckRam = cyberdeck RAM module
     .desc = A RAM expansion module for the cyberdeck. Increases available memory by 4 units.

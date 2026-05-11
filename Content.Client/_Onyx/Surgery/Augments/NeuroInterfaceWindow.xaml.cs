@@ -801,7 +801,7 @@ public sealed partial class NeuroInterfaceWindow : FancyWindow
         var modules = new BoxContainer
         {
             Orientation = LayoutOrientation.Vertical,
-            SeparationOverride = 0,
+            SeparationOverride = 2,
             Margin = new Thickness(5, 0, 0, 4),
             HorizontalExpand = true,
         };
@@ -860,12 +860,22 @@ public sealed partial class NeuroInterfaceWindow : FancyWindow
             rowContent.AddChild(collapseButton);
         }
 
+        var infoButton = new Button
+        {
+            Text = "?",
+            MinWidth = 20,
+            MinHeight = 20,
+            StyleBoxOverride = GetStatusBackground(status),
+        };
+        infoButton.TooltipSupplier = _ => BuildModuleTooltip(module, description, status);
+        rowContent.AddChild(infoButton);
+
         var line = new Label
         {
             Text = module.Name,
             HorizontalExpand = true,
+            VerticalAlignment = VAlignment.Center,
         };
-        line.TooltipSupplier = _ => BuildModuleTooltip(module, description, status);
         rowContent.AddChild(line);
 
         var row = new PanelContainer
@@ -892,7 +902,7 @@ public sealed partial class NeuroInterfaceWindow : FancyWindow
         var subContainer = new BoxContainer
         {
             Orientation = LayoutOrientation.Vertical,
-            SeparationOverride = 0,
+            SeparationOverride = 2,
             Margin = new Thickness(16, 0, 0, 0),
             HorizontalExpand = true,
         };
@@ -1039,6 +1049,15 @@ public sealed partial class NeuroInterfaceWindow : FancyWindow
             ("slot", module.SlotName),
             ("name", module.Name)));
         AddTooltipText(root, Loc.GetString("neuro-interface-tooltip-description", ("description", description)));
+
+        if (module.SubModules.Count > 0)
+        {
+            AddTooltipText(root, Loc.GetString("neuro-interface-submodules-label"), new Thickness(0, 4, 0, 0));
+            foreach (var subModule in module.SubModules)
+            {
+                AddTooltipText(root, $"• {subModule.Name}", new Thickness(8, 0, 0, 0));
+            }
+        }
 
         AddMetricSection(root, "neuro-interface-tooltip-section-power-passive", module.PassivePowerEntries);
         AddMetricSection(root, "neuro-interface-tooltip-section-power-active", module.ActivePowerEntries);
