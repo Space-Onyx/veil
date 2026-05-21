@@ -71,6 +71,9 @@
   - type: EmitSoundOnUIOpen
     sound:
       collection: Keyboard
+    blacklist:
+      tags:
+      - NoConsoleSound
   - type: LightningTarget
     priority: 1
   - type: Construction
@@ -183,6 +186,9 @@
   - type: EmitSoundOnUIOpen
     sound:
       collection: Keyboard
+    blacklist:
+      tags:
+      - NoConsoleSound
   - type: LightningTarget
     priority: 1
   - type: Structure
