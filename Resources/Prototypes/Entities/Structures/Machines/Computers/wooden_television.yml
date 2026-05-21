@@ -14,6 +14,13 @@
       state: detective_television
   - type: Computer
     board: ComputerTelevisionCircuitboard
+  - type: GenericVisualizer # <Onyx-Tweak>
+    visuals:
+      enum.EdgeConnectionVisuals.ConnectionMask:
+        computerLayerBody:
+          None: { state: television }
+  - type: EdgeConnection # <Onyx-Tweak>
+    allowedDirections: None
   - type: PointLight
     radius: 1.5
     energy: 1.6

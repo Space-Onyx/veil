@@ -28,6 +28,14 @@
     radius: 1.5
     energy: 1.6
     color: "#FC0097"
+  - type: GenericVisualizer # <Onyx-Tweak>
+    visuals:
+      enum.EdgeConnectionVisuals.ConnectionMask:
+        computerLayerBody:
+          None: { state: television }
+  - type: EdgeConnection # <Onyx-Tweak>
+    allowedDirections: None
+
 
 - type: entity
   parent: ComputerComms
@@ -64,6 +72,13 @@
     radius: 1.5
     energy: 1.6
     color: "#FC0097"
+  - type: GenericVisualizer # <Onyx-Tweak>
+    visuals:
+      enum.EdgeConnectionVisuals.ConnectionMask:
+        computerLayerBody:
+          None: { state: television }
+  - type: EdgeConnection # <Onyx-Tweak>
+    allowedDirections: None
 
 - type: entity
   parent:
