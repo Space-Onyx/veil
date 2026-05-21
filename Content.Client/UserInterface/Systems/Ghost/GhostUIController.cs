@@ -222,9 +222,11 @@ public sealed class GhostUIController : UIController, IOnSystemChanged<GhostSyst
 
         var canReturn = player.CanReturnToLobby;
         var remaining = GhostReturnToLobbyLogic.GetRemaining(_timing.CurTime, player.ReturnToLobbyAvailableAt);
+        var timeAvailable = remaining <= TimeSpan.Zero;
+        var enabled = canReturn || (timeAvailable && player.IsReturnToLobbyPopulationAllowed);
 
         var text = Loc.GetString("ghost-return-to-lobby-button-ready");
-        if (!canReturn)
+        if (!enabled)
         {
             if (remaining > TimeSpan.Zero)
             {
@@ -236,13 +238,13 @@ public sealed class GhostUIController : UIController, IOnSystemChanged<GhostSyst
                 var seconds = (totalSeconds % 60).ToString("00");
                 text = Loc.GetString("ghost-return-to-lobby-button-timer", ("minutes", minutes), ("seconds", seconds));
             }
-            else
+            else if (!player.IsReturnToLobbyPopulationAllowed)
             {
                 text = Loc.GetString("ghost-return-to-lobby-button-player-limit");
             }
         }
 
-        Gui.UpdateReturnToLobbyButton(true, canReturn, text);
+        Gui.UpdateReturnToLobbyButton(true, enabled, text);
     }
     // </Onyx-Ghost>
 

@@ -126,6 +126,9 @@ public sealed partial class GhostComponent : Component
 
     [DataField, AutoNetworkedField]
     public bool CanReturnToLobby;
+
+    [DataField, AutoNetworkedField]
+    public bool IsReturnToLobbyPopulationAllowed;
     // </Onyx-Ghost>    
 }
 

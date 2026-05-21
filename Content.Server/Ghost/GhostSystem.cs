@@ -221,15 +221,18 @@ namespace Content.Server.Ghost
             var now = _gameTiming.CurTime;
             var maxPlayers = _configurationManager.GetCVar(CCVars.GhostReturnToLobbyMaxPlayers);
             var onlinePlayers = _player.PlayerCount;
+            var populationAllowed = GhostReturnToLobbyLogic.IsPopulationAllowed(onlinePlayers, maxPlayers);
             var query = EntityQueryEnumerator<GhostComponent>();
             while (query.MoveNext(out var uid, out var ghost))
             {
-                var canReturn = GhostReturnToLobbyLogic.CanReturn(now, ghost.ReturnToLobbyAvailableAt, onlinePlayers, maxPlayers);
+                var canReturn = GhostReturnToLobbyLogic.CanReturn(now, ghost.ReturnToLobbyAvailableAt) && populationAllowed;
 
-                if (ghost.CanReturnToLobby == canReturn)
+                if (ghost.CanReturnToLobby == canReturn
+                    && ghost.IsReturnToLobbyPopulationAllowed == populationAllowed)
                     continue;
 
                 ghost.CanReturnToLobby = canReturn;
+                ghost.IsReturnToLobbyPopulationAllowed = populationAllowed;
                 Dirty(uid, ghost);
             }
         }
@@ -336,11 +339,10 @@ namespace Content.Server.Ghost
             var delaySeconds = _configurationManager.GetCVar(CCVars.GhostReturnToLobbyDelay);
             component.ReturnToLobbyAvailableAt = GhostReturnToLobbyLogic.ComputeAvailableAt(time, delaySeconds);
             var maxPlayers = _configurationManager.GetCVar(CCVars.GhostReturnToLobbyMaxPlayers);
-            component.CanReturnToLobby = GhostReturnToLobbyLogic.CanReturn(
-                time,
-                component.ReturnToLobbyAvailableAt,
-                _player.PlayerCount,
-                maxPlayers);
+            component.IsReturnToLobbyPopulationAllowed =
+                GhostReturnToLobbyLogic.IsPopulationAllowed(_player.PlayerCount, maxPlayers);
+            component.CanReturnToLobby = GhostReturnToLobbyLogic.CanReturn(time, component.ReturnToLobbyAvailableAt)
+                && component.IsReturnToLobbyPopulationAllowed;
             Dirty(uid, component);
             // </Onyx-Ghost>
         }
@@ -439,25 +441,25 @@ namespace Content.Server.Ghost
                 return;
 
             var maxPlayers = _configurationManager.GetCVar(CCVars.GhostReturnToLobbyMaxPlayers);
-            var canReturn = GhostReturnToLobbyLogic.CanReturn(
-                _gameTiming.CurTime,
-                ghost.ReturnToLobbyAvailableAt,
-                _player.PlayerCount,
-                maxPlayers);
+            var populationAllowed = GhostReturnToLobbyLogic.IsPopulationAllowed(_player.PlayerCount, maxPlayers);
+            var canReturn = GhostReturnToLobbyLogic.CanReturn(_gameTiming.CurTime, ghost.ReturnToLobbyAvailableAt)
+                && populationAllowed;
 
             if (!canReturn)
             {
-                if (ghost.CanReturnToLobby)
+                if (ghost.CanReturnToLobby || ghost.IsReturnToLobbyPopulationAllowed != populationAllowed)
                 {
                     ghost.CanReturnToLobby = false;
+                    ghost.IsReturnToLobbyPopulationAllowed = populationAllowed;
                     Dirty(attached, ghost);
                 }
                 return;
             }
 
-            if (!ghost.CanReturnToLobby)
+            if (!ghost.CanReturnToLobby || ghost.IsReturnToLobbyPopulationAllowed != populationAllowed)
             {
                 ghost.CanReturnToLobby = true;
+                ghost.IsReturnToLobbyPopulationAllowed = populationAllowed;
                 Dirty(attached, ghost);
             }
 
