@@ -371,6 +371,29 @@ public partial class AtmosphereSystem
         return true;
     }
 
+    // <Onyx>
+    public bool SetPuddleFlammabilityAtTile(Entity<TransformComponent?> ent, int flammability = 0)
+    {
+        if (!Resolve(ent, ref ent.Comp, false))
+            return false;
+        var grid = ent.Comp.GridUid;
+        var position = _transformSystem.GetGridTilePositionOrDefault((ent, ent.Comp));
+        return SetPuddleFlammabilityAtTile(position, grid, flammability);
+
+    }
+
+    public bool SetPuddleFlammabilityAtTile(Vector2i position,
+        Entity<GridAtmosphereComponent?>? grid,
+        int flammability = 0)
+    {
+        if (grid is not { } gridEnt || !Resolve(gridEnt, ref gridEnt.Comp, false) ||
+            !gridEnt.Comp.Tiles.TryGetValue(position, out var atmosTile))
+            return false;
+        atmosTile.PuddleSolutionFlammability = flammability;
+        return true;
+    }
+    // </Onyx>
+
     [ByRefEvent] private record struct SetSimulatedGridMethodEvent
         (EntityUid Grid, bool Simulated, bool Handled = false);
 

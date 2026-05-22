@@ -66,16 +66,19 @@ namespace Content.Server.Atmos.EntitySystems
                 ExcitedGroupResetCooldowns(tile.ExcitedGroup);
 
             if ((tile.Hotspot.Temperature < Atmospherics.FireMinimumTemperatureToExist) || (tile.Hotspot.Volume <= 1f)
-                || tile.Air == null || tile.Air.GetMoles(Gas.Oxygen) < 0.5f || (tile.Air.GetMoles(Gas.Plasma) < 0.5f && tile.Air.GetMoles(Gas.Tritium) < 0.5f))
+                || tile.Air == null || tile.Air.GetMoles(Gas.Oxygen) < 0.5f || (tile.Air.GetMoles(Gas.Plasma) < 0.5f && tile.Air.GetMoles(Gas.Tritium) < 0.5f) && tile.PuddleSolutionFlammability == 0) // <Onyx-edited>
             {
                 tile.Hotspot = new Hotspot();
+                tile.Hotspot.Type = tile.PuddleSolutionFlammability > 0 ? HotspotType.Puddle : HotspotType.Gas; // <Onyx>
                 InvalidateVisuals(ent, tile);
                 return;
             }
 
             PerformHotspotExposure(tile);
 
-            if (tile.Hotspot.Bypassing)
+            tile.Hotspot.Type = tile.PuddleSolutionFlammability > 0 ? HotspotType.Puddle : HotspotType.Gas; // <Onyx>
+
+            if (tile.Hotspot.Bypassing || tile.PuddleSolutionFlammability > 0) // <Onyx-edited>
             {
                 tile.Hotspot.State = 3;
 
@@ -154,12 +157,13 @@ namespace Content.Server.Atmos.EntitySystems
 
             var plasma = tile.Air.GetMoles(Gas.Plasma);
             var tritium = tile.Air.GetMoles(Gas.Tritium);
+            var puddleFlammability = tile.PuddleSolutionFlammability; // <Onyx>
 
             if (tile.Hotspot.Valid)
             {
                 if (soh)
                 {
-                    if (plasma > 0.5f || tritium > 0.5f)
+                    if (plasma > 0.5f || tritium > 0.5f || puddleFlammability > 0) // <Onyx-edited>
                     {
                         if (tile.Hotspot.Temperature < exposedTemperature)
                             tile.Hotspot.Temperature = exposedTemperature;
@@ -167,22 +171,29 @@ namespace Content.Server.Atmos.EntitySystems
                             tile.Hotspot.Volume = exposedVolume;
                     }
                 }
+                tile.Hotspot.Temperature = AddClampedTemperature(tile.Hotspot.Temperature, 1 * puddleFlammability, (float)(Atmospherics.T0C + 20 * Math.Pow(puddleFlammability, 1.2))); // <Onyx>
 
                 return;
             }
 
-            if ((exposedTemperature > Atmospherics.PlasmaMinimumBurnTemperature) && (plasma > 0.5f || tritium > 0.5f))
+            if ((exposedTemperature > Atmospherics.PlasmaMinimumBurnTemperature && (plasma > 0.5f || tritium > 0.5f)) || (puddleFlammability > 0 && exposedTemperature > 573.15 - 50 * puddleFlammability)) // <Onyx-edited>
             {
                 if (sparkSourceUid.HasValue)
                     _adminLog.Add(LogType.Flammable, LogImpact.High, $"Heat/spark of {ToPrettyString(sparkSourceUid.Value)} caused atmos ignition of gas: {tile.Air.Temperature.ToString():temperature}K - {oxygen}mol Oxygen, {plasma}mol Plasma, {tritium}mol Tritium");
 
+                // <Onyx>
+                var temperature = exposedTemperature;
+                if (puddleFlammability > 0)
+                    temperature = AddClampedTemperature(temperature, 1 * puddleFlammability, (float)(Atmospherics.T0C + 20 * Math.Pow(puddleFlammability, 1.2)));
+                // </Onyx>
                 tile.Hotspot = new Hotspot
                 {
                     Volume = exposedVolume * 25f,
-                    Temperature = exposedTemperature,
+                    Temperature = temperature, // <Onyx-edited>
                     SkippedFirstProcess = tile.CurrentCycle > gridAtmosphere.UpdateCounter,
                     Valid = true,
-                    State = 1
+                    State = 1,
+                    Type = puddleFlammability > 0 ? HotspotType.Puddle : HotspotType.Gas // <Onyx>
                 };
 
                 AddActiveTile(gridAtmosphere, tile);
@@ -220,5 +231,15 @@ namespace Content.Server.Atmos.EntitySystems
                 RaiseLocalEvent(entity, ref fireEvent);
             }
         }
+
+        /// <summary>
+        /// Used for reagent fires to ensure the temperature doesn't get too far out of control.
+        /// </summary>
+        // <Onyx>
+        private float AddClampedTemperature(float temperature, float kelvinToAdd, float clampTemperature)
+        {
+            return MathF.Max(temperature, MathF.Min(temperature + kelvinToAdd, clampTemperature));
+        }
+        // </Onyx>
     }
 }
