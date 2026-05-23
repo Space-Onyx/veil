@@ -46,7 +46,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using Content.Shared.Clothing.EntitySystems;
-using Content.Shared._Onyx.ProxyControl;
 using Content.Shared.Interaction;
 using Content.Shared.Interaction.Events;
 using Content.Shared.Item.ItemToggle.Components;
@@ -71,7 +70,6 @@ public sealed class ItemToggleSystem : EntitySystem
     [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
 
     private EntityQuery<ItemToggleComponent> _query;
 
@@ -214,7 +212,7 @@ public sealed class ItemToggleSystem : EntitySystem
                 return false;
 
             if (predicted)
-                _audio.PlayPredicted(comp.SoundFailToActivate, uid, GetPredictedAudioUser(user));
+                _audio.PlayPredicted(comp.SoundFailToActivate, uid, user);
             else
                 _audio.PlayPvs(comp.SoundFailToActivate, uid);
 
@@ -281,7 +279,7 @@ public sealed class ItemToggleSystem : EntitySystem
         var soundToPlay = comp.SoundActivate;
         if (predicted)
         {
-            _audio.PlayPredicted(soundToPlay, uid, GetPredictedAudioUser(user));
+            _audio.PlayPredicted(soundToPlay, uid, user);
             if (showPopup && ent.Comp.PopupActivate != null && user != null)
                 _popup.PopupClient(Loc.GetString(ent.Comp.PopupActivate), user.Value, user.Value);
         }
@@ -309,7 +307,7 @@ public sealed class ItemToggleSystem : EntitySystem
         var soundToPlay = comp.SoundDeactivate;
         if (predicted)
         {
-            _audio.PlayPredicted(soundToPlay, uid, GetPredictedAudioUser(user));
+            _audio.PlayPredicted(soundToPlay, uid, user);
             if (showPopup && ent.Comp.PopupDeactivate != null && user != null)
                 _popup.PopupClient(Loc.GetString(ent.Comp.PopupDeactivate), user.Value, user.Value);
         }
@@ -406,17 +404,10 @@ public sealed class ItemToggleSystem : EntitySystem
         {
             var loop = comp.ActiveSound.Params.WithLoop(true);
             var stream = args.Predicted
-                ? _audio.PlayPredicted(comp.ActiveSound, uid, GetPredictedAudioUser(args.User), loop)
+                ? _audio.PlayPredicted(comp.ActiveSound, uid, args.User, loop)
                 : _audio.PlayPvs(comp.ActiveSound, uid, loop);
             if (stream?.Entity is {} entity)
                 comp.PlayingStream = entity;
         }
-    }
-
-    private EntityUid? GetPredictedAudioUser(EntityUid? user)
-    {
-        return user is { } uid
-            ? _proxyControl.ForPredictedAudio(uid, ProxyControlRelayFlags.Hands | ProxyControlRelayFlags.Interaction)
-            : null;
     }
 }

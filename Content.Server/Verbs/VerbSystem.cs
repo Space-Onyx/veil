@@ -101,8 +101,6 @@ namespace Content.Server.Verbs
         /// </remarks>
         public override void ExecuteVerb(Verb verb, EntityUid user, EntityUid target, bool forced = false)
         {
-            user = GetInteractionRelayUser(user);
-
             // is this verb actually valid?
             if (verb.Disabled)
             {

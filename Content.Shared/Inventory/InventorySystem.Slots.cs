@@ -82,7 +82,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using Content.Shared.DisplacementMap;
-using Content.Shared._Onyx.ProxyControl;
 using Content.Shared.Inventory.Events;
 // Shitmed Change
 using Content.Shared.Random;
@@ -190,12 +189,9 @@ public partial class InventorySystem : EntitySystem
         if (args.SenderSession.AttachedEntity is not { Valid: true } uid)
             return;
 
-        var uiUser = uid;
-        var inventoryActor = GetProxyInventoryActor(uid);
-
-        if (TryGetSlotEntity(inventoryActor, ev.Slot, out var entityUid) && TryComp<StorageComponent>(entityUid, out var storageComponent))
+        if (TryGetSlotEntity(uid, ev.Slot, out var entityUid) && TryComp<StorageComponent>(entityUid, out var storageComponent))
         {
-            _storageSystem.OpenStorageUI(entityUid.Value, uiUser, storageComponent, false);
+            _storageSystem.OpenStorageUI(entityUid.Value, uid, storageComponent, false);
         }
     }
 

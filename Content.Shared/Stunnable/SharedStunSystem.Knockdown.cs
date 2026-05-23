@@ -1,5 +1,4 @@
 using Content.Shared.Alert;
-using Content.Shared._Onyx.ProxyControl;
 using Content.Shared.Bed.Sleep;
 using Content.Shared.Buckle.Components;
 using Content.Shared.Damage;
@@ -35,7 +34,6 @@ public abstract partial class SharedStunSystem
     [Dependency] private readonly SharedHandsSystem _hands = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly SharedPhysicsSystem _physics = default!;
-    [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
     [Dependency] private readonly StandingStateSystem _standingState = default!;
 
     public static readonly ProtoId<AlertPrototype> KnockdownAlert = "Knockdown";
@@ -232,7 +230,7 @@ public abstract partial class SharedStunSystem
         if (playerSession.AttachedEntity is not { Valid: true } playerEnt || !Exists(playerEnt))
             return;
 
-        ToggleKnockdown(GetProxyMovementActor(playerEnt));
+        ToggleKnockdown(playerEnt);
     }
 
     /// <summary>
@@ -368,12 +366,7 @@ public abstract partial class SharedStunSystem
         if (args.SenderSession.AttachedEntity is not {} user)
             return;
 
-        ForceStandUp(GetProxyMovementActor(user));
-    }
-
-    private EntityUid GetProxyMovementActor(EntityUid actor)
-    {
-        return _proxyControl.ForMovement(actor);
+        ForceStandUp(user);
     }
 
     public void ForceStandUp(Entity<KnockedDownComponent?> entity)

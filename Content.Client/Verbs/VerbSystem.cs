@@ -150,8 +150,6 @@ namespace Content.Client.Verbs
             if (_playerManager.LocalEntity is not { } player)
                 return false;
 
-            player = GetInteractionRelayUser(player);
-
             // If FOV drawing is disabled, we will modify the visibility option to ignore visiblity checks.
             var visibility = _eyeManager.CurrentEye.DrawFov ? Visibility : Visibility | MenuVisibility.NoFov;
 
@@ -290,24 +288,19 @@ namespace Content.Client.Verbs
             if ( _playerManager.LocalEntity is not {} user)
                 return;
 
-            var effectiveUser = GetInteractionRelayUser(user);
-            var relayed = effectiveUser != user;
-
             // is this verb actually valid?
             if (verb.Disabled)
             {
                 // maybe send an informative pop-up message.
                 if (!string.IsNullOrWhiteSpace(verb.Message))
-                    _popupSystem.PopupEntity(FormattedMessage.RemoveMarkupOrThrow(verb.Message), effectiveUser);
+                    _popupSystem.PopupEntity(FormattedMessage.RemoveMarkupOrThrow(verb.Message), user);
 
                 return;
             }
 
             if (verb.ClientExclusive || target.IsClientSide())
                 // is this a client exclusive (gui) verb?
-                ExecuteVerb(verb, effectiveUser, GetEntity(target));
-            else if (relayed)
-                RaiseNetworkEvent(new ExecuteVerbEvent(target, verb));
+                ExecuteVerb(verb, user, GetEntity(target));
             else
                 RaisePredictiveEvent(new ExecuteVerbEvent(target, verb));
         }

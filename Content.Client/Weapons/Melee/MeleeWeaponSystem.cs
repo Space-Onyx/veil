@@ -59,11 +59,9 @@
 
 using System.Linq;
 using System.Numerics;
-using Content.Client.Actions;
 using Content.Client.Gameplay;
 using Content.Goobstation.Common.Weapons;
 using Content.Goobstation.Common.Weapons.MeleeDash;
-using Content.Shared._Onyx.ProxyControl;
 using Content.Shared._Goobstation.Heretic.Components;
 using Content.Shared._White.Blink;
 using Content.Shared.CombatMode;
@@ -99,8 +97,6 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
     [Dependency] private readonly MapSystem _map = default!;
     [Dependency] private readonly SpriteSystem _sprite = default!;
     [Dependency] private readonly TransformSystem _transform = default!; // Goobstation
-    [Dependency] private readonly ActionsSystem _actions = default!;
-    [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
 
     private EntityQuery<TransformComponent> _xformQuery;
 
@@ -127,14 +123,12 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
         if (!Timing.IsFirstTimePredicted)
             return;
 
-        var entityNull = GetLocalMeleeEntity();
+        var entityNull = _player.LocalEntity;
+
         if (entityNull == null)
             return;
 
         var entity = entityNull.Value;
-
-        if (_actions.ClientSelectingTargetFor != null)
-            return;
 
         if (TryComp<EntropicPlumeAffectedComponent>(entity, out var affected) &&
             affected.NextAttack + TimeSpan.FromSeconds(0.1f) > Timing.CurTime) // Goobstation
@@ -342,14 +336,6 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
             return;
 
         RaisePredictiveEvent(new LightAttackEvent(GetNetEntity(target), GetNetEntity(weaponUid), GetNetCoordinates(coordinates)));
-    }
-
-    private EntityUid? GetLocalMeleeEntity()
-    {
-        if (_player.LocalEntity is not { } local)
-            return null;
-
-        return _proxyControl.ForHands(local);
     }
 
     private void OnMeleeLunge(MeleeLungeEvent ev)

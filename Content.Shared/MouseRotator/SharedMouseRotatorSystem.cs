@@ -6,7 +6,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using Content.Shared.Interaction;
-using Content.Shared._Onyx.ProxyControl;
 
 namespace Content.Shared.MouseRotator;
 
@@ -17,7 +16,6 @@ namespace Content.Shared.MouseRotator;
 public abstract class SharedMouseRotatorSystem : EntitySystem
 {
     [Dependency] private readonly RotateToFaceSystem _rotate = default!;
-    [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
 
     public override void Initialize()
     {
@@ -58,11 +56,10 @@ public abstract class SharedMouseRotatorSystem : EntitySystem
     {
         // Ignore the request if the requested entity is not the user's attached entity.
         // This can happen when a player switches controlled entities while rotating.
-        var requested = GetEntity(msg.User);
-        if (GetProxyRotatorActor(args.SenderSession.AttachedEntity) != requested)
+        if (args.SenderSession.AttachedEntity != GetEntity(msg.User))
             return;
 
-        if (requested is not { } ent
+        if (args.SenderSession.AttachedEntity is not { } ent
             || !TryComp<MouseRotatorComponent>(ent, out var rotator))
         {
             // Goobstation - Disable stupid chud warning.
@@ -74,10 +71,5 @@ public abstract class SharedMouseRotatorSystem : EntitySystem
 
         rotator.GoalRotation = msg.Rotation;
         Dirty(ent, rotator);
-    }
-
-    private EntityUid? GetProxyRotatorActor(EntityUid? actor)
-    {
-        return _proxyControl.ForMouseRotationOrNull(actor);
     }
 }

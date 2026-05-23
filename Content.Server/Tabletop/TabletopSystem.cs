@@ -21,7 +21,6 @@
 using Content.Server.Hands.Systems;
 using Content.Server.Popups;
 using Content.Server.Tabletop.Components;
-using Content.Shared._Onyx.ProxyControl;
 using Content.Shared.CCVar;
 using Content.Shared.Hands.Components;
 using Content.Shared.Interaction;
@@ -50,7 +49,6 @@ namespace Content.Server.Tabletop
         [Dependency] private readonly PopupSystem _popupSystem = default!;
         [Dependency] private readonly IChatManager _chat = default!;
         [Dependency] private readonly INetConfigurationManager _cfg = default!;
-        [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
 
         public override void Initialize()
         {
@@ -162,7 +160,7 @@ namespace Content.Server.Tabletop
             if (!args.CanAccess || !args.CanInteract)
                 return;
 
-            if (!TryGetUiActor(args.User, out var actor))
+            if (!TryComp(args.User, out ActorComponent? actor))
                 return;
 
             var playVerb = new ActivationVerb()
@@ -181,29 +179,10 @@ namespace Content.Server.Tabletop
                 return;
 
             // Check that a player is attached to the entity.
-            if (!TryGetUiActor(args.User, out var actor))
+            if (!TryComp(args.User, out ActorComponent? actor))
                 return;
 
             OpenSessionFor(actor.PlayerSession, uid);
-        }
-
-        private bool TryGetUiActor(EntityUid user, out ActorComponent actor)
-        {
-            if (TryComp<ActorComponent>(user, out var userActor))
-            {
-                actor = userActor;
-                return true;
-            }
-
-            if (_proxyControl.TryGetControllerForTarget(user, ProxyControlRelayFlags.UserInterface, out var controller) &&
-                TryComp<ActorComponent>(controller, out var controllerActor))
-            {
-                actor = controllerActor;
-                return true;
-            }
-
-            actor = default!;
-            return false;
         }
 
         private void OnGameShutdown(EntityUid uid, TabletopGameComponent component, ComponentShutdown args)

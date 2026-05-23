@@ -1,6 +1,5 @@
 using Content.Server.Administration.Managers;
 using Content.Server.EUI;
-using Content.Shared._Onyx.ProxyControl;
 using Content.Shared.Administration;
 using Content.Shared.NPC.Components;
 using Content.Shared.Verbs;
@@ -15,7 +14,6 @@ public sealed class NpcFactionDebugVerbSystem : EntitySystem
 {
     [Dependency] private readonly IAdminManager _admin = default!;
     [Dependency] private readonly EuiManager _eui = default!;
-    [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
 
     public override void Initialize()
     {
@@ -25,14 +23,10 @@ public sealed class NpcFactionDebugVerbSystem : EntitySystem
 
     private void OnGetVerbs(Entity<NpcFactionMemberComponent> ent, ref GetVerbsEvent<Verb> args)
     {
-        var actorUid = args.User;
-
-        if (!TryComp<ActorComponent>(actorUid, out var actor) &&
-            (!_proxyControl.TryGetControllerForTarget(args.User, ProxyControlRelayFlags.UserInterface, out actorUid) ||
-             !TryComp(actorUid, out actor)))
+        if (!_admin.HasAdminFlag(args.User, AdminFlags.Debug))
             return;
 
-        if (!_admin.HasAdminFlag(actor.PlayerSession, AdminFlags.Debug))
+        if (!TryComp<ActorComponent>(args.User, out var actor) || actor == null)
             return;
 
         args.Verbs.Add(new Verb

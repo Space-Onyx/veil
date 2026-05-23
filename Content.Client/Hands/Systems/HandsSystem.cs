@@ -32,8 +32,6 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Content.Client._Onyx.ProxyControl;
-using Content.Shared._Onyx.ProxyControl;
 using Content.Shared._Shitmed.Body.Events; // Shitmed Change
 using Content.Client.DisplacementMap;
 using Content.Client.Examine;
@@ -66,7 +64,6 @@ namespace Content.Client.Hands.Systems
         [Dependency] private readonly SpriteSystem _sprite = default!;
         [Dependency] private readonly ExamineSystem _examine = default!;
         [Dependency] private readonly DisplacementMapSystem _displacement = default!;
-        [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
 
         public event Action<string?>? OnPlayerSetActiveHand;
         public event Action<Entity<HandsComponent>>? OnPlayerHandsAdded;
@@ -75,7 +72,6 @@ namespace Content.Client.Hands.Systems
         public event Action<string, EntityUid>? OnPlayerItemRemoved;
         public event Action<string>? OnPlayerHandBlocked;
         public event Action<string>? OnPlayerHandUnblocked;
-        private EntityUid? _linkedHandsEntity;
 
         public override void Initialize()
         {
@@ -89,7 +85,6 @@ namespace Content.Client.Hands.Systems
             SubscribeLocalEvent<HandsComponent, VisualsChangedEvent>(OnVisualsChanged);
             SubscribeLocalEvent<HandsComponent, BodyPartRemovedEvent>(HandleBodyPartRemoved); // Shitmed Change
             SubscribeLocalEvent<HandsComponent, BodyPartDisabledEvent>(HandleBodyPartDisabled); // Shitmed Change
-            SubscribeLocalEvent<ProxyControlLocalRefreshEvent>(OnProxyControlRefresh);
 
             OnHandSetActive += OnHandActivated;
         }
@@ -151,7 +146,7 @@ namespace Content.Client.Hands.Systems
         /// </summary>
         public bool TryGetPlayerHands([NotNullWhen(true)] out Entity<HandsComponent>? hands)
         {
-            var player = GetLocalHandsEntity();
+            var player = _playerManager.LocalEntity;
             hands = null;
             if (player == null || !TryComp<HandsComponent>(player.Value, out var handsComp))
                 return false;
@@ -284,7 +279,7 @@ namespace Content.Client.Hands.Systems
             UpdateHandVisuals(uid, args.Entity, args.Container.ID);
             _stripSys.UpdateUi(uid);
 
-            if (uid != GetLocalHandsEntity())
+            if (uid != _playerManager.LocalEntity)
                 return;
 
             OnPlayerItemAdded?.Invoke(args.Container.ID, args.Entity);
@@ -303,7 +298,7 @@ namespace Content.Client.Hands.Systems
             UpdateHandVisuals(uid, args.Entity, args.Container.ID);
             _stripSys.UpdateUi(uid);
 
-            if (uid != GetLocalHandsEntity())
+            if (uid != _playerManager.LocalEntity)
                 return;
 
             OnPlayerItemRemoved?.Invoke(args.Container.ID, args.Entity);
@@ -326,7 +321,7 @@ namespace Content.Client.Hands.Systems
                 return;
 
             // visual update might involve changes to the entity's effective sprite -> need to update hands GUI.
-            if (ent == GetLocalHandsEntity())
+            if (ent == _playerManager.LocalEntity)
                 OnPlayerItemAdded?.Invoke(handId, held);
 
             if (!handComp.ShowInHands)
@@ -417,39 +412,24 @@ namespace Content.Client.Hands.Systems
 
         private void HandlePlayerAttached(EntityUid uid, HandsComponent component, LocalPlayerAttachedEvent args)
         {
-            RefreshHandsLink(force: true);
+            OnPlayerHandsAdded?.Invoke((uid, component));
         }
 
         private void HandlePlayerDetached(EntityUid uid, HandsComponent component, LocalPlayerDetachedEvent args)
         {
-            ClearHandsLink();
+            OnPlayerHandsRemoved?.Invoke();
         }
 
         private void OnHandsStartup(EntityUid uid, HandsComponent component, ComponentStartup args)
         {
-            RefreshHandsLink();
+            if (_playerManager.LocalEntity == uid)
+                OnPlayerHandsAdded?.Invoke((uid, component));
         }
 
         private void OnHandsShutdown(EntityUid uid, HandsComponent component, ComponentShutdown args)
         {
-            if (_linkedHandsEntity == uid)
-                ClearHandsLink();
-        }
-
-        private void OnProxyControlRefresh(ProxyControlLocalRefreshEvent args)
-        {
-            switch (args.Kind)
-            {
-                case ProxyControlLocalRefreshKind.Detached:
-                    ClearHandsLink();
-                    break;
-                case ProxyControlLocalRefreshKind.Shutdown:
-                    RefreshHandsLink(force: true, ignoreProxy: true);
-                    break;
-                default:
-                    RefreshHandsLink(force: true);
-                    break;
-            }
+            if (_playerManager.LocalEntity == uid)
+                OnPlayerHandsRemoved?.Invoke();
         }
         #endregion
 
@@ -458,55 +438,10 @@ namespace Content.Client.Hands.Systems
             if (ent is not { } hand)
                 return;
 
-            if (GetLocalHandsEntity() != hand.Owner)
+            if (_playerManager.LocalEntity != hand.Owner)
                 return;
 
             OnPlayerSetActiveHand?.Invoke(hand.Comp.ActiveHandId);
-        }
-
-        private void RefreshHandsLink(bool force = false, bool ignoreProxy = false)
-        {
-            var current = GetLocalHandsEntity(ignoreProxy);
-            HandsComponent? hands = null;
-
-            if (current != null && !TryComp(current.Value, out hands))
-            {
-                if (_linkedHandsEntity != null)
-                    ClearHandsLink();
-
-                return;
-            }
-
-            if (!force && _linkedHandsEntity == current)
-                return;
-
-            if (_linkedHandsEntity != null)
-                OnPlayerHandsRemoved?.Invoke();
-
-            _linkedHandsEntity = current;
-
-            if (current != null && hands != null)
-                OnPlayerHandsAdded?.Invoke((current.Value, hands));
-        }
-
-        private void ClearHandsLink()
-        {
-            if (_linkedHandsEntity == null)
-                return;
-
-            _linkedHandsEntity = null;
-            OnPlayerHandsRemoved?.Invoke();
-        }
-
-        private EntityUid? GetLocalHandsEntity(bool ignoreProxy = false)
-        {
-            var player = _playerManager.LocalEntity;
-            if (player == null)
-                return null;
-
-            return ignoreProxy
-                ? player.Value
-                : _proxyControl.ForHands(player.Value);
         }
     }
 }

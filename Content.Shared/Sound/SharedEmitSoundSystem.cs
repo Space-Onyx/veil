@@ -60,7 +60,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using Content.Shared.Audio;
-using Content.Shared._Onyx.ProxyControl;
 using Content.Shared.Hands;
 using Content.Shared.Interaction;
 using Content.Shared.Interaction.Events;
@@ -100,7 +99,6 @@ public abstract class SharedEmitSoundSystem : EntitySystem
     [Dependency] private readonly SharedMapSystem _map = default!;
     [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
     [Dependency] private readonly TurfSystem _turf = default!;
-    [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
 
     public override void Initialize()
     {
@@ -209,13 +207,11 @@ public abstract class SharedEmitSoundSystem : EntitySystem
         if (component.Sound == null)
             return;
 
-        var predictedUser = GetPredictedAudioUser(user);
-
         if (component.Positional)
         {
             var coords = Transform(uid).Coordinates;
             if (predict)
-                _audioSystem.PlayPredicted(component.Sound, coords, predictedUser);
+                _audioSystem.PlayPredicted(component.Sound, coords, user);
             else if (_netMan.IsServer)
                 // don't predict sounds that client couldn't have played already
                 _audioSystem.PlayPvs(component.Sound, coords);
@@ -223,18 +219,11 @@ public abstract class SharedEmitSoundSystem : EntitySystem
         else
         {
             if (predict)
-                _audioSystem.PlayPredicted(component.Sound, uid, predictedUser);
+                _audioSystem.PlayPredicted(component.Sound, uid, user);
             else if (_netMan.IsServer)
                 // don't predict sounds that client couldn't have played already
                 _audioSystem.PlayPvs(component.Sound, uid);
         }
-    }
-
-    private EntityUid? GetPredictedAudioUser(EntityUid? user)
-    {
-        return user is { } uid
-            ? _proxyControl.ForPredictedAudio(uid, ProxyControlRelayFlags.Hands | ProxyControlRelayFlags.Interaction)
-            : null;
     }
 
     private void OnEmitSoundOnCollide(EntityUid uid, EmitSoundOnCollideComponent component, ref StartCollideEvent args)

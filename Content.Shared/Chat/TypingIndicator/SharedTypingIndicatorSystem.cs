@@ -9,7 +9,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using Content.Shared.ActionBlocker;
-using Content.Shared._Onyx.ProxyControl;
 using Content.Shared.Clothing;
 using Content.Shared.Inventory;
 using Robust.Shared.Player;
@@ -25,7 +24,6 @@ public abstract class SharedTypingIndicatorSystem : EntitySystem
 {
     [Dependency] private readonly ActionBlockerSystem _actionBlocker = default!;
     [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
-    [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
 
     /// <summary>
@@ -58,9 +56,6 @@ public abstract class SharedTypingIndicatorSystem : EntitySystem
     {
         // player left entity body - hide typing indicator
         SetTypingIndicatorState(uid, TypingIndicatorState.None);
-
-        if (TryGetProxySpeechActor(uid, out var target))
-            SetTypingIndicatorState(target, TypingIndicatorState.None);
     }
 
     private void OnGotEquipped(Entity<TypingIndicatorClothingComponent> entity, ref ClothingGotEquippedEvent args)
@@ -87,25 +82,15 @@ public abstract class SharedTypingIndicatorSystem : EntitySystem
             return;
         }
 
-        var typingUid = TryGetProxySpeechActor(uid.Value, out var target)
-            ? target
-            : uid.Value;
-
-        EnsureComp<TypingIndicatorComponent>(typingUid);
-        EnsureComp<AppearanceComponent>(typingUid);
-
-        if (typingUid != uid.Value)
-            SetTypingIndicatorState(uid.Value, TypingIndicatorState.None);
-
         // check if this entity can speak or emote
-        if (!_actionBlocker.CanEmote(typingUid) && !_actionBlocker.CanSpeak(typingUid))
+        if (!_actionBlocker.CanEmote(uid.Value) && !_actionBlocker.CanSpeak(uid.Value))
         {
             // nah, make sure that typing indicator is disabled
-            SetTypingIndicatorState(typingUid, TypingIndicatorState.None);
+            SetTypingIndicatorState(uid.Value, TypingIndicatorState.None);
             return;
         }
 
-        SetTypingIndicatorState(typingUid, ev.State);
+        SetTypingIndicatorState(uid.Value, ev.State);
     }
 
     private void SetTypingIndicatorState(EntityUid uid, TypingIndicatorState state, AppearanceComponent? appearance = null)
@@ -120,10 +105,5 @@ public abstract class SharedTypingIndicatorSystem : EntitySystem
     public void SetTypingIndicator(Entity<TypingIndicatorComponent> entity, ProtoId<TypingIndicatorPrototype> typingIndicatorPrototype)
     {
         entity.Comp.TypingIndicatorPrototype = typingIndicatorPrototype;
-    }
-
-    private bool TryGetProxySpeechActor(EntityUid actor, out EntityUid target)
-    {
-        return _proxyControl.TryGetEffectiveActor(actor, ProxyControlRelayFlags.Speech, out target);
     }
 }

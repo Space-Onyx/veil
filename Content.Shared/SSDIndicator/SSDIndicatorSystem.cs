@@ -5,7 +5,6 @@
 // SPDX-License-Identifier: MIT
 
 using Content.Shared.Bed.Sleep;
-using Content.Shared._Onyx.ProxyControl;
 using Content.Shared.CCVar;
 using Content.Shared.NPC; // CorvaxGoob
 using Content.Shared.StatusEffectNew;
@@ -25,7 +24,6 @@ public sealed class SSDIndicatorSystem : EntitySystem
 
     [Dependency] private readonly IConfigurationManager _cfg = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
     [Dependency] private readonly StatusEffectsSystem _statusEffects = default!;
 
     private bool _icSsdSleep;
@@ -43,23 +41,34 @@ public sealed class SSDIndicatorSystem : EntitySystem
 
     private void OnPlayerAttached(EntityUid uid, SSDIndicatorComponent component, PlayerAttachedEvent args)
     {
-        SetSsdState(uid, component, false);
+        component.IsSSD = false;
+
+        // Removes force sleep and resets the time to zero
+        if (_icSsdSleep)
+        {
+            component.FallAsleepTime = TimeSpan.Zero;
+            _statusEffects.TryRemoveStatusEffect(uid, StatusEffectSSDSleeping);
+        }
+
+        Dirty(uid, component);
     }
 
     private void OnPlayerDetached(EntityUid uid, SSDIndicatorComponent component, PlayerDetachedEvent args)
     {
-        SetSsdState(uid, component, !HasActiveProxyController(uid));
+        component.IsSSD = true;
+
+        // Sets the time when the entity should fall asleep
+        if (_icSsdSleep)
+        {
+            component.FallAsleepTime = _timing.CurTime + TimeSpan.FromSeconds(_icSsdSleepTime);
+        }
+
+        Dirty(uid, component);
     }
 
     // Prevents mapped mobs to go to sleep immediately
     private void OnMapInit(EntityUid uid, SSDIndicatorComponent component, MapInitEvent args)
     {
-        if (HasActiveProxyController(uid))
-        {
-            SetSsdState(uid, component, false);
-            return;
-        }
-
         if (!_icSsdSleep || !component.IsSSD)
             return;
 
@@ -80,14 +89,6 @@ public sealed class SSDIndicatorSystem : EntitySystem
 
         while (query.MoveNext(out var uid, out var ssd))
         {
-            if (HasActiveProxyController(uid))
-            {
-                if (ssd.IsSSD || ssd.FallAsleepTime != TimeSpan.Zero)
-                    SetSsdState(uid, ssd, false);
-
-                continue;
-            }
-
             // Forces the entity to sleep when the time has come
             if (!ssd.IsSSD
                 || ssd.NextUpdate > curTime
@@ -100,62 +101,5 @@ public sealed class SSDIndicatorSystem : EntitySystem
             ssd.NextUpdate += ssd.UpdateInterval;
             Dirty(uid, ssd);
         }
-    }
-
-    public void RefreshProxySsdState(EntityUid uid, SSDIndicatorComponent? component = null)
-    {
-        if (!Resolve(uid, ref component, false) || TerminatingOrDeleted(uid))
-            return;
-
-        if (HasActiveProxyController(uid))
-        {
-            SetSsdState(uid, component, false);
-            return;
-        }
-
-        if (!HasComp<ActorComponent>(uid))
-            SetSsdState(uid, component, true);
-    }
-
-    private void SetSsdState(EntityUid uid, SSDIndicatorComponent component, bool isSsd)
-    {
-        component.IsSSD = isSsd;
-
-        if (_icSsdSleep)
-        {
-            if (isSsd)
-            {
-                // Sets the time when the entity should fall asleep
-                component.FallAsleepTime = _timing.CurTime + TimeSpan.FromSeconds(_icSsdSleepTime);
-            }
-            else
-            {
-                // Removes force sleep and resets the time to zero
-                component.FallAsleepTime = TimeSpan.Zero;
-                _statusEffects.TryRemoveStatusEffect(uid, StatusEffectSSDSleeping);
-            }
-        }
-
-        Dirty(uid, component);
-    }
-
-    private bool HasActiveProxyController(EntityUid uid, ProxyControlTargetComponent? target = null)
-    {
-        if (!Resolve(uid, ref target, false))
-            return false;
-
-        foreach (var controller in target.Controllers)
-        {
-            if (TerminatingOrDeleted(controller) ||
-                !HasComp<ActorComponent>(controller) ||
-                !_proxyControl.IsControllerFor(controller, uid, ProxyControlRelayFlags.None))
-            {
-                continue;
-            }
-
-            return true;
-        }
-
-        return false;
     }
 }

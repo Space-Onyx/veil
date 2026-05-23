@@ -1,5 +1,4 @@
 using Content.Shared.Access.Systems;
-using Content.Shared._Onyx.ProxyControl;
 using Content.Shared.Doors.Components;
 using Content.Shared.Movement.Pulling.Systems;
 using Content.Shared.Popups;
@@ -22,7 +21,6 @@ public abstract partial class SharedTurnstileSystem : EntitySystem
     [Dependency] private readonly PullingSystem _pulling = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -90,7 +88,7 @@ public abstract partial class SharedTurnstileSystem : EntitySystem
             {
                 if (!_accessReader.IsAllowed(args.OtherEntity, ent))
                 {
-                    _audio.PlayPredicted(ent.Comp.DenySound, ent, GetPredictedAudioUser(args.OtherEntity));
+                    _audio.PlayPredicted(ent.Comp.DenySound, ent, args.OtherEntity);
                     PlayAnimation(ent, ent.Comp.DenyState);
                 }
             }
@@ -99,7 +97,7 @@ public abstract partial class SharedTurnstileSystem : EntitySystem
         }
         // if they passed through:
         PlayAnimation(ent, ent.Comp.SpinState);
-        _audio.PlayPredicted(ent.Comp.TurnSound, ent, GetPredictedAudioUser(args.OtherEntity));
+        _audio.PlayPredicted(ent.Comp.TurnSound, ent, args.OtherEntity);
     }
 
     private void OnEndCollide(Entity<TurnstileComponent> ent, ref EndCollideEvent args)
@@ -128,11 +126,6 @@ public abstract partial class SharedTurnstileSystem : EntitySystem
             diff = MathHelper.TwoPi - diff;
 
         return diff < Math.PI / 4;
-    }
-
-    private EntityUid GetPredictedAudioUser(EntityUid user)
-    {
-        return _proxyControl.ForPredictedAudio(user, ProxyControlRelayFlags.Interaction);
     }
 
     protected virtual void PlayAnimation(EntityUid uid, string stateId)

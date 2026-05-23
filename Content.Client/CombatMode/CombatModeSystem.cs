@@ -25,7 +25,6 @@
 
 using Content.Client.Hands.Systems;
 using Content.Client.NPC.HTN;
-using Content.Shared._Onyx.ProxyControl;
 using Content.Shared._CorvaxGoob.CCCVars;
 using Content.Shared.CCVar;
 using Content.Shared.CombatMode;
@@ -45,7 +44,6 @@ public sealed class CombatModeSystem : SharedCombatModeSystem
     [Dependency] private readonly IInputManager _inputManager = default!;
     [Dependency] private readonly IEyeManager _eye = default!;
     [Dependency] private readonly AudioSystem _audio = default!;
-    [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
 
     //CorvaxGoob-CombatMode-Sound
     private bool _combatModeSoundEnabled;
@@ -81,7 +79,7 @@ public sealed class CombatModeSystem : SharedCombatModeSystem
 
     public bool IsInCombatMode()
     {
-        var entity = GetLocalCombatEntity();
+        var entity = _playerManager.LocalEntity;
 
         if (entity == null)
             return false;
@@ -102,7 +100,7 @@ public sealed class CombatModeSystem : SharedCombatModeSystem
 
     private void UpdateHud(EntityUid entity)
     {
-        if (entity != GetLocalCombatEntity() || !Timing.IsFirstTimePredicted)
+        if (entity != _playerManager.LocalEntity || !Timing.IsFirstTimePredicted)
         {
             return;
         }
@@ -163,14 +161,6 @@ public sealed class CombatModeSystem : SharedCombatModeSystem
                 _audio.PlayLocal(comp.CombatDeactivationSound, uid, uid);
                 break;
         }
-    }
-
-    private EntityUid? GetLocalCombatEntity()
-    {
-        if (_playerManager.LocalEntity is not { } local)
-            return null;
-
-        return _proxyControl.ForCombat(local);
     }
     //CorvaxGoob-CombatMode-Sound-End
 }

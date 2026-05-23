@@ -108,7 +108,6 @@ using Content.Server.Body.Components;
 using Content.Server.Medical.Components;
 using Content.Server.PowerCell;
 using Content.Server.Temperature.Components;
-using Content.Shared._Onyx.ProxyControl;
 using Content.Shared.Body.Components;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Damage;
@@ -125,7 +124,6 @@ using Content.Shared.Traits.Assorted;
 using Robust.Server.GameObjects;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Containers;
-using Robust.Shared.Player;
 using Robust.Shared.Timing;
 
 // Shitmed Change
@@ -164,7 +162,6 @@ public sealed class HealthAnalyzerSystem : EntitySystem
     [Dependency] private readonly WoundSystem _woundSystem = default!; // Shitmed Change
     [Dependency] private readonly TraumaSystem _trauma = default!; // Shitmed Change
     [Dependency] private readonly MobThresholdSystem _threshold = default!; // Goobstation
-    [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
 
     public override void Initialize()
     {
@@ -295,25 +292,7 @@ public sealed class HealthAnalyzerSystem : EntitySystem
         if (!_uiSystem.HasUi(analyzer, HealthAnalyzerUiKey.Key))
             return;
 
-        var openedForProxy = false;
-
-        if (TryComp<ProxyControlTargetComponent>(user, out var target))
-        {
-            foreach (var controller in target.Controllers)
-            {
-                if (!_proxyControl.IsControllerFor(controller, user, ProxyControlRelayFlags.UserInterface) ||
-                    !HasComp<ActorComponent>(controller))
-                {
-                    continue;
-                }
-
-                _uiSystem.OpenUi(analyzer, HealthAnalyzerUiKey.Key, controller);
-                openedForProxy = true;
-            }
-        }
-
-        if (!openedForProxy || HasComp<ActorComponent>(user))
-            _uiSystem.OpenUi(analyzer, HealthAnalyzerUiKey.Key, user);
+        _uiSystem.OpenUi(analyzer, HealthAnalyzerUiKey.Key, user);
     }
 
     /// <summary>

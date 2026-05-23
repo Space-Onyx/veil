@@ -30,7 +30,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System.Linq;
-using Content.Shared._Onyx.ProxyControl;
 using Content.Client.Clothing;
 using Content.Client.Examine;
 using Content.Client.Verbs.UI;
@@ -56,7 +55,6 @@ namespace Content.Client.Inventory
         [Dependency] private readonly IGameTiming _timing = default!;
         [Dependency] private readonly ClientClothingSystem _clothingVisualsSystem = default!;
         [Dependency] private readonly ExamineSystem _examine = default!;
-        [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
 
         public Action<SlotData>? EntitySlotUpdate = null;
         public Action<SlotData>? OnSlotAdded = null;
@@ -66,7 +64,6 @@ namespace Content.Client.Inventory
         public Action<SlotSpriteUpdate>? OnSpriteUpdate = null;
 
         private readonly Queue<(InventorySlotsComponent comp, EntityEventArgs args)> _equipEventsQueue = new();
-        private EntityUid? _linkedInventoryEntity;
 
         public override void Initialize()
         {
@@ -87,8 +84,6 @@ namespace Content.Client.Inventory
         public override void Update(float frameTime)
         {
             base.Update(frameTime);
-
-            RefreshInventoryLink();
 
             while (_equipEventsQueue.TryDequeue(out var tuple))
             {
@@ -111,7 +106,7 @@ namespace Content.Client.Inventory
         private void OnDidUnequip(InventorySlotsComponent component, DidUnequipEvent args)
         {
             UpdateSlot(args.Equipee, component, args.Slot);
-            if (args.Equipee != GetLocalInventoryEntity())
+            if (args.Equipee != _playerManager.LocalEntity)
                 return;
             var update = new SlotSpriteUpdate(null, args.SlotGroup, args.Slot, false);
             OnSpriteUpdate?.Invoke(update);
@@ -120,7 +115,7 @@ namespace Content.Client.Inventory
         private void OnDidEquip(InventorySlotsComponent component, DidEquipEvent args)
         {
             UpdateSlot(args.Equipee, component, args.Slot);
-            if (args.Equipee != GetLocalInventoryEntity())
+            if (args.Equipee != _playerManager.LocalEntity)
                 return;
             var update = new SlotSpriteUpdate(args.Equipment, args.SlotGroup, args.Slot,
                 HasComp<StorageComponent>(args.Equipment));
@@ -137,18 +132,18 @@ namespace Content.Client.Inventory
                 }
             }
 
-            if (uid == _linkedInventoryEntity)
-                ClearInventoryLink();
+            if (uid == _playerManager.LocalEntity)
+                OnUnlinkInventory?.Invoke();
         }
 
         private void OnPlayerDetached(EntityUid uid, InventorySlotsComponent component, LocalPlayerDetachedEvent args)
         {
-            ClearInventoryLink();
+            OnUnlinkInventory?.Invoke();
         }
 
         private void OnPlayerAttached(EntityUid uid, InventorySlotsComponent component, LocalPlayerAttachedEvent args)
         {
-            RefreshInventoryLink(force: true);
+            OnLinkInventorySlots?.Invoke(uid, component);
         }
 
         protected override void OnInit(Entity<InventoryComponent> ent, ref ComponentInit args)
@@ -166,7 +161,7 @@ namespace Content.Client.Inventory
 
         public void ReloadInventory(InventorySlotsComponent? component = null)
         {
-            var player = GetLocalInventoryEntity();
+            var player = _playerManager.LocalEntity;
             if (player == null || !Resolve(player.Value, ref component, false))
             {
                 return;
@@ -180,7 +175,7 @@ namespace Content.Client.Inventory
         {
             var oldData = component.SlotData[slotName];
             var newData = component.SlotData[slotName] = new SlotData(oldData, state);
-            if (owner == GetLocalInventoryEntity())
+            if (owner == _playerManager.LocalEntity)
                 EntitySlotUpdate?.Invoke(newData);
         }
 
@@ -202,7 +197,7 @@ namespace Content.Client.Inventory
 
             var newData = component.SlotData[slotName] =
                 new SlotData(component.SlotData[slotName], newHighlight, newBlocked);
-            if (owner == GetLocalInventoryEntity())
+            if (owner == _playerManager.LocalEntity)
                 EntitySlotUpdate?.Invoke(newData);
         }
 
@@ -214,7 +209,7 @@ namespace Content.Client.Inventory
             if (TryGetSlotContainer(ent.Owner, newSlotData.SlotName, out var newContainer, out _))
                 ent.Comp.SlotData[newSlotData.SlotName].Container = newContainer;
 
-            if (ent.Owner == GetLocalInventoryEntity())
+            if (ent.Owner == _playerManager.LocalEntity)
                 OnSlotAdded?.Invoke(newSlotData);
 
             return true;
@@ -225,7 +220,7 @@ namespace Content.Client.Inventory
             if (!ent.Comp.SlotData.Remove(removedSlotData.SlotName))
                 return false;
 
-            if (ent.Owner == GetLocalInventoryEntity())
+            if (ent.Owner == _playerManager.LocalEntity)
                 OnSlotRemoved?.Invoke(removedSlotData);
 
             return true;
@@ -304,51 +299,8 @@ namespace Content.Client.Inventory
                     TryAddSlotData((ent.Owner, inventorySlots), (SlotData)slot);
             }
 
-            if (ent.Owner == GetLocalInventoryEntity())
+            if (ent.Owner == _playerManager.LocalEntity)
                 ReloadInventory(inventorySlots);
-        }
-
-        private void RefreshInventoryLink(bool force = false)
-        {
-            var current = GetLocalInventoryEntity();
-            InventorySlotsComponent? inventory = null;
-
-            if (current != null && !TryComp(current.Value, out inventory))
-            {
-                if (_linkedInventoryEntity != null)
-                    ClearInventoryLink();
-
-                return;
-            }
-
-            if (!force && _linkedInventoryEntity == current)
-                return;
-
-            if (_linkedInventoryEntity != null)
-                OnUnlinkInventory?.Invoke();
-
-            _linkedInventoryEntity = current;
-
-            if (current != null && inventory != null)
-                OnLinkInventorySlots?.Invoke(current.Value, inventory);
-        }
-
-        private void ClearInventoryLink()
-        {
-            if (_linkedInventoryEntity == null)
-                return;
-
-            _linkedInventoryEntity = null;
-            OnUnlinkInventory?.Invoke();
-        }
-
-        private EntityUid? GetLocalInventoryEntity()
-        {
-            var player = _playerManager.LocalEntity;
-            if (player == null)
-                return null;
-
-            return _proxyControl.ForInventory(player.Value);
         }
 
         public sealed class SlotData

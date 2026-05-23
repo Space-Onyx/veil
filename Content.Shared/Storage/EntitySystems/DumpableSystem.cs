@@ -87,7 +87,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System.Linq;
-using Content.Shared._Onyx.ProxyControl;
 using Content.Shared.DoAfter;
 using Content.Shared.Interaction;
 using Content.Shared.Item;
@@ -108,7 +107,6 @@ public sealed class DumpableSystem : EntitySystem
     [Dependency] private readonly SharedAudioSystem _audio = default!;
     [Dependency] private readonly SharedDoAfterSystem _doAfterSystem = default!;
     [Dependency] private readonly SharedTransformSystem _transformSystem = default!;
-    [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
 
     private EntityQuery<ItemComponent> _itemQuery;
 
@@ -257,7 +255,7 @@ public sealed class DumpableSystem : EntitySystem
 
         if (evt.PlaySound)
         {
-            _audio.PlayPredicted(component.DumpSound, uid, _proxyControl.ForPredictedAudio(user, ProxyControlRelayFlags.Hands | ProxyControlRelayFlags.Inventory)); //goob edit
+            _audio.PlayPredicted(component.DumpSound, uid, user); //goob edit
         }
     }
 }

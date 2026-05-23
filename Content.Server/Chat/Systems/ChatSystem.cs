@@ -124,7 +124,6 @@ using Content.Server.Speech.EntitySystems;
 using Content.Server.Speech.Prototypes;
 using Content.Server.Station.Systems;
 using Content.Shared._CorvaxGoob.Chat;
-using Content.Shared._Onyx.ProxyControl;
 using Content.Shared._EinsteinEngines.Language; // Einstein Engines - Language
 using Content.Shared._Goobstation.Wizard.Chuuni;
 using Content.Shared._Starlight.CollectiveMind; // Goobstation - Starlight collective mind port
@@ -188,7 +187,6 @@ public sealed partial class ChatSystem : SharedChatSystem
     [Dependency] private readonly StationSystem _stationSystem = default!;
     [Dependency] private readonly MobStateSystem _mobStateSystem = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
     [Dependency] private readonly AnnouncerSystem _announcer = default!;
     [Dependency] private readonly ReplacementAccentSystem _wordreplacement = default!;
     [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
@@ -340,8 +338,6 @@ public sealed partial class ChatSystem : SharedChatSystem
         bool forced = false // goobstation
         )
     {
-        source = GetProxySpeechActor(source);
-
         if (HasComp<GhostComponent>(source))
         {
             // Ghosts can only send dead chat messages, so we'll forward it to InGame OOC.
@@ -357,9 +353,7 @@ public sealed partial class ChatSystem : SharedChatSystem
             return;
 
         // Sus
-        if (player?.AttachedEntity is { Valid: true } entity &&
-            source != entity &&
-            !_proxyControl.IsControllerFor(entity, source, ProxyControlRelayFlags.Speech))
+        if (player?.AttachedEntity is { Valid: true } entity && source != entity)
         {
             return;
         }
@@ -476,11 +470,6 @@ public sealed partial class ChatSystem : SharedChatSystem
                 _telepath.SendTelepathicChat(source, message, range == ChatTransmitRange.HideChat);
                 break;
         }
-    }
-
-    private EntityUid GetProxySpeechActor(EntityUid actor)
-    {
-        return _proxyControl.ForSpeech(actor);
     }
 
     // <Onyx>

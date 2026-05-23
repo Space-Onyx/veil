@@ -43,7 +43,6 @@ using Content.Shared.Atmos.Piping;
 using Content.Shared.Atmos.Piping.Components;
 using Content.Shared.Atmos.Piping.Trinary.Components;
 using Content.Shared.Audio;
-using Content.Shared._Onyx.ProxyControl;
 using Content.Shared.Database;
 using Content.Shared.Interaction;
 using Content.Shared.Popups;
@@ -63,7 +62,6 @@ namespace Content.Server.Atmos.Piping.Trinary.EntitySystems
         [Dependency] private readonly SharedAppearanceSystem _appearanceSystem = default!;
         [Dependency] private readonly SharedPopupSystem _popupSystem = default!;
         [Dependency] private readonly NodeContainerSystem _nodeContainer = default!;
-        [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
 
         public override void Initialize()
         {
@@ -139,7 +137,7 @@ namespace Content.Server.Atmos.Piping.Trinary.EntitySystems
             if (args.Handled || !args.Complex)
                 return;
 
-            if (!TryGetUiActor(args.User, out var actor))
+            if (!TryComp(args.User, out ActorComponent? actor))
                 return;
 
             if (Comp<TransformComponent>(uid).Anchored)
@@ -162,25 +160,6 @@ namespace Content.Server.Atmos.Piping.Trinary.EntitySystems
 
             _userInterfaceSystem.SetUiState(uid, GasFilterUiKey.Key,
                 new GasFilterBoundUserInterfaceState(MetaData(uid).EntityName, filter.TransferRate, filter.Enabled, filter.FilteredGas));
-        }
-
-        private bool TryGetUiActor(EntityUid user, out ActorComponent actor)
-        {
-            if (TryComp<ActorComponent>(user, out var userActor))
-            {
-                actor = userActor;
-                return true;
-            }
-
-            if (_proxyControl.TryGetControllerForTarget(user, ProxyControlRelayFlags.UserInterface, out var controller) &&
-                TryComp<ActorComponent>(controller, out var controllerActor))
-            {
-                actor = controllerActor;
-                return true;
-            }
-
-            actor = default!;
-            return false;
         }
 
         private void UpdateAppearance(EntityUid uid, GasFilterComponent? filter = null)

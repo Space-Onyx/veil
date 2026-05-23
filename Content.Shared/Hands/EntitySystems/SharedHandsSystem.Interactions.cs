@@ -20,7 +20,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System.Linq;
-using Content.Shared._Onyx.ProxyControl;
 using Content.Shared._Goobstation.Wizard.ArcaneBarrage;
 using Content.Shared.Examine;
 using Content.Shared.Hands.Components;
@@ -62,44 +61,44 @@ public abstract partial class SharedHandsSystem : EntitySystem
     #region Event and Key-binding Handlers
     private void HandleAltUseInHand(ICommonSession? session)
     {
-        if (TryGetProxyHandsActor(session, out var actor))
-            TryUseItemInHand(actor, true);
+        if (session?.AttachedEntity != null)
+            TryUseItemInHand(session.AttachedEntity.Value, true);
     }
 
     private void HandleUseItem(ICommonSession? session)
     {
-        if (TryGetProxyHandsActor(session, out var actor))
-            TryUseItemInHand(actor);
+        if (session?.AttachedEntity != null)
+            TryUseItemInHand(session.AttachedEntity.Value);
     }
 
     private void HandleMoveItemFromHand(RequestMoveHandItemEvent msg, EntitySessionEventArgs args)
     {
-        if (TryGetProxyHandsActor(args.SenderSession, out var actor))
-            TryMoveHeldEntityToActiveHand(actor, msg.HandName);
+        if (args.SenderSession.AttachedEntity != null)
+            TryMoveHeldEntityToActiveHand(args.SenderSession.AttachedEntity.Value, msg.HandName);
     }
 
     private void HandleUseInHand(RequestUseInHandEvent msg, EntitySessionEventArgs args)
     {
-        if (TryGetProxyHandsActor(args.SenderSession, out var actor))
-            TryUseItemInHand(actor);
+        if (args.SenderSession.AttachedEntity != null)
+            TryUseItemInHand(args.SenderSession.AttachedEntity.Value);
     }
 
     private void HandleActivateItemInHand(RequestActivateInHandEvent msg, EntitySessionEventArgs args)
     {
-        if (TryGetProxyHandsActor(args.SenderSession, out var actor))
-            TryActivateItemInHand(actor, null, msg.HandName);
+        if (args.SenderSession.AttachedEntity != null)
+            TryActivateItemInHand(args.SenderSession.AttachedEntity.Value, null, msg.HandName);
     }
 
     private void HandleInteractUsingInHand(RequestHandInteractUsingEvent msg, EntitySessionEventArgs args)
     {
-        if (TryGetProxyHandsActor(args.SenderSession, out var actor))
-            TryInteractHandWithActiveHand(actor, msg.HandName);
+        if (args.SenderSession.AttachedEntity != null)
+            TryInteractHandWithActiveHand(args.SenderSession.AttachedEntity.Value, msg.HandName);
     }
 
     private void HandleHandAltInteract(RequestHandAltInteractEvent msg, EntitySessionEventArgs args)
     {
-        if (TryGetProxyHandsActor(args.SenderSession, out var actor))
-            TryUseItemInHand(actor, true, handName: msg.HandName);
+        if (args.SenderSession.AttachedEntity != null)
+            TryUseItemInHand(args.SenderSession.AttachedEntity.Value, true, handName: msg.HandName);
     }
 
     private void SwapHandsPressed(ICommonSession? session)
@@ -114,15 +113,14 @@ public abstract partial class SharedHandsSystem : EntitySystem
 
     private void SwapHands(ICommonSession? session, bool reverse)
     {
-        if (!TryGetProxyHandsActor(session, out var actor) ||
-            !TryComp(actor, out HandsComponent? component))
+        if (!TryComp(session?.AttachedEntity, out HandsComponent? component))
             return;
 
-        if (!_actionBlocker.CanInteract(actor, null))
+        if (!_actionBlocker.CanInteract(session.AttachedEntity.Value, null))
             return;
 
         // <Goobstation> - use public API
-        SwapHands((actor, component), reverse);
+        SwapHands((session.AttachedEntity.Value, component), reverse);
         // </Goobstation>
     }
 
@@ -143,8 +141,9 @@ public abstract partial class SharedHandsSystem : EntitySystem
 
     private bool DropPressed(ICommonSession? session, EntityCoordinates coords, EntityUid netEntity)
     {
-        if (TryGetProxyHandsActor(session, out var ent)
-            && TryGetActiveItem(ent, out var activeItem))
+        if (session != null
+            && session.AttachedEntity != null
+            && TryGetActiveItem(session.AttachedEntity.Value, out var activeItem))
         {
             // Goobstation start
             if (_net.IsServer && HasComp<DeleteOnDropAttemptComponent>(activeItem))
@@ -152,6 +151,11 @@ public abstract partial class SharedHandsSystem : EntitySystem
                 QueueDel(activeItem);
                 return false;
             }
+
+            if (session is not { AttachedEntity: not null })
+                return false;
+
+            var ent = session.AttachedEntity.Value;
 
             if (TryGetActiveItem(ent, out var item) && TryComp<VirtualItemComponent>(item, out var virtComp))
             {
@@ -164,7 +168,7 @@ public abstract partial class SharedHandsSystem : EntitySystem
                 if (userEv.Cancelled || targEv.Cancelled)
                     return false;
             }
-            var activeHand = GetActiveHand(ent);
+            var activeHand = GetActiveHand(session.AttachedEntity.Value);
             TryDrop(ent, activeHand!, coords); // Supress nullable, because if active hand has something, it exists.
             // Goobstation end
         }
@@ -173,21 +177,6 @@ public abstract partial class SharedHandsSystem : EntitySystem
         return false;
     }
     #endregion
-
-    private bool TryGetProxyHandsActor(ICommonSession? session, out EntityUid actor)
-    {
-        actor = default;
-        if (session?.AttachedEntity is not { } attached)
-            return false;
-
-        actor = GetProxyHandsActor(attached);
-        return true;
-    }
-
-    private EntityUid GetProxyHandsActor(EntityUid actor)
-    {
-        return _proxyControl.ForHands(actor);
-    }
 
     public bool TryActivateItemInHand(EntityUid uid, HandsComponent? handsComp = null, string? handName = null)
     {

@@ -95,11 +95,9 @@ namespace Content.Shared.Verbs
             if (Deleted(user))
                 return;
 
-            var effectiveUser = GetInteractionRelayUser(user.Value);
-
             // Get the list of verbs. This effectively also checks that the requested verb is in fact a valid verb that
             // the user can perform.
-            var verbs = GetLocalVerbs(target.Value, effectiveUser, args.RequestedVerb.GetType());
+            var verbs = GetLocalVerbs(target.Value, user.Value, args.RequestedVerb.GetType());
 
             // Note that GetLocalVerbs might waste time checking & preparing unrelated verbs even though we know
             // precisely which one we want to run. However, MOST entities will only have 1 or 2 verbs of a given type.
@@ -107,7 +105,7 @@ namespace Content.Shared.Verbs
 
             // Find the requested verb.
             if (verbs.TryGetValue(args.RequestedVerb, out var verb))
-                ExecuteVerb(verb, effectiveUser, target.Value);
+                ExecuteVerb(verb, user.Value, target.Value);
         }
 
         /// <summary>
@@ -132,8 +130,6 @@ namespace Content.Shared.Verbs
         public SortedSet<Verb> GetLocalVerbs(EntityUid target, EntityUid user, List<Type> types,
             out List<VerbCategory> extraCategories, bool force = false)
         {
-            user = GetInteractionRelayUser(user);
-
             SortedSet<Verb> verbs = new();
             extraCategories = new();
 
@@ -204,7 +200,7 @@ namespace Content.Shared.Verbs
             if (types.Contains(typeof(EquipmentVerb)))
             {
                 var access = canAccess || _interactionSystem.CanAccessEquipment(user, target);
-                var verbEvent = new GetVerbsEvent<EquipmentVerb>(user, target, @using, hands, canInteract: canInteract, canComplexInteract: canComplexInteract, canAccess: access, extraCategories);
+                var verbEvent = new GetVerbsEvent<EquipmentVerb>(user, target, @using, hands, canInteract: canInteract, canComplexInteract: canComplexInteract, canAccess: canAccess, extraCategories);
                 RaiseLocalEvent(target, verbEvent);
                 verbs.UnionWith(verbEvent.Verbs);
             }
@@ -220,8 +216,6 @@ namespace Content.Shared.Verbs
         /// </remarks>
         public virtual void ExecuteVerb(Verb verb, EntityUid user, EntityUid target, bool forced = false)
         {
-            user = GetInteractionRelayUser(user);
-
             // invoke any relevant actions
             verb.Act?.Invoke();
 
@@ -240,13 +234,6 @@ namespace Content.Shared.Verbs
             // Perform any contact interactions
             if (verb.DoContactInteraction ?? (verb.DefaultDoContactInteraction && _interactionSystem.InRangeUnobstructed(user, target)))
                 _interactionSystem.DoContactInteraction(user, target);
-        }
-
-        protected EntityUid GetInteractionRelayUser(EntityUid user)
-        {
-            return _interactionSystem.TryGetInteractionRelay(user, out var relayUser)
-                ? relayUser
-                : user;
         }
     }
 

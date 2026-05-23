@@ -299,7 +299,7 @@ public sealed class ActionUIController : UIController, IOnStateChanged<GameplayS
         if (!_timing.IsFirstTimePredicted || _actionsSystem == null || SelectingTargetFor is not { } actionId)
             return false;
 
-        if (GetActionOwner() is not { } user)
+        if (_playerManager.LocalEntity is not { } user)
             return false;
 
         if (!EntityManager.TryGetComponent<ActionsComponent>(user, out var comp))
@@ -392,18 +392,13 @@ public sealed class ActionUIController : UIController, IOnStateChanged<GameplayS
             _actionsSystem?.TriggerAction(action);
     }
 
-    private EntityUid? GetActionOwner()
-    {
-        return _actionsSystem?.GetClientActionOwner() ?? _playerManager.LocalEntity;
-    }
-
     // Goobstation start
     private bool AltTargeting(in PointerInputCmdArgs args)
     {
         if (!_timing.IsFirstTimePredicted || _actionsSystem == null || SelectingTargetFor is not { } actionId)
             return false;
 
-        if (GetActionOwner() is not { } user)
+        if (_playerManager.LocalEntity is not { } user)
             return false;
 
         if (_actionsSystem.GetAction(actionId) is not { } action)
@@ -468,8 +463,9 @@ public sealed class ActionUIController : UIController, IOnStateChanged<GameplayS
             return;
         }
 
-        if (GetActionOwner() is not { } localEntity)
+        if (_playerManager.LocalEntity == null)
             return;
+        var localEntity = _playerManager.LocalEntity.Value;
 
         if (!_savedActions.TryGetValue(entity, out var savedActions))
             return;
@@ -608,12 +604,11 @@ public sealed class ActionUIController : UIController, IOnStateChanged<GameplayS
     private bool MatchesFilter(Entity<ActionComponent> ent, Filters filter)
     {
         var (uid, comp) = ent;
-        var owner = GetActionOwner();
         return filter switch
         {
             Filters.Enabled => comp.Enabled,
-            Filters.Item => comp.Container != null && comp.Container != owner,
-            Filters.Innate => comp.Container == null || comp.Container == owner,
+            Filters.Item => comp.Container != null && comp.Container != _playerManager.LocalEntity,
+            Filters.Innate => comp.Container == null || comp.Container == _playerManager.LocalEntity,
             Filters.Instant => EntityManager.HasComponent<InstantActionComponent>(uid),
             Filters.Targeted => EntityManager.HasComponent<TargetActionComponent>(uid),
             _ => throw new ArgumentOutOfRangeException(nameof(filter), filter, null)
@@ -680,7 +675,7 @@ public sealed class ActionUIController : UIController, IOnStateChanged<GameplayS
         if (_actionsSystem == null)
             return;
 
-        if (GetActionOwner() is not { } player)
+        if (_playerManager.LocalEntity is not { } player)
             return;
 
         var search = _window.SearchBar.Text;
@@ -1051,7 +1046,7 @@ public sealed class ActionUIController : UIController, IOnStateChanged<GameplayS
         List<(float range, EntityUid target)> selectedTargets = new();
         foreach (var (target, _) in targets)
         {
-            if (target == GetActionOwner())
+            if (target == _playerManager.LocalEntity)
                 continue;
 
             if (!damageableQuery.HasComp(target))
@@ -1139,9 +1134,6 @@ public sealed class ActionUIController : UIController, IOnStateChanged<GameplayS
             _actionsSystem?.TriggerAction(ent, true); // We just perform it and hope for the best :godo:
 
         SelectingTargetFor = uid;
-        if (_actionsSystem != null)
-            _actionsSystem.ClientSelectingTargetFor = uid;
-
         // TODO inform the server
         _actionsSystem?.SetToggled(uid, true);
 
@@ -1177,8 +1169,8 @@ public sealed class ActionUIController : UIController, IOnStateChanged<GameplayS
         if (!EntityManager.TryGetComponent<EntityTargetActionComponent>(uid, out var entity))
             return;
 
-        if (EntityManager.HasComponent<SwapSpellComponent>(uid) && GetActionOwner() is { } actionOwner) // Goobstation
-            _spells?.SetSwapSecondaryTarget(actionOwner, null, uid);
+        if (EntityManager.HasComponent<SwapSpellComponent>(uid) && _playerManager.LocalEntity != null) // Goobstation
+            _spells?.SetSwapSecondaryTarget(_playerManager.LocalEntity.Value, null, uid);
 
         Func<EntityUid, bool>? predicate = null;
         var attachedEnt = action.AttachedEntity;
@@ -1203,15 +1195,12 @@ public sealed class ActionUIController : UIController, IOnStateChanged<GameplayS
             return;
 
         var oldAction = SelectingTargetFor;
-        if (_actionsSystem != null)
-            _actionsSystem.ClientSelectingTargetFor = null;
-
         // TODO inform the server
         _actionsSystem?.SetToggled(oldAction, false);
 
         // Goobstation
-        if (EntityManager.HasComponent<SwapSpellComponent>(oldAction.Value) && GetActionOwner() is { } actionOwner)
-            _spells?.SetSwapSecondaryTarget(actionOwner, null, oldAction.Value);
+        if (EntityManager.HasComponent<SwapSpellComponent>(oldAction.Value) && _playerManager.LocalEntity != null)
+            _spells?.SetSwapSecondaryTarget(_playerManager.LocalEntity.Value, null, oldAction.Value);
 
         SelectingTargetFor = null;
 

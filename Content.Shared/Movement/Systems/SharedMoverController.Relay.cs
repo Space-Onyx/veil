@@ -37,11 +37,7 @@ public abstract partial class SharedMoverController
     ///     Sets the relay entity and marks the component as dirty. This only exists because people have previously
     ///     forgotten to Dirty(), so fuck you, you have to use this method now.
     /// </summary>
-    public void SetRelay(
-        EntityUid uid,
-        EntityUid relayEntity,
-        bool relayCanMove = true,
-        bool relayInputWhileIncapacitated = false)
+    public void SetRelay(EntityUid uid, EntityUid relayEntity)
     {
         if (uid == relayEntity)
         {
@@ -51,17 +47,7 @@ public abstract partial class SharedMoverController
 
         var component = EnsureComp<RelayInputMoverComponent>(uid);
         if (component.RelayEntity == relayEntity)
-        {
-            if (component.RelayCanMove != relayCanMove ||
-                component.RelayInputWhileIncapacitated != relayInputWhileIncapacitated)
-            {
-                component.RelayCanMove = relayCanMove;
-                component.RelayInputWhileIncapacitated = relayInputWhileIncapacitated;
-                Dirty(uid, component);
-            }
-
             return;
-        }
 
         if (TryComp(component.RelayEntity, out MovementRelayTargetComponent? oldTarget))
         {
@@ -81,8 +67,6 @@ public abstract partial class SharedMoverController
         PhysicsSystem.UpdateIsPredicted(uid);
         PhysicsSystem.UpdateIsPredicted(relayEntity);
         component.RelayEntity = relayEntity;
-        component.RelayCanMove = relayCanMove;
-        component.RelayInputWhileIncapacitated = relayInputWhileIncapacitated;
         targetComp.Source = uid;
         Dirty(uid, component);
         Dirty(relayEntity, targetComp);

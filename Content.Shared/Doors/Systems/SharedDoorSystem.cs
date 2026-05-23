@@ -51,7 +51,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System.Linq;
-using Content.Shared._Onyx.ProxyControl;
 using Content.Shared.Access.Components;
 using Content.Shared.Access.Systems;
 using Content.Shared.Administration.Logs;
@@ -101,7 +100,6 @@ public abstract partial class SharedDoorSystem : EntitySystem
     [Dependency] protected readonly SharedPopupSystem Popup = default!;
     [Dependency] private readonly SharedMapSystem _mapSystem = default!;
     [Dependency] private readonly SharedPowerReceiverSystem _powerReceiver = default!;
-    [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
 
     // Goobstation - Start - Manual unbolting
     [Dependency] private readonly SharedToolSystem _toolsSystem = default!;
@@ -345,7 +343,7 @@ public abstract partial class SharedDoorSystem : EntitySystem
             return;
 
         if (predicted)
-            Audio.PlayPredicted(door.DenySound, uid, GetPredictedAudioUser(user), AudioParams.Default.WithVolume(-3));
+            Audio.PlayPredicted(door.DenySound, uid, user, AudioParams.Default.WithVolume(-3));
         else if (_net.IsServer)
             Audio.PlayPvs(door.DenySound, uid, AudioParams.Default.WithVolume(-3));
     }
@@ -425,7 +423,7 @@ public abstract partial class SharedDoorSystem : EntitySystem
             return;
 
         if (predicted)
-            Audio.PlayPredicted(door.OpenSound, uid, GetPredictedAudioUser(user), AudioParams.Default.WithVolume(-5));
+            Audio.PlayPredicted(door.OpenSound, uid, user, AudioParams.Default.WithVolume(-5));
         else if (_net.IsServer)
             Audio.PlayPvs(door.OpenSound, uid, AudioParams.Default.WithVolume(-5));
 
@@ -518,7 +516,7 @@ public abstract partial class SharedDoorSystem : EntitySystem
             return;
 
         if (predicted)
-            Audio.PlayPredicted(door.CloseSound, uid, GetPredictedAudioUser(user), AudioParams.Default.WithVolume(-5));
+            Audio.PlayPredicted(door.CloseSound, uid, user, AudioParams.Default.WithVolume(-5));
         else if (_net.IsServer)
             Audio.PlayPvs(door.CloseSound, uid, AudioParams.Default.WithVolume(-5));
     }
@@ -558,13 +556,6 @@ public abstract partial class SharedDoorSystem : EntitySystem
         // the door closed.
         Crush(uid, door, physics);
         return true;
-    }
-
-    private EntityUid? GetPredictedAudioUser(EntityUid? user)
-    {
-        return user is { } uid
-            ? _proxyControl.ForPredictedAudio(uid, ProxyControlRelayFlags.Interaction)
-            : null;
     }
     #endregion
 

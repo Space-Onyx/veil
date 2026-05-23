@@ -121,8 +121,6 @@
 
 using System.IO;
 using System.Linq;
-using Content.Shared._Onyx.ProxyControl;
-using Content.Client._Onyx.ProxyControl;
 using Content.Shared._Goobstation.Wizard.SpellCards;
 using Content.Client._Shitcode.Wizard.Systems;
 using Content.Goobstation.Common.Actions;
@@ -158,7 +156,6 @@ namespace Content.Client.Actions
         [Dependency] private readonly IResourceManager _resources = default!;
         [Dependency] private readonly MetaDataSystem _metaData = default!;
         [Dependency] private readonly ActionTargetMarkSystem _mark = default!;
-        [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
 
         public event Action<EntityUid>? OnActionAdded;
         public event Action<EntityUid>? OnActionRemoved;
@@ -173,11 +170,8 @@ namespace Content.Client.Actions
         public event Action<EntityUid>? ActionsLoaded;
         // Goobstation end
 
-        public EntityUid? ClientSelectingTargetFor { get; set; }
-
         private readonly List<EntityUid> _removed = new();
         private readonly List<Entity<ActionComponent>> _added = new();
-        private EntityUid? _linkedActionsEntity;
 
         public static readonly EntProtoId MappingEntityAction = "BaseMappingEntityAction";
 
@@ -190,7 +184,6 @@ namespace Content.Client.Actions
             SubscribeLocalEvent<ActionsComponent, ComponentHandleState>(OnHandleState);
 
             SubscribeLocalEvent<ActionComponent, AfterAutoHandleStateEvent>(OnActionAutoHandleState);
-            SubscribeLocalEvent<ProxyControlLocalRefreshEvent>(OnProxyControlRefresh);
 
             SubscribeLocalEvent<EntityTargetActionComponent, ActionTargetAttemptEvent>(OnEntityTargetAttempt);
             SubscribeLocalEvent<WorldTargetActionComponent, ActionTargetAttemptEvent>(OnWorldTargetAttempt);
@@ -212,28 +205,12 @@ namespace Content.Client.Actions
             UpdateAction(ent);
         }
 
-        private void OnProxyControlRefresh(ProxyControlLocalRefreshEvent args)
-        {
-            switch (args.Kind)
-            {
-                case ProxyControlLocalRefreshKind.Detached:
-                    ClearActionsLink();
-                    break;
-                case ProxyControlLocalRefreshKind.Shutdown:
-                    RefreshActionsLink(force: true, ignoreProxy: true);
-                    break;
-                default:
-                    RefreshActionsLink(force: true);
-                    break;
-            }
-        }
-
         public override void UpdateAction(Entity<ActionComponent> ent)
         {
             // TODO: Decouple this.
             ent.Comp.IconColor = _sharedCharges.GetCurrentCharges(ent.Owner) == 0 || !ent.Comp.Enabled ? ent.Comp.DisabledIconColor : ent.Comp.OriginalIconColor; // WD EDIT
             base.UpdateAction(ent);
-            if (GetLocalActionsEntity() != ent.Comp.AttachedEntity)
+            if (_playerManager.LocalEntity != ent.Comp.AttachedEntity)
                 return;
 
             ActionsUpdated?.Invoke();
@@ -267,7 +244,7 @@ namespace Content.Client.Actions
                     _added.Add(action);
             }
 
-            if (GetLocalActionsEntity() != uid)
+            if (_playerManager.LocalEntity != uid)
                 return;
 
             foreach (var action in _removed)
@@ -299,7 +276,7 @@ namespace Content.Client.Actions
 
         protected override void ActionAdded(Entity<ActionsComponent> performer, Entity<ActionComponent> action)
         {
-            if (GetLocalActionsEntity() != performer.Owner)
+            if (_playerManager.LocalEntity != performer.Owner)
                 return;
 
             OnActionAdded?.Invoke(action);
@@ -308,7 +285,7 @@ namespace Content.Client.Actions
 
         protected override void ActionRemoved(Entity<ActionsComponent> performer, Entity<ActionComponent> action)
         {
-            if (GetLocalActionsEntity() != performer.Owner)
+            if (_playerManager.LocalEntity != performer.Owner)
                 return;
 
             OnActionRemoved?.Invoke(action);
@@ -318,7 +295,7 @@ namespace Content.Client.Actions
         // Goobstation start
         public override void SaveActions(EntityUid performer)
         {
-            if (GetLocalActionsEntity() != performer)
+            if (_playerManager.LocalEntity != performer)
                 return;
 
             ActionsSaved?.Invoke(performer);
@@ -326,7 +303,7 @@ namespace Content.Client.Actions
 
         public override void LoadActions(EntityUid performer)
         {
-            if (GetLocalActionsEntity() != performer)
+            if (_playerManager.LocalEntity != performer)
                 return;
 
             ActionsLoaded?.Invoke(performer);
@@ -335,27 +312,22 @@ namespace Content.Client.Actions
 
         public IEnumerable<Entity<ActionComponent>> GetClientActions()
         {
-            if (GetLocalActionsEntity() is not { } user)
+            if (_playerManager.LocalEntity is not { } user)
                 return Enumerable.Empty<Entity<ActionComponent>>();
 
             return GetActions(user);
         }
 
-        public EntityUid? GetClientActionOwner()
-        {
-            return GetLocalActionsEntity();
-        }
-
         private void OnPlayerAttached(EntityUid uid, ActionsComponent component, LocalPlayerAttachedEvent args)
         {
-            RefreshActionsLink(true);
+            LinkAllActions(component);
             ActionsLoaded?.Invoke(uid); // Goobstation
         }
 
         private void OnPlayerDetached(EntityUid uid, ActionsComponent component, LocalPlayerDetachedEvent? args = null)
         {
             ActionsSaved?.Invoke(uid); // Goobstation
-            ClearActionsLink();
+            UnlinkAllActions();
         }
 
         public void UnlinkAllActions()
@@ -365,13 +337,12 @@ namespace Content.Client.Actions
 
         public void LinkAllActions(ActionsComponent? actions = null)
         {
-            if (GetLocalActionsEntity() is not { } user ||
+            if (_playerManager.LocalEntity is not { } user ||
                 !Resolve(user, ref actions, false))
             {
                 return;
             }
 
-            _linkedActionsEntity = user;
             LinkActions?.Invoke(actions);
         }
 
@@ -383,7 +354,7 @@ namespace Content.Client.Actions
 
         public void TriggerAction(Entity<ActionComponent> action, bool force = false) // Goob edit
         {
-            if (GetLocalActionsEntity() is not { } user)
+            if (_playerManager.LocalEntity is not { } user)
                 return;
 
             // TODO: unhardcode this somehow
@@ -407,7 +378,7 @@ namespace Content.Client.Actions
         /// </summary>
         public void LoadActionAssignments(string path, bool userData)
         {
-            if (GetLocalActionsEntity() is not { } user)
+            if (_playerManager.LocalEntity is not { } user)
                 return;
 
             var file = new ResPath(path).ToRootedPath();
@@ -475,46 +446,6 @@ namespace Content.Client.Actions
 
                 AddActionDirect((user, actions), actionId);
             }
-        }
-
-        private EntityUid? GetLocalActionsEntity(bool ignoreProxy = false)
-        {
-            var local = _playerManager.LocalEntity;
-            if (local is not { } uid)
-                return null;
-
-            return ignoreProxy
-                ? uid
-                : _proxyControl.ForActions(uid);
-        }
-
-        private void RefreshActionsLink(bool force = false, bool ignoreProxy = false)
-        {
-            var current = GetLocalActionsEntity(ignoreProxy);
-            if (!force && _linkedActionsEntity == current)
-                return;
-
-            if (_linkedActionsEntity != null)
-                UnlinkAllActions();
-
-            _linkedActionsEntity = current;
-
-            if (current == null ||
-                !TryComp<ActionsComponent>(current.Value, out var actions))
-            {
-                return;
-            }
-
-            LinkActions?.Invoke(actions);
-            ActionsLoaded?.Invoke(current.Value);
-        }
-
-        private void ClearActionsLink()
-        {
-            if (_linkedActionsEntity != null)
-                UnlinkAllActions();
-
-            _linkedActionsEntity = null;
         }
 
         private void OnWorldTargetAttempt(Entity<WorldTargetActionComponent> ent, ref ActionTargetAttemptEvent args)

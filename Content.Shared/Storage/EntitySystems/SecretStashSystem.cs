@@ -83,7 +83,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using Content.Shared._Onyx.ProxyControl;
 using Content.Shared.Construction.EntitySystems;
 using Content.Shared.Damage;
 using Content.Shared.Destructible;
@@ -121,7 +120,6 @@ public sealed class SecretStashSystem : EntitySystem
     [Dependency] private readonly ToolOpenableSystem _toolOpenableSystem = default!;
     [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
     [Dependency] private readonly DamageableSystem _damageableSystem = default!;
-    [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
 
     public override void Initialize()
     {
@@ -183,7 +181,7 @@ public sealed class SecretStashSystem : EntitySystem
         if (!TryComp<ItemComponent>(itemToHideUid, out var itemComp))
             return false;
 
-        _audio.PlayPredicted(entity.Comp.TryInsertItemSound, entity, GetPredictedAudioUser(userUid), AudioParams.Default.WithVariation(0.25f));
+        _audio.PlayPredicted(entity.Comp.TryInsertItemSound, entity, userUid, AudioParams.Default.WithVariation(0.25f));
 
         // check if secret stash is already occupied
         var container = entity.Comp.ItemContainer;
@@ -225,7 +223,7 @@ public sealed class SecretStashSystem : EntitySystem
         if (!TryComp<HandsComponent>(userUid, out var handsComp))
             return false;
 
-        _audio.PlayPredicted(entity.Comp.TryRemoveItemSound, entity, GetPredictedAudioUser(userUid), AudioParams.Default.WithVariation(0.25f));
+        _audio.PlayPredicted(entity.Comp.TryRemoveItemSound, entity, userUid, AudioParams.Default.WithVariation(0.25f));
 
         // check if secret stash has something inside
         var itemInStash = entity.Comp.ItemContainer.ContainedEntity;
@@ -240,11 +238,6 @@ public sealed class SecretStashSystem : EntitySystem
         _popupSystem.PopupClient(successMsg, entity, userUid);
 
         return true;
-    }
-
-    private EntityUid GetPredictedAudioUser(EntityUid user)
-    {
-        return _proxyControl.ForPredictedAudio(user, ProxyControlRelayFlags.Hands | ProxyControlRelayFlags.Inventory);
     }
 
     private void OnGetVerb(Entity<SecretStashComponent> entity, ref GetVerbsEvent<InteractionVerb> args)

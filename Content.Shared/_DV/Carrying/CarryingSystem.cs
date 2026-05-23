@@ -20,7 +20,6 @@ using Content.Shared.Interaction.Events;
 using Content.Shared.Inventory.VirtualItem;
 using Content.Shared.Item;
 using Content.Shared.Mobs;
-using Content.Shared.Movement.Components;
 using Content.Shared.Movement.Events;
 using Content.Shared.Movement.Pulling.Components;
 using Content.Shared.Movement.Pulling.Events;
@@ -205,10 +204,6 @@ public sealed class CarryingSystem : EntitySystem
 
     private void OnMoveAttempt(Entity<BeingCarriedComponent> ent, ref UpdateCanMoveEvent args)
     {
-        if (TryComp<RelayInputMoverComponent>(ent, out var relay) &&
-            relay.RelayEntity == ent.Comp.Carrier)
-            return;
-
         args.Cancel();
     }
 
