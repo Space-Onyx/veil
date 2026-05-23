@@ -105,6 +105,7 @@
 using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Content.Shared._Onyx.ProxyControl;
 using Content.Shared.ActionBlocker;
 using Content.Shared.Administration.Logs;
 using Content.Shared.CCVar;
@@ -167,6 +168,7 @@ public abstract class SharedStorageSystem : EntitySystem
     [Dependency] private   readonly SharedInteractionSystem _interactionSystem = default!;
     [Dependency] protected readonly SharedItemSystem ItemSystem = default!;
     [Dependency] private   readonly SharedPopupSystem _popupSystem = default!;
+    [Dependency] private   readonly SharedProxyControlSystem _proxyControl = default!;
     [Dependency] private   readonly SharedHandsSystem _sharedHandsSystem = default!;
     [Dependency] private   readonly SharedStackSystem _stack = default!;
     [Dependency] protected readonly SharedTransformSystem TransformSystem = default!;
@@ -407,7 +409,7 @@ public abstract class SharedStorageSystem : EntitySystem
         {
             UpdateAppearance((uid, storageComp, null));
             if (!_tag.HasTag(args.Actor, storageComp.SilentStorageUserTag))
-                Audio.PlayPredicted(storageComp.StorageCloseSound, uid, args.Actor);
+                Audio.PlayPredicted(storageComp.StorageCloseSound, uid, GetPredictedAudioUser(args.Actor));
         }
     }
 
@@ -510,7 +512,7 @@ public abstract class SharedStorageSystem : EntitySystem
 
         if (!silent && !_tag.HasTag(entity, storageComp.SilentStorageUserTag))
         {
-            Audio.PlayPredicted(storageComp.StorageOpenSound, uid, entity);
+            Audio.PlayPredicted(storageComp.StorageOpenSound, uid, GetPredictedAudioUser(entity));
 
             if (useDelay != null)
                 UseDelay.TryResetDelay((uid, useDelay), id: OpenUiUseDelayID);
@@ -754,7 +756,7 @@ public abstract class SharedStorageSystem : EntitySystem
         if (successfullyInserted.Count > 0)
         {
             if (!_tag.HasTag(args.User, component.SilentStorageUserTag))
-                Audio.PlayPredicted(component.StorageInsertSound, uid, args.User, _audioParams);
+                Audio.PlayPredicted(component.StorageInsertSound, uid, GetPredictedAudioUser(args.User), _audioParams);
             EntityManager.RaiseSharedEvent(new AnimateInsertingEntitiesEvent(
                 GetNetEntity(uid),
                 GetNetEntityList(successfullyInserted),
@@ -800,7 +802,7 @@ public abstract class SharedStorageSystem : EntitySystem
                 && storage.Comp.StorageRemoveSound != null
                 && !_tag.HasTag(player, storage.Comp.SilentStorageUserTag))
             {
-                Audio.PlayPredicted(storage.Comp.StorageRemoveSound, storage, player, _audioParams);
+                Audio.PlayPredicted(storage.Comp.StorageRemoveSound, storage, GetPredictedAudioUser(player), _audioParams);
             }
 
             return;
@@ -1078,7 +1080,7 @@ public abstract class SharedStorageSystem : EntitySystem
         if (user != null
             && (!_tag.HasTag(user.Value, sourceComp.SilentStorageUserTag)
                 || !_tag.HasTag(user.Value, targetComp.SilentStorageUserTag)))
-            Audio.PlayPredicted(sourceComp.StorageInsertSound, target, user, _audioParams);
+            Audio.PlayPredicted(sourceComp.StorageInsertSound, target, GetPredictedAudioUser(user), _audioParams);
     }
 
     /// <summary>
@@ -1263,7 +1265,7 @@ public abstract class SharedStorageSystem : EntitySystem
                 return false;
 
             if (canPlaySound)
-                Audio.PlayPredicted(storageComp.StorageInsertSound, uid, user, _audioParams);
+                Audio.PlayPredicted(storageComp.StorageInsertSound, uid, GetPredictedAudioUser(user), _audioParams);
 
             return true;
         }
@@ -1293,9 +1295,16 @@ public abstract class SharedStorageSystem : EntitySystem
         }
 
         if (canPlaySound)
-            Audio.PlayPredicted(storageComp.StorageInsertSound, uid, user, _audioParams);
+            Audio.PlayPredicted(storageComp.StorageInsertSound, uid, GetPredictedAudioUser(user), _audioParams);
 
         return true;
+    }
+
+    private EntityUid? GetPredictedAudioUser(EntityUid? user)
+    {
+        return user is { } uid
+            ? _proxyControl.ForPredictedAudio(uid, ProxyControlRelayFlags.Hands | ProxyControlRelayFlags.Inventory)
+            : null;
     }
 
     /// <summary>
@@ -1996,7 +2005,9 @@ public abstract class SharedStorageSystem : EntitySystem
         if (args.SenderSession.AttachedEntity is not { } playerUid)
             return false;
 
-        if (!TryComp(playerUid, out HandsComponent? hands) || hands.Count == 0)
+        var actorUid = GetProxyStorageActor(playerUid);
+
+        if (!TryComp(actorUid, out HandsComponent? hands) || hands.Count == 0)
             return false;
 
         if (!TryGetEntity(netStorage, out var storageUid))
@@ -2011,12 +2022,17 @@ public abstract class SharedStorageSystem : EntitySystem
         if (!UI.IsUiOpen(storageUid.Value, StorageComponent.StorageUiKey.Key, playerUid))
             return false;
 
-        if (!ActionBlocker.CanInteract(playerUid, storageUid))
+        if (!ActionBlocker.CanInteract(actorUid, storageUid))
             return false;
 
-        player = new(playerUid, hands);
+        player = new(actorUid, hands);
         storage = new(storageUid.Value, storageComp);
         return true;
+    }
+
+    private EntityUid GetProxyStorageActor(EntityUid actor)
+    {
+        return _proxyControl.ForInventory(actor);
     }
 
     private bool ValidateInput(EntitySessionEventArgs args,

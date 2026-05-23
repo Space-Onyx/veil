@@ -7,6 +7,7 @@
 
 using Content.Goobstation.Common.Movement;
 using Content.Shared.Damage.Events;
+using Content.Shared._Onyx.ProxyControl;
 using Content.Shared._EinsteinEngines.Flight.Events;
 using Content.Shared.Bed.Sleep;
 using Content.Shared.Buckle.Components;
@@ -32,7 +33,6 @@ using Robust.Shared.Input.Binding;
 using Robust.Shared.Network;
 using Robust.Shared.Player;
 using Robust.Shared.Timing;
-using System.Numerics;
 
 namespace Content.Goobstation.Shared.Sprinting;
 public abstract class SharedSprintingSystem : EntitySystem
@@ -46,6 +46,7 @@ public abstract class SharedSprintingSystem : EntitySystem
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly DamageableSystem _damageable = default!;
     [Dependency] private readonly SharedMoverController _moverController = default!;
+    [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
     [Dependency] private readonly INetManager _net = default!;
     public override void Initialize()
     {
@@ -114,23 +115,33 @@ public abstract class SharedSprintingSystem : EntitySystem
 
     private void HandleSprintInput(ICommonSession? session, IFullInputCmdMessage message)
     {
-        if (session?.AttachedEntity == null
-            || !TryComp<SprinterComponent>(session.AttachedEntity, out var sprinterComponent)
-            || !TryComp<InputMoverComponent>(session.AttachedEntity, out var inputMoverComponent)
+        if (session?.AttachedEntity == null)
+            return;
+
+        var sprintActor = GetProxyMovementActor(session.AttachedEntity.Value);
+
+        if (!TryComp<SprinterComponent>(sprintActor, out var sprinterComponent)
+            || !TryComp<InputMoverComponent>(sprintActor, out var inputMoverComponent)
             || !sprinterComponent.IsSprinting
-            // We check this instead of physics so that we can gatekeep sprinting to only work when you are moving intentionally, and not walking.
-            && _moverController.GetVelocityInput(inputMoverComponent).Sprinting == Vector2.Zero)
+            // Gatekeep sprinting to intentional movement. Do not care whether the user's
+            // walk/run preference currently puts that movement into the walk or run vector.
+            && !inputMoverComponent.HasDirectionalMovement)
             return;
 
         if (!sprinterComponent.CanSprint)
         {
             if (message.State == BoundKeyState.Down) // Without this check the message triggers when holding and releasing.
-                _popupSystem.PopupClient(Loc.GetString("sprint-disabled"), session.AttachedEntity.Value, session.AttachedEntity.Value, PopupType.Medium);
+                _popupSystem.PopupClient(Loc.GetString("sprint-disabled"), sprintActor, session.AttachedEntity.Value, PopupType.Medium);
 
             return;
         }
 
-        RaiseLocalEvent(session.AttachedEntity.Value, new SprintToggleEvent(!sprinterComponent.IsSprinting && message.State == BoundKeyState.Down));
+        RaiseLocalEvent(sprintActor, new SprintToggleEvent(!sprinterComponent.IsSprinting && message.State == BoundKeyState.Down));
+    }
+
+    private EntityUid GetProxyMovementActor(EntityUid actor)
+    {
+        return _proxyControl.ForMovement(actor);
     }
 
     private void OnSprintToggle(EntityUid uid, SprinterComponent component, ref SprintToggleEvent args) =>
@@ -153,7 +164,7 @@ public abstract class SharedSprintingSystem : EntitySystem
         if (newSprintState)
         {
             RaiseLocalEvent(uid, new SprintStartEvent());
-            _audio.PlayPredicted(component.SprintStartupSound, uid, uid);
+            _audio.PlayPredicted(component.SprintStartupSound, uid, _proxyControl.ForPredictedAudio(uid, ProxyControlRelayFlags.Movement));
         }
 
         if (!gracefulStop)

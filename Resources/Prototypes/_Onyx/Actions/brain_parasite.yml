@@ -1,0 +1,16 @@
+- type: entity
+  id: ActionBrainParasiteEnterHost
+  parent: BaseAction
+  name: Crawl into head
+  description: Crawl into a living person's prefrontal cortex and take control.
+  components:
+  - type: Action
+    itemIconStyle: BigAction
+    useDelay: 10
+    icon: { sprite: _White/Mobs/Aliens/Xenomorphs/larva.rsi, state: xenomorph }
+  - type: TargetAction
+    checkCanAccess: true
+    range: 1.5
+  - type: EntityTargetAction
+    canTargetSelf: false
+    event: !type:BrainParasiteEnterHostActionEvent

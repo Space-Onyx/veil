@@ -18,4 +18,17 @@ public sealed partial class RelayInputMoverComponent : Component
 {
     [DataField, AutoNetworkedField]
     public EntityUid RelayEntity;
+
+    /// <summary>
+    /// Whether the relay target should inherit this entity's movement blocker state.
+    /// Most vehicle-style relays want this; proxy body control only wants input and client settings.
+    /// </summary>
+    [DataField, AutoNetworkedField]
+    public bool RelayCanMove = true;
+
+    /// <summary>
+    /// Whether movement key input should still be forwarded when the relay source is incapacitated.
+    /// </summary>
+    [DataField, AutoNetworkedField]
+    public bool RelayInputWhileIncapacitated;
 }

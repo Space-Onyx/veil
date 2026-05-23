@@ -127,6 +127,7 @@ using Content.Goobstation.Common.CCVar;
 using Content.Goobstation.Common.MartialArts;
 using Content.Goobstation.Common.Weapons; // Goobstation - Martial Arts
 using Content.Shared._EinsteinEngines.Contests;
+using Content.Shared._Onyx.ProxyControl;
 using Content.Shared.ActionBlocker;
 using Content.Shared.Actions.Events;
 using Content.Shared.Administration.Components;
@@ -201,6 +202,7 @@ public abstract class SharedMeleeWeaponSystem : EntitySystem
     [Dependency] private   readonly INetConfigurationManager _config = default!;
     [Dependency] private   readonly SharedStaminaSystem _stamina = default!;
     [Dependency] private   readonly TagSystem _tag = default!;
+    [Dependency] private   readonly SharedProxyControlSystem _proxyControl = default!;
 
     //Goob - Shove
     private float _shoveRange;
@@ -339,7 +341,9 @@ public abstract class SharedMeleeWeaponSystem : EntitySystem
         if (user == null)
             return;
 
-        if (!TryGetWeapon(user.Value, out var weaponUid, out var weapon) ||
+        var attacker = GetProxyMeleeActor(user.Value);
+
+        if (!TryGetWeapon(attacker, out var weaponUid, out var weapon) ||
             weaponUid != GetEntity(msg.Weapon))
         {
             return;
@@ -358,6 +362,8 @@ public abstract class SharedMeleeWeaponSystem : EntitySystem
             || TerminatingOrDeleted(user)) // Goob change
             return;
 
+        user = GetProxyMeleeActor(user);
+
         if (!TryGetWeapon(user, out var weaponUid, out var weapon) ||
             weaponUid != GetEntity(msg.Weapon))
         {
@@ -375,6 +381,8 @@ public abstract class SharedMeleeWeaponSystem : EntitySystem
             || TerminatingOrDeleted(weapon)) // Goobstation Change
             return;
 
+        user = GetProxyMeleeActor(user);
+
         if (!TryGetWeapon(user, out var weaponUid, out var weaponComp)
             || weaponUid != weapon
             || !weaponComp.CanWideSwing) // Goobstation Change
@@ -389,8 +397,26 @@ public abstract class SharedMeleeWeaponSystem : EntitySystem
             || TerminatingOrDeleted(user)) // Goobstation Change
             return;
 
+        user = GetProxyMeleeActor(user);
+
         if (TryGetWeapon(user, out var weaponUid, out var weapon))
             AttemptAttack(user, weaponUid, weapon, msg, args.SenderSession);
+    }
+
+    private EntityUid GetProxyMeleeActor(EntityUid actor)
+    {
+        return _proxyControl.ForHands(actor);
+    }
+
+    private EntityUid GetPredictionUser(EntityUid user, ICommonSession? session)
+    {
+        if (session?.AttachedEntity is { } actor &&
+            _proxyControl.IsControllerFor(actor, user, ProxyControlRelayFlags.Hands))
+        {
+            return actor;
+        }
+
+        return user;
     }
 
     /// <summary>
@@ -690,6 +716,7 @@ public abstract class SharedMeleeWeaponSystem : EntitySystem
     // Goob edit
     public virtual void DoLightAttack(EntityUid user, LightAttackEvent ev, EntityUid meleeUid, MeleeWeaponComponent component, ICommonSession? session) // Goobstation - Edit
     {
+        var predictionUser = GetPredictionUser(user, session);
         // If I do not come back later to fix Light Attacks being Heavy Attacks you can throw me in the spider pit -Errant
         var damage = GetDamage(meleeUid, user, component) * GetHeavyDamageModifier(meleeUid, user, component);
         var coords = GetCoordinates(ev.Coordinates); // Goobstation
@@ -728,7 +755,7 @@ public abstract class SharedMeleeWeaponSystem : EntitySystem
             }
             var missEvent = new MeleeHitEvent(new List<EntityUid>(), user, meleeUid, damage, null, GetCoordinates(ev.Coordinates)); // Goob edit
             RaiseLocalEvent(meleeUid, missEvent, true); // Goob station - broadcast
-            _meleeSound.PlaySwingSound(user, meleeUid, component);
+            _meleeSound.PlaySwingSound(predictionUser, meleeUid, component);
             DoLungeAnimation(user, weapon, component.Angle, TransformSystem.ToMapCoordinates(ev.Coordinates), rangeEv.Range, component.MissAnimation, component.AnimationRotation, component.FlipAnimation); // Goobstation - Edit
             return;
         }
@@ -795,7 +822,7 @@ public abstract class SharedMeleeWeaponSystem : EntitySystem
 
         }
 
-        _meleeSound.PlayHitSound(target.Value, user, GetHighestDamageSound(modifiedDamage, _protoManager), hitEvent.HitSoundOverride, component);
+        _meleeSound.PlayHitSound(target.Value, predictionUser, GetHighestDamageSound(modifiedDamage, _protoManager), hitEvent.HitSoundOverride, component);
 
         if (damageResult?.GetTotal() > FixedPoint2.Zero)
         {
@@ -807,6 +834,7 @@ public abstract class SharedMeleeWeaponSystem : EntitySystem
 
     private bool DoHeavyAttack(EntityUid user, HeavyAttackEvent ev, EntityUid meleeUid, MeleeWeaponComponent component, ICommonSession? session)
     {
+        var predictionUser = GetPredictionUser(user, session);
         // TODO: This is copy-paste as fuck with DoPreciseAttack
         if (!TryComp(user, out TransformComponent? userXform))
             return false;
@@ -842,7 +870,7 @@ public abstract class SharedMeleeWeaponSystem : EntitySystem
             RaiseLocalEvent(meleeUid, missEvent, true); // Goob station - broadcast
 
             // immediate audio feedback
-            _meleeSound.PlaySwingSound(user, meleeUid, component);
+            _meleeSound.PlaySwingSound(predictionUser, meleeUid, component);
 
             return true;
         }
@@ -981,7 +1009,7 @@ public abstract class SharedMeleeWeaponSystem : EntitySystem
         if (entities.Count != 0)
         {
             var target = entities.First();
-            _meleeSound.PlayHitSound(target, user, GetHighestDamageSound(appliedDamage, _protoManager), hitEvent.HitSoundOverride, component);
+            _meleeSound.PlayHitSound(target, predictionUser, GetHighestDamageSound(appliedDamage, _protoManager), hitEvent.HitSoundOverride, component);
         }
 
         if (appliedDamage.GetTotal() > FixedPoint2.Zero)
@@ -1114,6 +1142,7 @@ public abstract class SharedMeleeWeaponSystem : EntitySystem
         MeleeWeaponComponent component,
         ICommonSession? session) // Goobstation - Shove Rework
     {
+        var predictionUser = GetPredictionUser(user, session);
         if (!ev.Target.HasValue)
             return false;
 
@@ -1124,7 +1153,7 @@ public abstract class SharedMeleeWeaponSystem : EntitySystem
 
         if (user == target) // Goobstation
         {
-            _meleeSound.PlaySwingSound(user, meleeUid, component);
+            _meleeSound.PlaySwingSound(predictionUser, meleeUid, component);
             var selfComboEv = new ComboAttackPerformedEvent(user, user, meleeUid, ComboAttackType.Disarm);
             RaiseLocalEvent(user, selfComboEv);
             return false;
@@ -1190,7 +1219,7 @@ public abstract class SharedMeleeWeaponSystem : EntitySystem
         var chance = CalculateDisarmChance(user, target, inTargetHand, combatMode);
 
         _audio.PlayPredicted(combatMode.DisarmSuccessSound,
-            user, user,
+            user, predictionUser,
             AudioParams.Default.WithVariation(0.025f).WithVolume(5f));
         AdminLogger.Add(LogType.DisarmedAction,
             $"{ToPrettyString(user):user} used disarm on {ToPrettyString(target):target}");

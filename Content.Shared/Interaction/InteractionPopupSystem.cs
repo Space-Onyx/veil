@@ -24,6 +24,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using Content.Shared.Bed.Sleep;
+using Content.Shared._Onyx.ProxyControl;
 using Content.Shared.IdentityManagement;
 using Content.Shared.Interaction.Components;
 using Content.Shared.Interaction.Events;
@@ -48,6 +49,7 @@ public sealed class InteractionPopupSystem : EntitySystem
     [Dependency] private readonly SharedAudioSystem _audio = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly INetManager _netMan = default!;
+    [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
 
     public override void Initialize()
     {
@@ -170,7 +172,7 @@ public sealed class InteractionPopupSystem : EntitySystem
 
         if (component.SoundPerceivedByOthers)
         {
-            _audio.PlayPredicted(sfx, target, user);
+            _audio.PlayPredicted(sfx, target, _proxyControl.ForPredictedAudio(user, ProxyControlRelayFlags.Interaction));
             return;
         }
 

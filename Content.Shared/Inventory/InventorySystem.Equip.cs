@@ -101,6 +101,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System.Diagnostics.CodeAnalysis;
+using Content.Shared._Onyx.ProxyControl;
 using Content.Shared.Armor;
 using Content.Shared.Clothing.Components;
 using Content.Shared.DoAfter;
@@ -137,6 +138,7 @@ public abstract partial class InventorySystem
     [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
     [Dependency] private readonly SharedStrippableSystem _strippable = default!;
+    [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
 
     public static readonly ProtoId<ItemSizePrototype> PocketableItemSize = "Small"; // Goobstation - make it public
 
@@ -180,6 +182,8 @@ public abstract partial class InventorySystem
     {
         if (eventArgs.SenderSession.AttachedEntity is not { Valid: true } actor)
             return;
+
+        actor = GetProxyInventoryActor(actor);
 
         if (!TryComp(actor, out InventoryComponent? inventory) || !TryComp<HandsComponent>(actor, out var hands))
             return;
@@ -288,7 +292,7 @@ public abstract partial class InventorySystem
 
         if (!silent && clothing != null)
         {
-            _audio.PlayPredicted(clothing.EquipSound, target, actor);
+            _audio.PlayPredicted(clothing.EquipSound, target, GetPredictedAudioUser(actor));
         }
 
         // If new gloves are equipped, trigger OnContactInteraction for held items
@@ -579,7 +583,7 @@ public abstract partial class InventorySystem
 
         if (!silent && Resolve(removedItem.Value, ref clothing, false) && clothing.UnequipSound != null)
         {
-            _audio.PlayPredicted(clothing.UnequipSound, target, actor);
+            _audio.PlayPredicted(clothing.UnequipSound, target, GetPredictedAudioUser(actor));
         }
 
         // If gloves are unequipped, OnContactInteraction should trigger for held items
@@ -589,6 +593,11 @@ public abstract partial class InventorySystem
         _movementSpeed.RefreshMovementSpeedModifiers(target);
 
         return true;
+    }
+
+    private EntityUid GetPredictedAudioUser(EntityUid user)
+    {
+        return _proxyControl.ForPredictedAudio(user, ProxyControlRelayFlags.Hands | ProxyControlRelayFlags.Inventory);
     }
 
     public bool CanUnequip(EntityUid uid, string slot, [NotNullWhen(false)] out string? reason,
@@ -664,5 +673,10 @@ public abstract partial class InventorySystem
         {
             _interactionSystem.DoContactInteraction(uid, item);
         }
+    }
+
+    private EntityUid GetProxyInventoryActor(EntityUid actor)
+    {
+        return _proxyControl.ForInventory(actor);
     }
 }

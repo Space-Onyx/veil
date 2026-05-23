@@ -119,7 +119,7 @@ public sealed partial class AdminVerbSystem
     // All antag verbs have names so invokeverb works.
     private void AddAntagVerbs(GetVerbsEvent<Verb> args)
     {
-        if (!TryComp<ActorComponent>(args.User, out var actor))
+        if (!TryGetVerbActor(args, out _, out var actor))
             return;
 
         var player = actor.PlayerSession;

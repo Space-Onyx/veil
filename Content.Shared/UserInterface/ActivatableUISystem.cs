@@ -44,6 +44,7 @@
 
 using Content.Shared.ActionBlocker;
 using Content.Shared.Administration.Managers;
+using Content.Shared._Onyx.ProxyControl;
 using Content.Shared.Ghost;
 using Content.Shared.Hands;
 using Content.Shared.Hands.Components;
@@ -54,6 +55,7 @@ using Content.Shared.Popups;
 using Content.Shared.Verbs;
 using Content.Shared.Whitelist;
 using Robust.Shared.Audio.Components;
+using Robust.Shared.Player;
 using Robust.Shared.Utility;
 
 namespace Content.Shared.UserInterface;
@@ -65,6 +67,7 @@ public sealed partial class ActivatableUISystem : EntitySystem
     [Dependency] private readonly SharedUserInterfaceSystem _uiSystem = default!;
     [Dependency] private readonly SharedPopupSystem _popupSystem = default!;
     [Dependency] private readonly SharedHandsSystem _hands = default!;
+    [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
     [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
 
     public override void Initialize()
@@ -108,7 +111,17 @@ public sealed partial class ActivatableUISystem : EntitySystem
         if (args.Handled || args.Key == null)
             return;
 
+        if (!HasComp<ActorComponent>(args.Performer) &&
+            OpenUiForProxyControllers(uid, args.Key, args.Performer))
+        {
+            args.Handled = true;
+            return;
+        }
+
         args.Handled = _uiSystem.TryToggleUi(uid, args.Key, args.Performer);
+
+        if (args.Handled && _uiSystem.IsUiOpen(uid, args.Key, args.Performer))
+            OpenUiForProxyControllers(uid, args.Key, args.Performer);
     }
 
 
@@ -228,14 +241,24 @@ public sealed partial class ActivatableUISystem : EntitySystem
     private void OnUIClose(EntityUid uid, ActivatableUIComponent component, BoundUIClosedEvent args)
     {
         var user = args.Actor;
-
-        if (user != component.CurrentSingleUser)
-            return;
+        var proxyTarget = GetProxyUiTarget(user);
 
         if (!Equals(args.UiKey, component.Key))
             return;
 
-        SetCurrentSingleUser(uid, null, component);
+        if (proxyTarget != null)
+        {
+            if (_uiSystem.IsUiOpen(uid, args.UiKey, proxyTarget.Value))
+                _uiSystem.CloseUi(uid, args.UiKey, proxyTarget.Value);
+
+            if (component.CurrentSingleUser == proxyTarget)
+                SetCurrentSingleUser(uid, null, component);
+
+            return;
+        }
+
+        if (user == component.CurrentSingleUser)
+            SetCurrentSingleUser(uid, null, component);
     }
 
     private bool InteractUI(EntityUid user, EntityUid uiEntity, ActivatableUIComponent aui)
@@ -313,7 +336,10 @@ public sealed partial class ActivatableUISystem : EntitySystem
         RaiseLocalEvent(uiEntity, bae);
 
         SetCurrentSingleUser(uiEntity, user, aui);
-        _uiSystem.OpenUi(uiEntity, aui.Key, user);
+
+        var openedForProxy = OpenUiForProxyControllers(uiEntity, aui.Key, user);
+        if (!openedForProxy || HasComp<ActorComponent>(user))
+            _uiSystem.OpenUi(uiEntity, aui.Key, user);
 
         //Let the component know a user opened it so it can do whatever it needs to do
         var aae = new AfterActivatableUIOpenEvent(user, user);
@@ -334,6 +360,38 @@ public sealed partial class ActivatableUISystem : EntitySystem
         Dirty(uid, aui);
 
         RaiseLocalEvent(uid, new ActivatableUIPlayerChangedEvent());
+    }
+
+    private bool OpenUiForProxyControllers(EntityUid uiEntity, Enum key, EntityUid user)
+    {
+        if (!TryComp<ProxyControlTargetComponent>(user, out var target))
+            return false;
+
+        var opened = false;
+        foreach (var controller in target.Controllers)
+        {
+            if (!_proxyControl.IsControllerFor(controller, user, ProxyControlRelayFlags.UserInterface) ||
+                !HasComp<ActorComponent>(controller))
+            {
+                continue;
+            }
+
+            _uiSystem.OpenUi(uiEntity, key, controller);
+            opened = true;
+        }
+
+        return opened;
+    }
+
+    private bool IsProxyControllerFor(EntityUid controller, EntityUid? target)
+    {
+        return target != null &&
+               _proxyControl.IsControllerFor(controller, target.Value, ProxyControlRelayFlags.UserInterface);
+    }
+
+    private EntityUid? GetProxyUiTarget(EntityUid controller)
+    {
+        return _proxyControl.ForUserInterfaceOrNull(controller);
     }
 
     public void CloseAll(EntityUid uid, ActivatableUIComponent? aui = null)

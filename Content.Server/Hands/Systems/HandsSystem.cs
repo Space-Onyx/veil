@@ -140,6 +140,7 @@
 
 using Content.Server.Stack;
 using Content.Server.Stunnable;
+using Content.Shared._Onyx.ProxyControl;
 using Content.Shared._Shitmed.Body.Events; // Shitmed Change
 using Content.Shared.ActionBlocker;
 using Content.Shared.Body.Part;
@@ -183,6 +184,7 @@ namespace Content.Server.Hands.Systems
         [Dependency] private readonly SharedBodySystem _bodySystem = default!; // Shitmed Change
         [Dependency] private readonly GrabThrownSystem _grabThrown = default!; // Goobstation
         [Dependency] private readonly SharedPhysicsSystem _physics = default!; // Goobstation
+        [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
 
         private EntityQuery<PhysicsComponent> _physicsQuery;
 
@@ -313,8 +315,10 @@ namespace Content.Server.Hands.Systems
 
         private bool HandleThrowItem(ICommonSession? playerSession, EntityCoordinates coordinates, EntityUid entity)
         {
-            if (playerSession?.AttachedEntity is not {Valid: true} player || !Exists(player) || !coordinates.IsValid(EntityManager))
+            if (playerSession?.AttachedEntity is not {Valid: true} attached || !Exists(attached) || !coordinates.IsValid(EntityManager))
                 return false;
+
+            var player = GetProxyHandsActor(attached);
 
             // Goobstation start
             if (TryGetActiveItem(player, out var item) && TryComp<VirtualItemComponent>(item, out var virtComp))
@@ -331,6 +335,11 @@ namespace Content.Server.Hands.Systems
             // Goobstation end
 
             return ThrowHeldItem(player, coordinates);
+        }
+
+        private EntityUid GetProxyHandsActor(EntityUid actor)
+        {
+            return _proxyControl.ForHands(actor);
         }
 
         /// <summary>

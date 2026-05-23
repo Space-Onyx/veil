@@ -111,6 +111,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Content.Shared._Onyx.ProxyControl;
 using Content.Shared._Goobstation.Wizard;
 using Content.Shared.ActionBlocker;
 using Content.Shared.Actions.Components;
@@ -152,6 +153,7 @@ public abstract class SharedActionsSystem : EntitySystem
     [Dependency] private readonly SharedPopupSystem _popup = default!; // Shitmed Change
     [Dependency] private readonly SharedInteractionSystem _interaction = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
 
     private EntityQuery<ActionComponent> _actionQuery;
     private EntityQuery<ActionsComponent> _actionsQuery;
@@ -388,7 +390,14 @@ public abstract class SharedActionsSystem : EntitySystem
         if (args.SenderSession.AttachedEntity is not { } user)
             return;
 
+        user = GetProxyActionsActor(user);
+
         TryPerformAction(user, ev); // Goobstation - port contents of this event to API
+    }
+
+    private EntityUid GetProxyActionsActor(EntityUid actor)
+    {
+        return _proxyControl.ForActions(actor);
     }
 
     private void OnValidate(Entity<ActionComponent> ent, ref ActionValidateEvent args)
@@ -674,7 +683,14 @@ public abstract class SharedActionsSystem : EntitySystem
         if (ev?.Toggle == true)
             SetToggled((action, action), !action.Comp.Toggled);
 
-        _audio.PlayPredicted(action.Comp.Sound, performer, predicted ? performer : null);
+        var predictedAudioUser = _proxyControl.ForPredictedAudio(performer.Owner, ProxyControlRelayFlags.Actions);
+        if (predictedAudioUser != performer.Owner)
+        {
+            _adminLogger.Add(LogType.Action, LogImpact.Medium,
+                $"{ToPrettyString(predictedAudioUser):controller} performed proxy action {Name(action):action} as {ToPrettyString(performer):target}");
+        }
+
+        _audio.PlayPredicted(action.Comp.Sound, performer, predicted ? predictedAudioUser : null);
 
         // TODO: move to ActionCooldown ActionPerformedEvent?
         RemoveCooldown((action, action));

@@ -1,0 +1,65 @@
+- type: entity
+  parent:
+  - BaseMob
+  - MobDamageable
+  - MobCombat
+  id: MobBrainParasite
+  name: brain parasite
+  description: A small parasite capable of nesting in the prefrontal cortex.
+  components:
+  - type: Sprite
+    drawdepth: SmallMobs
+    sprite: _White/Mobs/Aliens/Xenomorphs/larva.rsi
+    scale: 0.5, 0.5
+    layers:
+    - map: ["enum.DamageStateVisualLayers.Base", "movement"]
+      state: xenomorph
+  - type: SpriteMovement
+    movementLayers:
+      movement:
+        state: xenomorph-moving
+    noMovementLayers:
+      movement:
+        state: xenomorph
+  - type: DamageStateVisuals
+    states:
+      Alive:
+        Base: xenomorph
+      Critical:
+        Base: xenomorph
+      Dead:
+        Base: xenomorph_dead
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeCircle
+          radius: 0.2
+        density: 10
+        mask:
+        - SmallMobMask
+        layer:
+        - SmallMobLayer
+  - type: MobThresholds
+    thresholds:
+      0: Alive
+      20: Critical
+      30: Dead
+  - type: MovementSpeedModifier
+    baseWalkSpeed: 2
+    baseSprintSpeed: 4
+  - type: MeleeWeapon
+    hidden: true
+    damage:
+      types:
+        Blunt: 2
+  - type: BrainParasite
+  - type: ProxyControlSource
+  - type: ProxyControlPersistentTarget
+  - type: Organ
+    slotId: prefrontalCortex
+    toolName: surgery-tool-augment-target-prefrontal-cortex
+    hiddenFromAnalyzer: true
+  - type: Tag
+    tags:
+    - prefrontalCortexAugment

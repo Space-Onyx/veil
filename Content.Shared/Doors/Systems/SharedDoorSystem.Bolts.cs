@@ -125,7 +125,7 @@ public abstract partial class SharedDoorSystem
 
         var sound = value ? ent.Comp.BoltDownSound : ent.Comp.BoltUpSound;
         if (predicted)
-            Audio.PlayPredicted(sound, ent, user: user);
+            Audio.PlayPredicted(sound, ent, user: GetPredictedAudioUser(user));
         else
             Audio.PlayPvs(sound, ent);
         return true;
@@ -164,7 +164,7 @@ public abstract partial class SharedDoorSystem
 
         if (_doAfterSystem.TryStartDoAfter(doAfterArgs))
         {
-            Audio.PlayPredicted(toolComp.UseSound, entity, args.User);
+            Audio.PlayPredicted(toolComp.UseSound, entity, GetPredictedAudioUser(args.User));
             args.Handled = true;
         }
     }

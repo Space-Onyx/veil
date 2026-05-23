@@ -55,6 +55,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Content.Server.Administration.Managers;
 using Content.Server.Power.Components;
+using Content.Shared._Onyx.ProxyControl;
 using Content.Shared.Administration;
 using Content.Shared.Examine;
 using Content.Shared.Hands.Components;
@@ -69,6 +70,7 @@ namespace Content.Server.Power.EntitySystems
     public sealed class PowerReceiverSystem : SharedPowerReceiverSystem
     {
         [Dependency] private readonly IAdminManager _adminManager = default!;
+        [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
         private EntityQuery<ApcPowerReceiverComponent> _recQuery;
         private EntityQuery<ApcPowerProviderComponent> _provQuery;
 
@@ -100,8 +102,13 @@ namespace Content.Server.Power.EntitySystems
 
         private void OnGetVerbs(EntityUid uid, ApcPowerReceiverComponent component, GetVerbsEvent<Verb> args)
         {
-            if (!_adminManager.HasAdminFlag(args.User, AdminFlags.Admin))
+            var adminUser = args.User;
+            if (!_adminManager.HasAdminFlag(adminUser, AdminFlags.Admin) &&
+                (!_proxyControl.TryGetControllerForTarget(args.User, ProxyControlRelayFlags.UserInterface, out adminUser) ||
+                 !_adminManager.HasAdminFlag(adminUser, AdminFlags.Admin)))
+            {
                 return;
+            }
 
             // add debug verb to toggle power requirements
             args.Verbs.Add(new()

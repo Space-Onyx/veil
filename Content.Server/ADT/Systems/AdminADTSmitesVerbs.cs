@@ -19,7 +19,7 @@ public sealed partial class AdminVerbSystem
     // All smite verbs have names so invokeverb works.
     private void AddAdminADTSmitesVerbs(GetVerbsEvent<Verb> args)
     {
-        if (!EntityManager.TryGetComponent(args.User, out ActorComponent? actor))
+        if (!TryGetVerbActor(args, out _, out var actor))
             return;
 
         var player = actor.PlayerSession;

@@ -9,6 +9,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using Content.Shared.MouseRotator;
+using Content.Shared._Onyx.ProxyControl;
 using Robust.Client.Graphics;
 using Robust.Client.Input;
 using Robust.Client.Player;
@@ -25,6 +26,7 @@ public sealed class MouseRotatorSystem : SharedMouseRotatorSystem
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly IEyeManager _eye = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
 
     public override void Update(float frameTime)
     {
@@ -33,7 +35,7 @@ public sealed class MouseRotatorSystem : SharedMouseRotatorSystem
         if (!_timing.IsFirstTimePredicted || !_input.MouseScreenPosition.IsValid)
             return;
 
-        var player = _player.LocalEntity;
+        var player = GetLocalRotatorEntity();
 
         if (player == null || !TryComp<MouseRotatorComponent>(player, out var rotator))
             return;
@@ -91,5 +93,13 @@ public sealed class MouseRotatorSystem : SharedMouseRotatorSystem
             Rotation = angle,
             User = GetNetEntity(player)
         });
+    }
+
+    private EntityUid? GetLocalRotatorEntity()
+    {
+        if (_player.LocalEntity is not { } local)
+            return null;
+
+        return _proxyControl.ForMouseRotation(local);
     }
 }

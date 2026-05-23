@@ -16,6 +16,7 @@ using Content.Shared.Administration.Managers;
 using Content.Shared.Mind.Components;
 using Content.Shared.Verbs;
 using Robust.Client.Console;
+using Robust.Client.Player;
 using Robust.Shared.Utility;
 
 namespace Content.Client.Administration.Systems
@@ -28,6 +29,7 @@ namespace Content.Client.Administration.Systems
         [Dependency] private readonly IClientConGroupController _clientConGroupController = default!;
         [Dependency] private readonly IClientConsoleHost _clientConsoleHost = default!;
         [Dependency] private readonly ISharedAdminManager _admin = default!;
+        [Dependency] private readonly IPlayerManager _player = default!;
 
         public override void Initialize()
         {
@@ -52,22 +54,24 @@ namespace Content.Client.Administration.Systems
                 args.Verbs.Add(verb);
             }
 
-            if (!_admin.IsAdmin(args.User))
+            var adminUser = _player.LocalEntity ?? args.User;
+
+            if (!_admin.IsAdmin(adminUser))
                 return;
 
-            if (_admin.HasAdminFlag(args.User, AdminFlags.Admin))
+            if (_admin.HasAdminFlag(adminUser, AdminFlags.Admin))
                 args.ExtraCategories.Add(VerbCategory.Admin);
 
-            if (_admin.HasAdminFlag(args.User, AdminFlags.Fun) && HasComp<MindContainerComponent>(args.Target))
+            if (_admin.HasAdminFlag(adminUser, AdminFlags.Fun) && HasComp<MindContainerComponent>(args.Target))
                 args.ExtraCategories.Add(VerbCategory.Antag);
 
-            if (_admin.HasAdminFlag(args.User, AdminFlags.Debug))
+            if (_admin.HasAdminFlag(adminUser, AdminFlags.Debug))
                 args.ExtraCategories.Add(VerbCategory.Debug);
 
-            if (_admin.HasAdminFlag(args.User, AdminFlags.Fun))
+            if (_admin.HasAdminFlag(adminUser, AdminFlags.Fun))
                 args.ExtraCategories.Add(VerbCategory.Smite);
 
-            if (_admin.HasAdminFlag(args.User, AdminFlags.Admin))
+            if (_admin.HasAdminFlag(adminUser, AdminFlags.Admin))
                 args.ExtraCategories.Add(VerbCategory.Tricks);
         }
     }

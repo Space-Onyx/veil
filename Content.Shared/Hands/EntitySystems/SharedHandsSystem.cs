@@ -41,6 +41,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Content.Shared._Onyx.ProxyControl;
 using Content.Shared.ActionBlocker;
 using Content.Shared.Administration.Logs;
 using Content.Shared.Hands.Components;
@@ -64,6 +65,7 @@ public abstract partial class SharedHandsSystem
     [Dependency] private readonly SharedInteractionSystem _interactionSystem = default!;
     [Dependency] private readonly InventorySystem _inventory = default!;
     [Dependency] private readonly SharedStorageSystem _storage = default!;
+    [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
     [Dependency] protected readonly SharedTransformSystem TransformSystem = default!;
     [Dependency] private readonly SharedVirtualItemSystem _virtualSystem = default!;
 
@@ -186,7 +188,8 @@ public abstract partial class SharedHandsSystem
         if (eventArgs.SenderSession.AttachedEntity == null)
             return;
 
-        TrySetActiveHand(eventArgs.SenderSession.AttachedEntity.Value, msg.HandName);
+        var actor = GetProxyHandsActor(eventArgs.SenderSession.AttachedEntity.Value);
+        TrySetActiveHand(actor, msg.HandName);
     }
 
     /// <summary>

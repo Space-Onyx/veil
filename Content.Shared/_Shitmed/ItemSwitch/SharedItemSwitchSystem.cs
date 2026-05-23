@@ -10,6 +10,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System.Linq;
+using Content.Shared._Onyx.ProxyControl;
 using Content.Shared.Clothing.Components;
 using Content.Shared.Clothing.EntitySystems;
 using Content.Shared.Interaction;
@@ -42,6 +43,7 @@ public abstract class SharedItemSwitchSystem : EntitySystem
     [Dependency] private readonly SharedStorageSystem _storage = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly InventorySystem _inventory = default!;
+    [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
 
     private EntityQuery<ItemSwitchComponent> _query;
 
@@ -189,7 +191,7 @@ public abstract class SharedItemSwitchSystem : EntitySystem
         if (attempt.Cancelled)
         {
             if (predicted)
-                _audio.PlayPredicted(state.SoundFailToActivate, uid, user);
+                _audio.PlayPredicted(state.SoundFailToActivate, uid, GetPredictedAudioUser(user));
             else
                 _audio.PlayPvs(state.SoundFailToActivate, uid);
 
@@ -205,7 +207,7 @@ public abstract class SharedItemSwitchSystem : EntitySystem
         }
 
         if (predicted)
-            _audio.PlayPredicted(state.SoundStateActivate, uid, user);
+            _audio.PlayPredicted(state.SoundStateActivate, uid, GetPredictedAudioUser(user));
         else
             _audio.PlayPvs(state.SoundStateActivate, uid);
 
@@ -242,6 +244,14 @@ public abstract class SharedItemSwitchSystem : EntitySystem
 
         return true;
     }
+
+    private EntityUid? GetPredictedAudioUser(EntityUid? user)
+    {
+        return user is { } uid
+            ? _proxyControl.ForPredictedAudio(uid, ProxyControlRelayFlags.Hands | ProxyControlRelayFlags.Interaction)
+            : null;
+    }
+
     public virtual void VisualsChanged(Entity<ItemSwitchComponent> ent, string key)
     {
     }

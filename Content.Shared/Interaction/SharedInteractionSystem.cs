@@ -136,6 +136,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Goobstation.Common.Interactions;
+using Content.Shared._Onyx.ProxyControl;
 using Content.Shared.ActionBlocker;
 using Content.Shared.Administration.Logs;
 using Content.Shared.CCVar;
@@ -205,6 +206,7 @@ namespace Content.Shared.Interaction
         [Dependency] private readonly SharedVerbSystem _verbSystem = default!;
         [Dependency] private readonly SharedPopupSystem _popupSystem = default!;
         [Dependency] private readonly SharedUserInterfaceSystem _ui = default!;
+        [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
         [Dependency] private readonly SharedStrippableSystem _strippable = default!;
         [Dependency] private readonly SharedPlayerRateLimitManager _rateLimit = default!;
         [Dependency] private readonly TagSystem _tagSystem = default!;
@@ -299,10 +301,11 @@ namespace Content.Shared.Interaction
         /// </summary>
         private void OnBoundInterfaceInteractAttempt(Entity<UserInterfaceComponent> ent, ref BoundUserInterfaceMessageAttempt ev)
         {
+            var actor = _proxyControl.ForUserInterface(ev.Actor);
             _uiQuery.TryComp(ev.Target, out var aUiComp);
 
             // CorvaxGoob-GhostUIViewing-Start
-            if (TryComp<GhostComponent>(ev.Actor, out var ghost) && !ghost.CanGhostInteract) // Полностью игнорить если не гост или который может прямо взамоимодействовать с UI
+            if (TryComp<GhostComponent>(actor, out var ghost) && !ghost.CanGhostInteract) // Полностью игнорить если не гост или который может прямо взамоимодействовать с UI
             {
                 if (ev.Message is not OpenBoundInterfaceMessage // Проверяем если не банальное открытие 
                     || !ghost.CanGhostOpenUI
@@ -314,13 +317,13 @@ namespace Content.Shared.Interaction
             // CorvaxGoob-GhostUIViewing-End
 
             // _uiQuery.TryComp(ev.Target, out var aUiComp); CorvaxGoob-GhostUIViewing : смещено повыше
-            if (!_actionBlockerSystem.CanInteract(ev.Actor, ev.Target))
+            if (!_actionBlockerSystem.CanInteract(actor, ev.Target))
             {
                 // We permit ghosts to open uis unless explicitly blocked
                 if (ev.Message is not OpenBoundInterfaceMessage
-                    // || !HasComp<GhostComponent>(ev.Actor) // CorvaxGoob-GhostUIGuest
+                    // || !HasComp<GhostComponent>(actor) // CorvaxGoob-GhostUIGuest
                     // || aUiComp?.BlockSpectators == true // CorvaxGoob-GhostUIGuest
-                    || _tagSystem.HasTag(ev.Actor, "CantInteract")) // Shitmed change
+                    || _tagSystem.HasTag(actor, "CantInteract")) // Shitmed change
                 {
                     ev.Cancel();
                     return;
@@ -330,9 +333,9 @@ namespace Content.Shared.Interaction
             var range = _ui.GetUiRange(ev.Target, ev.UiKey);
 
             // As long as range>0, the UI frame updates should have auto-closed the UI if it is out of range.
-            DebugTools.Assert(range <= 0 || UiRangeCheck(ev.Actor, ev.Target, range));
+            DebugTools.Assert(range <= 0 || UiRangeCheck(actor, ev.Target, range));
 
-            if (range <= 0 && !IsAccessible(ev.Actor, ev.Target))
+            if (range <= 0 && !IsAccessible(actor, ev.Target))
             {
                 ev.Cancel();
                 return;
@@ -341,13 +344,13 @@ namespace Content.Shared.Interaction
             if (aUiComp == null)
                 return;
 
-            if (aUiComp.SingleUser && aUiComp.CurrentSingleUser != null && aUiComp.CurrentSingleUser != ev.Actor)
+            if (aUiComp.SingleUser && aUiComp.CurrentSingleUser != null && aUiComp.CurrentSingleUser != actor)
             {
                 ev.Cancel();
                 return;
             }
 
-            if (aUiComp.RequiresComplex && !_actionBlockerSystem.CanComplexInteract(ev.Actor))
+            if (aUiComp.RequiresComplex && !_actionBlockerSystem.CanComplexInteract(actor))
                 ev.Cancel();
         }
 
@@ -542,20 +545,17 @@ namespace Content.Shared.Interaction
             bool checkAccess = true,
             bool checkCanUse = true)
         {
-            if (_relayQuery.TryComp(user, out var relay) && relay.RelayEntity is not null)
+            if (TryGetInteractionRelay(user, out var relayUser))
             {
-                // TODO this needs to be handled better. This probably bypasses many complex can-interact checks in weird roundabout ways.
-                if (_actionBlockerSystem.CanInteract(user, target))
-                {
-                    UserInteraction(relay.RelayEntity.Value,
-                        coordinates,
-                        target,
-                        altInteract,
-                        checkCanInteract,
-                        checkAccess,
-                        checkCanUse);
-                    return;
-                }
+                UserInteraction(
+                    relayUser,
+                    coordinates,
+                    target,
+                    altInteract,
+                    checkCanInteract,
+                    checkAccess,
+                    checkCanUse);
+                return;
             }
 
             if (target != null && Deleted(target.Value))
@@ -1296,6 +1296,18 @@ namespace Content.Shared.Interaction
             bool? complexInteractions = null,
             bool checkDeletion = true)
         {
+            if (TryGetInteractionRelay(user, out var relayUser))
+            {
+                return InteractionActivate(
+                    relayUser,
+                    used,
+                    checkCanInteract,
+                    checkUseDelay,
+                    checkAccess,
+                    complexInteractions,
+                    checkDeletion);
+            }
+
             if (checkDeletion && (IsDeleted(user) || IsDeleted(used)))
                 return false;
 
@@ -1359,6 +1371,16 @@ namespace Content.Shared.Interaction
             bool checkCanInteract = true,
             bool checkUseDelay = true)
         {
+            if (TryGetInteractionRelay(user, out var relayUser))
+            {
+                return UseInHandInteraction(
+                    relayUser,
+                    used,
+                    checkCanUse,
+                    checkCanInteract,
+                    checkUseDelay);
+            }
+
             if (IsDeleted(user) || IsDeleted(used))
                 return false;
 
@@ -1404,6 +1426,9 @@ namespace Content.Shared.Interaction
         /// <returns>True if the interaction was handled, false otherwise.</returns>
         public bool AltInteract(EntityUid user, EntityUid target)
         {
+            if (TryGetInteractionRelay(user, out var relayUser))
+                return AltInteract(relayUser, target);
+
             // Get list of alt-interact verbs
             var verbs = _verbSystem.GetLocalVerbs(target, user, typeof(AlternativeVerb));
 
@@ -1411,6 +1436,22 @@ namespace Content.Shared.Interaction
                 return false;
 
             _verbSystem.ExecuteVerb(verbs.First(), user, target);
+            return true;
+        }
+
+        public bool TryGetInteractionRelay(EntityUid user, out EntityUid relayUser)
+        {
+            relayUser = default;
+
+            if (!_relayQuery.TryComp(user, out var relay) ||
+                relay.RelayEntity is not { } target ||
+                target == user ||
+                TerminatingOrDeleted(target))
+            {
+                return false;
+            }
+
+            relayUser = target;
             return true;
         }
         #endregion
@@ -1591,7 +1632,9 @@ namespace Content.Shared.Interaction
             if (ev.Result == BoundUserInterfaceRangeResult.Fail)
                 return;
 
-            ev.Result = UiRangeCheck(ev.Actor!, ev.Target, ev.Data.InteractionRange)
+            var actor = _proxyControl.ForUserInterface(ev.Actor);
+
+            ev.Result = UiRangeCheck(actor, ev.Target, ev.Data.InteractionRange)
                     ? BoundUserInterfaceRangeResult.Pass
                     : BoundUserInterfaceRangeResult.Fail;
         }

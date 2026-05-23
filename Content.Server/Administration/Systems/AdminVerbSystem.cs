@@ -134,6 +134,7 @@ using Content.Server.Mind;
 using Content.Server.Prayer;
 using Content.Server.Silicons.Laws;
 using Content.Server.Station.Systems;
+using Content.Shared._Onyx.ProxyControl;
 using Content.Shared.Administration;
 using Content.Shared.Chemistry.Components.SolutionManager;
 using Content.Shared.Chemistry.EntitySystems;
@@ -191,6 +192,7 @@ namespace Content.Server.Administration.Systems
         [Dependency] private readonly AdminFrozenSystem _freeze = default!;
         [Dependency] private readonly IPlayerManager _playerManager = default!;
         [Dependency] private readonly SiliconLawSystem _siliconLawSystem = default!;
+        [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
 
         private readonly Dictionary<ICommonSession, List<EditSolutionsEui>> _openSolutionUis = new();
 
@@ -211,9 +213,31 @@ namespace Content.Server.Administration.Systems
             AddAntagVerbs(ev);
         }
 
+        private bool TryGetVerbActor(GetVerbsEvent<Verb> args, out EntityUid actorUid, out ActorComponent actor)
+        {
+            if (TryComp<ActorComponent>(args.User, out var userActor))
+            {
+                actorUid = args.User;
+                actor = userActor;
+                return true;
+            }
+
+            if (!_proxyControl.TryGetControllerForTarget(args.User, ProxyControlRelayFlags.UserInterface, out var controller) ||
+                !TryComp<ActorComponent>(controller, out var controllerActor))
+            {
+                actorUid = default;
+                actor = default!;
+                return false;
+            }
+
+            actorUid = controller;
+            actor = controllerActor;
+            return true;
+        }
+
         private void AddAdminVerbs(GetVerbsEvent<Verb> args)
         {
-            if (!TryComp(args.User, out ActorComponent? actor))
+            if (!TryGetVerbActor(args, out var actorUid, out var actor))
                 return;
 
             var player = actor.PlayerSession;
@@ -505,7 +529,7 @@ namespace Content.Server.Administration.Systems
                         Act = () =>
                         {
                             var ui = new SiliconLawEui(_siliconLawSystem, EntityManager, _adminManager);
-                            if (!_playerManager.TryGetSessionByEntity(args.User, out var session))
+                            if (!_playerManager.TryGetSessionByEntity(actorUid, out var session))
                             {
                                 return;
                             }
@@ -536,7 +560,7 @@ namespace Content.Server.Administration.Systems
 
         private void AddDebugVerbs(GetVerbsEvent<Verb> args)
         {
-            if (!TryComp(args.User, out ActorComponent? actor))
+            if (!TryGetVerbActor(args, out _, out var actor))
                 return;
 
             var player = actor.PlayerSession;

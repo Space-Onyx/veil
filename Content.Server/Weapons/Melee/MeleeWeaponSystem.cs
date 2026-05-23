@@ -42,6 +42,7 @@
 
 using Content.Server.Chat.Systems;
 using Content.Server.Movement.Systems;
+using Content.Shared._Onyx.ProxyControl;
 using Content.Shared.Damage.Events;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Effects;
@@ -138,6 +139,15 @@ public sealed class MeleeWeaponSystem : SharedMeleeWeaponSystem
     protected override void DoDamageEffect(List<EntityUid> targets, EntityUid? user, TransformComponent targetXform)
     {
         var filter = Filter.Pvs(targetXform.Coordinates, entityMan: EntityManager).RemoveWhereAttachedEntity(o => o == user);
+
+        if (user != null && TryComp<ProxyControlTargetComponent>(user.Value, out var proxyTarget))
+        {
+            foreach (var controller in proxyTarget.Controllers)
+            {
+                filter.RemoveWhereAttachedEntity(e => e == controller);
+            }
+        }
+
         _color.RaiseEffect(Color.Red, targets, filter);
     }
 
@@ -152,6 +162,14 @@ public sealed class MeleeWeaponSystem : SharedMeleeWeaponSystem
         else
         {
             filter = Filter.Pvs(user, entityManager: EntityManager);
+        }
+
+        if (TryComp<ProxyControlTargetComponent>(user, out var proxyTarget))
+        {
+            foreach (var controller in proxyTarget.Controllers)
+            {
+                filter.RemoveWhereAttachedEntity(e => e == controller);
+            }
         }
 
         RaiseNetworkEvent(new MeleeLungeEvent(GetNetEntity(user), GetNetEntity(weapon), angle, localPos, animation, spriteRotation, flipAnimation), filter);

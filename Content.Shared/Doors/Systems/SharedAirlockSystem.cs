@@ -19,6 +19,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared._Onyx.ProxyControl;
 using Content.Shared.Doors.Components;
 using Robust.Shared.Audio.Systems;
 using Content.Shared.Popups;
@@ -36,6 +37,7 @@ public abstract class SharedAirlockSystem : EntitySystem
     [Dependency] protected readonly SharedDoorSystem DoorSystem = default!;
     [Dependency] protected readonly SharedPopupSystem Popup = default!;
     [Dependency] private   readonly SharedWiresSystem _wiresSystem = default!;
+    [Dependency] private   readonly SharedProxyControlSystem _proxyControl = default!;
 
     public override void Initialize()
     {
@@ -179,9 +181,16 @@ public abstract class SharedAirlockSystem : EntitySystem
 
         var sound = ent.Comp.EmergencyAccess ? ent.Comp.EmergencyOnSound : ent.Comp.EmergencyOffSound;
         if (predicted)
-            Audio.PlayPredicted(sound, ent, user: user);
+            Audio.PlayPredicted(sound, ent, user: GetPredictedAudioUser(user));
         else
             Audio.PlayPvs(sound, ent);
+    }
+
+    private EntityUid? GetPredictedAudioUser(EntityUid? user)
+    {
+        return user is { } uid
+            ? _proxyControl.ForPredictedAudio(uid, ProxyControlRelayFlags.Interaction)
+            : null;
     }
 
     public void SetAutoCloseDelayModifier(AirlockComponent component, float value)

@@ -307,10 +307,10 @@ public sealed class HandsUIController : UIController, IOnStateEntered<GameplaySt
 
         if (HandsGui != null &&
             _playerHandsComponent != null &&
-            _player.LocalSession?.AttachedEntity is { } playerEntity &&
-            _handsSystem.TryGetHand((playerEntity, _playerHandsComponent), handName, out var hand))
+            _handsSystem.TryGetPlayerHands(out var playerHands) &&
+            _handsSystem.TryGetHand(playerHands.Value.AsNullable(), handName, out var hand))
         {
-            var heldEnt = _handsSystem.GetHeldItem((playerEntity, _playerHandsComponent), handName);
+            var heldEnt = _handsSystem.GetHeldItem(playerHands.Value.AsNullable(), handName);
 
             var foldedLocation = hand.Value.Location.GetUILocation();
             if (foldedLocation == HandUILocation.Left)

@@ -46,6 +46,7 @@
 
 using Content.Shared.Explosion;
 using Content.Shared.Hands;
+using Content.Shared._Onyx.ProxyControl;
 using Content.Shared.Storage;
 using Content.Shared.Storage.Components;
 using Content.Shared.Storage.EntitySystems;
@@ -77,6 +78,15 @@ public sealed partial class StorageSystem : SharedStorageSystem
         Angle initialRotation, EntityUid? user = null)
     {
         var filter = Filter.Pvs(uid).RemoveWhereAttachedEntity(e => e == user);
+
+        if (user != null && TryComp<ProxyControlTargetComponent>(user.Value, out var proxyTarget))
+        {
+            foreach (var controller in proxyTarget.Controllers)
+            {
+                filter.RemoveWhereAttachedEntity(e => e == controller);
+            }
+        }
+
         RaiseNetworkEvent(new PickupAnimationEvent(GetNetEntity(uid), GetNetCoordinates(initialCoordinates), GetNetCoordinates(finalCoordinates), initialRotation), filter);
     }
 }

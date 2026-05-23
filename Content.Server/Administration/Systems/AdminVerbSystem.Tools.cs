@@ -148,7 +148,7 @@ public sealed partial class AdminVerbSystem
 
     private void AddTricksVerbs(GetVerbsEvent<Verb> args)
     {
-        if (!TryComp(args.User, out ActorComponent? actor))
+        if (!TryGetVerbActor(args, out _, out var actor))
             return;
 
         var player = actor.PlayerSession;

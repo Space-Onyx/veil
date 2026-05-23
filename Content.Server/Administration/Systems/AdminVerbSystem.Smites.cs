@@ -195,7 +195,7 @@ public sealed partial class AdminVerbSystem
     // All smite verbs have names so invokeverb works.
     private void AddSmiteVerbs(GetVerbsEvent<Verb> args)
     {
-        if (!TryComp(args.User, out ActorComponent? actor))
+        if (!TryGetVerbActor(args, out _, out var actor))
             return;
 
         var player = actor.PlayerSession;
@@ -967,7 +967,7 @@ public sealed partial class AdminVerbSystem
 
 
         // Goob edit - Stop shitmins from killing the server
-        if (_adminManager.HasAdminFlag(args.User, AdminFlags.Host))
+        if (_adminManager.HasAdminFlag(player, AdminFlags.Host))
         {
             //Bonk
             var superBonkLiteName = Loc.GetString("admin-smite-super-bonk-lite-name").ToLowerInvariant();

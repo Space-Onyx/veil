@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Content.Shared._Onyx.ProxyControl;
 using Content.Shared.DoAfter;
 using Content.Shared.Interaction;
 using Content.Shared.Interaction.Events;
@@ -8,6 +9,7 @@ using Content.Shared.Popups;
 using Content.Shared.PowerCell;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Containers;
+using Robust.Shared.Player;
 using Robust.Shared.Timing;
 
 namespace Content.Shared._CorvaxGoob.AbstractAnalyzer;
@@ -25,6 +27,7 @@ public abstract class AbstractAnalyzerSystem<TAnalyzerComponent, TAnalyzerDoAfte
     [Dependency] private readonly SharedTransformSystem _transformSystem = default!;
     [Dependency] private readonly SharedPopupSystem _popupSystem = default!;
     [Dependency] private readonly IDynamicTypeFactory _typeFactory = default!;
+    [Dependency] private readonly SharedProxyControlSystem _proxyControl = default!;
 
     public override void Initialize()
     {
@@ -76,7 +79,7 @@ public abstract class AbstractAnalyzerSystem<TAnalyzerComponent, TAnalyzerDoAfte
         if (args.Target == null || !args.CanReach || !ValidScanTarget(args.Target) || !_cell.HasDrawCharge(uid.Owner, user: args.User))
             return;
 
-        _audio.PlayPredicted(uid.Comp.ScanningBeginSound, uid, null);
+        _audio.PlayPredicted(uid.Comp.ScanningBeginSound, uid, _proxyControl.ForPredictedAudio(args.User, ProxyControlRelayFlags.Interaction));
 
         var doAfterEvent = _typeFactory.CreateInstance<TAnalyzerDoAfterEvent>();
         var doAfterCancelled = !_doAfterSystem.TryStartDoAfter(new DoAfterArgs(EntityManager, args.User, uid.Comp.ScanDelay, doAfterEvent, uid, target: args.Target, used: uid)
@@ -98,7 +101,7 @@ public abstract class AbstractAnalyzerSystem<TAnalyzerComponent, TAnalyzerDoAfte
             return;
 
         if (!uid.Comp.Silent)
-            _audio.PlayPredicted(uid.Comp.ScanningEndSound, uid, null);
+            _audio.PlayPredicted(uid.Comp.ScanningEndSound, uid, _proxyControl.ForPredictedAudio(args.User, ProxyControlRelayFlags.Interaction));
 
         OpenUserInterface(args.User, uid);
         BeginAnalyzingEntity(uid, args.Target.Value);
@@ -137,7 +140,25 @@ public abstract class AbstractAnalyzerSystem<TAnalyzerComponent, TAnalyzerDoAfte
         if (!_uiSystem.HasUi(analyzer, GetUiKey()))
             return;
 
-        _uiSystem.OpenUi(analyzer, GetUiKey(), user);
+        var openedForProxy = false;
+
+        if (TryComp<ProxyControlTargetComponent>(user, out var target))
+        {
+            foreach (var controller in target.Controllers)
+            {
+                if (!_proxyControl.IsControllerFor(controller, user, ProxyControlRelayFlags.UserInterface) ||
+                    !HasComp<ActorComponent>(controller))
+                {
+                    continue;
+                }
+
+                _uiSystem.OpenUi(analyzer, GetUiKey(), controller);
+                openedForProxy = true;
+            }
+        }
+
+        if (!openedForProxy || HasComp<ActorComponent>(user))
+            _uiSystem.OpenUi(analyzer, GetUiKey(), user);
     }
 
     /// <summary>
