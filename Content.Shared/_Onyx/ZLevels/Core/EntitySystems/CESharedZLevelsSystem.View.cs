@@ -4,6 +4,7 @@
  */
 
 using Content.Shared._Onyx.ZLevels.Core.Components;
+using Content.Shared._Utopia.ZLevels.Components;
 using Content.Shared.Actions;
 using Content.Shared.Maps;
 using Robust.Shared.Map;
@@ -17,9 +18,9 @@ namespace Content.Shared._Onyx.ZLevels.Core.EntitySystems;
 public abstract partial class CESharedZLevelsSystem
 {
     [Dependency] protected readonly ITileDefinitionManager TilDefMan = default!;
-    private static readonly TimeSpan OpaqueAboveCacheCleanupInterval = TimeSpan.FromSeconds(5f);
-    private const int OpaqueAboveCacheSoftLimit = 8192;
-    private TimeSpan _nextOpaqueAboveCacheCleanup = TimeSpan.Zero;
+    private static readonly TimeSpan CurrentRoofCacheCleanupInterval = TimeSpan.FromSeconds(5f);
+    private const int CurrentRoofCacheSoftLimit = 8192;
+    private TimeSpan _nextCurrentRoofCacheCleanup = TimeSpan.Zero;
     private void InitView()
     {
         SubscribeLocalEvent<CEZLevelViewerComponent, MoveEvent>(OnViewerMove);
@@ -37,28 +38,28 @@ public abstract partial class CESharedZLevelsSystem
 
     private void UpdateView()
     {
-        if (_opaqueAboveCacheDirty)
+        if (_currentRoofCacheDirty)
         {
-            _opaqueAboveCache.Clear();
-            _opaqueAboveCacheDirty = false;
-            _nextOpaqueAboveCacheCleanup = _timing.CurTime + OpaqueAboveCacheCleanupInterval;
+            _currentRoofCache.Clear();
+            _currentRoofCacheDirty = false;
+            _nextCurrentRoofCacheCleanup = _timing.CurTime + CurrentRoofCacheCleanupInterval;
             return;
         }
 
-        if (_opaqueAboveCache.Count == 0)
+        if (_currentRoofCache.Count == 0)
             return;
 
-        if (_opaqueAboveCache.Count > OpaqueAboveCacheSoftLimit ||
-            _timing.CurTime >= _nextOpaqueAboveCacheCleanup)
+        if (_currentRoofCache.Count > CurrentRoofCacheSoftLimit ||
+            _timing.CurTime >= _nextCurrentRoofCacheCleanup)
         {
-            _opaqueAboveCache.Clear();
-            _nextOpaqueAboveCacheCleanup = _timing.CurTime + OpaqueAboveCacheCleanupInterval;
+            _currentRoofCache.Clear();
+            _nextCurrentRoofCacheCleanup = _timing.CurTime + CurrentRoofCacheCleanupInterval;
         }
     }
 
     private void OnViewTileChanged(ref TileChangedEvent ev)
     {
-        _opaqueAboveCacheDirty = true;
+        _currentRoofCacheDirty = true;
         var gridXform = Transform(ev.Entity);
         if (gridXform.MapUid is { } mapUid)
             InvalidateGroundCacheForMap(mapUid, includeAdjacentMaps: true);
@@ -98,30 +99,92 @@ public abstract partial class CESharedZLevelsSystem
         DirtyField(ent, ent.Comp, nameof(CEZLevelViewerComponent.LookUp));
     }
 
-    private readonly Dictionary<(EntityUid MapAbove, Vector2i TilePos), bool> _opaqueAboveCache = new();
+    private readonly Dictionary<(EntityUid LowerGrid, Vector2i TilePos), bool> _currentRoofCache = new();
     private List<Entity<MapGridComponent>> _opaqueProbeGrids = new();
-    private bool _opaqueAboveCacheDirty;
+    private bool _currentRoofCacheDirty;
     public bool HasOpaqueAbove(EntityUid ent, Entity<CEZLevelMapComponent?>? currentMapUid = null)
     {
-        currentMapUid ??= Transform(ent).MapUid;
+        var xform = Transform(ent);
+        currentMapUid ??= xform.MapUid;
 
         if (currentMapUid is null)
             return false;
 
-        if (!TryMapUp(currentMapUid.Value, out var mapAboveUid))
-            return false;
-
-        if (!_mapQuery.TryComp(mapAboveUid.Value, out var mapComp))
-            return false;
-
         var worldPosition = _transform.GetWorldPosition(ent);
-        var approxTile = new Vector2i((int)MathF.Floor(worldPosition.X), (int)MathF.Floor(worldPosition.Y));
-        var cacheKey = (mapAboveUid.Value.Owner, approxTile);
+        if (!TryGetCurrentTile(xform, worldPosition, out var lowerGrid))
+            return false;
 
-        if (!_opaqueAboveCacheDirty && _opaqueAboveCache.TryGetValue(cacheKey, out var cached))
+        if (!TryMapUp(currentMapUid.Value, out var mapAboveUid))
+            return HasCurrentTileZRoof(lowerGrid);
+
+        return HasOpaqueLinkedTileAbove(mapAboveUid.Value, lowerGrid.Grid, worldPosition, out var foundLinkedGrid)
+            || !foundLinkedGrid && HasCurrentTileZRoof(lowerGrid);
+    }
+
+    private bool TryGetCurrentTile(
+        TransformComponent xform,
+        Vector2 worldPosition,
+        out (Entity<MapGridComponent> Grid, TileRef Tile) currentTile)
+    {
+        if (xform.GridUid is { } gridUid && _gridQuery.HasComp(gridUid))
+        {
+            Entity<MapGridComponent> grid = (gridUid, _gridQuery.GetComponent(gridUid));
+            if (_map.TryGetTileRef(grid.Owner, grid.Comp, worldPosition, out var tileRef) &&
+                !tileRef.Tile.IsEmpty)
+            {
+                currentTile = (grid, tileRef);
+                return true;
+            }
+        }
+
+        if (xform.MapUid is not { } mapUid ||
+            !_mapQuery.TryComp(mapUid, out var mapComp))
+        {
+            currentTile = default;
+            return false;
+        }
+
+        foreach (var grid in GetCachedGrids(mapComp.MapId))
+        {
+            if (!_map.TryGetTileRef(grid.Owner, grid.Comp, worldPosition, out var tileRef))
+                continue;
+
+            if (tileRef.Tile.IsEmpty)
+                continue;
+
+            currentTile = (grid, tileRef);
+            return true;
+        }
+
+        currentTile = default;
+        return false;
+    }
+
+    private bool HasCurrentTileZRoof((Entity<MapGridComponent> Grid, TileRef Tile) currentTile)
+    {
+        var key = (currentTile.Grid.Owner, currentTile.Tile.GridIndices);
+        if (!_currentRoofCacheDirty && _currentRoofCache.TryGetValue(key, out var cached))
             return cached;
 
-        var result = false;
+        var tileDef = (ContentTileDefinition) TilDefMan[currentTile.Tile.Tile.TypeId];
+        var result = TileZRoof.HasZRoof(currentTile.Grid, currentTile.Tile.GridIndices, tileDef.HasZRoof);
+        _currentRoofCache[key] = result;
+        return result;
+    }
+
+    private bool HasOpaqueLinkedTileAbove(
+        Entity<CEZLevelMapComponent> mapAboveUid,
+        Entity<MapGridComponent> lowerGrid,
+        Vector2 worldPosition,
+        out bool foundLinkedGrid)
+    {
+        foundLinkedGrid = false;
+
+        if (!_motionLinkQuery.TryComp(lowerGrid.Owner, out var lowerLink) ||
+            string.IsNullOrEmpty(lowerLink.GroupId) ||
+            !_mapQuery.TryComp(mapAboveUid.Owner, out var mapComp))
+            return false;
+
         _opaqueProbeGrids.Clear();
         const float probeHalfExtents = 0.01f;
         var probeBounds = new Box2(
@@ -131,22 +194,22 @@ public abstract partial class CESharedZLevelsSystem
 
         foreach (var grid in _opaqueProbeGrids)
         {
-            if (!_map.TryGetTileRef(grid.Owner, grid.Comp, worldPosition, out var tileRef))
+            if (!_motionLinkQuery.TryComp(grid.Owner, out var upperLink) ||
+                upperLink.GroupId != lowerLink.GroupId)
                 continue;
 
-            if (tileRef.Tile.IsEmpty)
+            foundLinkedGrid = true;
+
+            if (!_map.TryGetTileRef(grid.Owner, grid.Comp, worldPosition, out var tileRef) ||
+                tileRef.Tile.IsEmpty)
                 continue;
 
             var tileDef = (ContentTileDefinition)TilDefMan[tileRef.Tile.TypeId];
             if (!tileDef.Transparent)
-            {
-                result = true;
-                break;
-            }
+                return true;
         }
 
-        _opaqueAboveCache[cacheKey] = result;
-        return result;
+        return false;
     }
 }
 
