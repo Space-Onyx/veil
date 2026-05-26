@@ -56,23 +56,9 @@ public sealed class SurgeryToolExamineSystem : EntitySystem
         var ev = new SurgeryToolExaminedEvent(msg);
         RaiseLocalEvent(ent, ref ev);
 
-
-        // <Onyx Icon fix>
-        var user = args.User;
-        var target = args.Target;
-        var message = ev.Message;
-
-        var verb = new ExamineVerb()
-        {
-            Act = () => _examine.SendExamineTooltip(user, target, message, false, false),
-            Text = Loc.GetString("surgery-tool-examinable-verb-text"),
-            Message = Loc.GetString("surgery-tool-examinable-verb-message"),
-            Category = VerbCategory.Examine,
-            Icon = new SpriteSpecifier.Rsi(new("/Textures/Objects/Specific/Medical/Surgery/scalpel.rsi"), "scalpel"),
-        };
-
-        args.Verbs.Add(verb);
-        // </Onyx Icon fix>
+        _examine.AddDetailedExamineVerb(args, ent.Comp, ev.Message,
+            Loc.GetString("surgery-tool-examinable-verb-text"), "/Textures/_Shitmed/Interface/Examine/scalpel.png",
+            Loc.GetString("surgery-tool-examinable-verb-message"));
     }
 
     public void OnExamined(EntityUid uid, ISurgeryToolComponent comp, ref SurgeryToolExaminedEvent args)
@@ -87,7 +73,7 @@ public sealed class SurgeryToolExamineSystem : EntitySystem
         };
         var key = "surgery-tool-" + (comp.Used == true ? "used" : "unlimited");
         var speed = comp.Speed.ToString("N2"); // 2 decimal places to not get trolled by float
-        msg.PushMarkup(Loc.GetString(key, ("tool", toolName), ("speed", speed), ("color", color))); // <Onyx-Augment-Tweak Edited>
+        msg.PushMarkup(Loc.GetString(key, ("tool", Loc.GetString(comp.ToolName)), ("speed", speed), ("color", color))); // CorvaxGoob-localization: added GetString for ToolName for localization
     }
 }
 

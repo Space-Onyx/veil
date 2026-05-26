@@ -34,6 +34,8 @@ using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype;
 using Robust.Shared.Utility;
 
+using Content.Server.EntityEffects;
+
 namespace Content.Server.Botany;
 
 [Prototype("seed")] //ADT-Tweak
