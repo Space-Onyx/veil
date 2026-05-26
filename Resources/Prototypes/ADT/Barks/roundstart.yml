@@ -134,12 +134,6 @@
   category: undertale
 
 - type: speechBark
-  id: Undyne
-  name: bark-undyne-name # @@@ QWERTY barks addont folder
-  sound: /Audio/ADT/Voice/Vocal-Barks/undertale-undyne.ogg
-  category: undertale
-
-- type: speechBark
   id: Temmie
   name: bark-temmie-name
   sound:
@@ -164,12 +158,6 @@
   id: Queen
   name: bark-queen-name
   sound: /Audio/ADT/Voice/Vocal-Barks/deltarune-queen.ogg
-  category: deltarune
-
-- type: speechBark
-  id: Noelle
-  name: bark-noelle-name
-  sound: /Audio/ADT/Voice/Vocal-Barks/deltarune-noelle.ogg
   category: deltarune
 
 - type: speechBark
