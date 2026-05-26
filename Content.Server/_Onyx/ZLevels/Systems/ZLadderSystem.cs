@@ -4,6 +4,7 @@ using Content.Shared._Onyx.ZLevels.Core.EntitySystems;
 using Content.Shared._Onyx.ZLevels.Components;
 using Content.Shared.DoAfter;
 using Content.Shared.Interaction;
+using Content.Shared.Movement.Pulling.Components;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Maths;
@@ -39,6 +40,7 @@ public sealed class ZLadderSystem : EntitySystem
         base.Initialize();
         _mapQuery = GetEntityQuery<MapComponent>();
         SubscribeLocalEvent<ZLadderComponent, InteractHandEvent>(OnInteractHand);
+        SubscribeLocalEvent<ZLadderComponent, DoAfterAttemptEvent<ZLadderDoAfterEvent>>(OnDoAfterAttempt);
         SubscribeLocalEvent<ZLadderComponent, ZLadderDoAfterEvent>(OnDoAfter);
         SubscribeLocalEvent<ZLadderComponent, ComponentInit>(OnLadderStructureChanged);
         SubscribeLocalEvent<ZLadderComponent, ComponentShutdown>(OnLadderStructureChanged);
@@ -86,8 +88,11 @@ public sealed class ZLadderSystem : EntitySystem
             return;
         }
 
-        var doAfterArgs = new DoAfterArgs(EntityManager, args.User, ClimbDuration, new ZLadderDoAfterEvent(), uid, used: uid)
+        var pulled = GetPulledEntity(args.User);
+        var duration = pulled != null ? ClimbDuration * 2f : ClimbDuration;
+        var doAfterArgs = new DoAfterArgs(EntityManager, args.User, duration, new ZLadderDoAfterEvent(GetNetEntity(pulled)), uid, used: uid)
         {
+            AttemptFrequency = AttemptFrequency.EveryTick,
             BreakOnMove = true,
             BreakOnDamage = true,
             NeedHand = false,
@@ -97,9 +102,18 @@ public sealed class ZLadderSystem : EntitySystem
         args.Handled = true;
     }
 
+    private void OnDoAfterAttempt(EntityUid uid, ZLadderComponent component, ref DoAfterAttemptEvent<ZLadderDoAfterEvent> args)
+    {
+        if (GetPulledNetEntity(args.DoAfter.Args.User) != args.Event.PulledEntity)
+            args.Cancel();
+    }
+
     private void OnDoAfter(EntityUid uid, ZLadderComponent component, ZLadderDoAfterEvent args)
     {
         if (args.Cancelled || args.Handled)
+            return;
+
+        if (GetPulledNetEntity(args.User) != args.PulledEntity)
             return;
 
         var userXform = Transform(args.User);
@@ -122,12 +136,35 @@ public sealed class ZLadderSystem : EntitySystem
         if (!TryFindMatchingLadder(targetMapComp.MapId, ladderWorldPos, oppositeDir, out var targetPos))
             return;
 
+        var pulled = GetPulledEntity(args.User);
+
         _transform.SetMapCoordinates(args.User, new MapCoordinates(targetPos, targetMapComp.MapId));
 
         if (TryComp<PhysicsComponent>(args.User, out var phys))
             _physics.SetLinearVelocity(args.User, Vector2.Zero, body: phys);
 
+        if (pulled is { } pulledEntity && !TerminatingOrDeleted(pulledEntity))
+        {
+            _transform.SetMapCoordinates(pulledEntity, Transform(args.User).MapPosition);
+
+            if (TryComp<PhysicsComponent>(pulledEntity, out var pulledPhys))
+                _physics.SetLinearVelocity(pulledEntity, Vector2.Zero, body: pulledPhys);
+        }
+
         args.Handled = true;
+    }
+
+    private NetEntity? GetPulledNetEntity(EntityUid uid)
+    {
+        return GetNetEntity(GetPulledEntity(uid));
+    }
+
+    private EntityUid? GetPulledEntity(EntityUid uid)
+    {
+        if (!TryComp<PullerComponent>(uid, out var puller))
+            return null;
+
+        return puller.Pulling;
     }
 
     private bool TryFindMatchingLadder(MapId targetMapId, Vector2 sourceWorldPos, ZLadderDirection expectedDir, out Vector2 position)
