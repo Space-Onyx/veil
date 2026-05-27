@@ -391,7 +391,7 @@ public sealed class PullingSystem : EntitySystem
             };
             args.Verbs.Add(verb);
         }
-        else if (CanPull(args.User, args.Target))
+        else if (CanShowPullVerb(args.User, args.Target)) // <Onyx-Fix>
         {
             Verb verb = new()
             {
@@ -512,6 +512,25 @@ public sealed class PullingSystem : EntitySystem
 
         TryStopPull(pullerComp.Pulling.Value, pullableComp, user: player, true); // Goob - Grab Intent
     }
+
+    // <Onyx-Fix>
+    private bool CanShowPullVerb(EntityUid puller, EntityUid pullableUid, PullerComponent? pullerComp = null)
+    {
+        if (!Resolve(puller, ref pullerComp, false))
+            return false;
+
+        if (pullerComp.NeedsHands
+            && !_handsSystem.TryGetEmptyHand(puller, out _)
+            && pullerComp.Pulling == null)
+            return false;
+
+        return _blocker.CanInteract(puller, pullableUid)
+            && TryComp<PhysicsComponent>(pullableUid, out var physics)
+            && physics.BodyType != BodyType.Static
+            && puller != pullableUid
+            && _containerSystem.IsInSameOrNoContainer(puller, pullableUid);
+    }
+    // </Onyx-Fix>
 
     public bool CanPull(EntityUid puller, EntityUid pullableUid, PullerComponent? pullerComp = null)
     {
