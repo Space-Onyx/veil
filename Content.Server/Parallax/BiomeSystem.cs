@@ -354,23 +354,6 @@ public sealed partial class BiomeSystem : SharedBiomeSystem
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
-        // <Onyx>
-        ClearUpdateState();
-
-        try
-        {
-            UpdateBiomes();
-        }
-        finally
-        {
-            ClearUpdateState();
-        }
-        // <Onyx>
-    }
-
-    // <Onyx-edited>
-    private void UpdateBiomes()
-    {
         var biomes = AllEntityQuery<BiomeComponent>();
 
         while (biomes.MoveNext(out var biome))
@@ -378,8 +361,7 @@ public sealed partial class BiomeSystem : SharedBiomeSystem
             if (biome.LifeStage < ComponentLifeStage.Running)
                 continue;
 
-            if (!_activeChunks.ContainsKey(biome))
-                _activeChunks.Add(biome, _tilePool.Get());
+            _activeChunks.Add(biome, _tilePool.Get());
             _markerChunks.GetOrNew(biome);
         }
 
@@ -441,19 +423,16 @@ public sealed partial class BiomeSystem : SharedBiomeSystem
             UnloadChunks(biome, gridUid, grid, biome.Seed);
         }
 
-    }
-
-    private void ClearUpdateState()
-    {
         _handledEntities.Clear();
 
         foreach (var tiles in _activeChunks.Values)
+        {
             _tilePool.Return(tiles);
+        }
 
         _activeChunks.Clear();
         _markerChunks.Clear();
     }
-    // </Onyx-edited>
 
     private void AddChunksInRange(BiomeComponent biome, Vector2 worldPos)
     {
