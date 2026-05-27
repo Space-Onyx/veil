@@ -463,9 +463,9 @@ namespace Content.Server.Ghost
                 Dirty(attached, ghost);
             }
 
-            _chatManager.DispatchServerMessage(actor.PlayerSession, Loc.GetString("ghost-return-to-lobby-warning"), true);
-            _gameTicker.Respawn(actor.PlayerSession);
-            _chatManager.DispatchServerMessage(actor.PlayerSession, Loc.GetString("game-ticker-player-join-game-message"));
+            var playerSession = actor.PlayerSession;
+            _chatManager.DispatchServerMessage(playerSession, Loc.GetString("ghost-return-to-lobby-warning"), true);
+            _gameTicker.Respawn(playerSession);
         }
         // </Onyx-Ghost>
 
