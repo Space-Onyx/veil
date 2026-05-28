@@ -3,7 +3,7 @@ chat-radio-message-wrap = [color={ $color }]{ $channel } [color={ $headset-color
 chat-radio-message-wrap-bold = [color={ $color }]{ $channel } [color={ $headset-color }]{ $job }[/color][bold]{ $name }[/bold] { $verb }, "[/color][color={ $languageColor }][font="{ $fontType }" size={ $fontSize }][bold]{ $message }[/bold][/font][/color][color={ $color }]"[/color]
 examine-headset-default-channel = Канал по умолчанию этой гарнитуры [color={ $color }]{ $channel }[/color].
 chat-radio-common = Общий
-chat-radio-centcom = Центком
+chat-radio-centcom = Центральное Командование
 chat-radio-command = Командный
 chat-radio-engineering = Инженерный
 chat-radio-medical = Медицинский
@@ -16,6 +16,6 @@ chat-radio-freelance = Фриланс
 # not headset but whatever
 chat-radio-handheld = Портативный
 chat-radio-binary = Двоичный
+chat-radio-xenoborg = Ксеноборги
+chat-radio-mothership = Материнский шаттл
 chat-radio-source-unknown = Неизвестно
-chat-radio-xenoborg = Экзоборг
-chat-radio-mothership = Материнский корабль
