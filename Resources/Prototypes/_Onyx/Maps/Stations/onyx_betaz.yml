@@ -1,7 +1,7 @@
 - type: gameMap
   id: OnyxBetaZ
   mapName: 'ИСН Бета-З S14'
-  mapPath: /Maps/Neyran/beta_z/map-depth-0.yml
+  mapPath: /Maps/_Onyx/Stations/BetaZ/beta_z/map-depth-0.yml
   minPlayers: 0
   maxPlayers: 50
   stations:
@@ -16,7 +16,7 @@
             prefixCreator: 'S14'
         - type: CEStationZLevels
           mapsAbove:
-          - /Maps/Neyran/beta_z/map-depth-1.yml
+          - /Maps/_Onyx/Stations/BetaZ/beta_z/map-depth-1.yml
         - type: StationJobs
           availableJobs:
             #service
