@@ -551,6 +551,7 @@
     - id: WantedListCartridge
     - id: DrinkHosFlask
     - id: ClothingBeltSheathHeadOfSecurityFilled # Goobstation - security revamp
+    - id: SecApartmentTablet # CorvaxGoob-SecApartment
 
 # Hardsuit table, used for suit storage as well
 - type: entityTable
