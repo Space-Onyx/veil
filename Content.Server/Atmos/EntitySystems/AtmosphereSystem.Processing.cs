@@ -21,7 +21,6 @@
 
 using Content.Server.Atmos.Components;
 using Content.Server.Atmos.Piping.Components;
-using Content.Server._Onyx.ZLevels.Atmos;
 using Content.Shared.Atmos;
 using Content.Shared.Atmos.Components;
 using Content.Shared.Maps;
@@ -37,8 +36,6 @@ namespace Content.Server.Atmos.EntitySystems
     {
         [Dependency] private readonly IGameTiming _gameTiming = default!;
 
-        private ZLevelGridAtmosSystem? _zLevelGridAtmos; // <Onyx-ZLevelAtmos>
-        private readonly Dictionary<Vector2i, bool> _verticalHoleTileCache = new(); // <Onyx-ZLevelAtmos>
         private readonly Stopwatch _simulationStopwatch = new();
 
         /// <summary>
@@ -87,8 +84,6 @@ namespace Content.Server.Atmos.EntitySystems
             var (uid, atmosphere, visuals, grid, xform) = ent;
             var volume = GetVolumeForTiles(grid);
             TryComp(xform.MapUid, out MapAtmosphereComponent? mapAtmos);
-            _verticalHoleTileCache.Clear();
-
             if (!atmosphere.ProcessingPaused)
             {
                 atmosphere.CurrentRunInvalidatedTiles.Clear();
@@ -182,11 +177,6 @@ namespace Content.Server.Atmos.EntitySystems
 
                 if (!connected)
                 {
-                    // <Onyx-ZLevelAtmos>
-                    if (IsVerticalHoleTileCached(ent.Owner, tile.GridIndices))
-                        continue;
-                    // </Onyx-ZLevelAtmos>
-
                     RemoveActiveTile(atmos, tile);
                     atmos.Tiles.Remove(tile.GridIndices);
                 }
@@ -205,38 +195,18 @@ namespace Content.Server.Atmos.EntitySystems
             TileAtmosphere tile)
         {  
             var idx = tile.GridIndices;
-            var hasVerticalHoleValue = false; // <Onyx-Zlevels>
-            var isVerticalHole = false; // <Onyx-Zlevels>
-            bool GetIsVerticalHole() // <Onyx-Zlevels>
-            // <Onyx-Zlevels>
-            {
-                if (hasVerticalHoleValue)
-                    return isVerticalHole;
-
-                isVerticalHole = IsVerticalHoleTileCached(ent.Owner, idx);
-                hasVerticalHoleValue = true;
-                return isVerticalHole;
-            }
-            // </Onyx-Zlevels>
-
             bool mapAtmosphere;
             if (_map.TryGetTile(ent.Comp3, idx, out var gTile) && !gTile.IsEmpty)
             {
                 var contentDef = (ContentTileDefinition) _tileDefinitionManager[gTile.TypeId];
                 mapAtmosphere = contentDef.MapAtmosphere;
-                // <Onyx-ZLevelAtmos>
-                if (mapAtmosphere && GetIsVerticalHole())
-                    mapAtmosphere = false;
-                // </Onyx-ZLevelAtmos>
                 tile.ThermalConductivity = contentDef.ThermalConductivity;
                 tile.HeatCapacity = contentDef.HeatCapacity;
                 tile.NoGridTile = false;
             }
             else
             {
-                // <Onyx-ZLevelAtmos>
-                mapAtmosphere = !GetIsVerticalHole();
-                // </Onyx-ZLevelAtmos>
+                mapAtmosphere = true;
 
                 tile.ThermalConductivity =  0.5f;
                 tile.HeatCapacity = float.PositiveInfinity;
@@ -273,19 +243,6 @@ namespace Content.Server.Atmos.EntitySystems
             // Tile used to be exposed to the map's atmosphere, but isn't anymore.
             RemoveMapAtmos(ent.Comp1, tile);
         }
-        // <Onyx-Zlevels>
-        private bool IsVerticalHoleTileCached(EntityUid gridUid, Vector2i indices)
-        {
-            if (_verticalHoleTileCache.TryGetValue(indices, out var cached))
-                return cached;
-
-            _zLevelGridAtmos ??= EntityManager.System<ZLevelGridAtmosSystem>();
-            cached = _zLevelGridAtmos.IsVerticalHoleTile(gridUid, indices);
-            _verticalHoleTileCache[indices] = cached;
-            return cached;
-        }
-        // </Onyx-Zlevels>
-
         private void RemoveMapAtmos(GridAtmosphereComponent atmos, TileAtmosphere tile)
         {
             DebugTools.Assert(tile.MapAtmosphere);

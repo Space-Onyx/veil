@@ -167,7 +167,6 @@
           whitelist:
             components:
             - MachineBoard
-    - type: CEZPhysics # <Onyx-Tweak>
 
 - type: entity
   id: MachineFrameDestroyed

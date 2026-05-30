@@ -185,17 +185,5 @@ namespace Content.Shared.Maps
 
         [DataField]
         public float TileRipResistance = 125f;
-
-        /// <summary>
-        /// CrystallEdge: used for lightning calculation through zlevels
-        /// </summary>
-        [DataField]
-        public bool Transparent = false;
-
-        /// <summary>
-        /// Onyx: Whether this tile renders a Z-level roof overlay when viewed from above.
-        /// </summary>
-        [DataField]
-        public bool HasZRoof = true;
     }
 }

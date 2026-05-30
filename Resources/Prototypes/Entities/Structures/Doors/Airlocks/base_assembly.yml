@@ -77,6 +77,5 @@
   - type: Construction
     graph: Airlock
     node: assembly
-  - type: CEZPhysics # <Onyx-Tweak>
   placement:
     mode: SnapgridCenter

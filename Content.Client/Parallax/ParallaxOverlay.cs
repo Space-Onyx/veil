@@ -20,7 +20,6 @@
 using System.Numerics;
 using Content.Client.Parallax.Managers;
 using Content.Client.Viewport;
-using Content.Shared._Onyx.ZLevels.Core.EntitySystems;
 using Content.Shared.CCVar;
 using Content.Shared.Parallax.Biomes;
 using Robust.Client.Graphics;
@@ -41,9 +40,7 @@ public sealed class ParallaxOverlay : Overlay
     [Dependency] private readonly IParallaxManager _manager = default!;
     private readonly SharedMapSystem _mapSystem;
     private readonly ParallaxSystem _parallax;
-    private readonly CESharedZLevelsSystem _zLevel; //CrystallEdge
-    private readonly Dictionary<string, ShaderInstance> _shaderCache = new(); // <Onyx-ZLevels Edited>
-
+    private readonly Dictionary<string, ShaderInstance> _shaderCache = new();
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowWorld;
 
     public ParallaxOverlay()
@@ -52,20 +49,12 @@ public sealed class ParallaxOverlay : Overlay
         IoCManager.InjectDependencies(this);
         _mapSystem = _entManager.System<SharedMapSystem>();
         _parallax = _entManager.System<ParallaxSystem>();
-        _zLevel = _entManager.System<CESharedZLevelsSystem>(); //CrystallEdge
     }
 
     protected override bool BeforeDraw(in OverlayDrawArgs args)
     {
         if (args.MapId == MapId.Nullspace || _entManager.HasComponent<BiomeComponent>(_mapSystem.GetMapOrInvalid(args.MapId)))
             return false;
-
-        //CrystallEdge draw parallax only for lowest zlevel
-        if (args.Viewport.Eye is ScalingViewport.ZEye zEye)
-            return zEye.LowestDepth == zEye.Depth;
-        else
-            return !_zLevel.TryMapDown(args.MapUid, out _);
-        //CrystallEdge end
 
         return true;
     }
@@ -82,10 +71,7 @@ public sealed class ParallaxOverlay : Overlay
         var worldHandle = args.WorldHandle;
 
         var layers = _parallax.GetParallaxLayers(args.MapId);
-        var realTime = (float) _timing.RealTime.TotalSeconds;
-
-        // <Onyx-ZLevels Edited>
-        foreach (var layer in layers)
+        var realTime = (float) _timing.RealTime.TotalSeconds;        foreach (var layer in layers)
         {
             ShaderInstance? shader = null;
             var shaderId = layer.Config.Shader;
@@ -99,8 +85,6 @@ public sealed class ParallaxOverlay : Overlay
 
                 shader = cachedShader;
             }
-            // </Onyx-ZLevels Edited>
-
             worldHandle.UseShader(shader);
             var tex = layer.Texture;
 

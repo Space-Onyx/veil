@@ -9,8 +9,6 @@
 
 using Content.Server.PowerCell;
 using Content.Shared.Pinpointer;
-using Content.Shared._Onyx.ZLevels.Core.EntitySystems;
-using Content.Shared._Onyx.UI;
 using Robust.Server.GameObjects;
 
 namespace Content.Server.Pinpointer;
@@ -19,7 +17,6 @@ public sealed class StationMapSystem : EntitySystem
 {
     [Dependency] private readonly UserInterfaceSystem _ui = default!;
     [Dependency] private readonly PowerCellSystem _cell = default!;
-    [Dependency] private readonly CESharedZLevelsSystem _zLevels = default!;
 
     public override void Initialize()
     {
@@ -51,9 +48,6 @@ public sealed class StationMapSystem : EntitySystem
         if (!_cell.TryUseActivatableCharge(uid))
             return;
 
-        // <Onyx-Tweak>
-        ZLevelFloorSelectorHelper.EnsureNavMapsForLinkedFloors(EntityManager, _zLevels, uid);
-        // </Onyx-Tweak>
         var comp = EnsureComp<StationMapUserComponent>(args.Actor);
         comp.Map = uid;
     }

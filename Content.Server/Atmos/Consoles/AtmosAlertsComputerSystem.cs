@@ -16,8 +16,6 @@ using Content.Shared.Atmos.Monitor;
 using Content.Shared.Atmos.Monitor.Components;
 using Content.Shared.DeviceNetwork.Components;
 using Content.Shared.Pinpointer;
-using Content.Shared._Onyx.ZLevels.Core.EntitySystems;
-using Content.Shared._Onyx.UI;
 using Robust.Server.GameObjects;
 using Robust.Shared.Map.Components;
 using System.Diagnostics.CodeAnalysis;
@@ -35,7 +33,6 @@ public sealed class AtmosAlertsComputerSystem : SharedAtmosAlertsComputerSystem
     [Dependency] private readonly TransformSystem _transformSystem = default!;
     [Dependency] private readonly NavMapSystem _navMapSystem = default!;
     [Dependency] private readonly DeviceListSystem _deviceListSystem = default!;
-    [Dependency] private readonly CESharedZLevelsSystem _zLevels = default!; // <Onyx-ZLevelsTweak>
 
     private const float UpdateTime = 1.0f;
 
@@ -49,9 +46,7 @@ public sealed class AtmosAlertsComputerSystem : SharedAtmosAlertsComputerSystem
         // Console events
         SubscribeLocalEvent<AtmosAlertsComputerComponent, ComponentInit>(OnConsoleInit);
         SubscribeLocalEvent<AtmosAlertsComputerComponent, EntParentChangedMessage>(OnConsoleParentChanged);
-        SubscribeLocalEvent<AtmosAlertsComputerComponent, BoundUIOpenedEvent>(OnBoundUIOpened); // <Onyx-ZLevelsTweak>
         SubscribeLocalEvent<AtmosAlertsComputerComponent, AtmosAlertsComputerFocusChangeMessage>(OnFocusChangedMessage);
-        SubscribeLocalEvent<AtmosAlertsComputerComponent, AtmosAlertsComputerSelectFloorMessage>(OnSelectFloorMessage); // <Onyx-ZLevelsTweak>
 
         // Grid events
         SubscribeLocalEvent<GridSplitEvent>(OnGridSplit);
@@ -73,77 +68,10 @@ public sealed class AtmosAlertsComputerSystem : SharedAtmosAlertsComputerSystem
         InitalizeConsole(uid, component);
     }
 
-    // <Onyx-ZLevelsTweak>
-    private void OnBoundUIOpened(EntityUid uid, AtmosAlertsComputerComponent component, BoundUIOpenedEvent args)
-    {
-        ZLevelFloorSelectorHelper.EnsureNavMapsForLinkedFloors(EntityManager, _zLevels, uid);
-
-        var floorState = ZLevelFloorSelectorHelper.GetFloorState(
-            EntityManager,
-            _zLevels,
-            uid,
-            component.SelectedFloorDepth);
-        component.SelectedFloorDepth = floorState.SelectedFloor;
-    }
-    // </Onyx-ZLevelsTweak>
-
     private void OnFocusChangedMessage(EntityUid uid, AtmosAlertsComputerComponent component, AtmosAlertsComputerFocusChangeMessage args)
     {
         component.FocusDevice = args.FocusDevice;
     }
-
-    // <Onyx-ZLevelsTweak>
-    private void OnSelectFloorMessage(
-        EntityUid uid,
-        AtmosAlertsComputerComponent component,
-        AtmosAlertsComputerSelectFloorMessage message)
-    {
-        var floorState = ZLevelFloorSelectorHelper.GetFloorState(
-            EntityManager,
-            _zLevels,
-            uid,
-            component.SelectedFloorDepth);
-        component.SelectedFloorDepth = floorState.SelectedFloor;
-
-        var floors = floorState.Floors;
-        if (floors.Count <= 1 || !floors.Contains(message.Floor))
-            return;
-
-        if (floorState.SelectedFloor == message.Floor)
-            return;
-
-        component.SelectedFloorDepth = message.Floor;
-
-        if (component.FocusDevice != null &&
-            ZLevelFloorSelectorHelper.TryGetMapDepthForNetEntity(EntityManager, component.FocusDevice.Value, out var focusDepth) &&
-            focusDepth != message.Floor)
-        {
-            component.FocusDevice = null;
-        }
-
-        if (!_userInterfaceSystem.IsUiOpen(uid, AtmosAlertsComputerUiKey.Key))
-            return;
-
-        if (!TryComp<TransformComponent>(uid, out var xform) || xform.GridUid == null)
-            return;
-
-        var updatedFloorState = ZLevelFloorSelectorHelper.GetFloorState(
-            EntityManager,
-            _zLevels,
-            uid,
-            component.SelectedFloorDepth);
-        component.SelectedFloorDepth = updatedFloorState.SelectedFloor;
-
-        var selectedGridUid = ZLevelFloorSelectorHelper.ResolveMapUid(EntityManager, updatedFloorState.SelectedMap) ?? xform.GridUid;
-        if (selectedGridUid == null)
-            return;
-
-        var airAlarmEntries = GetAlarmStateData(selectedGridUid.Value, AtmosAlertsComputerGroup.AirAlarm).ToArray();
-        var fireAlarmEntries = GetAlarmStateData(selectedGridUid.Value, AtmosAlertsComputerGroup.FireAlarm).ToArray();
-
-        UpdateUIState(uid, airAlarmEntries, fireAlarmEntries, component, selectedGridUid.Value, updatedFloorState);
-    }
-    // </Onyx-ZLevelsTweak>
 
     private void OnGridSplit(ref GridSplitEvent args)
     {
@@ -233,32 +161,21 @@ public sealed class AtmosAlertsComputerSystem : SharedAtmosAlertsComputerSystem
             var query = AllEntityQuery<AtmosAlertsComputerComponent, TransformComponent>();
             while (query.MoveNext(out var ent, out var entConsole, out var entXform))
             {
-                if (entXform?.GridUid == null) // <Onyx-ZLevelsTweak edited>
+                if (entXform?.GridUid == null)
                     continue;
 
-                // <Onyx-ZLevelsTweak>
-                var floorState = ZLevelFloorSelectorHelper.GetFloorState(
-                    EntityManager,
-                    _zLevels,
-                    ent,
-                    entConsole.SelectedFloorDepth);
-                entConsole.SelectedFloorDepth = floorState.SelectedFloor;
-
-                var selectedGridUid = ZLevelFloorSelectorHelper.ResolveMapUid(EntityManager, floorState.SelectedMap) ?? entXform.GridUid;
-                if (selectedGridUid == null)
-                    continue;
-                // </Onyx-ZLevelsTweak>
+                var selectedGridUid = entXform.GridUid.Value;
                 // Make a list of alarm state data for all the air and fire alarms on the grid
-                if (!airAlarmEntriesForEachGrid.TryGetValue(selectedGridUid.Value, out var airAlarmEntries))
+                if (!airAlarmEntriesForEachGrid.TryGetValue(selectedGridUid, out var airAlarmEntries))
                 {
-                    airAlarmEntries = GetAlarmStateData(selectedGridUid.Value, AtmosAlertsComputerGroup.AirAlarm).ToArray();
-                    airAlarmEntriesForEachGrid[selectedGridUid.Value] = airAlarmEntries;
+                    airAlarmEntries = GetAlarmStateData(selectedGridUid, AtmosAlertsComputerGroup.AirAlarm).ToArray();
+                    airAlarmEntriesForEachGrid[selectedGridUid] = airAlarmEntries;
                 }
 
-                if (!fireAlarmEntriesForEachGrid.TryGetValue(selectedGridUid.Value, out var fireAlarmEntries))
+                if (!fireAlarmEntriesForEachGrid.TryGetValue(selectedGridUid, out var fireAlarmEntries))
                 {
-                    fireAlarmEntries = GetAlarmStateData(selectedGridUid.Value, AtmosAlertsComputerGroup.FireAlarm).ToArray();
-                    fireAlarmEntriesForEachGrid[selectedGridUid.Value] = fireAlarmEntries;
+                    fireAlarmEntries = GetAlarmStateData(selectedGridUid, AtmosAlertsComputerGroup.FireAlarm).ToArray();
+                    fireAlarmEntriesForEachGrid[selectedGridUid] = fireAlarmEntries;
                 }
 
                 // Determine the highest level of alert for the console (based on non-silenced alarms)
@@ -281,7 +198,7 @@ public sealed class AtmosAlertsComputerSystem : SharedAtmosAlertsComputerSystem
                     _appearance.SetData(ent, AtmosAlertsComputerVisuals.ComputerLayerScreen, (int) highestAlert, entAppearance);
 
                 // If the console UI is open, send UI data to each subscribed session
-                UpdateUIState(ent, airAlarmEntries, fireAlarmEntries, entConsole, selectedGridUid.Value, floorState); // <Onyx-ZLevelsTweak edited>
+                UpdateUIState(ent, airAlarmEntries, fireAlarmEntries, entConsole, selectedGridUid);
             }
         }
     }
@@ -291,8 +208,7 @@ public sealed class AtmosAlertsComputerSystem : SharedAtmosAlertsComputerSystem
         AtmosAlertsComputerEntry[] airAlarmStateData,
         AtmosAlertsComputerEntry[] fireAlarmStateData,
         AtmosAlertsComputerComponent component,
-        EntityUid gridUid,
-        ZLevelFloorSelectorState floorState) // <Onyx-ZLevelsTweak edited>
+        EntityUid gridUid)
     {
         if (!_userInterfaceSystem.IsUiOpen(uid, AtmosAlertsComputerUiKey.Key))
             return;
@@ -302,8 +218,8 @@ public sealed class AtmosAlertsComputerSystem : SharedAtmosAlertsComputerSystem
 
         // The grid must have a NavMapComponent to visualize the map in the UI
         EnsureComp<NavMapComponent>(gridUid);
-        component.AtmosDevices = GetAllAtmosDeviceNavMapData(gridUid); // <Onyx-ZLevelsTweak>
-        Dirty(uid, component); // <Onyx-ZLevelsTweak>
+        component.AtmosDevices = GetAllAtmosDeviceNavMapData(gridUid);
+        Dirty(uid, component);
 
         // Gathering remaining data to be send to the client
         var focusAlarmData = GetFocusAlarmData(uid, GetEntity(component.FocusDevice), gridUid);
@@ -313,11 +229,7 @@ public sealed class AtmosAlertsComputerSystem : SharedAtmosAlertsComputerSystem
             new AtmosAlertsComputerBoundInterfaceState(
                 airAlarmStateData,
                 fireAlarmStateData,
-                focusAlarmData,
-                floorState.Floors,
-                floorState.SelectedFloor,
-                floorState.SourceFloor,
-                floorState.SelectedMap is { } selectedMap ? GetNetEntity(selectedMap) : null)); // <Onyx-ZLevelsTweak edited>
+                focusAlarmData));
     }
 
     private List<AtmosAlertsComputerEntry> GetAlarmStateData(EntityUid gridUid, AtmosAlertsComputerGroup group)

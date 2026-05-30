@@ -38,12 +38,10 @@
 
 using Content.Client.Administration.Managers;
 using Content.Client.Movement.Systems;
-using Content.Shared.CCVar;
 using Content.Shared.Sandbox;
 using Robust.Client.Console;
 using Robust.Client.Placement;
 using Robust.Client.Placement.Modes;
-using Robust.Shared.Configuration;
 using Robust.Shared.Map;
 using Robust.Shared.Player;
 
@@ -58,8 +56,6 @@ namespace Content.Client.Sandbox
         [Dependency] private readonly ContentEyeSystem _contentEye = default!;
         [Dependency] private readonly SharedTransformSystem _transform = default!;
         [Dependency] private readonly SharedMapSystem _mapSystem = default!;
-        [Dependency] private readonly IConfigurationManager _cfg = default!; // <Onyx-Zlevels>
-
         private bool _sandboxEnabled;
         public bool SandboxAllowed { get; private set; }
         public event Action? SandboxEnabled;
@@ -199,17 +195,5 @@ namespace Content.Client.Sandbox
             _consoleHost.ExecuteCommand("physics shapes");
         }
 
-        // <Onyx-Zlevels>
-        public bool IsRoofOverlayEnabled()
-        {
-            return _cfg.GetCVar(CCVars.ZLevelRoofOverlayEnabled);
-        }
-
-        public void ToggleRoofOverlay()
-        {
-            var enabled = _cfg.GetCVar(CCVars.ZLevelRoofOverlayEnabled);
-            _cfg.SetCVar(CCVars.ZLevelRoofOverlayEnabled, !enabled);
-        }
-        // </Onyx-Zlevels>
     }
 }

@@ -168,7 +168,6 @@
     requirePower: true
     highVoltageNode: input
     mediumVoltageNode: ame
-  - type: CEZPhysics # <Onyx-Tweak>
 
 - type: entity
   categories: [ HideSpawnMenu ]
@@ -279,4 +278,3 @@
     onBump: false
     requirePower: true
     highVoltageNode: ame
-  - type: CEZPhysics # <Onyx-Tweak>

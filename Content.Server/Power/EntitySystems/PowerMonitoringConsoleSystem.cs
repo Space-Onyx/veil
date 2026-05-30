@@ -31,8 +31,6 @@ using Content.Shared.NodeContainer;
 using Content.Shared.Pinpointer;
 using Content.Shared.Power;
 using Content.Shared.Station.Components;
-using Content.Shared._Onyx.ZLevels.Core.EntitySystems;
-using Content.Shared._Onyx.UI;
 using JetBrains.Annotations;
 using Robust.Server.GameObjects;
 using Robust.Shared.Map.Components;
@@ -46,7 +44,6 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
 {
     [Dependency] private readonly UserInterfaceSystem _userInterfaceSystem = default!;
     [Dependency] private readonly SharedMapSystem _sharedMapSystem = default!;
-    [Dependency] private readonly CESharedZLevelsSystem _zLevels = default!;
 
     // Note: this data does not need to be saved
     private Dictionary<EntityUid, Dictionary<Vector2i, PowerCableChunk>> _gridPowerCableChunks = new();
@@ -67,7 +64,6 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
 
         // UI events
         SubscribeLocalEvent<PowerMonitoringConsoleComponent, PowerMonitoringConsoleMessage>(OnPowerMonitoringConsoleMessage);
-        SubscribeLocalEvent<PowerMonitoringConsoleComponent, PowerMonitoringConsoleSelectFloorMessage>(OnSelectFloorMessage);
         SubscribeLocalEvent<PowerMonitoringConsoleComponent, BoundUIOpenedEvent>(OnBoundUIOpened);
 
         // Grid events
@@ -130,58 +126,10 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
         }
     }
 
-    private void OnSelectFloorMessage(
-        EntityUid uid,
-        PowerMonitoringConsoleComponent component,
-        PowerMonitoringConsoleSelectFloorMessage message)
-    {
-        var floorState = ZLevelFloorSelectorHelper.GetFloorState(
-            EntityManager,
-            _zLevels,
-            uid,
-            component.SelectedFloorDepth);
-        component.SelectedFloorDepth = floorState.SelectedFloor;
-
-        var floors = floorState.Floors;
-        if (floors.Count <= 1 || !floors.Contains(message.Floor))
-            return;
-
-        if (floorState.SelectedFloor == message.Floor)
-            return;
-
-        component.SelectedFloorDepth = message.Floor;
-
-        if (component.Focus != null)
-        {
-            var clearFocus = true;
-            if (ZLevelFloorSelectorHelper.TryGetMapDepthForNetEntity(
-                    EntityManager,
-                    GetNetEntity(component.Focus.Value),
-                    out var focusDepth))
-            {
-                clearFocus = focusDepth != message.Floor;
-            }
-
-            if (clearFocus)
-                ClearConsoleFocus(uid, component);
-        }
-
-        UpdateUIState(uid, component);
-    }
-
     private void OnBoundUIOpened(EntityUid uid, PowerMonitoringConsoleComponent component, BoundUIOpenedEvent args)
     {
         component.FocusGroup = PowerMonitoringConsoleGroup.Generator;
         ClearConsoleFocus(uid, component);
-
-        ZLevelFloorSelectorHelper.EnsureNavMapsForLinkedFloors(EntityManager, _zLevels, uid);
-
-        var floorState = ZLevelFloorSelectorHelper.GetFloorState(
-            EntityManager,
-            _zLevels,
-            uid,
-            component.SelectedFloorDepth);
-        component.SelectedFloorDepth = floorState.SelectedFloor;
 
         UpdateUIState(uid, component);
     }
@@ -368,15 +316,7 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
         if (consoleXform?.GridUid == null)
             return;
 
-        var floorState = ZLevelFloorSelectorHelper.GetFloorState(
-            EntityManager,
-            _zLevels,
-            uid,
-            component.SelectedFloorDepth);
-        component.SelectedFloorDepth = floorState.SelectedFloor;
-
-        var targetMapUid = ZLevelFloorSelectorHelper.ResolveMapUid(EntityManager, floorState.SelectedMap);
-        var targetUid = targetMapUid ?? consoleXform.GridUid.Value;
+        var targetUid = consoleXform.GridUid.Value;
 
         // The grid must have a NavMapComponent to visualize the map in the UI
         EnsureComp<NavMapComponent>(targetUid);
@@ -538,11 +478,7 @@ internal sealed partial class PowerMonitoringConsoleSystem : SharedPowerMonitori
                 totalLoads,
                 allEntries.ToArray(),
                 sourcesForFocus.ToArray(),
-                loadsForFocus.ToArray(),
-                floorState.Floors,
-                floorState.SelectedFloor,
-                floorState.SourceFloor,
-                GetNetEntity(floorState.SelectedMap)));
+                loadsForFocus.ToArray()));
     }
 
     private void ClearConsoleFocus(EntityUid uid, PowerMonitoringConsoleComponent component)

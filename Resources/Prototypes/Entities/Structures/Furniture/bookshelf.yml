@@ -109,4 +109,3 @@
     graph: Bookshelf
     node: bookshelf
   - type: BlockWeather
-  - type: CEZPhysics # <Onyx-Tweak>

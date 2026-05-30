@@ -81,7 +81,6 @@
 using System.Linq;
 using System.Numerics;
 using Content.Server._CorvaxGoob.Announcer;
-using Content.Server._Utopia.ZLevels.Disposal.Components;
 using Content.Server.Announcements;
 using Content.Server.Discord;
 using Content.Server.GameTicking.Events;
@@ -306,46 +305,6 @@ namespace Content.Server.GameTicking
                 RaiseLocalEvent(new PostGameMapLoad(proto, mapId, g, stationName));
                 return g;
             }
-
-            // ECHO-Tweak-start
-            // ZLevels mapping support
-            if (ev.GameMap.ZMap)
-            {
-                if (!_zMapping.TryLoadMap(ev.GameMap.MapPath, out var zMaps, out var zGrids, out var error))
-                {
-                    throw new Exception($"Failed to load ZNetwork map: {error}");
-                }
-
-                var hasMainMap = false;
-                var mainMapUid = EntityUid.Invalid;
-                foreach (var zMap in zMaps)
-                {
-                    _metaData.SetEntityName(zMap.Owner, proto.MapName);
-
-                    if (!HasComp<MainZMapComponent>(zMap.Owner) || hasMainMap)
-                        continue;
-
-                    mainMapUid = zMap.Owner;
-                    hasMainMap = true;
-                }
-
-                if (!hasMainMap)
-                {
-                    if (zMaps.Count == 0)
-                        throw new Exception($"Failed to load ZNetwork map {ev.GameMap.ID}: no maps were loaded.");
-
-                    mainMapUid = zMaps[0].Owner;
-                }
-
-                if (!TryComp<MapComponent>(mainMapUid, out var mainMapComp))
-                    throw new Exception($"Failed to load ZNetwork map {ev.GameMap.ID}: main map entity has no MapComponent.");
-
-                mapId = mainMapComp.MapId;
-                var zGridUids = zGrids.Select(x => x.Owner).ToList();
-                RaiseLocalEvent(new PostGameMapLoad(proto, mapId, zGridUids, stationName));
-                return zGridUids;
-            }
-            // ECHO-Tweak-end
 
             if (!_loader.TryLoadMap(ev.GameMap.MapPath,
                     out var map,

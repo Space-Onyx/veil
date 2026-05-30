@@ -24,7 +24,6 @@ public sealed class AtmosAlertsComputerBoundUserInterface : BoundUserInterface
         _menu = new AtmosAlertsComputerWindow(this, Owner);
         _menu.OpenCentered();
         _menu.OnClose += Close;
-        _menu.FloorSelected += SendSelectFloorMessage; // <Onyx-ZLevelsTweak>
     }
 
     protected override void UpdateState(BoundUserInterfaceState state)
@@ -34,17 +33,11 @@ public sealed class AtmosAlertsComputerBoundUserInterface : BoundUserInterface
         var castState = (AtmosAlertsComputerBoundInterfaceState) state;
 
         EntMan.TryGetComponent<TransformComponent>(Owner, out var xform);
-        // <Onyx-ZLevelsTweak edited>
         _menu?.UpdateUI(
             xform?.Coordinates,
             castState.AirAlarms,
             castState.FireAlarms,
-            castState.FocusData,
-            castState.Floors,
-            castState.SelectedFloor,
-            castState.MonitorFloor,
-            castState.SelectedFloorMap);
-        // </Onyx-ZLevelsTweak edited>
+            castState.FocusData);
     }
 
     public void SendFocusChangeMessage(NetEntity? netEntity)
@@ -56,13 +49,6 @@ public sealed class AtmosAlertsComputerBoundUserInterface : BoundUserInterface
     {
         SendMessage(new AtmosAlertsComputerDeviceSilencedMessage(netEntity, silenceDevice));
     }
-
-    // <Onyx-ZLevelsTweak>
-    public void SendSelectFloorMessage(int floor)
-    {
-        SendMessage(new AtmosAlertsComputerSelectFloorMessage(floor));
-    }
-    // </Onyx-ZLevelsTweak>
 
     protected override void Dispose(bool disposing)
     {

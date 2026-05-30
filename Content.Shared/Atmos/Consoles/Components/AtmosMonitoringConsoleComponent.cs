@@ -57,10 +57,6 @@ public sealed partial class AtmosMonitoringConsoleComponent : Component
     [ViewVariables]
     public bool ForceFullUpdate = false;
 
-    // <Onyx-ZLevelsTweak>
-    [ViewVariables]
-    public int? SelectedFloorDepth;
-    // </Onyx-ZLevelsTweak>
 }
 
 [Serializable, NetSerializable]
@@ -152,43 +148,16 @@ public sealed class AtmosMonitoringConsoleBoundInterfaceState : BoundUserInterfa
     /// A list of all entries to populate the UI with
     /// </summary>
     public AtmosMonitoringConsoleEntry[] AtmosNetworks;
-    public List<int> Floors; // <Onyx-ZLevelsTweak>
-    public int SelectedFloor; // <Onyx-ZLevelsTweak>
-    public int MonitorFloor; // <Onyx-ZLevelsTweak>
-    public NetEntity? SelectedFloorMap; // <Onyx-ZLevelsTweak>
 
     /// <summary>
     /// Sends data from the server to the client to populate the atmos monitoring console UI
     /// </summary>
-    // <Onyx-ZLevelsTweak edited>
-    public AtmosMonitoringConsoleBoundInterfaceState(
-        AtmosMonitoringConsoleEntry[] atmosNetworks,
-        List<int> floors,
-        int selectedFloor,
-        int monitorFloor,
-        NetEntity? selectedFloorMap)
+    public AtmosMonitoringConsoleBoundInterfaceState(AtmosMonitoringConsoleEntry[] atmosNetworks)
     {
         AtmosNetworks = atmosNetworks;
-        Floors = floors;
-        SelectedFloor = selectedFloor;
-        MonitorFloor = monitorFloor;
-        SelectedFloorMap = selectedFloorMap;
-    }
-    // </Onyx-ZLevelsTweak edited>
-}
-
-// <Onyx-ZLevelsTweak>ы
-[Serializable, NetSerializable]
-public sealed class AtmosMonitoringConsoleSelectFloorMessage : BoundUserInterfaceMessage
-{
-    public int Floor;
-
-    public AtmosMonitoringConsoleSelectFloorMessage(int floor)
-    {
-        Floor = floor;
     }
 }
-// </Onyx-ZLevelsTweak>
+
 
 [Serializable, NetSerializable]
 public struct AtmosMonitoringConsoleEntry

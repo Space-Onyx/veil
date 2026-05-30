@@ -21,7 +21,6 @@ public sealed class AtmosMonitoringConsoleBoundUserInterface : BoundUserInterfac
         _menu = new AtmosMonitoringConsoleWindow(this, Owner);
         _menu.OpenCentered();
         _menu.OnClose += Close;
-        _menu.FloorSelected += SendSelectFloorMessage; // <Onyx-ZLevelsTweak>
     }
 
     protected override void UpdateState(BoundUserInterfaceState state)
@@ -34,19 +33,8 @@ public sealed class AtmosMonitoringConsoleBoundUserInterface : BoundUserInterfac
         EntMan.TryGetComponent<TransformComponent>(Owner, out var xform);
         _menu?.UpdateUI(
             xform?.Coordinates,
-            castState.AtmosNetworks,
-            castState.Floors,
-            castState.SelectedFloor,
-            castState.MonitorFloor,
-            castState.SelectedFloorMap); // <Onyx-ZLevelsTweak edited>
+            castState.AtmosNetworks);
     }
-
-    // <Onyx-ZLevelsTweak>
-    public void SendSelectFloorMessage(int floor)
-    {
-        SendMessage(new AtmosMonitoringConsoleSelectFloorMessage(floor));
-    }
-    // </Onyx-ZLevelsTweak>
 
     protected override void Dispose(bool disposing)
     {

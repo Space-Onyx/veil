@@ -76,10 +76,8 @@ using Content.Shared.DeviceNetwork;
 using Content.Shared.DeviceNetwork.Events;
 using Content.Shared.Power;
 using Content.Shared.SurveillanceCamera;
-using Content.Shared._Onyx.UI;
 using Robust.Server.GameObjects;
 using Robust.Shared.Player;
-using Content.Shared._Onyx.ZLevels.Core.EntitySystems;
 
 // Goobstation
 using Content.Goobstation.Common.SurveillanceCamera;
@@ -96,7 +94,6 @@ public sealed class SurveillanceCameraMonitorSystem : EntitySystem
     [Dependency] private readonly UserInterfaceSystem _userInterface = default!;
     [Dependency] private readonly DeviceNetworkSystem _deviceNetworkSystem = default!;
     [Dependency] private readonly ISharedPlayerManager _playerManager = default!; // <Onyx-Fix>
-    [Dependency] private readonly CESharedZLevelsSystem _zLevels = default!; // <Onyx-Tweak>
 
     // Goobstation
     [Dependency] private readonly PvsOverrideSystem _pvsOverrideSystem = default!;
@@ -115,7 +112,6 @@ public sealed class SurveillanceCameraMonitorSystem : EntitySystem
             subs.Event<SurveillanceCameraRefreshCamerasMessage>(OnRefreshCamerasMessage);
             subs.Event<SurveillanceCameraRefreshSubnetsMessage>(OnRefreshSubnetsMessage);
             subs.Event<SurveillanceCameraDisconnectMessage>(OnDisconnectMessage);
-            subs.Event<SurveillanceCameraMonitorSelectFloorMessage>(OnSelectFloorMessage); // <Onyx-Tweak>
             subs.Event<SurveillanceCameraMonitorSwitchMessage>(OnSwitchMessage);
             subs.Event<BoundUIClosedEvent>(OnBoundUiClose);
         });
@@ -197,7 +193,6 @@ public sealed class SurveillanceCameraMonitorSystem : EntitySystem
                 foreach (var key in expiredCameras.Keys)
                 {
                     monitor.KnownMobileCameras.Remove(key);
-                    monitor.KnownMobileCameraDepths.Remove(key); // <Onyx-Tweak>
                     monitor.KnownMobileCamerasLastHeartbeat.Remove(key);
                     monitor.KnownMobileCamerasLastHeartbeatSent.Remove(key);
                 }
@@ -283,12 +278,6 @@ public sealed class SurveillanceCameraMonitorSystem : EntitySystem
                     {
                         return;
                     }
-                    var cameraDepth = ZLevelFloorSelectorHelper.TryGetMapDepthForNetEntity(
-                        _entityManager,
-                        netEntity.Value.Item1,
-                        out var parsedDepth)
-                        ? parsedDepth
-                        : 0; // <Onyx-Tweak>
                     if (mobile.HasValue && mobile.Value) // if camera is mobile, it should be in the mobile cameras list
                     {
                         if (component.KnownMobileCameras.Count == 0) // was it the first mobile camera added?
@@ -306,20 +295,15 @@ public sealed class SurveillanceCameraMonitorSystem : EntitySystem
                             }
                             // <Onyx-Fix edited>
                         }
-                    // <Onyx-Tweak>
                         else
                         {
                             component.KnownMobileCameras[address] = (name, netEntity.Value);
                         }
-
-                        component.KnownMobileCameraDepths[address] = cameraDepth;
                     }
                     else
                     {
                         component.KnownCameras[address] = (name, netEntity.Value);
-                        component.KnownCameraDepths[address] = cameraDepth;
                     }
-                    // </Onyx-Tweak>
                     // Goobstation end
                     UpdateUserInterface(uid, component);
                     break;
@@ -363,9 +347,7 @@ public sealed class SurveillanceCameraMonitorSystem : EntitySystem
         }
         // </Onyx-Fix edited>
         component.KnownCameras.Clear();
-        component.KnownCameraDepths.Clear(); // <Onyx-Tweak>
         component.KnownMobileCameras.Clear();
-        component.KnownMobileCameraDepths.Clear(); // <Onyx-Tweak>
         RequestKnownSubnetsInfo(uid, component);
     }
     // Goobstation end
@@ -383,44 +365,6 @@ public sealed class SurveillanceCameraMonitorSystem : EntitySystem
         // do the switch
         TrySwitchCameraByAddress(uid, message.Address, component);
     }
-
-    // <Onyx-Tweak>
-    private void OnSelectFloorMessage(
-        EntityUid uid,
-        SurveillanceCameraMonitorComponent component,
-        SurveillanceCameraMonitorSelectFloorMessage message)
-    {
-        var floorState = ZLevelFloorSelectorHelper.GetFloorState(
-            _entityManager,
-            _zLevels,
-            uid,
-            component.SelectedFloorDepth);
-        component.SelectedFloorDepth = floorState.SelectedFloor;
-
-        var floors = floorState.Floors;
-        if (floors.Count <= 1 || !floors.Contains(message.Floor))
-            return;
-
-        if (floorState.SelectedFloor == message.Floor)
-            return;
-
-        component.SelectedFloorDepth = message.Floor;
-
-        if (!string.IsNullOrEmpty(component.ActiveCameraAddress) &&
-            ZLevelFloorSelectorHelper.TryGetDepthForKey(
-                component.KnownCameraDepths,
-                component.KnownMobileCameraDepths,
-                component.ActiveCameraAddress,
-                out var activeDepth) &&
-            activeDepth != message.Floor)
-        {
-            DisconnectCamera(uid, true, component);
-            return;
-        }
-
-        UpdateUserInterface(uid, component);
-    }
-    // </Onyx-Tweak>
 
     private void OnPowerChanged(EntityUid uid, SurveillanceCameraMonitorComponent component, ref PowerChangedEvent args)
     {
@@ -743,8 +687,6 @@ public sealed class SurveillanceCameraMonitorSystem : EntitySystem
             return;
         }
 
-        ZLevelFloorSelectorHelper.EnsureNavMapsForLinkedFloors(_entityManager, _zLevels, uid); // <Onyx-Tweak>
-
         AddViewer(uid, player);
     }
 
@@ -755,32 +697,11 @@ public sealed class SurveillanceCameraMonitorSystem : EntitySystem
             return;
         }
 
-        // <Onyx-Tweak edited>
-        var floorState = ZLevelFloorSelectorHelper.GetFloorState(
-            _entityManager,
-            _zLevels,
-            uid,
-            monitor.SelectedFloorDepth);
-        monitor.SelectedFloorDepth = floorState.SelectedFloor;
-
-        var cameras = floorState.HasFloorSelection
-            ? ZLevelFloorSelectorHelper.FilterByDepth(monitor.KnownCameras, monitor.KnownCameraDepths, floorState.SelectedFloor)
-            : monitor.KnownCameras;
-
-        var mobileCameras = floorState.HasFloorSelection
-            ? ZLevelFloorSelectorHelper.FilterByDepth(monitor.KnownMobileCameras, monitor.KnownMobileCameraDepths, floorState.SelectedFloor)
-            : monitor.KnownMobileCameras;
-
         var state = new SurveillanceCameraMonitorUiState(
             GetNetEntity(monitor.ActiveCamera),
             monitor.ActiveCameraAddress,
-            cameras,
-            mobileCameras,
-            floorState.Floors,
-            floorState.SelectedFloor,
-            floorState.SourceFloor,
-            GetNetEntity(floorState.SelectedMap));
-        // </Onyx-Tweak edited>
+            monitor.KnownCameras,
+            monitor.KnownMobileCameras);
         _userInterface.SetUiState(uid, SurveillanceCameraMonitorUiKey.Key, state);
     }
 

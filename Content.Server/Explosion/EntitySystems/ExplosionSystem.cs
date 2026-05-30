@@ -150,7 +150,6 @@ using Robust.Shared.Audio.Systems;
 using Robust.Shared.Configuration;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
-using Content.Shared._Onyx.ZLevels.Core.EntitySystems;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
@@ -185,7 +184,6 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
     [Dependency] private readonly SharedTransformSystem _transformSystem = default!;
     [Dependency] private readonly SharedMapSystem _map = default!;
     [Dependency] private readonly SharedBodySystem _body = default!; // Shitmed Change
-    [Dependency] private readonly CESharedZLevelsSystem _zLevels = default!; // <Onyx-ZLevels>
 
     private EntityQuery<FlammableComponent> _flammableQuery;
     private EntityQuery<PhysicsComponent> _physicsQuery;
@@ -410,14 +408,6 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
     /// <summary>
     ///     Queue an explosion, with a specified epicenter and set of starting tiles.
     /// </summary>
-    // <Onyx-ZLevels>: Z-level explosion propagation factors per floor distance
-    private static readonly float[] ZLevelFactors = [0.80f, 0.50f, 0.33f];
-
-    /// <summary>
-    ///     Minimum total intensity for an explosion to propagate to adjacent Z-levels.
-    /// </summary>
-    private const float ZLevelPropagationThreshold = 200f; // <Onyx-ZLevels>
-
     public void QueueExplosion(MapCoordinates epicenter,
         string typeId,
         float totalIntensity,
@@ -427,8 +417,7 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
         float tileBreakScale = 1f,
         int maxTileBreak = int.MaxValue,
         bool canCreateVacuum = true,
-        bool addLog = true, // <Onyx-ZLevels>
-        bool zLevelPropagated = false) // <Onyx-ZLevels>
+        bool addLog = true)
     {
         if (totalIntensity <= 0 || slope <= 0)
             return;
@@ -473,35 +462,6 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
         _explosionQueue.Enqueue(boom);
         _queuedExplosions.Add(boom);
 
-        // <Onyx-ZLevels> propagate explosion to adjacent Z-levels
-        if (!zLevelPropagated && totalIntensity >= ZLevelPropagationThreshold)
-        {
-            var mapUid = _mapSystem.GetMap(epicenter.MapId);
-            for (var dir = -1; dir <= 1; dir += 2)
-            {
-                for (var i = 1; i <= ZLevelFactors.Length; i++)
-                {
-                    if (!_zLevels.TryMapOffset(mapUid, dir * i, out var targetMap))
-                        break;
-
-                    var targetMapComp = Comp<MapComponent>(targetMap.Value);
-                    var factor = ZLevelFactors[i - 1];
-                    QueueExplosion(
-                        new MapCoordinates(epicenter.Position, targetMapComp.MapId),
-                        typeId,
-                        totalIntensity * factor,
-                        slope,
-                        maxTileIntensity * factor,
-                        cause,
-                        tileBreakScale,
-                        maxTileBreak,
-                        canCreateVacuum,
-                        addLog: false,
-                        zLevelPropagated: true);
-                }
-            }
-        }
-        // </Onyx-ZLevels>
     }
 
     /// <summary>

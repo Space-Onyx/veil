@@ -22,7 +22,7 @@ public sealed partial class StaminaSystem : SharedStaminaSystem
     [Dependency] private readonly SpriteSystem _sprite = default!;
     [Dependency] private readonly StunSystem _stun = default!; // Clientside Stun System
 
-    public const string StaminaAnimationKey = "stamina"; //CrystallEdge public
+    private const string StaminaAnimationKey = "stamina";
 
     public override void Initialize()
     {

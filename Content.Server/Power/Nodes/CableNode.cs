@@ -14,8 +14,6 @@
 
 using Content.Server.NodeContainer;
 using Content.Server.NodeContainer.Nodes;
-using Content.Server._Utopia.ZLevels.Power; // Utopia-Tweak : ZLevels
-using Content.Server._Utopia.ZLevels.Nodes; // Utopia-Tweak : ZLevels
 using Content.Shared.NodeContainer;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
@@ -23,7 +21,7 @@ using Robust.Shared.Map.Components;
 namespace Content.Server.Power.Nodes
 {
     [DataDefinition]
-    public partial class CableNode : Node // Utopia-Tweak : ZLevels
+    public partial class CableNode : Node
     {
         public override IEnumerable<Node> GetReachableNodes(TransformComponent xform,
             EntityQuery<NodeContainerComponent> nodeQuery,
@@ -81,15 +79,6 @@ namespace Content.Server.Power.Nodes
 
                 yield return node;
             }
-
-            // Utopia-Tweak : ZLevels
-            if (this is ZCableNode zNode)
-            {
-                var zSys = entMan.System<ZCableSystem>();
-                foreach (var z in zSys.GetZReachable(zNode))
-                    yield return z;
-            }
-            // Utopia-Tweak : ZLevels
         }
     }
 }

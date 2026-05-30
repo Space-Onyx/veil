@@ -19,7 +19,6 @@
 
 using System.Linq;
 using Content.Server.Administration;
-using Content.Server._Onyx.ZLevels.Atmos;
 using Content.Server.Atmos.Components;
 using Content.Shared.Administration;
 using Content.Shared.Atmos;
@@ -161,8 +160,6 @@ public sealed partial class AtmosphereSystem
     private void RebuildGridTiles(
         Entity<GridAtmosphereComponent, GasTileOverlayComponent, MapGridComponent, TransformComponent> ent)
     {
-        _verticalHoleTileCache.Clear(); // <Onyx-Zlevels>
-
         foreach (var indices in ent.Comp1.Tiles.Keys)
         {
             InvalidateVisuals((ent, ent), indices);
@@ -194,26 +191,6 @@ public sealed partial class AtmosphereSystem
             UpdateTileAir(ent, tile, volume);
         }
 
-        // <Onyx-Zlevels>
-        _zLevelGridAtmos ??= EntityManager.System<ZLevelGridAtmosSystem>();
-        _zLevelGridAtmos.ForceRebuildLinks();
-
-        var holeTiles = new List<Vector2i>();
-        _zLevelGridAtmos.CopyVerticalHoleTiles(ent.Owner, holeTiles);
-
-        _verticalHoleTileCache.Clear();
-
-        holeTiles.Clear();
-        _zLevelGridAtmos.CopyVerticalHoleTiles(ent.Owner, holeTiles);
-
-        foreach (var indices in holeTiles)
-        {
-            var tile = GetOrNewTile(ent, ent, indices);
-            UpdateTileData(ent, mapAtmos, tile);
-            UpdateAdjacentTiles(ent, tile, activate: true);
-            UpdateTileAir(ent, tile, volume);
-        }
-        // </Onyx-Zlevels>
     }
 
     private CompletionResult FixGridAtmosCommandCompletions(IConsoleShell shell, string[] args)

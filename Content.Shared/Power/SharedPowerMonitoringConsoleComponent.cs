@@ -51,10 +51,6 @@ public sealed partial class PowerMonitoringConsoleComponent : Component
     [ViewVariables, AutoNetworkedField]
     public Dictionary<NetEntity, PowerMonitoringDeviceMetaData> PowerMonitoringDeviceMetaData = new();
 
-    // <Onyx-ZLevelsTweak>
-    [ViewVariables]
-    public int? SelectedFloorDepth;
-    // </Onyx-ZLevelsTweak>
 }
 
 [Serializable, NetSerializable]
@@ -89,23 +85,14 @@ public sealed class PowerMonitoringConsoleBoundInterfaceState : BoundUserInterfa
     public PowerMonitoringConsoleEntry[] AllEntries;
     public PowerMonitoringConsoleEntry[] FocusSources;
     public PowerMonitoringConsoleEntry[] FocusLoads;
-    public List<int> Floors; // <Onyx-ZLevelsTweak>
-    public int SelectedFloor; // <Onyx-ZLevelsTweak>
-    public int MonitorFloor; // <Onyx-ZLevelsTweak>
-    public NetEntity? SelectedFloorMap;// <Onyx-ZLevelsTweak>
 
-    // <Onyx-ZLevelsTweak edited>
     public PowerMonitoringConsoleBoundInterfaceState
         (double totalSources,
         double totalBatteryUsage,
         double totalLoads,
         PowerMonitoringConsoleEntry[] allEntries,
         PowerMonitoringConsoleEntry[] focusSources,
-        PowerMonitoringConsoleEntry[] focusLoads,
-        List<int> floors,
-        int selectedFloor,
-        int monitorFloor,
-        NetEntity? selectedFloorMap)
+        PowerMonitoringConsoleEntry[] focusLoads)
     {
         TotalSources = totalSources;
         TotalBatteryUsage = totalBatteryUsage;
@@ -113,12 +100,7 @@ public sealed class PowerMonitoringConsoleBoundInterfaceState : BoundUserInterfa
         AllEntries = allEntries;
         FocusSources = focusSources;
         FocusLoads = focusLoads;
-        Floors = floors;
-        SelectedFloor = selectedFloor;
-        MonitorFloor = monitorFloor;
-        SelectedFloorMap = selectedFloorMap;
     }
-    // </Onyx-ZLevelsTweak edited>
 }
 
 /// <summary>
@@ -159,18 +141,6 @@ public sealed class PowerMonitoringConsoleMessage : BoundUserInterfaceMessage
     }
 }
 
-// <Onyx-ZLevelsTweak>
-[Serializable, NetSerializable]
-public sealed class PowerMonitoringConsoleSelectFloorMessage : BoundUserInterfaceMessage
-{
-    public int Floor;
-
-    public PowerMonitoringConsoleSelectFloorMessage(int floor)
-    {
-        Floor = floor;
-    }
-}
-// </Onyx-ZLevelsTweak>
 
 /// <summary>
 ///     Determines how entities are grouped and color coded on the power monitor

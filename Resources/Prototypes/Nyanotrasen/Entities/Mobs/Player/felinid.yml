@@ -66,5 +66,4 @@
   - type: DnaModifier
     upper: MobFelinid
     lowest: MobCat
-  - type: OnyxZFallDamageImmune
   # </Onyx-Tweak>

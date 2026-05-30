@@ -140,8 +140,6 @@
     damagePenalty: 0.05
   - type: StunVisuals
   # <Onyx-Tweak>
-  - type: CEZPhysics
-  - type: CEZLevelViewer
   # </Onyx-Tweak>
   - type: Posing # <Onyx-Posing>
 

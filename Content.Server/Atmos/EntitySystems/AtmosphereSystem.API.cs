@@ -54,34 +54,6 @@ public partial class AtmosphereSystem
             // And ideally some fast way to get the innermost airtight container.
         }
 
-        // <Onyx-ZLevelAtmos>
-        if (grid == null)
-        {
-            var mapId = ent.Comp.MapID;
-            var worldPos = _transformSystem.GetWorldPosition(ent.Owner);
-
-            foreach (var candidate in _mapManager.GetAllGrids(mapId))
-            {
-                if (!_atmosQuery.TryComp(candidate.Owner, out var candidateAtmos))
-                    continue;
-
-                var tile = _mapSystem.WorldToTile(candidate.Owner, candidate.Comp, worldPos);
-                if (!candidateAtmos.Tiles.TryGetValue(tile, out var atmosTile) || atmosTile.Air == null)
-                    continue;
-
-                if (excite)
-                {
-                    AddActiveTile(candidateAtmos, atmosTile);
-
-                    if (TryComp<GasTileOverlayComponent>(candidate.Owner, out var overlay))
-                        InvalidateVisuals((candidate.Owner, overlay), tile);
-                }
-
-                return atmosTile.Air;
-            }
-        }
-        // </Onyx-ZLevelAtmos>
-
         var position = _transformSystem.GetGridTilePositionOrDefault((ent, ent.Comp));
         return GetTileMixture(grid, map, position, excite);
     }

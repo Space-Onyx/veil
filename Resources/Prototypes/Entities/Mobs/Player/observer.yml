@@ -149,7 +149,6 @@
         density: 15
         layer:
         - GhostImpassable
-  - type: CEZLevelGhostMover  # ECHO-Tweak
 
 # shared parent between aghosts, replay spectators and normal observers
 - type: entity
@@ -211,10 +210,6 @@
         requireInputValidation: false
   - type: Sprinter # Goob Change
   - type: ToggleableHUD # <Onyx-Tweak>
-  # ECHO-Tweak-start: better ghost movement
-  - type: CEZPhysics
-    ignoreHighGround: true
-  # ECHO-Tweak-end
 
 # proto for player ghosts specifically
 - type: entity

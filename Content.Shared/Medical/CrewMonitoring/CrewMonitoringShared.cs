@@ -25,37 +25,9 @@ public enum CrewMonitoringUIKey
 public sealed class CrewMonitoringState : BoundUserInterfaceState
 {
     public List<SuitSensorStatus> Sensors;
-    public List<int> Floors; // <Onyx-ZLevelsTweak>
-    public int SelectedFloor; // <Onyx-ZLevelsTweak>
-    public int MonitorFloor; // <Onyx-ZLevelsTweak>
-    public NetEntity? SelectedFloorMap; // <Onyx-ZLevelsTweak>
 
-    // <Onyx-ZLevelsTweak edited>
-    public CrewMonitoringState(
-        List<SuitSensorStatus> sensors,
-        List<int> floors,
-        int selectedFloor,
-        int monitorFloor,
-        NetEntity? selectedFloorMap)
+    public CrewMonitoringState(List<SuitSensorStatus> sensors)
     {
         Sensors = sensors;
-        Floors = floors;
-        SelectedFloor = selectedFloor;
-        MonitorFloor = monitorFloor;
-        SelectedFloorMap = selectedFloorMap;
-    }
-    // </Onyx-ZLevelsTweak edited>
-}
-
-// <Onyx-ZLevelsTweak>
-[Serializable, NetSerializable]
-public sealed class CrewMonitoringSelectFloorMessage : BoundUserInterfaceMessage
-{
-    public int Floor;
-
-    public CrewMonitoringSelectFloorMessage(int floor)
-    {
-        Floor = floor;
     }
 }
-// </Onyx-ZLevelsTweak>

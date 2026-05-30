@@ -26,10 +26,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
             <ui:NavMapControl Name="NavMapScreen"/>
 
             <BoxContainer Orientation="Vertical" SetWidth="200">
-                <BoxContainer Name="FloorSelectorContainer" Orientation="Horizontal" SeparationOverride="6" Margin="0 0 10 8" Visible="False">
-                    <Label Text="{Loc 'station-map-floor'}" VerticalAlignment="Center" Modulate="#B0B0B0"/>
-                    <OptionButton Name="FloorSelector" MinSize="80 0" HorizontalExpand="True"/>
-                </BoxContainer>
 
                 <!-- Search bar -->
                 <LineEdit Name="FilterBar" PlaceHolder="{Loc 'station-map-filter-placeholder'}" Margin="0 0 10 10" HorizontalExpand="True"/>

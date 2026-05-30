@@ -85,7 +85,6 @@ using Content.Server.DeviceNetwork.Components;
 using Content.Server.Medical.CrewMonitoring;
 using Content.Server.Medical.SuitSensors;
 using Content.Server.SurveillanceCamera;
-using Content.Shared._Onyx.ZLevels.Core.EntitySystems;
 using Content.Shared.DeviceLinking;
 using Content.Shared.DeviceNetwork.Events;
 using JetBrains.Annotations;
@@ -96,7 +95,6 @@ namespace Content.Server.DeviceNetwork.Systems
     public sealed class WirelessNetworkSystem : EntitySystem
     {
         [Dependency] private readonly SharedTransformSystem _transformSystem = default!;
-        [Dependency] private readonly CESharedZLevelsSystem _zLevels = default!; // <Onyx-Tweak>
 
         public override void Initialize()
         {
@@ -119,13 +117,7 @@ namespace Content.Server.DeviceNetwork.Systems
 
             if (xform.MapID != args.SenderTransform.MapID)
             {
-                if (xform.MapUid == null ||
-                    args.SenderTransform.MapUid == null ||
-                    !_zLevels.AreOnSameZNetwork(xform.MapUid.Value, args.SenderTransform.MapUid.Value) ||
-                    !CanUseCrossMapWireless(uid, args.Sender))
-                {
-                    args.Cancel();
-                }
+                args.Cancel();
 
                 return;
             }

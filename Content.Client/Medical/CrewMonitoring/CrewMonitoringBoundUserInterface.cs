@@ -32,16 +32,14 @@ public sealed class CrewMonitoringBoundUserInterface : BoundUserInterface
     {
         base.Open();
 
-        EntityUid? gridUid = null; // <Onyx-ZLevelsTweak>
+        EntityUid? gridUid = null;
         var stationName = string.Empty;
 
         if (EntMan.TryGetComponent<TransformComponent>(Owner, out var xform))
         {
-            // <Onyx-ZLevelsTweak edited>
             gridUid = xform.GridUid;
 
             if (EntMan.TryGetComponent<MetaDataComponent>(gridUid, out var metaData))
-            // </Onyx-ZLevelsTweak edited>
             {
                 stationName = metaData.EntityName;
             }
@@ -49,7 +47,6 @@ public sealed class CrewMonitoringBoundUserInterface : BoundUserInterface
 
         _menu = this.CreateWindow<CrewMonitoringWindow>();
         _menu.Set(stationName, gridUid);
-        _menu.FloorSelected += SendCrewMonitoringSelectFloorMessage; // <Onyx-ZLevelsTweak>
     }
 
     protected override void UpdateState(BoundUserInterfaceState state)
@@ -62,20 +59,9 @@ public sealed class CrewMonitoringBoundUserInterface : BoundUserInterface
                 EntMan.TryGetComponent<TransformComponent>(Owner, out var xform);
                 _menu?.ShowSensors(
                     st.Sensors,
-                    st.Floors,
-                    st.SelectedFloor,
-                    st.MonitorFloor,
-                    st.SelectedFloorMap,
                     Owner,
-                    xform?.Coordinates); // <Onyx-ZLevelsTweak edited>
+                    xform?.Coordinates);
                 break;
         }
     }
-
-    // <Onyx-ZLevelsTweak>
-    public void SendCrewMonitoringSelectFloorMessage(int floor)
-    {
-        SendMessage(new CrewMonitoringSelectFloorMessage(floor));
-    }
-    // </Onyx-ZLevelsTweak>
 }

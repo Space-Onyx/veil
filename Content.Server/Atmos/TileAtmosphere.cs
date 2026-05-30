@@ -36,7 +36,6 @@
 
 using Content.Server.Atmos.Components;
 using Content.Server.Atmos.EntitySystems;
-using Content.Server._Onyx.ZLevels.Atmos;
 using Content.Shared.Atmos;
 
 namespace Content.Server.Atmos
@@ -45,7 +44,7 @@ namespace Content.Server.Atmos
     ///     Internal Atmos class that stores data about the atmosphere in a grid.
     ///     You shouldn't use this directly, use <see cref="AtmosphereSystem"/> instead.
     /// </summary>
-    [Access(typeof(AtmosphereSystem), typeof(GasTileOverlaySystem), typeof(AtmosDebugOverlaySystem), typeof(ZLevelGridAtmosSystem))] // <Onyx-ZLevelAtmos>
+    [Access(typeof(AtmosphereSystem), typeof(GasTileOverlaySystem), typeof(AtmosDebugOverlaySystem))]
     public sealed class TileAtmosphere : IGasMixtureHolder
     {
         [ViewVariables]
@@ -108,7 +107,7 @@ namespace Content.Server.Atmos
         public AtmosDirection LastPressureDirection;
 
         [ViewVariables]
-        [Access(typeof(AtmosphereSystem), typeof(ZLevelGridAtmosSystem))] // <Onyx-ZLevelAtmos>
+        [Access(typeof(AtmosphereSystem))]
         public EntityUid GridIndex { get; set; }
 
         [ViewVariables]
@@ -122,7 +121,7 @@ namespace Content.Server.Atmos
         /// This can be immutable if the tile is spaced.
         /// </summary>
         [ViewVariables]
-        [Access(typeof(AtmosphereSystem), typeof(ZLevelGridAtmosSystem), Other = AccessPermissions.ReadExecute)] // FIXME Friends | <Onyx-ZLevelAtmos>
+        [Access(typeof(AtmosphereSystem), Other = AccessPermissions.ReadExecute)] // FIXME Friends
         public GasMixture? Air { get; set; }
 
         /// <summary>

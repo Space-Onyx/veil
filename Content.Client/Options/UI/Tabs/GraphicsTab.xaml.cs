@@ -130,38 +130,6 @@ public sealed partial class GraphicsTab : Control
         Control.AddOptionCheckBox(CCVars.ViewportScaleRender, ViewportLowResCheckBox, invert: true);
         Control.AddOptionCheckBox(CCVars.ParallaxLowQuality, ParallaxLowQualityCheckBox);
         Control.AddOptionCheckBox(CCVars.HudFpsCounterVisible, FpsCounterCheckBox);
-        // <Onyx-Zlevels>
-        Control.AddOptionCheckBox(CCVars.ZLevelHoleShadowEnabled, ZLevelHoleShadowCheckBox);
-        Control.AddOptionDropDown(
-            CCVars.ZLevelHoleShadowUpdateRate,
-            ZLevelHoleShadowUpdateRateDropDown,
-            [
-                new OptionDropDownCVar<int>.ValueOption(10, Loc.GetString("ui-options-zlevel-hole-shadow-update-rate-10")),
-                new OptionDropDownCVar<int>.ValueOption(20, Loc.GetString("ui-options-zlevel-hole-shadow-update-rate-20")),
-                new OptionDropDownCVar<int>.ValueOption(30, Loc.GetString("ui-options-zlevel-hole-shadow-update-rate-30")),
-                new OptionDropDownCVar<int>.ValueOption(60, Loc.GetString("ui-options-zlevel-hole-shadow-update-rate-60")),
-            ]);
-        Control.AddOptionDropDown(
-            CCVars.MaxZLevelsBelowRendering,
-            ZLevelBelowRenderingCountDropDown,
-            [
-                new OptionDropDownCVar<int>.ValueOption(0, Loc.GetString("ui-options-zlevel-below-render-count-0")),
-                new OptionDropDownCVar<int>.ValueOption(1, Loc.GetString("ui-options-zlevel-below-render-count-1")),
-                new OptionDropDownCVar<int>.ValueOption(2, Loc.GetString("ui-options-zlevel-below-render-count-2")),
-                new OptionDropDownCVar<int>.ValueOption(3, Loc.GetString("ui-options-zlevel-below-render-count-3")),
-            ]);
-        Control.AddOptionDropDown(
-            CCVars.ZLevelHoleShadowMaxDistance,
-            ZLevelHoleShadowMaxDistanceDropDown,
-            [
-                new OptionDropDownCVar<float>.ValueOption(0f, Loc.GetString("ui-options-zlevel-hole-shadow-max-distance-unlimited")),
-                new OptionDropDownCVar<float>.ValueOption(8f, Loc.GetString("ui-options-zlevel-hole-shadow-max-distance-8")),
-                new OptionDropDownCVar<float>.ValueOption(12f, Loc.GetString("ui-options-zlevel-hole-shadow-max-distance-12")),
-                new OptionDropDownCVar<float>.ValueOption(16f, Loc.GetString("ui-options-zlevel-hole-shadow-max-distance-16")),
-                new OptionDropDownCVar<float>.ValueOption(24f, Loc.GetString("ui-options-zlevel-hole-shadow-max-distance-24")),
-                new OptionDropDownCVar<float>.ValueOption(32f, Loc.GetString("ui-options-zlevel-hole-shadow-max-distance-32")),
-            ]);
-        // </Onyx-Zlevels>
         Control.Initialize();
 
         _cfg.OnValueChanged(CCVars.ViewportMinimumWidth, _ => UpdateViewportWidthRange());

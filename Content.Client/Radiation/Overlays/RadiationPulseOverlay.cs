@@ -99,7 +99,7 @@ namespace Content.Client.Radiation.Overlays
             worldHandle.UseShader(null);
         }
 
-        //Queries all pulses on the map and either adds or removes them from the list of rendered pulses based on whether they should be drawn (in range? on the same z-level/map? pulse entity still exists?)
+        //Queries all pulses on the map and either adds or removes them from the list of rendered pulses based on whether they should be drawn (in range? on the same map? pulse entity still exists?)
         private void RadiationQuery(IEye? currentEye)
         {
             _transform ??= _entityManager.System<TransformSystem>();

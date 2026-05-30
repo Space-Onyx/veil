@@ -33,7 +33,6 @@ using Content.Server.Atmos.EntitySystems;
 using Content.Server.Atmos.Piping.Components;
 using Content.Server.Atmos.Serialization;
 using Content.Server.NodeContainer.NodeGroups;
-using Content.Server._Onyx.ZLevels.Atmos;
 
 namespace Content.Server.Atmos.Components
 {
@@ -41,7 +40,7 @@ namespace Content.Server.Atmos.Components
     ///     Internal Atmos class. Use <see cref="AtmosphereSystem"/> to interact with atmos instead.
     /// </summary>
     [RegisterComponent, Serializable,
-     Access(typeof(AtmosphereSystem), typeof(GasTileOverlaySystem), typeof(AtmosDebugOverlaySystem), typeof(ZLevelGridAtmosSystem))] // <Onyx-ZLevelAtmos>
+     Access(typeof(AtmosphereSystem), typeof(GasTileOverlaySystem), typeof(AtmosDebugOverlaySystem))]
     public sealed partial class GridAtmosphereComponent : Component
     {
         [ViewVariables(VVAccess.ReadWrite)]

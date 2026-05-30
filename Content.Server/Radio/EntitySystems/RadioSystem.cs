@@ -67,7 +67,6 @@ using Robust.Shared.Replays;
 using Robust.Shared.Utility;
 using Content.Shared.Whitelist;
 using Robust.Shared.Configuration;
-using Content.Shared._Onyx.ZLevels.Core.EntitySystems;
 
 namespace Content.Server.Radio.EntitySystems;
 
@@ -86,7 +85,6 @@ public sealed partial class RadioSystem : EntitySystem
     [Dependency] private readonly EntityWhitelistSystem _whitelist = default!; // Goobstation - Whitelisted radio channels
     [Dependency] private readonly InventorySystem _inventory = default!;
     [Dependency] private readonly IConfigurationManager _cfg = default!;
-    [Dependency] private readonly CESharedZLevelsSystem _zLevels = default!; // <Onyx-Tweak>
 
     // set used to prevent radio feedback loops.
     private readonly HashSet<string> _messages = new();
@@ -251,7 +249,7 @@ public sealed partial class RadioSystem : EntitySystem
         // <Onyx-Tweak edited>
         var sourceXform = Transform(radioSource);
         var sourceMapId = sourceXform.MapID;
-        var hasActiveServer = HasActiveServer(sourceMapId, channel.ID, sourceXform.MapUid);
+        var hasActiveServer = HasActiveServer(sourceMapId, channel.ID);
         // </Onyx-Tweak edited>
         var sourceServerExempt = _exemptQuery.HasComp(radioSource);
 
@@ -267,8 +265,7 @@ public sealed partial class RadioSystem : EntitySystem
 
             // <Onyx-Tweak>
             if (!channel.LongRange && transform.MapID != sourceMapId && !radio.GlobalReceive
-                && !(HasActiveTransmitter(transform.MapID) && HasActiveTransmitter(sourceMapId)) // goob - intermap transmitters
-                && !AreOnSameZNetwork(transform, radioSource)) // <Onyx-Tweak>
+                && !(HasActiveTransmitter(transform.MapID) && HasActiveTransmitter(sourceMapId))) // goob - intermap transmitters
                 continue;
 
             // don't need telecom server for long range channels or handheld radios and intercoms
@@ -422,7 +419,7 @@ public sealed partial class RadioSystem : EntitySystem
 
     /// <inheritdoc cref="TelecomServerComponent"/>
     // <Onyx-Tweak Edited>
-    private bool HasActiveServer(MapId mapId, string channelId, EntityUid? sourceMapUid = null)
+    private bool HasActiveServer(MapId mapId, string channelId)
     {
         var servers = EntityQuery<TelecomServerComponent, EncryptionKeyHolderComponent, ApcPowerReceiverComponent, TransformComponent>();
         foreach (var (_, keys, power, transform) in servers)
@@ -431,10 +428,6 @@ public sealed partial class RadioSystem : EntitySystem
                 continue;
 
             if (transform.MapID == mapId)
-                return true;
-
-            if (sourceMapUid is { } srcMap && transform.MapUid is { } serverMap
-                && _zLevels.AreOnSameZNetwork(srcMap, serverMap))
                 return true;
         }
         return false;
@@ -449,16 +442,4 @@ public sealed partial class RadioSystem : EntitySystem
     }
     // goob end
 
-    // <Onyx-Tweak>
-    private bool AreOnSameZNetwork(TransformComponent receiverXform, EntityUid sourceUid)
-    {
-        var sourceMapUid = Transform(sourceUid).MapUid;
-        var receiverMapUid = receiverXform.MapUid;
-
-        if (sourceMapUid == null || receiverMapUid == null)
-            return false;
-
-        return _zLevels.AreOnSameZNetwork(sourceMapUid.Value, receiverMapUid.Value);
-    }
-    // </Onyx-Tweak>
 }

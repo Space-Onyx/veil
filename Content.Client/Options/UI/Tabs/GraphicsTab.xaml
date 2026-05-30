@@ -34,12 +34,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
                 <CheckBox Name="ViewportLowResCheckBox" Text="{Loc 'ui-options-vp-low-res'}" />
                 <CheckBox Name="ParallaxLowQualityCheckBox" Text="{Loc 'ui-options-parallax-low-quality'}" />
                 <CheckBox Name="AmbientOcclusionCheckBox" Text="{Loc 'ui-options-ambient-occlusion'}" />
-                <!-- Onyx-Tweak -->
-                <CheckBox Name="ZLevelHoleShadowCheckBox" Text="{Loc 'ui-options-zlevel-hole-shadow'}" />
-                <ui:OptionDropDown Name="ZLevelHoleShadowUpdateRateDropDown" Title="{Loc 'ui-options-zlevel-hole-shadow-update-rate'}" />
-                <ui:OptionDropDown Name="ZLevelBelowRenderingCountDropDown" Title="{Loc 'ui-options-zlevel-below-render-count'}" />
-                <ui:OptionDropDown Name="ZLevelHoleShadowMaxDistanceDropDown" Title="{Loc 'ui-options-zlevel-hole-shadow-max-distance'}" />
-
                 <!-- Interface -->
                 <Label Text="{Loc 'ui-options-interface-label'}" StyleClasses="LabelKeyText"/>
                 <ui:OptionDropDown Name="DropDownUIScale" Title="{Loc 'ui-options-scale-label'}" />

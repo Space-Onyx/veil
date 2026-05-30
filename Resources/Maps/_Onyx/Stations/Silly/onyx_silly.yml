@@ -5208,7 +5208,6 @@ entities:
         0,2: 2242545357475086592
         3,-1: 6144
         -5,0: 4042322160
-    - type: TileZRoof
       enableData:
         -2,-3: 217017207043915776
         -3,-3: 18446462598732840960
@@ -6785,7 +6784,6 @@ entities:
         -2,-1: 17940362828540018688
     - type: IFF
       flags: HideLabel
-    - type: TileZRoof
       enableData: {}
       disableData:
         -3,0: 128

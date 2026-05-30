@@ -50,7 +50,6 @@ public sealed class SurveillanceCameraMonitorBoundUserInterface : BoundUserInter
         _window.SubnetRefresh += OnSubnetRefresh;
         _window.CameraSwitchTimer += OnCameraSwitchTimer;
         _window.CameraDisconnect += OnCameraDisconnect;
-        _window.FloorSelected += OnFloorSelected; // <Onyx-Zlevels>
 
         _window.SetEntity(Owner); // Goobstation
     }
@@ -79,13 +78,6 @@ public sealed class SurveillanceCameraMonitorBoundUserInterface : BoundUserInter
     {
         SendMessage(new SurveillanceCameraDisconnectMessage());
     }
-
-    // <Onyx-Zlevels>
-    private void OnFloorSelected(int floor)
-    {
-        SendMessage(new SurveillanceCameraMonitorSelectFloorMessage(floor));
-    }
-    // </Onyx-Zlevels>
 
     // <Onyx-Fix edited>
     protected override void UpdateState(BoundUserInterfaceState state)
@@ -132,10 +124,6 @@ public sealed class SurveillanceCameraMonitorBoundUserInterface : BoundUserInter
                 cast.ActiveAddress,
                 cast.Cameras,
                 cast.MobileCameras,
-                cast.Floors,
-                cast.SelectedFloor,
-                cast.MonitorFloor,
-                cast.SelectedFloorMap,
                 monitor,
                 monitorCoords); // Goobstation
 
@@ -155,10 +143,6 @@ public sealed class SurveillanceCameraMonitorBoundUserInterface : BoundUserInter
                 cast.ActiveAddress,
                 cast.Cameras,
                 cast.MobileCameras,
-                cast.Floors,
-                cast.SelectedFloor,
-                cast.MonitorFloor,
-                cast.SelectedFloorMap,
                 monitor,
                 monitorCoords); // Goobstation
             return;
@@ -181,10 +165,6 @@ public sealed class SurveillanceCameraMonitorBoundUserInterface : BoundUserInter
             cast.ActiveAddress,
             cast.Cameras,
             cast.MobileCameras,
-            cast.Floors,
-            cast.SelectedFloor,
-            cast.MonitorFloor,
-            cast.SelectedFloorMap,
             monitor,
             monitorCoords); // Goobstation
     }

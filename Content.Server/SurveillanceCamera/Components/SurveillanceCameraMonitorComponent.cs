@@ -44,12 +44,10 @@ public sealed partial class SurveillanceCameraMonitorComponent : Component
     // This is cleared when the subnet is changed.
     [ViewVariables]
     public Dictionary<string, (string, (NetEntity, NetCoordinates))> KnownCameras { get; } = new(); //Goobstation
-    public Dictionary<string, int> KnownCameraDepths { get; } = new(); // <Onyx-Tweak>
 
     // The same as KnownCameras but for MobileCameras only: sec bodycams, no pro, dragable wireless camera
     [ViewVariables]
     public Dictionary<string, (string, (NetEntity, NetCoordinates))> KnownMobileCameras { get; } = new(); //Goobstation
-    public Dictionary<string, int> KnownMobileCameraDepths { get; } = new(); // <Onyx-Tweak>
 
     // Mobile cameras should receive a heartbeat as they constantly stream their location
     [ViewVariables]
@@ -62,8 +60,5 @@ public sealed partial class SurveillanceCameraMonitorComponent : Component
     [ViewVariables]
     // The subnets known by this camera monitor.
     public Dictionary<string, string> KnownSubnets { get; } = new();
-
-    [ViewVariables]
-    public int? SelectedFloorDepth { get; set; } // <Onyx-Tweak>
 
 }

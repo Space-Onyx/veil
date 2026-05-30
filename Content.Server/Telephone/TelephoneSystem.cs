@@ -22,7 +22,6 @@ using Content.Shared.Silicons.Borgs.Components;
 using Content.Shared.Speech;
 using Content.Shared.Speech.Components;
 using Content.Shared.Telephone;
-using Content.Shared._Utopia.ZLevels.Components;
 using Robust.Server.GameObjects;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Timing;
@@ -33,7 +32,6 @@ using Robust.Shared.Replays;
 using System.Linq;
 using Content.Shared._CorvaxGoob.TTS;
 using Content.Shared._Onyx.SpeechBarks;
-using Content.Shared._Onyx.ZLevels.Core.EntitySystems;
 
 namespace Content.Server.Telephone;
 
@@ -50,7 +48,6 @@ public sealed class TelephoneSystem : SharedTelephoneSystem
     [Dependency] private readonly IAdminLogManager _adminLogger = default!;
     [Dependency] private readonly IReplayRecordingManager _replay = default!;
     [Dependency] private readonly LanguageSystem _language = default!; // Einstein Engines - Language
-    [Dependency] private readonly CESharedZLevelsSystem _zLevels = default!; // <Onyx-ZLevels>
 
     // Has set used to prevent telephone feedback loops
     private HashSet<(EntityUid, string, Entity<TelephoneComponent>)> _recentChatMessages = new();
@@ -503,28 +500,10 @@ public sealed class TelephoneSystem : SharedTelephoneSystem
         switch (source.Comp.TransmissionRange)
         {
             case TelephoneRange.Grid:
-                // <Onyx-ZLevels>
-                if (sourceXform.GridUid == receiverXform.GridUid)
-                    return true;
-
-                if (sourceXform.GridUid is { } srcGrid
-                    && receiverXform.GridUid is { } rcvGrid
-                    && TryComp<GridMotionLinkComponent>(srcGrid, out var srcLink)
-                    && TryComp<GridMotionLinkComponent>(rcvGrid, out var rcvLink)
-                    && !string.IsNullOrEmpty(srcLink.GroupId)
-                    && srcLink.GroupId == rcvLink.GroupId)
-                    return true;
-
-                return false;
-                // </Onyx-ZLevels>
+                return sourceXform.GridUid == receiverXform.GridUid;
 
             case TelephoneRange.Map:
-                // <Onyx-ZLevels>
-                return sourceXform.MapID == receiverXform.MapID
-                    || (sourceXform.MapUid is { } srcMap
-                        && receiverXform.MapUid is { } rcvMap
-                        && _zLevels.AreOnSameZNetwork(srcMap, rcvMap));
-                // </Onyx-ZLevels>
+                return sourceXform.MapID == receiverXform.MapID;
 
             case TelephoneRange.Unlimited:
                 return true;

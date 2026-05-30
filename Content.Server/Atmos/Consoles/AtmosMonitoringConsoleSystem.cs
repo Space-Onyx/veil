@@ -16,8 +16,6 @@ using Content.Shared.Atmos.Components;
 using Content.Shared.Atmos.Consoles;
 using Content.Shared.Labels.Components;
 using Content.Shared.Pinpointer;
-using Content.Shared._Onyx.ZLevels.Core.EntitySystems;
-using Content.Shared._Onyx.UI;
 using Robust.Server.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
@@ -35,7 +33,6 @@ public sealed class AtmosMonitoringConsoleSystem : SharedAtmosMonitoringConsoleS
     [Dependency] private readonly UserInterfaceSystem _userInterfaceSystem = default!;
     [Dependency] private readonly SharedMapSystem _sharedMapSystem = default!;
     [Dependency] private readonly IGameTiming _gameTiming = default!;
-    [Dependency] private readonly CESharedZLevelsSystem _zLevels = default!; // <Onyx-ZLevelsTweak>
 
     // Private variables
     // Note: this data does not need to be saved
@@ -54,8 +51,6 @@ public sealed class AtmosMonitoringConsoleSystem : SharedAtmosMonitoringConsoleS
         SubscribeLocalEvent<AtmosMonitoringConsoleComponent, ComponentInit>(OnConsoleInit);
         SubscribeLocalEvent<AtmosMonitoringConsoleComponent, AnchorStateChangedEvent>(OnConsoleAnchorChanged);
         SubscribeLocalEvent<AtmosMonitoringConsoleComponent, EntParentChangedMessage>(OnConsoleParentChanged);
-        SubscribeLocalEvent<AtmosMonitoringConsoleComponent, BoundUIOpenedEvent>(OnBoundUIOpened); // <Onyx-ZLevelsTweak>
-        SubscribeLocalEvent<AtmosMonitoringConsoleComponent, AtmosMonitoringConsoleSelectFloorMessage>(OnSelectFloorMessage); // <Onyx-ZLevelsTweak>
 
         // Tracked device events
         SubscribeLocalEvent<AtmosMonitoringConsoleDeviceComponent, NodeGroupsRebuilt>(OnEntityNodeGroupsRebuilt);
@@ -84,45 +79,6 @@ public sealed class AtmosMonitoringConsoleSystem : SharedAtmosMonitoringConsoleS
         component.ForceFullUpdate = true;
         InitializeAtmosMonitoringConsole(uid, component);
     }
-
-    // <Onyx-ZLevelsTweak>
-    private void OnBoundUIOpened(EntityUid uid, AtmosMonitoringConsoleComponent component, BoundUIOpenedEvent args)
-    {
-        ZLevelFloorSelectorHelper.EnsureNavMapsForLinkedFloors(EntityManager, _zLevels, uid);
-        component.ForceFullUpdate = true;
-
-        var floorState = ZLevelFloorSelectorHelper.GetFloorState(
-            EntityManager,
-            _zLevels,
-            uid,
-            component.SelectedFloorDepth);
-        component.SelectedFloorDepth = floorState.SelectedFloor;
-    }
-
-    private void OnSelectFloorMessage(
-        EntityUid uid,
-        AtmosMonitoringConsoleComponent component,
-        AtmosMonitoringConsoleSelectFloorMessage message)
-    {
-        var floorState = ZLevelFloorSelectorHelper.GetFloorState(
-            EntityManager,
-            _zLevels,
-            uid,
-            component.SelectedFloorDepth);
-        component.SelectedFloorDepth = floorState.SelectedFloor;
-
-        var floors = floorState.Floors;
-        if (floors.Count <= 1 || !floors.Contains(message.Floor))
-            return;
-
-        if (floorState.SelectedFloor == message.Floor)
-            return;
-
-        component.SelectedFloorDepth = message.Floor;
-        component.ForceFullUpdate = true;
-        UpdateUIState(uid, component);
-    }
-    // </Onyx-ZLevelsTweak>
 
     private void OnEntityNodeGroupsRebuilt(EntityUid uid, AtmosMonitoringConsoleDeviceComponent component, NodeGroupsRebuilt args)
     {
@@ -190,30 +146,20 @@ public sealed class AtmosMonitoringConsoleSystem : SharedAtmosMonitoringConsoleS
                 if (entXform?.GridUid == null)
                     continue;
 
-                UpdateUIState(ent, entConsole); // <Onyx-ZLevelsTweak edited>
-            }
+                UpdateUIState(ent, entConsole);            }
         }
     }
 
     public void UpdateUIState
         (EntityUid uid,
-        AtmosMonitoringConsoleComponent component) // <Onyx-ZLevelsTweak edited>
-    {
+        AtmosMonitoringConsoleComponent component)    {
         if (!_userInterfaceSystem.IsUiOpen(uid, AtmosMonitoringConsoleUiKey.Key))
             return;
 
-        // <Onyx-ZLevelsTweak>
         if (!TryComp<TransformComponent>(uid, out var xform))
             return;
 
-        var floorState = ZLevelFloorSelectorHelper.GetFloorState(
-            EntityManager,
-            _zLevels,
-            uid,
-            component.SelectedFloorDepth);
-        component.SelectedFloorDepth = floorState.SelectedFloor;
-
-        var selectedGridUid = ZLevelFloorSelectorHelper.ResolveMapUid(EntityManager, floorState.SelectedMap) ?? xform.GridUid;
+        var selectedGridUid = xform.GridUid;
         if (selectedGridUid == null)
             return;
 
@@ -235,7 +181,6 @@ public sealed class AtmosMonitoringConsoleSystem : SharedAtmosMonitoringConsoleS
         component.AtmosPipeChunks = chunks ?? new();
         component.AtmosDevices = GetAllAtmosDeviceNavMapData(selectedGridUid.Value);
         Dirty(uid, component);
-        // </Onyx-ZLevelsTweak edited>
 
         // Gathering data to be send to the client
         var atmosNetworks = new List<AtmosMonitoringConsoleEntry>();
@@ -243,8 +188,7 @@ public sealed class AtmosMonitoringConsoleSystem : SharedAtmosMonitoringConsoleS
 
         while (query.MoveNext(out var ent, out var entSensor, out var entXform))
         {
-            if (entXform?.GridUid != selectedGridUid) // <Onyx-ZLevelsTweak edited>
-                continue;
+            if (entXform?.GridUid != selectedGridUid)                continue;
 
             if (!entXform.Anchored)
                 continue;
@@ -258,11 +202,7 @@ public sealed class AtmosMonitoringConsoleSystem : SharedAtmosMonitoringConsoleS
         // Set the UI state
         _userInterfaceSystem.SetUiState(uid, AtmosMonitoringConsoleUiKey.Key,
             new AtmosMonitoringConsoleBoundInterfaceState(
-                atmosNetworks.ToArray(),
-                floorState.Floors,
-                floorState.SelectedFloor,
-                floorState.SourceFloor,
-                floorState.SelectedMap is { } selectedMap ? GetNetEntity(selectedMap) : null)); // </Onyx-ZLevelsTweak edited>
+                atmosNetworks.ToArray()));
     }
 
     private AtmosMonitoringConsoleEntry? CreateAtmosMonitoringConsoleEntry(EntityUid uid, TransformComponent xform)

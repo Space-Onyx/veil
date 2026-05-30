@@ -86,7 +86,6 @@
     interfaces:
       enum.WiresUiKey.Key:
         type: WiresBoundUserInterface
-  - type: CEZPhysics # <Onyx-Tweak>
 
 - type: entity
   parent: ContrabandDetector
@@ -135,7 +134,6 @@
   - type: Construction
     graph: ContrabandDetector
     node: frame
-  - type: CEZPhysics # <Onyx-Tweak>
 
 - type: entity
   id: ContrabandDetectorCircuitboard

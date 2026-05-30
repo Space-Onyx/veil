@@ -205,20 +205,6 @@ public sealed partial class AtmosphereSystem
                 continue;
             }
 
-            // <Onyx-ZLevelAtmos>
-            var tileIsHole = IsVerticalHoleTileCached(uid, tile.GridIndices);
-            var adjIsHole = IsVerticalHoleTileCached(uid, adjacent.GridIndices);
-            if ((tileIsHole && adjacent.MapAtmosphere) || (adjIsHole && tile.MapAtmosphere))
-            {
-                tile.AdjacentBits &= ~direction;
-                var oIdx = i.ToOppositeIndex();
-                adjacent.AdjacentBits &= ~(AtmosDirection)(1 << oIdx);
-                tile.AdjacentTiles[i] = null;
-                adjacent.AdjacentTiles[oIdx] = null;
-                continue;
-            }
-            // </Onyx-ZLevelAtmos>
-
             var adjBlockDirs = adjacent.AirtightData.BlockedDirections;
             if (activate)
                 AddActiveTile(atmos, adjacent);

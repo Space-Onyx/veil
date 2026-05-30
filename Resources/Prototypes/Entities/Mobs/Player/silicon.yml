@@ -155,8 +155,6 @@
   - type: ActionGrant
     actions:
     - ActionJumpToCore
-    - CEActionZLevelUp
-    - CEActionZLevelDown
     - ActionSurvCameraLights
     - ActionAIViewLaws
     - ActionOpenRemoteDevicesMenu # Corvax-Next-AiRemoteControl
@@ -505,7 +503,6 @@
     follow: true
   - type: Eye
     pvsScale: 1.5
-  - type: CEZLevelGhostMover
   - type: Visibility
     layer: 2
   - type: Sprite
