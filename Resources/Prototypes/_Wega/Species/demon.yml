@@ -9,10 +9,10 @@
   dollPrototype: MobDemonDummy
   skinColoration: Hues
   naming: firstlast
-  minAge: 50
-  maxAge: 350
-  oldAge: 251
-  youngAge: 151
+  minAge: 35
+  maxAge: 300
+  oldAge: 201
+  youngAge: 101
   # <Onyx>
   minHeight: 0.86
   maxHeight: 2
