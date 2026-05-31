@@ -30,6 +30,8 @@ public sealed class ATMSystem : SharedATMSystem
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly GameTicker _gameTicker = default!;
     private Dictionary<EntityUid, EntityUid> _authenticatedCard = new();
+    private readonly HashSet<EntityUid> _emaggedAtms = new();
+    private readonly List<EntityUid> _emaggedAtmBuffer = new();
 
     public override void Initialize()
     {
@@ -40,12 +42,14 @@ public sealed class ATMSystem : SharedATMSystem
         SubscribeLocalEvent<ATMComponent, ATMPinVerifyMessage>(OnPinVerify);
         SubscribeLocalEvent<ATMComponent, InteractUsingEvent>(OnInteractUsing);
         SubscribeLocalEvent<ATMComponent, ComponentStartup>(OnComponentStartup);
+        SubscribeLocalEvent<ATMComponent, ComponentShutdown>(OnComponentShutdown);
         SubscribeLocalEvent<ATMComponent, GotEmaggedEvent>(OnEmag);
     }
 
     private void OnEmag(EntityUid uid, ATMComponent component, ref GotEmaggedEvent args)
     {
         component.EmaggedUntil = _timing.CurTime + TimeSpan.FromSeconds(component.EmagDuration);
+        _emaggedAtms.Add(uid);
         args.Handled = true;
     }
 
@@ -53,14 +57,29 @@ public sealed class ATMSystem : SharedATMSystem
     {
         base.Update(frameTime);
 
-        var now = _timing.CurTime;
-        var query = EntityQueryEnumerator<ATMComponent>();
-        while (query.MoveNext(out var uid, out var component))
+        if (_emaggedAtms.Count == 0)
+            return;
+
+        _emaggedAtmBuffer.Clear();
+        foreach (var uid in _emaggedAtms)
         {
+            _emaggedAtmBuffer.Add(uid);
+        }
+
+        var now = _timing.CurTime;
+        foreach (var uid in _emaggedAtmBuffer)
+        {
+            if (!TryComp<ATMComponent>(uid, out var component))
+            {
+                _emaggedAtms.Remove(uid);
+                continue;
+            }
+
             if (component.EmaggedUntil is not { } until || until > now)
                 continue;
 
             component.EmaggedUntil = null;
+            _emaggedAtms.Remove(uid);
             _authenticatedCard.Remove(uid);
 
             if (HasComp<EmaggedComponent>(uid))
@@ -75,7 +94,16 @@ public sealed class ATMSystem : SharedATMSystem
 
     private void OnComponentStartup(EntityUid uid, ATMComponent component, ComponentStartup args)
     {
+        if (component.EmaggedUntil.HasValue)
+            _emaggedAtms.Add(uid);
+
         UpdateUiState(uid, ATMUiState.NoCard, string.Empty, 0);
+    }
+
+    private void OnComponentShutdown(EntityUid uid, ATMComponent component, ComponentShutdown args)
+    {
+        _emaggedAtms.Remove(uid);
+        _authenticatedCard.Remove(uid);
     }
 
     private void OnInteractUsing(EntityUid uid, ATMComponent component, InteractUsingEvent args)

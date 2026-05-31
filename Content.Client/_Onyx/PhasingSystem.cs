@@ -5,8 +5,6 @@ using Robust.Shared.Prototypes;
 using Robust.Shared.Maths;
 using Robust.Shared.GameStates;
 using System.Collections.Generic;
-using System.Linq;
-using Content.Shared._Onyx.Phasing;
 
 namespace Content.Client._Onyx;
 
@@ -18,6 +16,7 @@ public sealed class PhasingSystem : EntitySystem
     private ShaderPrototype _shaderPrototype = default!;
     private readonly Dictionary<EntityUid, ShaderInstance> _shaderInstances = new();
     private readonly Dictionary<EntityUid, PhasingParameters> _parameterCache = new();
+    private readonly List<EntityUid> _shaderUpdateBuffer = new();
     private int _frameCounter = 0;
     private const int UPDATE_FREQUENCY = 2;
     private const int MAX_SHADER_INSTANCES = 1000;
@@ -46,26 +45,29 @@ public sealed class PhasingSystem : EntitySystem
         _frameCounter++;
         if (_frameCounter % UPDATE_FREQUENCY != 0)
             return;
-        int updateCount = 0;
+        _shaderUpdateBuffer.Clear();
+        foreach (var uid in _shaderInstances.Keys)
+        {
+            _shaderUpdateBuffer.Add(uid);
+        }
 
-        var visibleEntities = EntityManager.EntityQuery<PhasingComponent, SpriteComponent>()
-            .Where(x => x.Item2.Visible)
-            .Take(MAX_UPDATES_PER_FRAME);
-
-        foreach (var (comp, sprite) in visibleEntities)
+        var updateCount = 0;
+        foreach (var uid in _shaderUpdateBuffer)
         {
             if (updateCount >= MAX_UPDATES_PER_FRAME)
                 break;
 
-            if (_shaderInstances.TryGetValue(comp.Owner, out var shaderInstance) && sprite.PostShader == shaderInstance)
-            {
-                if (HasParametersChanged(comp.Owner, comp))
-                {
-                    ApplyShaderParams(comp, shaderInstance);
-                    UpdateParameterCache(comp.Owner, comp);
-                    updateCount++;
-                }
-            }
+            if (!_shaderInstances.TryGetValue(uid, out var shaderInstance) ||
+                !TryComp<PhasingComponent>(uid, out var comp) ||
+                !TryComp<SpriteComponent>(uid, out var sprite) ||
+                !sprite.Visible ||
+                sprite.PostShader != shaderInstance ||
+                !HasParametersChanged(uid, comp))
+                continue;
+
+            ApplyShaderParams(comp, shaderInstance);
+            UpdateParameterCache(uid, comp);
+            updateCount++;
         }
     }
 

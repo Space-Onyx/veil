@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Content.Goobstation.Shared.Augments;
 using Content.Server.Body.Systems;
 using Content.Shared._Onyx.Surgery.Augments;
@@ -26,6 +27,7 @@ public sealed class CyberDeckScriptSystem : EntitySystem
     [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly SharedUserInterfaceSystem _ui = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
+    private readonly HashSet<Entity<AciProtectionComponent>> _aciCandidates = new();
 
     public override void Initialize()
     {
@@ -182,7 +184,9 @@ public sealed class CyberDeckScriptSystem : EntitySystem
         var mapCoords = _transform.ToMapCoordinates(coords);
         var bestDistanceSquared = float.MaxValue;
 
-        foreach (var (candidate, _) in _lookup.GetEntitiesInRange<AciProtectionComponent>(coords, AciLookupRadius, AciLookupFlags))
+        _aciCandidates.Clear();
+        _lookup.GetEntitiesInRange(coords, AciLookupRadius, _aciCandidates, AciLookupFlags);
+        foreach (var (candidate, _) in _aciCandidates)
         {
             var candidateCoords = _transform.GetMapCoordinates(candidate);
             if (candidateCoords.MapId != mapCoords.MapId)

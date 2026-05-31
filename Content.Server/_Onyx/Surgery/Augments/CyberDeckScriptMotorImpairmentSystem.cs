@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Content.Server.Body.Systems;
 using Content.Server.Emp;
 using Content.Goobstation.Shared.Augments;
@@ -31,6 +32,7 @@ public sealed class CyberDeckScriptMotorImpairmentSystem : EntitySystem
     [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
+    private readonly HashSet<Entity<BodyComponent>> _bodyCandidates = new();
 
     public override void Initialize()
     {
@@ -118,10 +120,9 @@ public sealed class CyberDeckScriptMotorImpairmentSystem : EntitySystem
         var searchRadius = MathF.Max(0.05f, comp.TargetSearchRadius);
         var bestDistanceSquared = float.MaxValue;
 
-        foreach (var (candidate, _) in _lookup.GetEntitiesInRange<BodyComponent>(
-                     coords,
-                     searchRadius,
-                     TargetLookupFlags))
+        _bodyCandidates.Clear();
+        _lookup.GetEntitiesInRange(coords, searchRadius, _bodyCandidates, TargetLookupFlags);
+        foreach (var (candidate, _) in _bodyCandidates)
         {
             if (!IsValidMotoricsTarget(candidate))
                 continue;

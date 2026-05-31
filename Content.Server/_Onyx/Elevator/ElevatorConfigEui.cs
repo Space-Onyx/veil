@@ -13,6 +13,7 @@ namespace Content.Server._Onyx.Elevator;
 public sealed class ElevatorConfigEui : BaseEui
 {
     [Dependency] private readonly IEntityManager _entityManager = default!;
+    [Dependency] private readonly ElevatorSystem _elevator = default!;
 
     private readonly EntityUid _target;
 
@@ -140,6 +141,7 @@ public sealed class ElevatorConfigEui : BaseEui
         comp.AlarmSound = ParseSound(data.AlarmSound, comp.AlarmSound);
 
         _entityManager.Dirty(_target, comp);
+        _elevator.RebuildCaches();
         StateDirty();
     }
 
@@ -159,6 +161,7 @@ public sealed class ElevatorConfigEui : BaseEui
         };
 
         _entityManager.Dirty(_target, comp);
+        _elevator.RebuildCaches();
         StateDirty();
     }
 
@@ -171,6 +174,7 @@ public sealed class ElevatorConfigEui : BaseEui
         comp.Floor = data.Floor.Trim();
 
         _entityManager.Dirty(_target, comp);
+        _elevator.RebuildCaches();
         StateDirty();
     }
 
@@ -182,6 +186,7 @@ public sealed class ElevatorConfigEui : BaseEui
         comp.FloorId = data.FloorId.Trim();
 
         _entityManager.Dirty(_target, comp);
+        _elevator.RebuildCaches();
         StateDirty();
     }
 

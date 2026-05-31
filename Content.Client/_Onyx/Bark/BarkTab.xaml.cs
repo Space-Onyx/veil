@@ -231,9 +231,19 @@ public sealed partial class BarkTab : Control
 
     private void UpdateBarkButtons()
     {
+        var selectedName = string.Empty;
+        foreach (var bark in _filteredBarks)
+        {
+            if (bark.ID != _currentBarkId)
+                continue;
+
+            selectedName = Loc.GetString(bark.Name);
+            break;
+        }
+
         foreach (var button in BarksGrid.Children.OfType<Button>())
         {
-            button.Pressed = button.Text == Loc.GetString(_filteredBarks.FirstOrDefault(b => b.ID == _currentBarkId)?.Name ?? "");
+            button.Pressed = button.Text == selectedName;
         }
     }
 }

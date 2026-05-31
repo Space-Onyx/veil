@@ -12,15 +12,26 @@ namespace Content.Server._Onyx.Surgery.Augments;
 
 public sealed class AugmentReactorSystem : EntitySystem
 {
+    private const float UpdateInterval = 0.25f;
+
     [Dependency] private readonly SharedAugmentPowerCellSystem _augmentPower = default!;
     [Dependency] private readonly PowerCellSystem _powerCell = default!;
     [Dependency] private readonly BatterySystem _battery = default!;
     [Dependency] private readonly HungerSystem _hunger = default!;
     [Dependency] private readonly MobStateSystem _mobState = default!;
 
+    private float _updateAccumulator;
+
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
+
+        _updateAccumulator += frameTime;
+        if (_updateAccumulator < UpdateInterval)
+            return;
+
+        var elapsed = _updateAccumulator;
+        _updateAccumulator = 0f;
 
         var query = EntityQueryEnumerator<AugmentReactorComponent, OrganComponent>();
         while (query.MoveNext(out var uid, out var reactor, out var organ))
@@ -44,7 +55,7 @@ public sealed class AugmentReactorSystem : EntitySystem
             if (!TryComp<HungerComponent>(body, out var hungerComp))
                 continue;
 
-            var chargeToGenerate = reactor.ChargeRate * frameTime;
+            var chargeToGenerate = reactor.ChargeRate * elapsed;
             if (chargeToGenerate <= 0f)
                 continue;
 

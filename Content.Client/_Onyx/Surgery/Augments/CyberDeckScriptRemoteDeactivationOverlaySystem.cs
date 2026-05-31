@@ -21,6 +21,7 @@ public sealed class CyberDeckScriptRemoteDeactivationOverlaySystem : EntitySyste
     private static readonly Color DefaultOuterOutlineColor = new(0, 0, 0, 230);
     private static readonly Color DefaultInnerOutlineColor = new(24, 132, 255, 245);
     private static readonly ICollection<StationRecordKey> EmptyStationKeys = Array.Empty<StationRecordKey>();
+    private const float HighlightUpdateInterval = 0.1f;
     private const LookupFlags TargetLookupFlags =
         LookupFlags.Dynamic | LookupFlags.Static | LookupFlags.StaticSundries | LookupFlags.Sundries;
 
@@ -40,6 +41,7 @@ public sealed class CyberDeckScriptRemoteDeactivationOverlaySystem : EntitySyste
     private Color _innerOutlineColor = DefaultInnerOutlineColor;
     private ICollection<ProtoId<AccessLevelPrototype>>? _requiredAccess;
     private bool _invertedAccess;
+    private float _highlightUpdateAccumulator;
 
     public override void Initialize()
     {
@@ -63,6 +65,11 @@ public sealed class CyberDeckScriptRemoteDeactivationOverlaySystem : EntitySyste
     {
         base.Update(frameTime);
 
+        _highlightUpdateAccumulator += frameTime;
+        if (_highlightUpdateAccumulator < HighlightUpdateInterval)
+            return;
+
+        _highlightUpdateAccumulator = 0f;
         _highlightShapes.Clear();
 
         if (!TryGetActiveRange(

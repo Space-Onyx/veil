@@ -14,6 +14,9 @@ public sealed class CyberDeckSystem : EntitySystem
     private CyberDeckScriptSystem _scriptSystem = default!;
     private const float MinRegenTime = 0.01f;
 
+    private readonly HashSet<EntityUid> _regeneratingDecks = new();
+    private readonly List<EntityUid> _regeneratingDeckBuffer = new();
+
     public override void Initialize()
     {
         base.Initialize();
@@ -23,11 +26,18 @@ public sealed class CyberDeckSystem : EntitySystem
         SubscribeLocalEvent<CyberDeckComponent, AugmentModuleInsertedEvent>(OnModuleInserted);
         SubscribeLocalEvent<CyberDeckComponent, AugmentModuleRemovedEvent>(OnModuleRemoved);
         SubscribeLocalEvent<CyberDeckComponent, ComponentStartup>(OnStartup);
+        SubscribeLocalEvent<CyberDeckComponent, ComponentShutdown>(OnShutdown);
     }
 
     private void OnStartup(Entity<CyberDeckComponent> ent, ref ComponentStartup args)
     {
         RecalculateRam(ent);
+        UpdateRegenTracking(ent);
+    }
+
+    private void OnShutdown(Entity<CyberDeckComponent> ent, ref ComponentShutdown args)
+    {
+        _regeneratingDecks.Remove(ent.Owner);
     }
 
     private void OnModuleInserted(Entity<CyberDeckComponent> ent, ref AugmentModuleInsertedEvent args)
@@ -89,17 +99,35 @@ public sealed class CyberDeckSystem : EntitySystem
         comp.MaxRam = newMax;
         comp.CurrentRam = newCurrent;
         Dirty(ent);
+        UpdateRegenTracking(ent);
     }
 
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
 
-        var query = EntityQueryEnumerator<CyberDeckComponent>();
-        while (query.MoveNext(out var uid, out var comp))
+        if (_regeneratingDecks.Count == 0)
+            return;
+
+        _regeneratingDeckBuffer.Clear();
+        foreach (var uid in _regeneratingDecks)
         {
-            if (comp.CurrentRam >= comp.MaxRam)
+            _regeneratingDeckBuffer.Add(uid);
+        }
+
+        foreach (var uid in _regeneratingDeckBuffer)
+        {
+            if (!TryComp<CyberDeckComponent>(uid, out var comp))
+            {
+                _regeneratingDecks.Remove(uid);
                 continue;
+            }
+
+            if (comp.CurrentRam >= comp.MaxRam)
+            {
+                _regeneratingDecks.Remove(uid);
+                continue;
+            }
 
             var regenTime = MathF.Max(MinRegenTime, comp.RamRegenTime);
             comp.RegenAccumulator += frameTime;
@@ -114,6 +142,8 @@ public sealed class CyberDeckSystem : EntitySystem
             comp.RegenAccumulator -= regeneratedSteps * regenTime;
             comp.CurrentRam = MathF.Min(comp.CurrentRam + regeneratedSteps, comp.MaxRam);
             Dirty(uid, comp);
+
+            UpdateRegenTracking((uid, comp));
         }
     }
 
@@ -134,7 +164,16 @@ public sealed class CyberDeckSystem : EntitySystem
         comp.CurrentRam -= amount;
         comp.RegenAccumulator = 0f;
         Dirty(uid, comp);
+        UpdateRegenTracking((uid, comp));
         return true;
+    }
+
+    private void UpdateRegenTracking(Entity<CyberDeckComponent> ent)
+    {
+        if (ent.Comp.CurrentRam < ent.Comp.MaxRam)
+            _regeneratingDecks.Add(ent.Owner);
+        else
+            _regeneratingDecks.Remove(ent.Owner);
     }
 
     public float GetCurrentRam(EntityUid uid, CyberDeckComponent? comp = null)

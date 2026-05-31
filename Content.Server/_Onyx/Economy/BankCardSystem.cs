@@ -16,14 +16,12 @@ using Content.Shared.Access.Components;
 using Content.Shared.Mind;
 using Content.Shared.GameTicking;
 using Content.Shared.Inventory;
-using Content.Shared.Mind;
 using Content.Shared.Mind.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Roles;
 using Robust.Server.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
-using Robust.Shared.Configuration;
 using Robust.Shared.Timing;
 
 namespace Content.Server._Onyx.Economy;
@@ -100,8 +98,8 @@ public sealed class BankCardSystem : EntitySystem
         if (!_cfg.GetCVar(CCVars.SalaryEnabled))
             return;
 
-        var idCardQuery = EntityQuery<IdCardComponent, BankCardComponent>();
-        foreach (var (idCard, bankCard) in idCardQuery)
+        var idCardQuery = EntityQueryEnumerator<IdCardComponent, BankCardComponent>();
+        while (idCardQuery.MoveNext(out _, out var idCard, out var bankCard))
         {
             if (!bankCard.AccountId.HasValue || !TryGetAccount(bankCard.AccountId.Value, out var account))
                 continue;
@@ -274,12 +272,8 @@ public sealed class BankCardSystem : EntitySystem
         {
             while (AllEntityQuery<StationBankAccountComponent>().MoveNext(out var uid, out var stationBankAccount))
             {
-                var sharedAccount = CompOrNull<StationBankAccountComponent>(uid);
-                if (sharedAccount != null)
-                {
-                    _cargo.UpdateBankAccount(new Entity<StationBankAccountComponent?>(uid, stationBankAccount), amount, sharedAccount.PrimaryAccount);
-                    return true;
-                }
+                _cargo.UpdateBankAccount(new Entity<StationBankAccountComponent?>(uid, stationBankAccount), amount, stationBankAccount.PrimaryAccount);
+                return true;
             }
         }
 

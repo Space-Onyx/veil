@@ -17,23 +17,54 @@ public sealed class AugmentEmpSystem : EntitySystem
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
 
+    private readonly HashSet<EntityUid> _disabledAugments = new();
+    private readonly List<EntityUid> _disabledAugmentBuffer = new();
+
     public override void Initialize()
     {
         base.Initialize();
 
         SubscribeLocalEvent<InstalledAugmentsComponent, EmpPulseEvent>(OnEmpPulse);
+        SubscribeLocalEvent<AugmentEmpDisabledComponent, ComponentStartup>(OnDisabledStartup);
+        SubscribeLocalEvent<AugmentEmpDisabledComponent, ComponentShutdown>(OnDisabledShutdown);
+    }
+
+    private void OnDisabledStartup(Entity<AugmentEmpDisabledComponent> ent, ref ComponentStartup args)
+    {
+        _disabledAugments.Add(ent.Owner);
+    }
+
+    private void OnDisabledShutdown(Entity<AugmentEmpDisabledComponent> ent, ref ComponentShutdown args)
+    {
+        _disabledAugments.Remove(ent.Owner);
     }
 
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
 
-        var query = EntityQueryEnumerator<AugmentEmpDisabledComponent, AugmentEmpComponent>();
-        while (query.MoveNext(out var uid, out var disabled, out _))
+        if (_disabledAugments.Count == 0)
+            return;
+
+        _disabledAugmentBuffer.Clear();
+        foreach (var uid in _disabledAugments)
         {
+            _disabledAugmentBuffer.Add(uid);
+        }
+
+        foreach (var uid in _disabledAugmentBuffer)
+        {
+            if (!TryComp<AugmentEmpDisabledComponent>(uid, out var disabled)
+                || !HasComp<AugmentEmpComponent>(uid))
+            {
+                _disabledAugments.Remove(uid);
+                continue;
+            }
+
             if (disabled.DisabledUntil > _timing.CurTime)
                 continue;
 
+            _disabledAugments.Remove(uid);
             RemComp<AugmentEmpDisabledComponent>(uid);
 
             if (AugmentEnhancementHelpers.TryGetOwningBody(uid, EntityManager) is not { } body)
@@ -59,6 +90,7 @@ public sealed class AugmentEmpSystem : EntitySystem
             var duration = _random.NextFloat(empComp.MinDisableDuration, empComp.MaxDisableDuration);
             var disabledComp = EnsureComp<AugmentEmpDisabledComponent>(enhancement);
             disabledComp.DisabledUntil = _timing.CurTime + TimeSpan.FromSeconds(duration);
+            _disabledAugments.Add(enhancement);
 
             var ev = new AugmentEmpDisabledEvent(ent.Owner);
             RaiseLocalEvent(enhancement, ref ev);

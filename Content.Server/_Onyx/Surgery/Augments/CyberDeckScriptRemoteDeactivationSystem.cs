@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Content.Server.Doors.Systems;
 using Content.Server.Emp;
 using Content.Server.SurveillanceCamera;
@@ -28,6 +29,8 @@ public sealed class CyberDeckScriptRemoteDeactivationSystem : EntitySystem
     [Dependency] private readonly AccessReaderSystem _accessReader = default!;
     [Dependency] private readonly SharedInteractionSystem _interaction = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
+    private readonly HashSet<Entity<AirlockComponent>> _airlockCandidates = new();
+    private readonly HashSet<Entity<CyberDeckRemoteDeactivationCameraTargetComponent>> _cameraCandidates = new();
 
     public override void Initialize()
     {
@@ -123,10 +126,9 @@ public sealed class CyberDeckScriptRemoteDeactivationSystem : EntitySystem
         var searchRadius = MathF.Max(0.05f, ent.Comp.TargetSearchRadius);
         var bestDistanceSquared = float.MaxValue;
 
-        foreach (var (candidate, _) in _lookup.GetEntitiesInRange<AirlockComponent>(
-                     coords,
-                     searchRadius,
-                     TargetLookupFlags))
+        _airlockCandidates.Clear();
+        _lookup.GetEntitiesInRange(coords, searchRadius, _airlockCandidates, TargetLookupFlags);
+        foreach (var (candidate, _) in _airlockCandidates)
         {
             if (!TryGetTargetType(candidate, out var candidateType))
                 continue;
@@ -144,10 +146,9 @@ public sealed class CyberDeckScriptRemoteDeactivationSystem : EntitySystem
             targetType = candidateType;
         }
 
-        foreach (var (candidate, _) in _lookup.GetEntitiesInRange<CyberDeckRemoteDeactivationCameraTargetComponent>(
-                     coords,
-                     searchRadius,
-                     TargetLookupFlags))
+        _cameraCandidates.Clear();
+        _lookup.GetEntitiesInRange(coords, searchRadius, _cameraCandidates, TargetLookupFlags);
+        foreach (var (candidate, _) in _cameraCandidates)
         {
             if (!TryGetTargetType(candidate, out var candidateType))
                 continue;

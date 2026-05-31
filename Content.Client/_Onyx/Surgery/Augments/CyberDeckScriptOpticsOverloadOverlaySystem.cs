@@ -14,6 +14,7 @@ public sealed class CyberDeckScriptOpticsOverloadOverlaySystem : EntitySystem
     private static readonly Color DefaultFillColor = new(255, 52, 134, 52);
     private static readonly Color DefaultOuterOutlineColor = new(0, 0, 0, 230);
     private static readonly Color DefaultInnerOutlineColor = new(255, 52, 134, 245);
+    private const float HighlightUpdateInterval = 0.1f;
     private const LookupFlags TargetLookupFlags =
         LookupFlags.Dynamic | LookupFlags.StaticSundries | LookupFlags.Sensors;
 
@@ -29,6 +30,7 @@ public sealed class CyberDeckScriptOpticsOverloadOverlaySystem : EntitySystem
     private Color _fillColor = DefaultFillColor;
     private Color _outerOutlineColor = DefaultOuterOutlineColor;
     private Color _innerOutlineColor = DefaultInnerOutlineColor;
+    private float _highlightUpdateAccumulator;
 
     public override void Initialize()
     {
@@ -52,6 +54,11 @@ public sealed class CyberDeckScriptOpticsOverloadOverlaySystem : EntitySystem
     {
         base.Update(frameTime);
 
+        _highlightUpdateAccumulator += frameTime;
+        if (_highlightUpdateAccumulator < HighlightUpdateInterval)
+            return;
+
+        _highlightUpdateAccumulator = 0f;
         _highlightShapes.Clear();
 
         if (!TryGetActiveRange(

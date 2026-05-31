@@ -36,7 +36,9 @@ public sealed class AugmentSuppressionProjectorSystem : EntitySystem
     [Dependency] private readonly SharedPopupSystem _popup = default!;
     private readonly HashSet<ICommonSession> _visualizationObservers = new();
     private readonly HashSet<EntityUid> _dirtyProjectors = new();
+    private readonly HashSet<EntityUid> _projectors = new();
     private readonly List<EntityUid> _dirtyProjectorBuffer = new();
+    private readonly List<EntityUid> _staleProjectorBuffer = new();
     private readonly List<EntityUid> _affectedBodyBuffer = new();
     private readonly List<ICommonSession> _observerBuffer = new();
     private readonly Dictionary<EntityUid, HashSet<EntityUid>> _bodyProjectorLinks = new();
@@ -81,12 +83,14 @@ public sealed class AugmentSuppressionProjectorSystem : EntitySystem
 
     private void OnProjectorStartup(Entity<AugmentSuppressionProjectorComponent> ent, ref ComponentStartup args)
     {
+        _projectors.Add(ent.Owner);
         _dirtyProjectors.Add(ent.Owner);
         UpdateMaxProjectorLookupRadius(ent.Comp);
     }
 
     private void OnProjectorShutdown(Entity<AugmentSuppressionProjectorComponent> ent, ref ComponentShutdown args)
     {
+        _projectors.Remove(ent.Owner);
         _dirtyProjectors.Remove(ent.Owner);
         ClearAffectedBodies(ent);
         RecalculateMaxProjectorLookupRadius();
@@ -152,9 +156,16 @@ public sealed class AugmentSuppressionProjectorSystem : EntitySystem
     private void SweepScheduledProjectorUpdates()
     {
         var maxLookupRadius = 0f;
-        var query = EntityQueryEnumerator<AugmentSuppressionProjectorComponent>();
-        while (query.MoveNext(out var uid, out var comp))
+        _staleProjectorBuffer.Clear();
+
+        foreach (var uid in _projectors)
         {
+            if (!TryComp<AugmentSuppressionProjectorComponent>(uid, out var comp))
+            {
+                _staleProjectorBuffer.Add(uid);
+                continue;
+            }
+
             if (_timing.CurTime >= comp.NextUpdateAt)
             {
                 comp.NextUpdateAt = _timing.CurTime + TimeSpan.FromSeconds(MathF.Max(MinProjectorUpdateInterval, comp.UpdateInterval));
@@ -170,6 +181,11 @@ public sealed class AugmentSuppressionProjectorSystem : EntitySystem
 
             if (lookup > maxLookupRadius)
                 maxLookupRadius = lookup;
+        }
+
+        foreach (var uid in _staleProjectorBuffer)
+        {
+            _projectors.Remove(uid);
         }
 
         _maxProjectorLookupRadius = maxLookupRadius;
@@ -473,9 +489,11 @@ public sealed class AugmentSuppressionProjectorSystem : EntitySystem
     private void RecalculateMaxProjectorLookupRadius()
     {
         var maxLookupRadius = 0f;
-        var query = EntityQueryEnumerator<AugmentSuppressionProjectorComponent>();
-        while (query.MoveNext(out _, out var projector))
+        foreach (var uid in _projectors)
         {
+            if (!TryComp<AugmentSuppressionProjectorComponent>(uid, out var projector))
+                continue;
+
             var lookup = GetProjectorLookupRadius(projector);
             if (lookup > maxLookupRadius)
                 maxLookupRadius = lookup;
@@ -593,9 +611,11 @@ public sealed class AugmentSuppressionProjectorSystem : EntitySystem
     {
         var zones = new List<AugmentSuppressionZoneVisualizationEvent.ZoneData>();
 
-        var query = EntityQueryEnumerator<AugmentSuppressionProjectorComponent>();
-        while (query.MoveNext(out var uid, out var comp))
+        foreach (var uid in _projectors)
         {
+            if (!TryComp<AugmentSuppressionProjectorComponent>(uid, out var comp))
+                continue;
+
             var center = _transform.GetWorldPosition(uid);
             var rotation = _transform.GetWorldRotation(uid);
             zones.Add(new AugmentSuppressionZoneVisualizationEvent.ZoneData(

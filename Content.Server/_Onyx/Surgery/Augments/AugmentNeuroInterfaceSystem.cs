@@ -78,8 +78,10 @@ public sealed partial class AugmentNeuroInterfaceSystem : EntitySystem
     private readonly Dictionary<EntityUid, BrainPenaltyStage> _brainPenaltyStages = new();
     private readonly Dictionary<EntityUid, TimeSpan> _nextBrainOverloadPopup = new();
     private readonly Dictionary<EntityUid, EntityUid> _adminRemoteControlBodies = new();
+    private readonly HashSet<EntityUid> _openNeuroInterfaces = new();
     private readonly List<EntityUid> _controllerRemovalBuffer = new();
     private readonly List<EntityUid> _heldItemsBuffer = new();
+    private readonly List<EntityUid> _openNeuroInterfaceBuffer = new();
     private readonly List<EntityUid> _overloadModifierRemovalBuffer = new();
     private TimeSpan _nextOverloadDamageSweep = TimeSpan.Zero;
 
@@ -112,6 +114,7 @@ public sealed partial class AugmentNeuroInterfaceSystem : EntitySystem
         if (_augment.GetBody(ent) is not { } body)
             return;
 
+        _openNeuroInterfaces.Add(ent.Owner);
         UpdateUi(ent, body);
         _nextUiUpdate[ent.Owner] = _timing.CurTime + UiUpdateInterval;
     }
@@ -120,6 +123,9 @@ public sealed partial class AugmentNeuroInterfaceSystem : EntitySystem
     {
         if (!args.Actor.IsValid())
             return;
+
+        if (!_ui.IsUiOpen(ent.Owner, NeuroInterfaceUiKey.Key))
+            _openNeuroInterfaces.Remove(ent.Owner);
 
         if (_augment.GetBody(ent) is not { } body)
             return;
@@ -130,6 +136,7 @@ public sealed partial class AugmentNeuroInterfaceSystem : EntitySystem
     private void OnRemoved(Entity<AugmentNeuroInterfaceComponent> ent, ref ComponentRemove args)
     {
         _nextUiUpdate.Remove(ent.Owner);
+        _openNeuroInterfaces.Remove(ent.Owner);
 
         if (_augment.GetBody(ent) is not { } body)
             return;
@@ -189,14 +196,32 @@ public sealed partial class AugmentNeuroInterfaceSystem : EntitySystem
             }
         }
 
-        var query = EntityQueryEnumerator<AugmentNeuroInterfaceComponent>();
-        while (query.MoveNext(out var uid, out var comp))
+        if (_openNeuroInterfaces.Count == 0)
+            return;
+
+        _openNeuroInterfaceBuffer.Clear();
+        foreach (var uid in _openNeuroInterfaces)
         {
+            _openNeuroInterfaceBuffer.Add(uid);
+        }
+
+        foreach (var uid in _openNeuroInterfaceBuffer)
+        {
+            if (!TryComp<AugmentNeuroInterfaceComponent>(uid, out var comp))
+            {
+                _openNeuroInterfaces.Remove(uid);
+                _nextUiUpdate.Remove(uid);
+                continue;
+            }
+
             if (_augment.GetBody(uid) is not { } body)
                 continue;
 
             if (!_ui.IsUiOpen(uid, NeuroInterfaceUiKey.Key))
+            {
+                _openNeuroInterfaces.Remove(uid);
                 continue;
+            }
 
             if (_nextUiUpdate.TryGetValue(uid, out var next) && next > now)
                 continue;

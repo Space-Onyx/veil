@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Content.Server.Body.Systems;
 using Content.Server.Emp;
 using Content.Shared._Onyx.Surgery.Augments;
@@ -29,6 +30,7 @@ public sealed class CyberDeckScriptOpticsOverloadSystem : EntitySystem
     [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
+    private readonly HashSet<Entity<BodyComponent>> _bodyCandidates = new();
 
     public override void Initialize()
     {
@@ -116,10 +118,9 @@ public sealed class CyberDeckScriptOpticsOverloadSystem : EntitySystem
         var searchRadius = MathF.Max(0.05f, comp.TargetSearchRadius);
         var bestDistanceSquared = float.MaxValue;
 
-        foreach (var (candidate, _) in _lookup.GetEntitiesInRange<BodyComponent>(
-                     coords,
-                     searchRadius,
-                     TargetLookupFlags))
+        _bodyCandidates.Clear();
+        _lookup.GetEntitiesInRange(coords, searchRadius, _bodyCandidates, TargetLookupFlags);
+        foreach (var (candidate, _) in _bodyCandidates)
         {
             if (!IsValidOpticalTarget(candidate))
                 continue;

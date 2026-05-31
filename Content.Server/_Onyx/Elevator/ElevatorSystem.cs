@@ -39,6 +39,10 @@ public sealed class ElevatorSystem : EntitySystem
     [Dependency] private readonly AppearanceSystem _appearance = default!;
     [Dependency] private readonly AtmosphereSystem _atmosphere = default!;
     [Dependency] private readonly SharedBuckleSystem _buckle = default!;
+    private readonly Dictionary<string, Entity<ElevatorComponent>> _elevatorsById = new();
+    private readonly Dictionary<(string ElevatorId, string Floor), List<EntityUid>> _doorsByElevatorFloor = new();
+    private readonly Dictionary<string, List<EntityUid>> _pointsByFloor = new();
+    private readonly Dictionary<string, List<EntityUid>> _buttonsByElevator = new();
 
     public override void Initialize()
     {
@@ -46,6 +50,136 @@ public sealed class ElevatorSystem : EntitySystem
 
         SubscribeLocalEvent<ElevatorButtonComponent, InteractHandEvent>(OnButtonInteract);
         SubscribeLocalEvent<ElevatorButtonComponent, ActivateInWorldEvent>(OnButtonActivate);
+        SubscribeLocalEvent<ElevatorComponent, ComponentStartup>(OnElevatorStartup);
+        SubscribeLocalEvent<ElevatorDoorComponent, ComponentStartup>(OnDoorStartup);
+        SubscribeLocalEvent<ElevatorPointComponent, ComponentStartup>(OnPointStartup);
+        SubscribeLocalEvent<ElevatorButtonComponent, ComponentStartup>(OnButtonStartup);
+        SubscribeLocalEvent<ElevatorComponent, ComponentShutdown>(OnCacheComponentShutdown);
+        SubscribeLocalEvent<ElevatorDoorComponent, ComponentShutdown>(OnCacheComponentShutdown);
+        SubscribeLocalEvent<ElevatorPointComponent, ComponentShutdown>(OnCacheComponentShutdown);
+        SubscribeLocalEvent<ElevatorButtonComponent, ComponentShutdown>(OnCacheComponentShutdown);
+    }
+
+    private void OnElevatorStartup(Entity<ElevatorComponent> ent, ref ComponentStartup args)
+    {
+        RegisterElevator(ent);
+    }
+
+    private void OnDoorStartup(Entity<ElevatorDoorComponent> ent, ref ComponentStartup args)
+    {
+        AddToList(_doorsByElevatorFloor, (ent.Comp.ElevatorId, ent.Comp.Floor), ent.Owner);
+    }
+
+    private void OnPointStartup(Entity<ElevatorPointComponent> ent, ref ComponentStartup args)
+    {
+        AddToList(_pointsByFloor, ent.Comp.FloorId, ent.Owner);
+    }
+
+    private void OnButtonStartup(Entity<ElevatorButtonComponent> ent, ref ComponentStartup args)
+    {
+        AddToList(_buttonsByElevator, ent.Comp.ElevatorId, ent.Owner);
+    }
+
+    private void OnCacheComponentShutdown<T>(Entity<T> ent, ref ComponentShutdown args) where T : IComponent
+    {
+        switch (ent.Comp)
+        {
+            case ElevatorComponent elevator:
+                if (_elevatorsById.TryGetValue(elevator.ElevatorId, out var cached) && cached.Owner == ent.Owner)
+                {
+                    _elevatorsById.Remove(elevator.ElevatorId);
+                    RegisterReplacementElevator(elevator.ElevatorId);
+                }
+                break;
+            case ElevatorDoorComponent door:
+                RemoveFromList(_doorsByElevatorFloor, (door.ElevatorId, door.Floor), ent.Owner);
+                break;
+            case ElevatorPointComponent point:
+                RemoveFromList(_pointsByFloor, point.FloorId, ent.Owner);
+                break;
+            case ElevatorButtonComponent button:
+                RemoveFromList(_buttonsByElevator, button.ElevatorId, ent.Owner);
+                break;
+        }
+    }
+
+    public void RebuildCaches()
+    {
+        _elevatorsById.Clear();
+        _doorsByElevatorFloor.Clear();
+        _pointsByFloor.Clear();
+        _buttonsByElevator.Clear();
+
+        var elevatorQuery = EntityQueryEnumerator<ElevatorComponent>();
+        while (elevatorQuery.MoveNext(out var uid, out var comp))
+        {
+            RegisterElevator((uid, comp));
+        }
+
+        var doorQuery = EntityQueryEnumerator<ElevatorDoorComponent>();
+        while (doorQuery.MoveNext(out var uid, out var comp))
+        {
+            AddToList(_doorsByElevatorFloor, (comp.ElevatorId, comp.Floor), uid);
+        }
+
+        var pointQuery = EntityQueryEnumerator<ElevatorPointComponent>();
+        while (pointQuery.MoveNext(out var uid, out var comp))
+        {
+            AddToList(_pointsByFloor, comp.FloorId, uid);
+        }
+
+        var buttonQuery = EntityQueryEnumerator<ElevatorButtonComponent>();
+        while (buttonQuery.MoveNext(out var uid, out var comp))
+        {
+            AddToList(_buttonsByElevator, comp.ElevatorId, uid);
+        }
+    }
+
+    private void RegisterElevator(Entity<ElevatorComponent> ent)
+    {
+        if (ent.Comp.ElevatorId.Length == 0)
+            return;
+
+        _elevatorsById.TryAdd(ent.Comp.ElevatorId, ent);
+    }
+
+    private void RegisterReplacementElevator(string elevatorId)
+    {
+        if (elevatorId.Length == 0)
+            return;
+
+        var query = EntityQueryEnumerator<ElevatorComponent>();
+        while (query.MoveNext(out var uid, out var comp))
+        {
+            if (comp.ElevatorId != elevatorId)
+                continue;
+
+            _elevatorsById[elevatorId] = (uid, comp);
+            return;
+        }
+    }
+
+    private static void AddToList<TKey>(Dictionary<TKey, List<EntityUid>> dictionary, TKey key, EntityUid uid)
+        where TKey : notnull
+    {
+        if (!dictionary.TryGetValue(key, out var list))
+        {
+            list = new List<EntityUid>();
+            dictionary[key] = list;
+        }
+
+        list.Add(uid);
+    }
+
+    private static void RemoveFromList<TKey>(Dictionary<TKey, List<EntityUid>> dictionary, TKey key, EntityUid uid)
+        where TKey : notnull
+    {
+        if (!dictionary.TryGetValue(key, out var list))
+            return;
+
+        list.Remove(uid);
+        if (list.Count == 0)
+            dictionary.Remove(key);
     }
 
     private void SpawnCheckedTimer(Entity<ElevatorComponent> ent, TimeSpan delay, Action action)
@@ -221,12 +355,8 @@ public sealed class ElevatorSystem : EntitySystem
 
     private void TeleportToFloor(EntityUid uid, string floorId)
     {
-        var query = EntityQueryEnumerator<ElevatorPointComponent>();
-        while (query.MoveNext(out var pointUid, out var pointComp))
+        foreach (var pointUid in GetPointsForFloor(floorId))
         {
-            if (pointComp.FloorId != floorId)
-                continue;
-
             var pointTransform = Transform(pointUid);
             var elevatorTransform = Transform(uid);
 
@@ -388,15 +518,15 @@ public sealed class ElevatorSystem : EntitySystem
 
     private bool TryFindElevator(string elevatorId, [NotNullWhen(true)] out Entity<ElevatorComponent>? ent)
     {
-        var query = EntityQueryEnumerator<ElevatorComponent>();
-        while (query.MoveNext(out var uid, out var comp))
+        if (_elevatorsById.TryGetValue(elevatorId, out var cached) &&
+            Exists(cached.Owner) &&
+            TryComp<ElevatorComponent>(cached.Owner, out var comp) &&
+            comp.ElevatorId == elevatorId)
         {
-            if (comp.ElevatorId == elevatorId)
-            {
-                ent = (uid, comp);
-                return true;
-            }
+            ent = (cached.Owner, comp);
+            return true;
         }
+
         ent = null;
         return false;
     }
@@ -535,22 +665,41 @@ public sealed class ElevatorSystem : EntitySystem
 
     private IEnumerable<EntityUid> GetDoorsForFloor(string elevatorId, string floor)
     {
-        var query = EntityQueryEnumerator<ElevatorDoorComponent>();
-        while (query.MoveNext(out var doorUid, out var doorComp))
+        if (!_doorsByElevatorFloor.TryGetValue((elevatorId, floor), out var doors))
+            yield break;
+
+        foreach (var doorUid in doors)
         {
-            if (doorComp.ElevatorId == elevatorId && doorComp.Floor == floor)
-                yield return doorUid;
+            if (!Exists(doorUid) ||
+                !TryComp<ElevatorDoorComponent>(doorUid, out var door) ||
+                door.ElevatorId != elevatorId ||
+                door.Floor != floor)
+                continue;
+
+            yield return doorUid;
+        }
+    }
+
+    private IEnumerable<EntityUid> GetPointsForFloor(string floor)
+    {
+        if (!_pointsByFloor.TryGetValue(floor, out var points))
+            yield break;
+
+        foreach (var pointUid in points)
+        {
+            if (!Exists(pointUid) ||
+                !TryComp<ElevatorPointComponent>(pointUid, out var point) ||
+                point.FloorId != floor)
+                continue;
+
+            yield return pointUid;
         }
     }
 
     private void KillEntitiesInTargetArea(Entity<ElevatorComponent> elevator, string floorId)
     {
-        var query = EntityQueryEnumerator<ElevatorPointComponent>();
-        while (query.MoveNext(out var pointUid, out var pointComp))
+        foreach (var pointUid in GetPointsForFloor(floorId))
         {
-            if (pointComp.FloorId != floorId)
-                continue;
-
             var pointTransform = Transform(pointUid);
 
             var aabb = _lookup.GetWorldAABB(elevator.Owner, pointTransform);
@@ -583,10 +732,14 @@ public sealed class ElevatorSystem : EntitySystem
 
     private void UpdateButtonLights(Entity<ElevatorComponent> elevator)
     {
-        var query = EntityQueryEnumerator<ElevatorButtonComponent>();
-        while (query.MoveNext(out var buttonUid, out var buttonComp))
+        if (!_buttonsByElevator.TryGetValue(elevator.Comp.ElevatorId, out var buttons))
+            return;
+
+        foreach (var buttonUid in buttons)
         {
-            if (buttonComp.ElevatorId != elevator.Comp.ElevatorId)
+            if (!Exists(buttonUid) ||
+                !TryComp<ElevatorButtonComponent>(buttonUid, out var buttonComp) ||
+                buttonComp.ElevatorId != elevator.Comp.ElevatorId)
                 continue;
 
             ElevatorButtonState state = ElevatorButtonState.ElevatorElsewhere;

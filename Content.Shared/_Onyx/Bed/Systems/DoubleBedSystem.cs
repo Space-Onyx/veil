@@ -10,9 +10,14 @@ namespace Content.Shared._Onyx.Bed.Systems;
 
 public sealed class DoubleBedSystem : EntitySystem
 {
+    private const string BedsheetTag = "Bedsheet";
+
+    [Dependency] private readonly EntityLookupSystem _lookup = default!;
     [Dependency] private readonly TagSystem _tagSystem = default!;
     [Dependency] private readonly PlaceableSurfaceSystem _placeableSurface = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
+
+    private readonly HashSet<Entity<TagComponent>> _nearbyBedsheets = new();
 
     public override void Initialize()
     {
@@ -27,14 +32,14 @@ public sealed class DoubleBedSystem : EntitySystem
 
     private void OnInteractHand(Entity<DoubleBedComponent> ent, ref InteractHandEvent args)
     {
-        var query = EntityQueryEnumerator<DoubleBedSheetComponent, TransformComponent>();
-        while (query.MoveNext(out var bedsheetUid, out _, out var bedsheetXform))
+        var childEnumerator = Transform(ent).ChildEnumerator;
+        while (childEnumerator.MoveNext(out var child))
         {
-            if (bedsheetXform.ParentUid != ent.Owner)
+            if (!HasComp<DoubleBedSheetComponent>(child))
                 continue;
 
             args.Handled = true;
-            _transform.SetCoordinates(bedsheetUid, Transform(args.User).Coordinates);
+            _transform.SetCoordinates(child, Transform(args.User).Coordinates);
             return;
         }
     }
@@ -84,41 +89,29 @@ public sealed class DoubleBedSystem : EntitySystem
         if (!TryComp<PlaceableSurfaceComponent>(ent, out var surface))
             return;
 
-        const string bedsheetTag = "Bedsheet";
-        if (!_tagSystem.HasTag(args.Used, bedsheetTag))
+        if (!_tagSystem.HasTag(args.Used, BedsheetTag))
             return;
 
         var isDoubleBedsheet = HasComp<DoubleBedSheetComponent>(args.Used);
 
         var bedCoords = Transform(ent).Coordinates;
         var bedsheetCount = 0;
-        var hasDoubleBedsheet = false;
 
-        var doubleBedsheetQuery = EntityQueryEnumerator<DoubleBedSheetComponent, TransformComponent>();
-        while (doubleBedsheetQuery.MoveNext(out _, out _, out var doubleBedsheetXform))
-        {
-            if (doubleBedsheetXform.ParentUid != ent.Owner)
-                continue;
-
-            hasDoubleBedsheet = true;
-            break;
-        }
-
-        var query = EntityQueryEnumerator<TagComponent, TransformComponent>();
-        while (query.MoveNext(out var uid, out _, out var xform))
+        _nearbyBedsheets.Clear();
+        _lookup.GetEntitiesInRange(bedCoords, 0.5f, _nearbyBedsheets);
+        foreach (var (uid, _) in _nearbyBedsheets)
         {
             if (uid == args.Used)
                 continue;
 
-            if (!_tagSystem.HasTag(uid, bedsheetTag))
+            if (!_tagSystem.HasTag(uid, BedsheetTag))
                 continue;
 
-            var bedsheetCoords = xform.Coordinates;
-            if (bedsheetCoords.TryDistance(EntityManager, bedCoords, out var distance) && distance < 0.5f)
+            if (Transform(uid).Coordinates.TryDistance(EntityManager, bedCoords, out var distance) && distance < 0.5f)
                 bedsheetCount++;
         }
 
-        if (isDoubleBedsheet || hasDoubleBedsheet)
+        if (isDoubleBedsheet || HasChildDoubleBedsheet(ent))
             return;
 
         var offset = bedsheetCount == 0
@@ -126,5 +119,17 @@ public sealed class DoubleBedSystem : EntitySystem
             : ent.Comp.LeftBedsheetOffset;
 
         _placeableSurface.SetPositionOffset(ent, offset, surface);
+    }
+
+    private bool HasChildDoubleBedsheet(EntityUid uid)
+    {
+        var childEnumerator = Transform(uid).ChildEnumerator;
+        while (childEnumerator.MoveNext(out var child))
+        {
+            if (HasComp<DoubleBedSheetComponent>(child))
+                return true;
+        }
+
+        return false;
     }
 }

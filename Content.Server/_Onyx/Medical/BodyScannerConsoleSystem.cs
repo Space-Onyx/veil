@@ -13,7 +13,6 @@ using Content.Shared.Buckle.Components;
 using Content.Shared.DeviceLinking;
 using Content.Shared.DeviceLinking.Events;
 using Content.Shared.UserInterface;
-using System.Linq;
 
 namespace Content.Server._Onyx.Medical;
 
@@ -21,6 +20,7 @@ public sealed class BodyScannerConsoleSystem : EntitySystem
 {
     [Dependency] private readonly DeviceLinkSystem _signal = default!;
     [Dependency] private readonly HealthAnalyzerSystem _healthAnalyzer = default!;
+    private readonly List<EntityUid> _linkedSourceBuffer = new();
 
     public override void Initialize()
     {
@@ -144,7 +144,13 @@ public sealed class BodyScannerConsoleSystem : EntitySystem
         if (!TryComp<DeviceLinkSinkComponent>(consoleUid, out var sink))
             return;
 
-        foreach (var source in sink.LinkedSources.ToArray())
+        _linkedSourceBuffer.Clear();
+        foreach (var source in sink.LinkedSources)
+        {
+            _linkedSourceBuffer.Add(source);
+        }
+
+        foreach (var source in _linkedSourceBuffer)
         {
             if (source == keepSource)
                 continue;

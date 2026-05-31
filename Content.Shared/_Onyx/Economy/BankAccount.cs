@@ -8,13 +8,22 @@ namespace Content.Shared._Onyx.Economy;
 public sealed class BankAccount
 {
     private const int MaxTransactions = 1000;
-    private readonly Queue<TransactionRecord> _transactions = new();
+    private readonly TransactionRecord[] _transactions = new TransactionRecord[MaxTransactions];
+    private int _transactionStart;
+    private int _transactionCount;
 
     public void AddTransaction(TransactionRecord record)
     {
-        if (_transactions.Count >= MaxTransactions)
-            _transactions.Dequeue();
-        _transactions.Enqueue(record);
+        if (_transactionCount < MaxTransactions)
+        {
+            var index = (_transactionStart + _transactionCount) % MaxTransactions;
+            _transactions[index] = record;
+            _transactionCount++;
+            return;
+        }
+
+        _transactions[_transactionStart] = record;
+        _transactionStart = (_transactionStart + 1) % MaxTransactions;
     }
 
     public List<TransactionRecord> GetTransactions(int count = 1000)
@@ -25,18 +34,17 @@ public sealed class BankAccount
         if (count > MaxTransactions)
             count = MaxTransactions;
 
-        var transactionCount = _transactions.Count;
-        if (transactionCount == 0)
+        if (_transactionCount == 0)
             return new List<TransactionRecord>();
 
-        if (count > transactionCount)
-            count = transactionCount;
+        if (count > _transactionCount)
+            count = _transactionCount;
 
-        var ordered = _transactions.ToArray();
         var result = new List<TransactionRecord>(count);
-        for (var i = transactionCount - 1; i >= transactionCount - count; i--)
+        for (var i = 0; i < count; i++)
         {
-            result.Add(ordered[i]);
+            var index = (_transactionStart + _transactionCount - 1 - i + MaxTransactions) % MaxTransactions;
+            result.Add(_transactions[index]);
         }
 
         return result;

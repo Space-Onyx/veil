@@ -22,6 +22,8 @@ public sealed class EftposSystem : EntitySystem
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly GameTicker _gameTicker = default!;
     [Dependency] private readonly InventorySystem _inventory = default!;
+    private readonly HashSet<EntityUid> _pendingTimeouts = new();
+    private readonly List<EntityUid> _pendingTimeoutBuffer = new();
 
     public override void Initialize()
     {
@@ -31,19 +33,41 @@ public sealed class EftposSystem : EntitySystem
         SubscribeLocalEvent<EftposComponent, EftposConfirmMessage>(OnConfirm);
         SubscribeLocalEvent<EftposComponent, EftposCancelMessage>(OnCancel);
         SubscribeLocalEvent<EftposComponent, InteractUsingEvent>(OnInteractUsing);
+        SubscribeLocalEvent<EftposComponent, ComponentShutdown>(OnShutdown);
     }
 
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
 
-        var query = EntityQueryEnumerator<EftposComponent>();
-        while (query.MoveNext(out var uid, out var component))
+        if (_pendingTimeouts.Count == 0)
+            return;
+
+        _pendingTimeoutBuffer.Clear();
+        foreach (var uid in _pendingTimeouts)
         {
-            if (component.PendingTimeout.HasValue && _timing.CurTime >= component.PendingTimeout.Value)
+            _pendingTimeoutBuffer.Add(uid);
+        }
+
+        var now = _timing.CurTime;
+        foreach (var uid in _pendingTimeoutBuffer)
+        {
+            if (!TryComp<EftposComponent>(uid, out var component))
+            {
+                _pendingTimeouts.Remove(uid);
+                continue;
+            }
+
+            if (component.PendingTimeout is not { } timeout)
+            {
+                _pendingTimeouts.Remove(uid);
+                continue;
+            }
+
+            if (now >= timeout)
             {
                 // Timeout expired, cancel pending payment
-                ClearPending(component);
+                ClearPending(uid, component);
                 UpdateUiState(uid, component.BankAccountId != null, component.Amount,
                     GetOwner(EntityUid.Invalid, component.BankAccountId), false, string.Empty);
                 // Close UI on timeout
@@ -83,6 +107,7 @@ public sealed class EftposSystem : EntitySystem
 
         component.PendingPin = bankCard.Pin ?? account.AccountPin;
         component.PendingTimeout = _timing.CurTime + TimeSpan.FromMinutes(2);
+        _pendingTimeouts.Add(uid);
 
         UpdateUiState(uid, component.BankAccountId != null, component.Amount,
             GetOwner(EntityUid.Invalid, component.BankAccountId), true, component.PendingPayerName);
@@ -101,7 +126,7 @@ public sealed class EftposSystem : EntitySystem
         {
             _popupSystem.PopupEntity(Loc.GetString("eftpos-wrong-pin"), uid);
             _audioSystem.PlayPvs(component.SoundDeny, uid);
-            ClearPending(component);
+            ClearPending(uid, component);
             return;
         }
 
@@ -144,26 +169,32 @@ public sealed class EftposSystem : EntitySystem
             _audioSystem.PlayPvs(component.SoundDeny, uid);
         }
 
-        ClearPending(component);
+        ClearPending(uid, component);
         // Close UI after transaction attempt
         _ui.CloseUi(uid, EftposKey.Key, args.Actor);
     }
 
     private void OnCancel(EntityUid uid, EftposComponent component, EftposCancelMessage args)
     {
-        ClearPending(component);
+        ClearPending(uid, component);
         UpdateUiState(uid, component.BankAccountId != null, component.Amount,
             GetOwner(EntityUid.Invalid, component.BankAccountId), false, string.Empty);
         // Close UI on cancel
         _ui.CloseUi(uid, EftposKey.Key, args.Actor);
     }
 
-    private void ClearPending(EftposComponent component)
+    private void ClearPending(EntityUid uid, EftposComponent component)
     {
         component.PendingPayerAccountId = null;
         component.PendingPayerName = string.Empty;
         component.PendingPin = null;
         component.PendingTimeout = null;
+        _pendingTimeouts.Remove(uid);
+    }
+
+    private void OnShutdown(EntityUid uid, EftposComponent component, ComponentShutdown args)
+    {
+        _pendingTimeouts.Remove(uid);
     }
 
     private void OnLock(EntityUid uid, EftposComponent component, EftposLockMessage args)
@@ -196,7 +227,7 @@ public sealed class EftposSystem : EntitySystem
             return;
         }
 
-        ClearPending(component); // Clear any pending on lock/unlock
+        ClearPending(uid, component); // Clear any pending on lock/unlock
 
         // Close any existing UI for other players before opening for the new user
         CloseExistingUi(uid, component);
