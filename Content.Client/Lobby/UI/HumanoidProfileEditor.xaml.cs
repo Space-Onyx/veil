@@ -207,7 +207,10 @@ namespace Content.Client.Lobby.UI
     [GenerateTypedNameReferences]
     public sealed partial class HumanoidProfileEditor : BoxContainer
     {
-        private const float WidthPerKilogram = 0.85f; // <Onyx-Height & Weight>
+        // <Onyx-Height & Weight>
+        private const float WidthWeightExponent = 1.35f;
+        private const float HeightWeightExponent = 0.65f;
+        // </Onyx-Height & Weight>
 
         private readonly IClientPreferencesManager _preferencesManager;
         private readonly IConfigurationManager _cfgManager;
@@ -433,8 +436,8 @@ namespace Content.Client.Lobby.UI
                 var sliderPercent = (float)(kg - prototype.MinWeightKg) / (prototype.MaxWeightKg - prototype.MinWeightKg);
                 WidthSlider.Value = sliderPercent;
                 var width = kg / (65f * prototype.BaseScale.X);
-                UpdateCalculatedWeightLabel(kg);
                 SetProfileWidth(width);
+                UpdateCalculatedWeightLabel();
             };
 
             WidthReset.OnPressed += _ =>
@@ -460,8 +463,8 @@ namespace Content.Client.Lobby.UI
                 kg = Math.Clamp(kg, prototype.MinWeightKg, prototype.MaxWeightKg);
                 CDWidth.Text = kg.ToString(CultureInfo.InvariantCulture);
                 var width = kg / (65f * prototype.BaseScale.X);
-                UpdateCalculatedWeightLabel(kg); // <Onyx-Tweak>
                 SetProfileWidth(width);
+                UpdateCalculatedWeightLabel(); // <Onyx-Tweak>
             };
 
             #endregion Onyx Width
@@ -2262,6 +2265,7 @@ namespace Content.Client.Lobby.UI
                 return;
             Profile = Profile.WithHeight(height);
             SetDirty();
+            UpdateCalculatedWeightLabel(); // <Onyx-Height & Weight>
             ReloadProfilePreview();
         }
 
@@ -2301,12 +2305,29 @@ namespace Content.Client.Lobby.UI
             var sliderPercent = (float)(clampedKg - prototype.MinWeightKg) / (prototype.MaxWeightKg - prototype.MinWeightKg);
             WidthSlider.Value = sliderPercent;
             CDWidth.Text = clampedKg.ToString(CultureInfo.InvariantCulture);
-            UpdateCalculatedWeightLabel(clampedKg); // <Onyx-Height & Weight>
+            UpdateCalculatedWeightLabel(); // <Onyx-Height & Weight>
         }
         // <Onyx-Height & Weight>
-        private void UpdateCalculatedWeightLabel(float widthValue)
+        private void UpdateCalculatedWeightLabel()
         {
-            var weight = widthValue / WidthPerKilogram;
+            if (Profile == null)
+            {
+                CalculatedWeightLabel.Text = Loc.GetString("humanoid-profile-editor-calculated-weight-label", ("weight", 0));
+                return;
+            }
+
+            var prototype = _prototypeManager.Index<SpeciesPrototype>(Profile.Species);
+            var heightCm = Math.Clamp(Profile.Height * 175f * prototype.BaseScale.Y, prototype.MinHeightCm, prototype.MaxHeightCm);
+            var widthKg = Math.Clamp(Profile.Width * 65f * prototype.BaseScale.X, prototype.MinWeightKg, prototype.MaxWeightKg);
+            var defaultHeightCm = Math.Clamp(prototype.DefaultHeightCm, prototype.MinHeightCm, prototype.MaxHeightCm);
+            var defaultWeightKg = Math.Clamp(prototype.DefaultWeightKg, prototype.MinWeightKg, prototype.MaxWeightKg);
+
+            var heightRatio = heightCm / Math.Max(defaultHeightCm, 1f);
+            var widthRatio = widthKg / Math.Max(defaultWeightKg, 1f);
+
+            var weight = defaultWeightKg
+                * MathF.Pow(widthRatio, WidthWeightExponent)
+                * MathF.Pow(heightRatio, HeightWeightExponent);
             var halfStepWeight = MathF.Floor(weight * 2f) / 2f;
             var wholeWeight = MathF.Round(halfStepWeight);
             var weightText = MathF.Abs(halfStepWeight - wholeWeight) < 0.001f
