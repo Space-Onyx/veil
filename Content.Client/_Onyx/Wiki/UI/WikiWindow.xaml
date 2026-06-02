@@ -1,0 +1,69 @@
+<controls:FancyWindow xmlns="https://spacestation14.io"
+                      xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
+                      xmlns:fancyTree="clr-namespace:Content.Client.UserInterface.Controls.FancyTree"
+                      xmlns:gfx="clr-namespace:Robust.Client.Graphics;assembly=Robust.Client"
+                      SetSize="1380 650"
+                      MinWidth="1380"
+                      MinHeight="560"
+                      Title="{Loc 'wiki-window-title'}">
+    <SplitContainer Orientation="Horizontal"
+                    HorizontalExpand="True"
+                    VerticalExpand="True"
+                    SplitWidth="6"
+                    Margin="8">
+        <BoxContainer Orientation="Vertical"
+                      MinWidth="180"
+                      SetWidth="300"
+                      SeparationOverride="6">
+            <LineEdit Name="SearchBar"
+                      Access="Public"
+                      HorizontalExpand="True"
+                      PlaceHolder="{Loc 'wiki-search-placeholder'}" />
+            <fancyTree:FancyTree Name="ArticleTree"
+                                 Access="Public"
+                                 VerticalExpand="True"
+                                 HorizontalExpand="True" />
+        </BoxContainer>
+
+        <BoxContainer Orientation="Vertical" HorizontalExpand="True" VerticalExpand="True" SeparationOverride="6">
+            <Label Name="ArticleTitle" Access="Public" HorizontalExpand="True" ClipText="True" StyleClasses="LabelHeading" />
+
+            <BoxContainer Orientation="Horizontal" SeparationOverride="4">
+                <TextureButton Name="BackButton"
+                               Access="Public"
+                               TexturePath="left_arrow.svg.192dpi"
+                               Scale="0.5 0.5"
+                               MinSize="28 28"
+                               ToolTip="{Loc 'wiki-toolbar-back'}" />
+                <TextureButton Name="ForwardButton"
+                               Access="Public"
+                               TexturePath="right_arrow.svg.192dpi"
+                               Scale="0.5 0.5"
+                               MinSize="28 28"
+                               ToolTip="{Loc 'wiki-toolbar-forward'}" />
+                <TextureButton Name="ReloadButton"
+                               Access="Public"
+                               TexturePath="/Textures/Interface/VerbIcons/refresh.svg.192dpi.png"
+                               Scale="0.5 0.5"
+                               MinSize="28 28"
+                               ToolTip="{Loc 'wiki-toolbar-reload'}" />
+                <LineEdit Name="ArticleSearchBar"
+                          Access="Public"
+                          HorizontalExpand="True"
+                          PlaceHolder="{Loc 'wiki-article-search-placeholder'}" />
+                <Label Name="ArticleSearchCount"
+                       Access="Public"
+                       MinWidth="48"
+                       ClipText="True"
+                       HorizontalAlignment="Right"
+                       VerticalAlignment="Center" />
+            </BoxContainer>
+
+            <PanelContainer Name="WebPanel" Access="Public" HorizontalExpand="True" VerticalExpand="True">
+                <PanelContainer.PanelOverride>
+                    <gfx:StyleBoxFlat BackgroundColor="#101014" />
+                </PanelContainer.PanelOverride>
+            </PanelContainer>
+        </BoxContainer>
+    </SplitContainer>
+</controls:FancyWindow>

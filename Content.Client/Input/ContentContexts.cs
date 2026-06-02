@@ -217,6 +217,7 @@ namespace Content.Client.Input
             common.AddFunction(ContentKeyFunctions.OpenDecalSpawnWindow);
             common.AddFunction(ContentKeyFunctions.OpenAdminMenu);
             common.AddFunction(ContentKeyFunctions.OpenGuidebook);
+            common.AddFunction(ContentKeyFunctions.OpenWiki); // <Onyx-Wiki>
         }
     }
 }

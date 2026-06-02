@@ -10,5 +10,7 @@
 defaultWindowTitle: Space Station 14 - Onyx
 windowIconSet: /Textures/Logo/icon
 splashLogo: /Textures/Logo/logo-ru.png
+modules:
+  - Robust.Client.WebView
 
 # PJB PLEASE

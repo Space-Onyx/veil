@@ -1,0 +1,16 @@
+- type: wikiArticle
+  id: wiki.corporate-law
+  title: Корпоративный закон
+  category: Основное
+  file: /Wiki/Articles/CorporateLaw.html
+  priority: 0
+  tags:
+  - закон
+  - корпоративный закон
+  - сб
+  - безопасность
+  - регламент
+  aliases:
+  - корп закон
+  - космический закон
+  - space law

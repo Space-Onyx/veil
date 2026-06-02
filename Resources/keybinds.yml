@@ -382,6 +382,10 @@ binds:
 - function: OpenGuidebook
   type: State
   key: NumpadNum0
+- function: OpenWiki
+  type: State
+  key: NumpadNum0
+  mod1: Shift
 - function: OpenAHelp
   type: State
   key: F1
