@@ -49,16 +49,6 @@ SPDX-License-Identifier: AGPL-3.0-or-later
         AppendStyleClass="{x:Static style:StyleBase.ButtonSquare}"
         />
     <ui:MenuButton
-        Name="WikiButton"
-        Access="Internal"
-        Icon="{xe:Tex '/Textures/Interface/VerbIcons/information.svg.192dpi.png'}"
-        ToolTip="{Loc 'game-hud-open-wiki-menu-button-tooltip'}"
-        BoundKey = "{x:Static is:ContentKeyFunctions.OpenWiki}"
-        MinSize="42 64"
-        HorizontalExpand="True"
-        AppendStyleClass="{x:Static style:StyleBase.ButtonSquare}"
-        />
-    <ui:MenuButton
         Name="CharacterButton"
         Access="Internal"
         Icon="{xe:Tex '/Textures/Interface/character.svg.192dpi.png'}"

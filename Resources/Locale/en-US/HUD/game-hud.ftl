@@ -9,7 +9,6 @@
 
 game-hud-open-escape-menu-button-tooltip = Open escape menu.
 game-hud-open-guide-menu-button-tooltip = Open guidebook menu.
-game-hud-open-wiki-menu-button-tooltip = Open wiki.
 game-hud-open-character-menu-button-tooltip = Open character menu.
 game-hud-open-emotes-menu-button-tooltip= Open emotes menu.
 game-hud-open-inventory-menu-button-tooltip = Open inventory menu.

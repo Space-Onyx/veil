@@ -495,12 +495,9 @@
       color: "#87011c"
     - state: icon_law
       color: "#f7d61a"
-  - type: WikiHelp
-    openOnActivation: true
-    articles:
-    - wiki.corporate-law # <Onyx-Wiki>
-  - type: GuideHelp # <Onyx-Wiki>
-    openOnActivation: false
+  - type: GuideHelp
+    guides:
+    - CorporateLaw # CorvaxGoob
 
 - type: entity
   parent: BookBase

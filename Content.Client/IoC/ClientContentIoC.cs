@@ -145,7 +145,6 @@ using Content.Client.Screenshot;
 using Content.Client.Stylesheets;
 using Content.Client.Viewport;
 using Content.Client.Voting;
-using Content.Client._Onyx.Wiki;
 using Content.Shared.Administration.Logs;
 using Content.Client.Lobby;
 using Content.Client.Players.RateLimiting;
@@ -193,7 +192,6 @@ namespace Content.Client.IoC
             collection.Register<PlayerRateLimitManager>();
             collection.Register<SharedPlayerRateLimitManager, PlayerRateLimitManager>();
             collection.Register<TitleWindowManager>();
-            collection.Register<WikiManager>(); // <Onyx-Wiki>
             /* CorvaxGoob-Coins-start
             //collection.Register<ServerCurrencySystem>(); // Goob Station - Goob Coin
             collection.Register<LinkAccountManager>(); // RMC14

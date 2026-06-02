@@ -71,7 +71,6 @@ namespace Content.Server.Entry
             "Marker",
             "GuidebookControlsTest",
             "GuideHelp",
-            "WikiHelp", // <Onyx-Wiki>
             "Clickable",
             "Icon",
             "CableVisualizer",

@@ -298,7 +298,6 @@ namespace Content.Client.Options.UI.Tabs
             AddButton(ContentKeyFunctions.OpenCharacterMenu);
             AddButton(ContentKeyFunctions.OpenCraftingMenu);
             AddButton(ContentKeyFunctions.OpenGuidebook);
-            AddButton(ContentKeyFunctions.OpenWiki); // <Onyx-Wiki>
             AddButton(ContentKeyFunctions.OpenInventoryMenu);
             AddButton(ContentKeyFunctions.OpenLanguageMenu); // Einstein Engines - Language
             AddButton(ContentKeyFunctions.OpenAHelp);

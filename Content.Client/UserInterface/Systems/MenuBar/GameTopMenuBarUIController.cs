@@ -24,7 +24,6 @@ using Content.Client.UserInterface.Systems.Guidebook;
 using Content.Client.UserInterface.Systems.MenuBar.Widgets;
 using Content.Client.UserInterface.Systems.Sandbox;
 using Content.Client.UserInterface.Systems.Language;
-using Content.Client._Onyx.UserInterface.Systems.Wiki;
 using Robust.Client.UserInterface.Controllers;
 
 namespace Content.Client.UserInterface.Systems.MenuBar;
@@ -39,7 +38,6 @@ public sealed class GameTopMenuBarUIController : UIController
     [Dependency] private readonly ActionUIController _action = default!;
     [Dependency] private readonly SandboxUIController _sandbox = default!;
     [Dependency] private readonly GuidebookUIController _guidebook = default!;
-    [Dependency] private readonly WikiUIController _wiki = default!; // <Onyx-Wiki>
     [Dependency] private readonly EmotesUIController _emotes = default!;
     [Dependency] private readonly LanguageMenuUIController _language = default!;
 
@@ -58,7 +56,6 @@ public sealed class GameTopMenuBarUIController : UIController
     {
         _escape.UnloadButton();
         _guidebook.UnloadButton();
-        _wiki.UnloadButton(); // <Onyx-Wiki>
         _admin.UnloadButton();
         _character.UnloadButton();
         _crafting.UnloadButton();
@@ -73,7 +70,6 @@ public sealed class GameTopMenuBarUIController : UIController
     {
         _escape.LoadButton();
         _guidebook.LoadButton();
-        _wiki.LoadButton(); // <Onyx-Wiki>
         _admin.LoadButton();
         _character.LoadButton();
         _crafting.LoadButton();
