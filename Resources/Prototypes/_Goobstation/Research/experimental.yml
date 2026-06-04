@@ -78,21 +78,21 @@
   technologyPrerequisites:
     - AdvancedRobotics
     - AdvancedAnomalyResearch
-- type: technology
-  id: XenoBiology
-  name: research-technology-xeno-biology
-  icon:
-    sprite: _White/Mobs/Aliens/Xenomorphs/drone.rsi
-    state: xenomorph
-  discipline: Experimental
-  tier: 2
-  cost: 15000
-  recipeUnlocks:
-    - XenoCompatibilityImplanter
-  position: -3,1
-  technologyPrerequisites:
-    - ExperimentalScience
-    - ModsuitsTech
+# - type: technology
+#   id: XenoBiology
+#   name: research-technology-xeno-biology
+#   icon:
+#     sprite: _White/Mobs/Aliens/Xenomorphs/drone.rsi
+#     state: xenomorph
+#   discipline: Experimental
+#   tier: 2
+#   cost: 15000
+#   recipeUnlocks:
+#     - XenoCompatibilityImplanter
+#   position: -3,1
+#   technologyPrerequisites:
+#     - ExperimentalScience
+#     - ModsuitsTech
 - type: technology
   id: XenobagHolding
   name: research-technology-xenobag-holding
