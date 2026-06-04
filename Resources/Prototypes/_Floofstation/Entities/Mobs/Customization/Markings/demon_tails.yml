@@ -2,7 +2,7 @@
   id: DemomTail
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Demon]
+  speciesRestriction: [Demon, Human]
   coloring:
     default:
       type:
@@ -15,7 +15,7 @@
   id: DemomTail1
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Demon]
+  speciesRestriction: [Demon, Human]
   coloring:
     default:
       type:
@@ -30,7 +30,7 @@
   id: DemomTailLong
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Demon]
+  speciesRestriction: [Demon, Human]
   coloring:
     default:
       type:
@@ -45,7 +45,7 @@
   id: DemomTailUp
   bodyPart: Tail
   markingCategory: Tail
-  speciesRestriction: [Demon]
+  speciesRestriction: [Demon, Human]
   coloring:
     default:
       type:
