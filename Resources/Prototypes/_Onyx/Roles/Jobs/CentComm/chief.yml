@@ -49,7 +49,7 @@
     ears: ClothingHeadsetAltCentComChief
     pocket1: BoxFolderCentCom 
     pocket2: WeaponPulsePistol
-    underwearb: ADTClothingUnderwearBottomBoxersWhite
+    underwearb: OnyxClothingUnderwearBottomBoxersWhite
   storage:
     back:
     - BoxSurvivalSlotsMedical

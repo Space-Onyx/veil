@@ -167,28 +167,29 @@
     ClothingNeckPonchoSmallBlack: 3 # Monolith
     ClothingNeckPonchoSmallWhite: 3 # Monolith
     # DO NOT ADD MORE, USE UNIFORM DYING
-    # <Onyx>
-    ADTClothingUnderwearSocksNormal: 5
-    ADTClothingUnderwearSocksHigh: 5
-    ADTClothingUnderwearSocksStockingsWhite: 5
-    ADTClothingUnderwearSocksThigh: 5
-    ADTClothingUnderwearSocksThighBlack: 5
-    ADTClothingUnderwearSocksBlack: 5
-    ADTClothingUnderwearSocksThighPantyhose: 5
-    ADTClothingUnderwearSocksFullFishnet: 5
-    ADTClothingUnderwearSocksRabbit: 3
-    ADTClothingUnderwearBottomBoxersWhite: 5
-    ADTClothingUnderwearBottomPantiesWhite: 5
-    ADTClothingUnderwearBottomPantiesComfyWhite: 3
-    ADTClothingUnderwearTopBraComfyWhite: 3
-    ADTClothingUniformSwimBlack: 3
-    ADTClothingUniformSwimBlue: 3
-    ADTClothingUniformSwimDarkGreen: 3
-    ADTClothingUniformSwimGreen: 3
-    ADTClothingUniformSwimPurple: 3
-    ADTClothingUniformSwimRed: 3
-    ADTClothingUniformSwimsuitWinth: 3 
-    # </Onyx>
+    # <Onyx-Underwear>
+    OnyxClothingUnderwearSocksNormal: 5
+    OnyxClothingUnderwearSocksHigh: 5
+    OnyxClothingUnderwearSocksStockingsWhite: 5
+    OnyxClothingUnderwearSocksThigh: 5
+    OnyxClothingUnderwearSocksThighBlack: 5
+    OnyxClothingUnderwearSocksBlack: 5
+    OnyxClothingUnderwearSocksThighPantyhose: 5
+    OnyxClothingUnderwearSocksFullFishnet: 5
+    OnyxClothingUnderwearSocksRabbit: 3
+    OnyxClothingUnderwearBottomBoxersWhite: 5
+    OnyxClothingUnderwearTopTShirt: 5
+    OnyxClothingUnderwearBottomPantiesWhite: 5
+    OnyxClothingUnderwearBottomPantiesComfyWhite: 3
+    OnyxClothingUnderwearTopBraComfyWhite: 3
+    OnyxClothingUniformSwimBlack: 3
+    OnyxClothingUniformSwimBlue: 3
+    OnyxClothingUniformSwimDarkGreen: 3
+    OnyxClothingUniformSwimGreen: 3
+    OnyxClothingUniformSwimPurple: 3
+    OnyxClothingUniformSwimRed: 3
+    OnyxClothingUniformSwimsuitWinth: 3 
+    # </Onyx-Underwear>
   contrabandInventory:
     ClothingMaskNeckGaiter: 2
     ClothingUniformJumpsuitTurtleneckTactick: 2 # _CorvaxGoob
@@ -203,13 +204,13 @@
     ClothingBackpackSatchelSmugglerUnanchored: 1
     ClothingHeadHatSolidHeadband: 2
     ClothingNeckFellForItAward: 1 # Goobstation
-    ADTClothingUnderwearSocksSyndieRed: 1 # <Onyx>
-    ADTClothingUnderwearSocksThighSyndieRed: 1 # <Onyx>
+    OnyxClothingUnderwearSocksSyndieRed: 1 # <Onyx-Underwear>
+    OnyxClothingUnderwearSocksThighSyndieRed: 1 # <Onyx-Underwear>
   # DO NOT ADD MORE, USE UNIFORM DYING
   emaggedInventory: #Goobstation
     ClothingOuterCoatSyndieCapArmored: 1
   prices:
-    ADTClothingUnderwearBottomBoxersWhite: 12
-    ADTClothingUnderwearBottomPantiesWhite: 12
-    ADTClothingUnderwearBottomPantiesComfyWhite: 15
-    ADTClothingUnderwearTopBraComfyWhite: 15
+    OnyxClothingUnderwearBottomBoxersWhite: 12
+    OnyxClothingUnderwearBottomPantiesWhite: 12
+    OnyxClothingUnderwearBottomPantiesComfyWhite: 15
+    OnyxClothingUnderwearTopBraComfyWhite: 15

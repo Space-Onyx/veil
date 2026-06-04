@@ -105,3 +105,12 @@
 
 - type: Tag
   id: ArmAugment
+
+- type: Tag
+  id: OnyxUnderwearB
+
+- type: Tag
+  id: OnyxUnderwearT
+
+- type: Tag
+  id: OnyxSocks

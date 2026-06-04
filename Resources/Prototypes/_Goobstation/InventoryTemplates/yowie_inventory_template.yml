@@ -161,7 +161,7 @@
       displayName: Socks
       whitelist:
         tags:
-          - ADTSocks
+          - OnyxSocks
     - name: underwearb
       slotTexture: underwearb
       slotFlags: UNDERWEARB
@@ -171,7 +171,7 @@
       displayName: Panties
       whitelist:
         tags:
-          - ADTUnderwearB
+          - OnyxUnderwearB
     - name: underweart
       slotTexture: underweart
       slotFlags: UNDERWEART
@@ -181,4 +181,4 @@
       displayName: Bra
       whitelist:
         tags:
-          - ADTUnderwearT
+          - OnyxUnderwearT

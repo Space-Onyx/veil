@@ -36,7 +36,7 @@
     ears: ClothingHeadsetService
     jumpsuit: ClothingUniformJumpsuitMilitaryService
     back: ClothingBackpackDuffel
-    underwearb: ADTClothingUnderwearBottomBoxersWhite
+    underwearb: OnyxClothingUnderwearBottomBoxersWhite
   storage:
     back:
     - BoxSurvivalSlotsMedical

@@ -46,7 +46,7 @@
     ears: ClothingHeadsetAltCentComOSO
     pocket1: WeaponRevolverMateba 
     pocket2: WeaponPulsePistol
-    underwearb: ADTClothingUnderwearBottomBoxersWhite
+    underwearb: OnyxClothingUnderwearBottomBoxersWhite
   storage:
     back:
     - BoxSurvivalSlotsMedical

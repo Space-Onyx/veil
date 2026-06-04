@@ -7269,28 +7269,28 @@ entities:
     - type: Action
       container: 14
       originalIconColor: '#FFFFFFFF'
-- proto: ADTClothingUnderwearSocksKneeSyndieRed
+- proto: OnyxClothingUnderwearSocksKneeSyndieRed
   entities:
   - uid: 16
     components:
     - type: Transform
       pos: 10.085296,-39.519505
       parent: 2
-- proto: ADTClothingUnderwearSocksSyndieRed
+- proto: OnyxClothingUnderwearSocksSyndieRed
   entities:
   - uid: 17
     components:
     - type: Transform
       pos: 10.741546,-38.12888
       parent: 2
-- proto: ADTClothingUnderwearSocksThighSyndieRed
+- proto: OnyxClothingUnderwearSocksThighSyndieRed
   entities:
   - uid: 18
     components:
     - type: Transform
       pos: 9.288421,-38.19138
       parent: 2
-- proto: ADTClothingUniformSwimBlack
+- proto: OnyxClothingUniformSwimBlack
   entities:
   - uid: 20
     components:
@@ -7299,7 +7299,7 @@ entities:
     - type: Physics
       canCollide: False
     - type: InsideEntityStorage
-- proto: ADTClothingUniformSwimBlue
+- proto: OnyxClothingUniformSwimBlue
   entities:
   - uid: 21
     components:
@@ -7308,7 +7308,7 @@ entities:
     - type: Physics
       canCollide: False
     - type: InsideEntityStorage
-- proto: ADTClothingUniformSwimDarkGreen
+- proto: OnyxClothingUniformSwimDarkGreen
   entities:
   - uid: 22
     components:
@@ -7317,7 +7317,7 @@ entities:
     - type: Physics
       canCollide: False
     - type: InsideEntityStorage
-- proto: ADTClothingUniformSwimGreen
+- proto: OnyxClothingUniformSwimGreen
   entities:
   - uid: 23
     components:
@@ -7326,7 +7326,7 @@ entities:
     - type: Physics
       canCollide: False
     - type: InsideEntityStorage
-- proto: ADTClothingUniformSwimPurple
+- proto: OnyxClothingUniformSwimPurple
   entities:
   - uid: 24
     components:
@@ -7335,7 +7335,7 @@ entities:
     - type: Physics
       canCollide: False
     - type: InsideEntityStorage
-- proto: ADTClothingUniformSwimRed
+- proto: OnyxClothingUniformSwimRed
   entities:
   - uid: 25
     components:
@@ -7344,7 +7344,7 @@ entities:
     - type: Physics
       canCollide: False
     - type: InsideEntityStorage
-- proto: ADTClothingUniformSwimsuitWinth
+- proto: OnyxClothingUniformSwimsuitWinth
   entities:
   - uid: 26
     components:

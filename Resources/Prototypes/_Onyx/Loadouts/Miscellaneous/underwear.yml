@@ -1,0 +1,1036 @@
+- type: loadoutEffectGroup
+  id: OnyxUnderwearSpeciesRestrictions
+  effects:
+  - !type:SpeciesLoadoutEffect
+    species:
+    - Human
+    - Feroxi
+    - Reptilian
+    - SlimePerson
+    - Dwarf
+    - DemonSpecies
+    - Felinid
+    - KoboltSpecies
+    - DraskSpecies
+    - TajaranSpecies
+    - UrsusSpecies
+    - VulpkaninSpecies
+    - Shadekin
+    - Demon
+    - Oni
+    - Rodentia
+    - Harpy
+
+# Нижнее белье (Трусы)
+
+- type: loadout
+  id: OnyxUnderwearBoxersWhite
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underwearb: OnyxClothingUnderwearBottomBoxersWhite
+
+- type: loadout
+  id: OnyxUnderwearBoxersAmerica
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underwearb: OnyxClothingUnderwearBottomBoxersAmerica
+
+- type: loadout
+  id: OnyxUnderwearBoxersBoom
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underwearb: OnyxClothingUnderwearBottomBoxersBoom
+
+- type: loadout
+  id: OnyxUnderwearBriefsWhite
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underwearb: OnyxClothingUnderwearBottomBriefsWhite
+
+## Глав
+
+- type: loadout
+  id: OnyxUnderwearBoxersQM
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underwearb: OnyxClothingUnderwearBottomBoxersQM
+
+- type: loadout
+  id: OnyxUnderwearBoxersRD
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underwearb: OnyxClothingUnderwearBottomBoxersRD
+
+- type: loadout
+  id: OnyxUnderwearBoxersCap
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underwearb: OnyxClothingUnderwearBottomBoxersCap
+
+- type: loadout
+  id: OnyxUnderwearBoxersHOP
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underwearb: OnyxClothingUnderwearBottomBoxersHOP
+
+- type: loadout
+  id: OnyxUnderwearBoxersHOS
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underwearb: OnyxClothingUnderwearBottomBoxersHOS
+
+- type: loadout
+  id: OnyxUnderwearBoxersCMO
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underwearb: OnyxClothingUnderwearBottomBoxersCMO
+
+- type: loadout
+  id: OnyxUnderwearBoxersCE
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underwearb: OnyxClothingUnderwearBottomBoxersCE
+
+- type: loadout
+  id: OnyxUnderwearBoxersBlueshield
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underwearb: OnyxClothingUnderwearBottomBoxersBlueshield
+
+# Женское нижнее белье
+
+- type: loadout
+  id: OnyxUnderwearPantiesWhite
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underwearb: OnyxClothingUnderwearBottomPantiesWhite
+
+- type: loadout
+  id: OnyxUnderwearPantiesComfyWhite
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underwearb: OnyxClothingUnderwearBottomPantiesComfyWhite
+
+- type: loadout
+  id: OnyxUnderwearPantiesLace
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underwearb: OnyxClothingUnderwearBottomPantiesLace
+
+- type: loadout
+  id: OnyxUnderwearPantiesLaceBlue
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underwearb: OnyxClothingUnderwearBottomPantiesLaceBlueAlternative
+
+- type: loadout
+  id: OnyxUnderwearPantiesLaceRed
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underwearb: OnyxClothingUnderwearBottomPantiesLaceRedAlternative
+
+- type: loadout
+  id: OnyxUnderwearPantiesLaceBlack
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underwearb: OnyxClothingUnderwearBottomPantiesLaceBlack
+
+- type: loadout
+  id: OnyxUnderwearMonokiniWhite
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underwearb: OnyxClothingUnderwearBottomMonokiniWhite
+
+- type: loadout
+  id: OnyxUnderwearMonokiniBlack
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underwearb: OnyxClothingUnderwearBottomMonokiniBlack
+
+## Глав
+
+- type: loadout
+  id: OnyxUnderwearPantiesQM
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underwearb: OnyxClothingUnderwearBottomPantiesQM
+
+- type: loadout
+  id: OnyxUnderwearPantiesRD
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underwearb: OnyxClothingUnderwearBottomPantiesRD
+
+- type: loadout
+  id: OnyxUnderwearPantiesCap
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underwearb: OnyxClothingUnderwearBottomPantiesCap
+
+- type: loadout
+  id: OnyxUnderwearPantiesHOP
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underwearb: OnyxClothingUnderwearBottomPantiesHOP
+
+- type: loadout
+  id: OnyxUnderwearPantiesHOS
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underwearb: OnyxClothingUnderwearBottomPantiesHOS
+
+- type: loadout
+  id: OnyxUnderwearPantiesCMO
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underwearb: OnyxClothingUnderwearBottomPantiesCMO
+
+- type: loadout
+  id: OnyxUnderwearPantiesCE
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underwearb: OnyxClothingUnderwearBottomPantiesCE
+
+- type: loadout
+  id: OnyxUnderwearPantiesBlueshield
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underwearb: OnyxClothingUnderwearBottomPantiesBlueshield
+
+# Майка
+
+- type: loadout
+  id: OnyxUnderwearTShirt
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underweart: OnyxClothingUnderwearTopTShirt
+
+# Нижнее белье (Бюстгальтеры)
+
+- type: loadout
+  id: OnyxUnderwearBraWhite
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underweart: OnyxClothingUnderwearTopBraWhite
+
+- type: loadout
+  id: OnyxUnderwearBraComfyWhite
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underweart: OnyxClothingUnderwearTopBraComfyWhite
+
+- type: loadout
+  id: OnyxUnderwearBraSports
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underweart: OnyxClothingUnderwearTopBraSports
+
+- type: loadout
+  id: OnyxUnderwearBraSportsAlternative
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underweart: OnyxClothingUnderwearTopBraSportsAlternative
+
+- type: loadout
+  id: OnyxUnderwearBraSportsBlack
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underweart: OnyxClothingUnderwearTopBraSportsBlack
+
+- type: loadout
+  id: OnyxUnderwearBraPea
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underweart: OnyxClothingUnderwearTopBraPea
+
+- type: loadout
+  id: OnyxUnderwearBraLace
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underweart: OnyxClothingUnderwearTopBraLace
+
+- type: loadout
+  id: OnyxUnderwearBraLaceBlue
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underweart: OnyxClothingUnderwearTopBraLaceBlueAlternative
+
+- type: loadout
+  id: OnyxUnderwearBraLaceRed
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underweart: OnyxClothingUnderwearTopBraLaceRedAlternative
+
+- type: loadout
+  id: OnyxUnderwearBraLaceBlack
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underweart: OnyxClothingUnderwearTopBraLaceBlack
+
+- type: loadout
+  id: OnyxUnderwearTopMonokiniWhite
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underweart: OnyxClothingUnderwearTopMonokiniWhite
+
+- type: loadout
+  id: OnyxUnderwearTopMonokiniBlack
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underweart: OnyxClothingUnderwearTopMonokiniBlack
+
+## Глав
+
+- type: loadout
+  id: OnyxUnderwearBraQM
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underweart: OnyxClothingUnderwearTopBraQM
+
+- type: loadout
+  id: OnyxUnderwearBraRD
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underweart: OnyxClothingUnderwearTopBraRD
+
+- type: loadout
+  id: OnyxUnderwearBraCap
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underweart: OnyxClothingUnderwearTopBraCap
+
+- type: loadout
+  id: OnyxUnderwearBraHOP
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underweart: OnyxClothingUnderwearTopBraHOP
+
+- type: loadout
+  id: OnyxUnderwearBraHOS
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underweart: OnyxClothingUnderwearTopBraHOS
+
+- type: loadout
+  id: OnyxUnderwearBraCMO
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underweart: OnyxClothingUnderwearTopBraCMO
+
+- type: loadout
+  id: OnyxUnderwearBraCE
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underweart: OnyxClothingUnderwearTopBraCE
+
+- type: loadout
+  id: OnyxUnderwearBraBlueshield
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    underweart: OnyxClothingUnderwearTopBraBlueshield
+
+# Всякие чулки и другое подобное
+
+- type: loadout
+  id: OnyxUnderwearSocksHigh
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksHigh
+
+- type: loadout
+  id: OnyxUnderwearSocksShort
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksShort
+
+- type: loadout
+  id: OnyxUnderwearSocksThigh
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksThigh
+
+- type: loadout
+  id: OnyxUnderwearSocksNormal
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksNormal
+
+- type: loadout
+  id: OnyxUnderwearSocksComfyBlue
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksComfyBlue
+
+- type: loadout
+  id: OnyxUnderwearSocksComfyGrey
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksComfyGrey
+
+- type: loadout
+  id: OnyxUnderwearSocksComfyRed
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksComfyRed
+
+- type: loadout
+  id: OnyxUnderwearSocksComfyViolet
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksComfyViolet
+
+- type: loadout
+  id: OnyxUnderwearSocksBee
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: ClothingUnderSocksBee
+
+- type: loadout
+  id: OnyxUnderwearSocksBeeThigh
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksBee
+
+- type: loadout
+  id: OnyxUnderwearSocksCoder
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: ClothingUnderSocksCoder
+
+- type: loadout
+  id: OnyxUnderwearStockings
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksStockingsWhite
+
+- type: loadout
+  id: OnyxUnderwearStockingsLace
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksLaceThigh
+
+- type: loadout
+  id: OnyxUnderwearStockingsBlack
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksStockingsBlack
+
+- type: loadout
+  id: OnyxUnderwearStockingsComfyBlue
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksKneeComfyBlue
+
+- type: loadout
+  id: OnyxUnderwearStockingsComfyGrey
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksKneeComfyGrey
+
+- type: loadout
+  id: OnyxUnderwearStockingsComfyRed
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksKneeComfyRed
+
+- type: loadout
+  id: OnyxUnderwearStockingsComfyViolet
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksKneeComfyViolet
+
+# Глав
+
+- type: loadout
+  id: OnyxUnderwearStockingsBlueshield
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksStockingsBlueshield
+
+- type: loadout
+  id: OnyxUnderwearSocksBlueshield
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksBlueshield
+
+- type: loadout
+  id: OnyxUnderwearStockingsCentcom
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksThighCentcom
+
+- type: loadout
+  id: OnyxUnderwearSocksKneeCentcom
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksKneeCentcom
+
+- type: loadout
+  id: OnyxUnderwearSocksCentcom
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksCentcom
+
+- type: loadout
+  id: OnyxUnderwearSocksAzure
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksAzure
+
+- type: loadout
+  id: OnyxUnderwearSocksKneeAzure
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksKneeAzure
+
+- type: loadout
+  id: OnyxUnderwearSocksThighAzure
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksThighAzure
+
+- type: loadout
+  id: OnyxUnderwearSocksBlack
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksBlack
+
+- type: loadout
+  id: OnyxUnderwearSocksKneeBlack
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksKneeBlack
+
+- type: loadout
+  id: OnyxUnderwearSocksThighBlack
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksThighBlack
+
+- type: loadout
+  id: OnyxUnderwearSocksCyan
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksCyan
+
+- type: loadout
+  id: OnyxUnderwearSocksKneeCyan
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksKneeCyan
+
+- type: loadout
+  id: OnyxUnderwearSocksThighCyan
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksThighCyan
+
+- type: loadout
+  id: OnyxUnderwearSocksFurr
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksFurr
+
+- type: loadout
+  id: OnyxUnderwearSocksKneeFurr
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksKneeFurr
+
+- type: loadout
+  id: OnyxUnderwearSocksThighFurr
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksThighFurr
+
+- type: loadout
+  id: OnyxUnderwearSocksGreen
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksGreen
+
+- type: loadout
+  id: OnyxUnderwearSocksKneeGreen
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksKneeGreen
+
+- type: loadout
+  id: OnyxUnderwearSocksThighGreen
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksThighGreen
+
+- type: loadout
+  id: OnyxUnderwearSocksHomelander
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksHomelander
+
+- type: loadout
+  id: OnyxUnderwearSocksKneeHomelander
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksKneeHomelander
+
+- type: loadout
+  id: OnyxUnderwearSocksThighHomelander
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksThighHomelander
+
+- type: loadout
+  id: OnyxUnderwearSocksHotpink
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksHotpink
+
+- type: loadout
+  id: OnyxUnderwearSocksKneeHotpink
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksKneeHotpink
+
+- type: loadout
+  id: OnyxUnderwearSocksThighHotpink
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksThighHotpink
+
+- type: loadout
+  id: OnyxUnderwearSocksOrange
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksOrange
+
+- type: loadout
+  id: OnyxUnderwearSocksKneeOrange
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksKneeOrange
+
+- type: loadout
+  id: OnyxUnderwearSocksThighOrange
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksThighOrange
+
+- type: loadout
+  id: OnyxUnderwearSocksPink
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksPink
+
+- type: loadout
+  id: OnyxUnderwearSocksKneePink
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksKneePink
+
+- type: loadout
+  id: OnyxUnderwearSocksThighCreepy
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksThighCreepy
+
+- type: loadout
+  id: OnyxUnderwearSocksKneeFishnet
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksKneeFishnet
+
+- type: loadout
+  id: OnyxUnderwearSocksFullFishnet
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksFullFishnet
+
+- type: loadout
+  id: OnyxUnderwearSocksKneeThin
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksKneeThin
+
+- type: loadout
+  id: OnyxUnderwearSocksThighThin
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksThighThin
+
+- type: loadout
+  id: OnyxUnderwearSocksThighBlue
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksThighBlue
+
+- type: loadout
+  id: OnyxUnderwearSocksThighFishnet
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksThighFishnet
+
+- type: loadout
+  id: OnyxUnderwearSocksThighGrey
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksThighGrey
+
+- type: loadout
+  id: OnyxUnderwearSocksThighPantyhose
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksThighPantyhose
+
+- type: loadout
+  id: OnyxUnderwearSocksThighPurple
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksThighPurple
+
+- type: loadout
+  id: OnyxUnderwearSocksThighRed
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksThighRed
+
+- type: loadout
+  id: OnyxUnderwearSocksYellow
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksYellow
+
+- type: loadout
+  id: OnyxUnderwearSocksKneeYellow
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksKneeYellow
+
+- type: loadout
+  id: OnyxUnderwearSocksThighYellow
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksThighYellow
+
+## Носки чисто для клоуна и мима
+
+- type: loadout
+  id: OnyxUnderwearSocksKneehRainbow
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksKneeRainbow
+
+- type: loadout
+  id: OnyxUnderwearSocksThighRainbow
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksThighRainbow
+
+- type: loadout
+  id: OnyxUnderwearSocksThighMonochrome
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksThighMonochrome
+
+## Эбанные носки с ТГ для главв
+
+- type: loadout
+  id: OnyxUnderwearSocksHOP
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksHop
+
+- type: loadout
+  id: OnyxUnderwearSocksKneeHOP
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksKneeHop
+
+- type: loadout
+  id: OnyxUnderwearSocksThighHOP
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksThighHop
+
+- type: loadout
+  id: OnyxUnderwearSocksHOS
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksHos
+
+- type: loadout
+  id: OnyxUnderwearSocksKneeHOS
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksKneeHos
+
+- type: loadout
+  id: OnyxUnderwearSocksThighHOS
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksThighHos
+
+- type: loadout
+  id: OnyxUnderwearSocksCaptain
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksCaptain
+
+- type: loadout
+  id: OnyxUnderwearSocksKneeCaptain
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksKneeCaptain
+
+- type: loadout
+  id: OnyxUnderwearSocksThighCaptain
+  effects:
+  - !type:GroupLoadoutEffect
+    proto: OnyxUnderwearSpeciesRestrictions
+  equipment:
+    socks: OnyxClothingUnderwearSocksThighCaptain

@@ -1,0 +1,12 @@
+- type: entity
+  parent: ClothingUniformBase
+  id: OnyxClothingUniformSwimsuitWinth
+  name: winth swimsuit
+  description: swimsuit
+  components:
+  - type: Sprite
+    sprite: ADT/Clothing/Uniforms/Jumpsuit/winth_swimsuit.rsi
+  - type: Clothing
+    sprite: ADT/Clothing/Uniforms/Jumpsuit/winth_swimsuit.rsi
+  - type: StaticPrice
+    price: 35

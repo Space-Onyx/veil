@@ -12,7 +12,7 @@
 # I would cry if we didn't have them. -swept
 
 - type: entity
-  parent: ADTClothingUnderwearSocksBase
+  parent: OnyxClothingUnderwearSocksBase
   id: ClothingUnderSocksBee
   name: bee socks
   description: Make them loins buzz!
@@ -28,7 +28,7 @@
       - state: equipped-SOCKS
 
 - type: entity
-  parent: ADTClothingUnderwearSocksBase
+  parent: OnyxClothingUnderwearSocksBase
   id: ClothingUnderSocksCoder
   name: coder socks
   description: It's time to code sisters!!11!

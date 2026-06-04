@@ -1,88 +1,88 @@
-ent-ADTClothingUnderwearBottomPantiesWhite = трусики
+ent-OnyxClothingUnderwearBottomPantiesWhite = трусики
     .desc = Стандартное белье NanoTrasen для работниц станции. Окрашены в белый цвет.
-ent-ADTClothingUnderwearBottomBoxersWhite = трусы
+ent-OnyxClothingUnderwearBottomBoxersWhite = трусы
     .desc = Стандартное белье NanoTrasen для работников станции. Окрашены в белый цвет.
 
-ent-ADTClothingUnderwearBottomBoxersCap = трусы капитана
+ent-OnyxClothingUnderwearBottomBoxersCap = трусы капитана
     .desc = Стандартное белье для капитана станции.
-ent-ADTClothingUnderwearBottomPantiesCap = трусики капитана
+ent-OnyxClothingUnderwearBottomPantiesCap = трусики капитана
     .desc = Стандартное белье для капитана станции.
-ent-ADTClothingUnderwearBottomBoxersCE = трусы старшего инженера
+ent-OnyxClothingUnderwearBottomBoxersCE = трусы старшего инженера
     .desc = Стандартное белье для старшего инженера.
-ent-ADTClothingUnderwearBottomPantiesCE = трусики старшего инженера
+ent-OnyxClothingUnderwearBottomPantiesCE = трусики старшего инженера
     .desc = Стандартное белье для старшего инженера.
-ent-ADTClothingUnderwearBottomBoxersCMO = трусы главного врача
+ent-OnyxClothingUnderwearBottomBoxersCMO = трусы главного врача
     .desc = Стандартное белье для главного врача.
-ent-ADTClothingUnderwearBottomPantiesCMO = трусики главного врача
+ent-OnyxClothingUnderwearBottomPantiesCMO = трусики главного врача
     .desc = Стандартное белье для главного врача.
-ent-ADTClothingUnderwearBottomBoxersHOP = трусы главы персонала
+ent-OnyxClothingUnderwearBottomBoxersHOP = трусы главы персонала
     .desc = Стандартное белье для главы персонала.
-ent-ADTClothingUnderwearBottomPantiesHOP = трусики главы персонала
+ent-OnyxClothingUnderwearBottomPantiesHOP = трусики главы персонала
     .desc = Стандартное белье для главы персонала.
-ent-ADTClothingUnderwearBottomBoxersHOS = трусы главы службы безопасности
+ent-OnyxClothingUnderwearBottomBoxersHOS = трусы главы службы безопасности
     .desc = Стандартное белье для главы службы безопасности.
-ent-ADTClothingUnderwearBottomPantiesHOS = трусики главы службы безопасности
+ent-OnyxClothingUnderwearBottomPantiesHOS = трусики главы службы безопасности
     .desc = Стандартное белье для главы службы безопасности.
-ent-ADTClothingUnderwearBottomBoxersQM = трусы квартирмейстера
+ent-OnyxClothingUnderwearBottomBoxersQM = трусы квартирмейстера
     .desc = Стандартное белье для квартирмейстера.
-ent-ADTClothingUnderwearBottomPantiesQM = трусики квартирмейстера
+ent-OnyxClothingUnderwearBottomPantiesQM = трусики квартирмейстера
     .desc = Стандартное белье для квартирмейстера.
-ent-ADTClothingUnderwearBottomBoxersRD = трусы научного руководителя
+ent-OnyxClothingUnderwearBottomBoxersRD = трусы научного руководителя
     .desc = Стандартное белье для научного руководителя.
-ent-ADTClothingUnderwearBottomPantiesRD = трусики научного руководителя
+ent-OnyxClothingUnderwearBottomPantiesRD = трусики научного руководителя
     .desc = Стандартное белье для научного руководителя.
 
 
-ent-ADTClothingUnderwearBottomBoxersAmerica = трусы "Америка"
+ent-OnyxClothingUnderwearBottomBoxersAmerica = трусы "Америка"
     .desc = От них веет свободой..
 
-ent-ADTClothingUnderwearBottomBoxersBoom = трусы с монстром
+ent-OnyxClothingUnderwearBottomBoxersBoom = трусы с монстром
     .desc = От них веет свободой..
 
-ent-ADTClothingUnderwearBottomBriefsWhite = брифы
+ent-OnyxClothingUnderwearBottomBriefsWhite = брифы
     .desc = От них веет свободой..
 
-ent-ADTClothingUnderwearBottomBriefsMoth = брифы "Моль"
+ent-OnyxClothingUnderwearBottomBriefsMoth = брифы "Моль"
     .desc = От них веет свободой..
 
 
-ent-ADTClothingUnderwearBottomPantiesLace = кружевные трусики
+ent-OnyxClothingUnderwearBottomPantiesLace = кружевные трусики
     .desc = Красивое кружевное нижнее бельё.
 
-ent-ADTClothingUnderwearBottomPantiesChristmas = рождественские трусики
+ent-OnyxClothingUnderwearBottomPantiesChristmas = рождественские трусики
     .desc = Достаточно своеобразное рождественское бельё...
 
-ent-ADTClothingUnderwearBottomPantiesLaceRed = красные кружевные трусики
+ent-OnyxClothingUnderwearBottomPantiesLaceRed = красные кружевные трусики
     .desc = Красные, кружевные и, скорее всего, очень дорогие.
     .suffix = { "" }
 
-ent-ADTClothingUnderwearBottomPantiesLaceBlack = черные кружевные трусики
+ent-OnyxClothingUnderwearBottomPantiesLaceBlack = черные кружевные трусики
     .desc = Черные, кружевные и, скорее всего, очень дорогие.
     .suffix = { "" }
 
-ent-ADTClothingUnderwearBottomPantiesComfyWhite = белые комфортные трусики
+ent-OnyxClothingUnderwearBottomPantiesComfyWhite = белые комфортные трусики
     .desc = Белые, очень удобные и с розовым бантиком.
     .suffix = { "" }
 
-ent-ADTClothingUnderwearBottomPantiesLaceBlueAlternative = шелковые трусики
+ent-OnyxClothingUnderwearBottomPantiesLaceBlueAlternative = шелковые трусики
     .desc = Синие, приятные на ощупь трусы, сделанные из чистого шелка по эскизам семьи Ноло.
     .suffix = { "" }
 
-ent-ADTClothingUnderwearBottomPantiesLaceRedAlternative = шелковые трусики
+ent-OnyxClothingUnderwearBottomPantiesLaceRedAlternative = шелковые трусики
     .desc = Красные, приятные на ощупь трусы, сделанные из чистого шелка по эскизам семьи Ноло.
     .suffix = { "" }
 
-ent-ADTClothingUnderwearBottomBoxersBlueshield = трусы офицера "Синего Щита"
+ent-OnyxClothingUnderwearBottomBoxersBlueshield = трусы офицера "Синего Щита"
     .desc = Стандартное белье NanoTrasen для офицеров "Синего Щита"
 
-ent-ADTClothingUnderwearBottomPantiesBlueshield = трусики офицера "Синего Щита"
+ent-OnyxClothingUnderwearBottomPantiesBlueshield = трусики офицера "Синего Щита"
     .desc = Стандартное белье NanoTrasen для офицеров "Синего Щита" женского пола
 
-ent-ADTClothingUnderwearBottomMonokiniBlack = низ черного монокини
+ent-OnyxClothingUnderwearBottomMonokiniBlack = низ черного монокини
     .desc = низ монокини, черного цвета
 
-ent-ADTClothingUnderwearBottomMonokiniWhite = низ белого монокини
+ent-OnyxClothingUnderwearBottomMonokiniWhite = низ белого монокини
     .desc = низ монокини, белого цвета
 
-ent-ADTClothingUnderwearBottomPantiesCow = коровьи трусики
+ent-OnyxClothingUnderwearBottomPantiesCow = коровьи трусики
     .desc = Милые коровьи трусики. Му-у-у!

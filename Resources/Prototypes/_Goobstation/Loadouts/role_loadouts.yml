@@ -110,11 +110,11 @@
   - NanotrasenRepresentativeEnvirohelm
   - NanotrasenRepresentativeEnvirosuit
   - NanotrasenRepresentativeEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobBlueshieldOfficer
@@ -136,11 +136,11 @@
   - BlueshieldOfficerEnvirohelm
   - BlueshieldOfficerEnvirosuit
   - BlueshieldOfficerEnvirogloves
-  # ADT underwear tweak start
-  - ADTTopBlueshield
-  - ADTBottomBlueshield
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTopBlueshield
+  - OnyxBottomBlueshield
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobNanotrasenCareerTrainer
@@ -162,11 +162,11 @@
   - CentComOfficerEnvirohelm
   - CentComOfficerEnvirosuit
   - CentComOfficerEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: RoleSurvivalNukieHonkops
@@ -196,11 +196,11 @@
   - ScientistEnvirohelm
   - ScientistEnvirosuit
   - ScientistEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobBrigmedic
@@ -226,11 +226,11 @@
   - BrigmedicEnvirohelm
   - BrigmedicEnvirosuit
   - BrigmedicEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobRadioHost
@@ -248,11 +248,11 @@
   - ServiceWorkerEnvirohelm
   - ServiceWorkerEnvirosuit
   - ServiceWorkerEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 # gives plasmaman a plasma breathing tank
 # other species get nothing
@@ -305,7 +305,7 @@
    - VirologyEnvirosuit
    - VirologyEnvirogloves
   # Onyx underwear tweak start
-   - ADTTop
-   - ADTBottom
-   - ADTSocks
+   - OnyxTop
+   - OnyxBottom
+   - OnyxSocks
   # Onyx underwear tweak end

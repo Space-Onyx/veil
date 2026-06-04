@@ -135,11 +135,11 @@
   - CaptainEnvirohelm
   - CaptainEnvirosuit
   - CaptainEnvirogloves
-  # ADT underwear tweak start
-  - ADTTopCap
-  - ADTBottomCap
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTopCap
+  - OnyxBottomCap
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobHeadOfPersonnel
@@ -161,11 +161,11 @@
   - HoPEnvirohelm
   - HoPEnvirosuit
   - HoPEnvirogloves
-  # ADT underwear tweak start
-  - ADTTopHOP
-  - ADTBottomHOP
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTopHOP
+  - OnyxBottomHOP
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 
 # Silicons
@@ -201,11 +201,11 @@
   - AssistantEnvirohelm
   - AssistantEnvirosuit
   - AssistantEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobBartender
@@ -225,11 +225,11 @@
   - BartenderEnvirohelm
   - BartenderEnvirosuit
   - BartenderEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobServiceWorker
@@ -247,11 +247,11 @@
   - ServiceWorkerEnvirohelm
   - ServiceWorkerEnvirosuit
   - ServiceWorkerEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobChef
@@ -272,11 +272,11 @@
   - ChefEnvirohelm
   - ChefEnvirosuit
   - ChefEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobLibrarian
@@ -294,11 +294,11 @@
   - LibrarianEnvirohelm
   - LibrarianEnvirosuit
   - LibrarianEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobLawyer
@@ -317,11 +317,11 @@
   - LawyerEnvirohelm
   - LawyerEnvirosuit
   - LawyerEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobChaplain
@@ -343,11 +343,11 @@
   - ChaplainEnvirohelm
   - ChaplainEnvirosuit
   - ChaplainEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobJanitor
@@ -369,11 +369,11 @@
   - JanitorEnvirohelm
   - JanitorEnvirosuit
   - JanitorEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobBotanist
@@ -393,11 +393,11 @@
   - BotanistEnvirohelm
   - BotanistEnvirosuit
   - BotanistEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobClown
@@ -418,11 +418,11 @@
   - ClownEnvirohelm
   - ClownEnvirosuit
   - ClownEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobMime
@@ -445,11 +445,11 @@
   - MimeEnvirohelm
   - MimeEnvirosuit
   - MimeEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobMusician
@@ -470,11 +470,11 @@
   - MusicianEnvirohelm
   - MusicianEnvirosuit
   - MusicianEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 # Cargo
 - type: roleLoadout
@@ -497,11 +497,11 @@
   - QuartermasterEnvirohelm
   - QuartermasterEnvirosuit
   - QuartermasterEnvirogloves
-  # ADT underwear tweak start
-  - ADTTopQM
-  - ADTBottomQM
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTopQM
+  - OnyxBottomQM
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobCargoTechnician
@@ -522,11 +522,11 @@
   - CargoTechnicianEnvirohelm
   - CargoTechnicianEnvirosuit
   - CargoTechnicianEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobSalvageSpecialist
@@ -547,11 +547,11 @@
   - SalvageEnvirohelm
   - SalvageEnvirosuit
   - SalvageEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 # Engineering
 - type: roleLoadout
@@ -573,11 +573,11 @@
   - ChiefEngineerEnvirohelm
   - ChiefEngineerEnvirosuit
   - ChiefEngineerEnvirogloves
-  # ADT underwear tweak start
-  - ADTTopCE
-  - ADTBottomCE
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTopCE
+  - OnyxBottomCE
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobTechnicalAssistant
@@ -594,11 +594,11 @@
   - TechnicalAssistantEnvirohelm
   - TechnicalAssistantEnvirosuit
   - TechnicalAssistantEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobStationEngineer
@@ -620,11 +620,11 @@
   - StationEngineerEnvirohelm
   - StationEngineerEnvirosuit
   - StationEngineerEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobAtmosphericTechnician
@@ -645,11 +645,11 @@
   - AtmosEnvirohelm
   - AtmosEnvirosuit
   - AtmosEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 # Science
 - type: roleLoadout
@@ -673,11 +673,11 @@
   - ResearchDirectorEnvirosuit
   - ResearchDirectorEnvirohelm
   - ResearchDirectorEnvirogloves
-  # ADT underwear tweak start
-  - ADTTopRD
-  - ADTBottomRD
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTopRD
+  - OnyxBottomRD
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobScientist
@@ -701,11 +701,11 @@
   - ScientistEnvirohelm
   - ScientistEnvirosuit
   - ScientistEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobResearchAssistant
@@ -723,11 +723,11 @@
   - ResearchAssistantEnvirohelm
   - ResearchAssistantEnvirosuit
   - ResearchAssistantEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 # Security
 - type: roleLoadout
@@ -752,11 +752,11 @@
   - HeadofSecurityEnvirohelm
   - HeadofSecurityEnvirosuit
   - HeadofSecurityEnvirogloves
-  # ADT underwear tweak start
-  - ADTTopHOS
-  - ADTBottomHOS
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTopHOS
+  - OnyxBottomHOS
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobWarden
@@ -779,11 +779,11 @@
   - WardenEnvirohelm
   - WardenEnvirosuit
   - WardenEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobSecurityOfficer
@@ -807,11 +807,11 @@
   - SecurityOfficerEnvirohelm
   - SecurityOfficerEnvirosuit
   - SecurityOfficerEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobDetective
@@ -833,11 +833,11 @@
   - DetectiveEnvirohelm
   - DetectiveEnvirosuit
   - DetectiveEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobSecurityCadet
@@ -856,11 +856,11 @@
   - SecurityCadetEnvirohelm
   - SecurityCadetEnvirosuit
   - SecurityCadetEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 # Medical
 - type: roleLoadout
@@ -885,11 +885,11 @@
   - ChiefMedicalOfficerEnvirohelm
   - ChiefMedicalOfficerEnvirosuit
   - ChiefMedicalOfficerEnvirogloves
-  # ADT underwear tweak start
-  - ADTTopCMO
-  - ADTBottomCMO
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTopCMO
+  - OnyxBottomCMO
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobMedicalDoctor
@@ -913,11 +913,11 @@
   - MedicalDoctorEnvirohelm
   - MedicalDoctorEnvirosuit
   - MedicalDoctorEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobMedicalIntern
@@ -935,11 +935,11 @@
   - MedicalInternEnvirohelm
   - MedicalInternEnvirosuit
   - MedicalInternEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobChemist
@@ -961,11 +961,11 @@
   - ChemistEnvirohelm
   - ChemistEnvirosuit
   - ChemistEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobParamedic
@@ -988,11 +988,11 @@
   - ParamedicEnvirohelm
   - ParamedicEnvirosuit
   - ParamedicEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 # Wildcards
 - type: roleLoadout
@@ -1012,11 +1012,11 @@
   - ZookeeperEnvirohelm
   - ZookeeperEnvirosuit
   - ZookeeperEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobReporter
@@ -1035,11 +1035,11 @@
   - ReporterEnvirohelm
   - ReporterEnvirosuit
   - ReporterEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobPsychologist
@@ -1057,11 +1057,11 @@
   - PsychologistEnvirohelm
   - PsychologistEnvirosuit
   - PsychologistEnvirogloves
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 - type: roleLoadout
   id: JobBoxer
@@ -1079,11 +1079,11 @@
   # Goobstation - EE Plasmeme Change.
   - BoxerEnvirohelm
   - BoxerEnvirosuit
-  # ADT underwear tweak start
-  - ADTTop
-  - ADTBottom
-  - ADTSocks
-  # ADT underwear tweak end
+  # <Onyx-Underwear>
+  - OnyxTop
+  - OnyxBottom
+  - OnyxSocks
+  # </Onyx-Underwear>
 
 # These loadouts are used for non-crew spawns, like off-station antags and event mobs
 # They will be used without player configuration, thus they will only ever apply what is forced by MinLimit
