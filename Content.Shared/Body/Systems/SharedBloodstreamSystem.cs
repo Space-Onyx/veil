@@ -14,6 +14,7 @@ using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Chemistry.Reaction;
 using Content.Shared.Chemistry.Reagent;
+using Content.Shared._Onyx.Clothing;
 using Content.Shared.Damage;
 using Content.Shared.Drunk;
 using Content.Shared.Fluids;
@@ -47,6 +48,7 @@ public abstract partial class SharedBloodstreamSystem : EntitySystem
     [Dependency] private readonly DamageableSystem _damageableSystem = default!;
     [Dependency] private readonly SharedDrunkSystem _drunkSystem = default!;
     [Dependency] private readonly SharedStutteringSystem _stutteringSystem = default!;
+    [Dependency] private readonly ClothingDirtSystem _clothingDirt = default!; // <Onyx-ClothingDirt>
 
     private float _bloodlossMultiplier = 4f; // Goobstation
 
@@ -96,6 +98,14 @@ public abstract partial class SharedBloodstreamSystem : EntitySystem
             // as well as stop their bleeding to a certain extent.
             if (bloodstream.BleedAmount > 0)
             {
+                // <Onyx-ClothingDirt>
+                var bloodDirt = _clothingDirt.MakeBloodDirt(
+                    bloodstream.BloodReagent,
+                    FixedPoint2.Min(FixedPoint2.New(bloodstream.BleedAmount), FixedPoint2.New(1)),
+                    GetEntityBloodData(uid));
+                _clothingDirt.TryDirtyWorn(uid, bloodDirt, bloodDirt.Volume, ClothingDirtSystem.BleedSlots);
+                // </Onyx-ClothingDirt>
+
                 // Blood is removed from the bloodstream at a 1-1 rate with the bleed amount
                 TryModifyBloodLevel((uid, bloodstream), -bloodstream.BleedAmount);
                 // Bleed rate is reduced by the bleed reduction amount in the bloodstream component.

@@ -16,6 +16,7 @@ using System.Numerics;
 using Content.Goobstation.Common.Footprints;
 using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.EntitySystems;
+using Content.Shared._Onyx.Clothing;
 using Content.Goobstation.Maths.FixedPoint;
 using Content.Shared.Fluids;
 using Content.Shared.Fluids.Components;
@@ -40,6 +41,7 @@ public sealed class FootprintSystem : EntitySystem
     [Dependency] private readonly GravitySystem _gravity = default!;
     [Dependency] private readonly IPrototypeManager _prototype = default!;
     [Dependency] private readonly IConfigurationManager _configuration = default!;
+    [Dependency] private readonly ClothingDirtSystem _clothingDirt = default!; // <Onyx-ClothingDirt>
 
     private EntityQuery<NoFootprintsComponent> _noFootprintsQuery = default!;
 
@@ -150,6 +152,12 @@ public sealed class FootprintSystem : EntitySystem
         }
         var addBack = puddleSolSol.SplitSolutionWithOnly(puddleSolSol.Volume, nonStickProtos.ToArray());
 
+        // <Onyx-ClothingDirt>
+        _clothingDirt.TryDirtyWorn(entity.Owner,
+            puddleSolSol,
+            FixedPoint2.Min(puddleSolSol.Volume, FixedPoint2.New(1)),
+            ClothingDirtSystem.PuddleStepSlots);
+        // </Onyx-ClothingDirt>
         _solution.TryTransferSolution(puddleSolution.Value, solution.Value.Comp.Solution, GetFootprintVolume(entity, solution.Value));
 
         // only make footprints if a puddle contains enough of a reagent that can form footprints

@@ -114,6 +114,7 @@ using Content.Shared.Chemistry.Components.SolutionManager;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Chemistry.Reaction;
 using Content.Shared.Chemistry.Reagent;
+using Content.Shared._Onyx.Clothing;
 using Content.Shared.Database;
 using Content.Shared.Effects;
 using Content.Goobstation.Maths.FixedPoint;
@@ -162,6 +163,7 @@ public sealed partial class PuddleSystem : SharedPuddleSystem
     [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly TurfSystem _turf = default!;
     [Dependency] private readonly AtmosphereSystem _atmos = default!; // <Onyx>
+    [Dependency] private readonly ClothingDirtSystem _clothingDirt = default!; // <Onyx-ClothingDirt>
 
 
     [ValidatePrototypeId<ReagentPrototype>]
@@ -743,6 +745,12 @@ public sealed partial class PuddleSystem : SharedPuddleSystem
             }
 
             targets.Add(owner);
+            // <Onyx-ClothingDirt>
+            _clothingDirt.TryDirtyWorn(owner,
+                splitSolution,
+                FixedPoint2.Min(splitSolution.Volume, FixedPoint2.New(1)),
+                ClothingDirtSystem.SplashSlots);
+            // </Onyx-ClothingDirt>
             _reactive.DoEntityReaction(owner, splitSolution, ReactionMethod.Touch);
             _popups.PopupEntity(
                 Loc.GetString("spill-land-spilled-on-other", ("spillable", uid),

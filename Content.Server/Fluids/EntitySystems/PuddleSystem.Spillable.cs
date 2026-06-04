@@ -60,6 +60,7 @@ using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Chemistry.Reaction;
 using Content.Shared.Chemistry;
+using Content.Shared._Onyx.Clothing;
 using Content.Shared.Database;
 using Content.Goobstation.Maths.FixedPoint;
 using Content.Shared.Fluids.Components;
@@ -148,6 +149,12 @@ public sealed partial class PuddleSystem
             var splitSolution = _solutionContainerSystem.SplitSolution(soln.Value, totalSplit / hitCount);
 
             _adminLogger.Add(LogType.MeleeHit, $"{ToPrettyString(args.User)} splashed {SharedSolutionContainerSystem.ToPrettyString(splitSolution):solution} from {ToPrettyString(entity.Owner):entity} onto {ToPrettyString(hit):target}");
+            // <Onyx-ClothingDirt>
+            _clothingDirt.TryDirtyWorn(hit,
+                splitSolution,
+                FixedPoint2.Min(splitSolution.Volume, FixedPoint2.New(1)),
+                ClothingDirtSystem.SplashSlots);
+            // </Onyx-ClothingDirt>
             _reactive.DoEntityReaction(hit, splitSolution, ReactionMethod.Touch);
 
             _popups.PopupEntity(
