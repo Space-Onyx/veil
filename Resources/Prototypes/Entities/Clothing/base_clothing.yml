@@ -53,9 +53,9 @@
   # <Onyx-ClothingDirt>
   - type: ClothingDirtable
   - type: SolutionContainerManager
-        solutions:
-          dirt:
-            maxVol: 10
+    solutions:
+      dirt:
+        maxVol: 10
   # <Onyx-ClothingDirt>
 
 - type: entity

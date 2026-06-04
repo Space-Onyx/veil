@@ -241,6 +241,15 @@ namespace Content.Shared.Chemistry.Reagent
         [DataField]
         public bool Absorbent = false;
 
+        // <Onyx-ClothingDirt>
+        /// <summary>
+        /// How effectively this reagent removes clothing stains.
+        /// 1 means one unit of this reagent washes one unit of stains.
+        /// </summary>
+        [DataField]
+        public FixedPoint2 ClothingDirtCleanMultiplier = FixedPoint2.Zero;
+        // </Onyx-ClothingDirt>
+
         /// <summary>
         /// How easily this reagent becomes fizzy when aggitated.
         /// 0 - completely flat, 1 - fizzes up when nudged.

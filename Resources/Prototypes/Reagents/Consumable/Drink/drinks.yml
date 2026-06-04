@@ -545,6 +545,7 @@
   desc: reagent-desc-water
   evaporationSpeed: 0.3
   absorbent: true
+  clothingDirtCleanMultiplier: 1 # <Onyx-ClothingDirt>
   physicalDesc: reagent-physical-desc-translucent
   flavor: water
   color: "#75b1f0"

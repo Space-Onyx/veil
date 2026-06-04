@@ -1,4 +1,5 @@
 using Content.Goobstation.Maths.FixedPoint;
+using Content.Shared._Goobstation.Heretic.Components;
 using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Chemistry.Reagent;
@@ -20,6 +21,13 @@ public sealed class ClothingDirtSystem : EntitySystem
     public static readonly SlotFlags PuddleStepSlots = SlotFlags.INNERCLOTHING | SlotFlags.FEET;
     public static readonly SlotFlags BleedSlots = SlotFlags.INNERCLOTHING;
 
+    private static readonly SlotFlags WornExamineSlots =
+        SlotFlags.HEAD | SlotFlags.EYES | SlotFlags.EARS | SlotFlags.MASK |
+        SlotFlags.OUTERCLOTHING | SlotFlags.INNERCLOTHING | SlotFlags.NECK |
+        SlotFlags.BACK | SlotFlags.BELT | SlotFlags.GLOVES | SlotFlags.IDCARD |
+        SlotFlags.LEGS | SlotFlags.FEET | SlotFlags.SUITSTORAGE | SlotFlags.RING |
+        SlotFlags.UNDERWEART | SlotFlags.UNDERWEARB | SlotFlags.SOCKS;
+
     [Dependency] private readonly InventorySystem _inventory = default!;
     [Dependency] private readonly INetManager _net = default!;
     [Dependency] private readonly IPrototypeManager _prototype = default!;
@@ -33,6 +41,7 @@ public sealed class ClothingDirtSystem : EntitySystem
 
         SubscribeLocalEvent<ClothingDirtableComponent, MapInitEvent>(OnMapInit);
         SubscribeLocalEvent<ClothingDirtableComponent, ExaminedEvent>(OnExamined);
+        SubscribeLocalEvent<InventoryComponent, ExaminedEvent>(OnInventoryExamined);
     }
 
     public override void Update(float frameTime)
@@ -90,6 +99,26 @@ public sealed class ClothingDirtSystem : EntitySystem
             ("chemCount", solution.Contents.Count)));
     }
 
+    private void OnInventoryExamined(Entity<InventoryComponent> ent, ref ExaminedEvent args)
+    {
+        if (!args.IsInDetailsRange
+            || !_inventory.TryGetContainerSlotEnumerator(ent.Owner, out var enumerator, WornExamineSlots))
+            return;
+
+        while (enumerator.NextItem(out var item))
+        {
+            if (HasComp<StripMenuInvisibleComponent>(item))
+                continue;
+
+            if (!IsDirtyClothing(item))
+                continue;
+
+            args.PushMarkup(Loc.GetString("clothing-dirtable-worn-examine",
+                ("target", ent.Owner)));
+            return;
+        }
+    }
+
     public bool TryDirtyClothing(
         EntityUid clothing,
         Solution source,
@@ -114,6 +143,13 @@ public sealed class ClothingDirtSystem : EntitySystem
 
         component.DryingActive = HasDryableDirt(dirt, component);
         return true;
+    }
+
+    private bool IsDirtyClothing(EntityUid clothing, ClothingDirtableComponent? component = null)
+    {
+        return Resolve(clothing, ref component, logMissing: false)
+               && _solutions.TryGetSolution(clothing, component.Solution, out _, out var solution)
+               && solution.Volume > FixedPoint2.Zero;
     }
 
     private Solution MakeCappedDirtSample(
@@ -165,10 +201,13 @@ public sealed class ClothingDirtSystem : EntitySystem
         }
 
         var dried = false;
+        dried |= WashDirt(dirt);
+
         for (var i = dirt.Contents.Count - 1; i >= 0; i--)
         {
             var reagent = dirt.Contents[i];
-            var excess = reagent.Quantity - ent.Comp.DryMinimum;
+            var dryMinimum = GetDryMinimum(reagent.Reagent, ent.Comp);
+            var excess = reagent.Quantity - dryMinimum;
             if (excess <= FixedPoint2.Zero)
                 continue;
 
@@ -185,11 +224,132 @@ public sealed class ClothingDirtSystem : EntitySystem
             ent.Comp.DryAccumulator = 0f;
     }
 
+    private bool WashDirt(Solution dirt)
+    {
+        var cleaners = GetDirtCleaners(dirt);
+        if (cleaners.Count == 0)
+            return false;
+
+        var washableVolume = GetWashableDirtVolume(dirt, cleaners);
+        if (washableVolume <= FixedPoint2.Zero)
+            return false;
+
+        var washed = false;
+        foreach (var cleaner in cleaners)
+        {
+            if (washableVolume <= FixedPoint2.Zero)
+                break;
+
+            var cleanCapacity = cleaner.Quantity * cleaner.CleanMultiplier;
+            var washAmount = FixedPoint2.Min(cleanCapacity, washableVolume);
+            if (washAmount <= FixedPoint2.Zero)
+                continue;
+
+            var removed = RemoveWashableDirt(dirt, cleaners, washAmount, washableVolume);
+            if (removed <= FixedPoint2.Zero)
+                continue;
+
+            var cleanerUsed = FixedPoint2.Min(cleaner.Quantity, removed / cleaner.CleanMultiplier);
+            dirt.RemoveReagent(cleaner.Reagent, cleanerUsed);
+            washableVolume -= removed;
+            washed = true;
+        }
+
+        return washed;
+    }
+
     private bool HasDryableDirt(Solution dirt, ClothingDirtableComponent component)
     {
+        if (CanWashDirt(dirt))
+            return true;
+
         foreach (var reagent in dirt.Contents)
         {
-            if (reagent.Quantity > component.DryMinimum)
+            if (reagent.Quantity > GetDryMinimum(reagent.Reagent, component))
+                return true;
+        }
+
+        return false;
+    }
+
+    private FixedPoint2 GetDryMinimum(ReagentId reagent, ClothingDirtableComponent component)
+    {
+        return _prototype.Resolve<ReagentPrototype>(reagent.Prototype, out var prototype)
+               && prototype.EvaporationSpeed > FixedPoint2.Zero
+            ? FixedPoint2.Zero
+            : component.DryMinimum;
+    }
+
+    private bool CanWashDirt(Solution dirt)
+    {
+        var cleaners = GetDirtCleaners(dirt);
+        return cleaners.Count > 0 && GetWashableDirtVolume(dirt, cleaners) > FixedPoint2.Zero;
+    }
+
+    private List<DirtCleaner> GetDirtCleaners(Solution dirt)
+    {
+        var cleaners = new List<DirtCleaner>();
+        foreach (var reagent in dirt.Contents)
+        {
+            if (reagent.Quantity <= FixedPoint2.Zero
+                || !_prototype.Resolve<ReagentPrototype>(reagent.Reagent.Prototype, out var prototype)
+                || prototype.ClothingDirtCleanMultiplier <= FixedPoint2.Zero)
+                continue;
+
+            cleaners.Add(new DirtCleaner(reagent.Reagent, reagent.Quantity, prototype.ClothingDirtCleanMultiplier));
+        }
+
+        return cleaners;
+    }
+
+    private FixedPoint2 GetWashableDirtVolume(Solution dirt, List<DirtCleaner> cleaners)
+    {
+        var washableVolume = FixedPoint2.Zero;
+        foreach (var reagent in dirt.Contents)
+        {
+            if (IsCleanerReagent(reagent.Reagent, cleaners))
+                continue;
+
+            washableVolume += reagent.Quantity;
+        }
+
+        return washableVolume;
+    }
+
+    private FixedPoint2 RemoveWashableDirt(
+        Solution dirt,
+        List<DirtCleaner> cleaners,
+        FixedPoint2 amount,
+        FixedPoint2 washableVolume)
+    {
+        var removedTotal = FixedPoint2.Zero;
+        var remaining = amount;
+        var contents = new List<ReagentQuantity>(dirt.Contents);
+        foreach (var reagent in contents)
+        {
+            if (remaining <= FixedPoint2.Zero)
+                break;
+
+            if (IsCleanerReagent(reagent.Reagent, cleaners))
+                continue;
+
+            var remove = FixedPoint2.Min(reagent.Quantity / washableVolume * amount, reagent.Quantity, remaining);
+            if (remove <= FixedPoint2.Zero)
+                continue;
+
+            var removed = dirt.RemoveReagent(reagent.Reagent, remove);
+            removedTotal += removed;
+            remaining -= removed;
+        }
+
+        return removedTotal;
+    }
+
+    private static bool IsCleanerReagent(ReagentId reagent, List<DirtCleaner> cleaners)
+    {
+        foreach (var cleaner in cleaners)
+        {
+            if (cleaner.Reagent.Equals(reagent))
                 return true;
         }
 
@@ -235,4 +395,6 @@ public sealed class ClothingDirtSystem : EntitySystem
         solution.AddReagent(new ReagentId(reagent, data), amount);
         return solution;
     }
+
+    private readonly record struct DirtCleaner(ReagentId Reagent, FixedPoint2 Quantity, FixedPoint2 CleanMultiplier);
 }
