@@ -1,0 +1,14 @@
+- type: entity
+  suffix: cerebrogen
+  parent: Beaker
+  id: CerebrogenBeakerSmall
+  components:
+  - type: Label
+    currentLabel: reagent-name-onyx-cerebrogen
+  - type: SolutionContainerManager
+    solutions:
+      beaker:
+        maxVol: 50
+        reagents:
+        - ReagentId: Cerebrogen
+          Quantity: 50

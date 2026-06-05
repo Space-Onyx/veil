@@ -1,0 +1,36 @@
+- type: reagent
+  id: Cerebrogen
+  name: reagent-name-onyx-cerebrogen
+  group: Medicine
+  desc: reagent-desc-onyx-cerebrogen
+  physicalDesc: reagent-physical-desc-translucent
+  flavor: medicine
+  color: "#cb8bff"
+  worksOnTheDead: true
+  metabolisms:
+    Medicine:
+      effects:
+        - !type:RestoreOrganIntegrity
+          organ: Brain
+          identifier: Cerebrogen
+          percentPerUnit: 0.01
+          conditions:
+          - !type:Temperature
+            max: 140.0
+
+- type: reagent
+  id: CerebrogenUltra
+  name: reagent-name-onyx-cerebrogenultra
+  group: Medicine
+  desc: reagent-desc-onyx-cerebrogenultra
+  physicalDesc: reagent-physical-desc-translucent
+  flavor: medicine
+  color: "#cb8bff"
+  worksOnTheDead: true
+  metabolisms:
+    Medicine:
+      effects:
+        - !type:RestoreOrganIntegrity
+          organ: Brain
+          identifier: CerebrogenUltra
+          percentPerUnit: 0.01

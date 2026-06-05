@@ -1,0 +1,10 @@
+- type: reaction
+  id: Cerebrogen
+  impact: Medium
+  reactants:
+    Opporozidone:
+      amount: 2
+    Cognizine:
+      amount: 1
+  products:
+    Cerebrogen: 3
