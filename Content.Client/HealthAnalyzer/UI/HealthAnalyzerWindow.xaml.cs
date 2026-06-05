@@ -361,6 +361,23 @@ namespace Content.Client.HealthAnalyzer.UI
                 }
             }
 
+            // <Onyx-PainFix>
+            foreach (var (woundablePain, pain) in msg.PartPain)
+            {
+                if (pain <= FixedPoint2.Zero
+                    || !TryGetEntityName(woundablePain, out var woundableName)
+                    || isPart
+                    && woundablePain != msg.SelectedPart)
+                    continue;
+
+                ConditionsListContainer.AddChild(new RichTextLabel
+                {
+                    Text = Loc.GetString("condition-body-pain", ("woundable", woundableName), ("pain", pain)),
+                    Margin = new Thickness(0, 4),
+                });
+            }
+            // </Onyx-PainFix>
+
             /*foreach (var (woundablePain, pain) in msg.NervePainFeels)
             {
                 if (pain == 1.0

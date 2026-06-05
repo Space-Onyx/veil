@@ -313,6 +313,9 @@
         - !type:OrganType # Goobstation - Yowie
           type: Yowie
           shouldHave: false
+      - !type:SuppressPain # <Onyx-PainFix> - alcohol weakly dulls pain.
+        amount: 0.25
+        time: 10
       - !type:Drunk
         boozePower: 2
 

@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Content.Shared._Shitmed.Medical.Surgery.Consciousness.Systems;
+using Content.Shared._Shitmed.Medical.Surgery.Pain;
 using Content.Shared._Shitmed.Medical.Surgery.Pain.Systems;
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
@@ -14,6 +15,9 @@ namespace Content.Shared.EntityEffects.Effects;
 [UsedImplicitly]
 public sealed partial class SuppressPain : EntityEffect
 {
+    private const string WoundModifierSuffix = "_wound"; // <Onyx-PainFix>
+    private const string TraumaModifierSuffix = "_trauma"; // <Onyx-PainFix>
+
     [DataField(required: true)]
     [JsonPropertyName("amount")]
     public FixedPoint2 Amount = default!;
@@ -47,17 +51,56 @@ public sealed partial class SuppressPain : EntityEffect
 
         if (bodyPart == null)
             return;
+        // <Onyx-PainFix Edited>
+        var painSystem = args.EntityManager.System<PainSystem>();
+        var painChange = -Amount * scale;
+        var woundModifierIdentifier = $"{ModifierIdentifier}{WoundModifierSuffix}";
+        var traumaModifierIdentifier = $"{ModifierIdentifier}{TraumaModifierSuffix}";
 
-        if (!args.EntityManager.System<PainSystem>()
-                .TryGetPainModifier(nerveSys.Value, bodyPart.Value.Id, ModifierIdentifier, out var modifier))
+        var hasWoundModifier = painSystem.TryGetPainModifier(
+            nerveSys.Value,
+            bodyPart.Value.Id,
+            woundModifierIdentifier,
+            out var woundModifier);
+        var hasTraumaModifier = painSystem.TryGetPainModifier(
+            nerveSys.Value,
+            bodyPart.Value.Id,
+            traumaModifierIdentifier,
+            out var traumaModifier);
+
+        if (!hasWoundModifier && !hasTraumaModifier)
         {
-            args.EntityManager.System<PainSystem>()
-                .TryAddPainModifier(nerveSys.Value, bodyPart.Value.Id, ModifierIdentifier, -Amount * scale, time: Time);
+            painSystem.TryAddPainModifier(
+                nerveSys.Value,
+                bodyPart.Value.Id,
+                ModifierIdentifier,
+                painChange,
+                time: Time);
+
+            return;
         }
-        else
+
+        if (hasWoundModifier && woundModifier != null)
         {
-            args.EntityManager.System<PainSystem>()
-                .TryChangePainModifier(nerveSys.Value, bodyPart.Value.Id, ModifierIdentifier, modifier.Value.Change - Amount * scale, time: Time);
+            painSystem.TryChangePainModifier(
+                nerveSys.Value,
+                bodyPart.Value.Id,
+                woundModifierIdentifier,
+                woundModifier.Value.Change + painChange,
+                time: Time,
+                painType: PainDamageTypes.WoundPain);
+        }
+
+        if (hasTraumaModifier && traumaModifier != null)
+        {
+            painSystem.TryChangePainModifier(
+                nerveSys.Value,
+                bodyPart.Value.Id,
+                traumaModifierIdentifier,
+                traumaModifier.Value.Change + painChange,
+                time: Time,
+                painType: PainDamageTypes.TraumaticPain);
+        // </Onyx-PainFix Edited>
         }
     }
 }

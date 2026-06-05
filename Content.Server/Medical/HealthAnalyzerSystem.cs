@@ -128,6 +128,8 @@ using Robust.Shared.Timing;
 
 // Shitmed Change
 using Content.Shared._Shitmed.Medical.HealthAnalyzer;
+using Content.Shared._Shitmed.Medical.Surgery.Consciousness.Systems;
+using Content.Shared._Shitmed.Medical.Surgery.Pain;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
@@ -162,6 +164,7 @@ public sealed class HealthAnalyzerSystem : EntitySystem
     [Dependency] private readonly WoundSystem _woundSystem = default!; // Shitmed Change
     [Dependency] private readonly TraumaSystem _trauma = default!; // Shitmed Change
     [Dependency] private readonly MobThresholdSystem _threshold = default!; // Goobstation
+    [Dependency] private readonly ConsciousnessSystem _consciousness = default!; // <Onyx-PainFix>
 
     public override void Initialize()
     {
@@ -404,7 +407,7 @@ public sealed class HealthAnalyzerSystem : EntitySystem
         {
             case HealthAnalyzerMode.Body:
                 var unrevivable = false;
-                FetchBodyData(target, body, out var traumas, out var pain, out bleeding);
+                FetchBodyData(target, body, out var traumas, out var partPain, out bleeding); // <Onyx-PainFix Edited>
                 if (TryComp<UnrevivableComponent>(target, out var unrevivableComp) && unrevivableComp.Analyzable)
                     unrevivable = true;
 
@@ -418,7 +421,7 @@ public sealed class HealthAnalyzerSystem : EntitySystem
                     bleeding,
                     vitalDamage, // Goobstation
                     traumas,
-                    pain,
+                    partPain, // <Onyx-PainFix Edited>
                     part != null ? GetNetEntity(part) : null
                 ));
                 break;
@@ -458,22 +461,41 @@ public sealed class HealthAnalyzerSystem : EntitySystem
     private void FetchBodyData(EntityUid target,
         BodyComponent body,
         out Dictionary<NetEntity, List<WoundableTraumaData>> traumas,
-        out Dictionary<NetEntity, FixedPoint2> pain,
+        out Dictionary<NetEntity, FixedPoint2> partPain, // <Onyx-PainFix Edited>
         out Dictionary<TargetBodyPart, bool> bleeding)
     {
         traumas = new();
-        pain = new();
+        partPain = new(); // <Onyx-PainFix Edited>
         bleeding = new();
 
         if (body.RootContainer.ContainedEntity is not { } rootPart)
             return;
 
-        foreach (var (woundable, component) in _woundSystem.GetAllWoundableChildren(rootPart))
+        // <Onyx-PainFix Edited>
+        NerveSystemComponent? nerveSystem = null;
+        if (_consciousness.TryGetNerveSystem(target, out var nerveSys))
+            nerveSystem = nerveSys.Value.Comp;
+
+        var woundables = _woundSystem.GetAllWoundableChildren(rootPart).ToList();
+        var rawPainByPart = FetchRawPainData(nerveSystem);
+        var totalRawPain = FixedPoint2.Zero;
+        var totalPainSuppression = FixedPoint2.Zero;
+
+        foreach (var (_, pain) in rawPainByPart)
+        {
+            if (pain > FixedPoint2.Zero)
+                totalRawPain += pain;
+            else
+                totalPainSuppression -= pain;
+        }
+
+        foreach (var (woundable, component) in woundables)
         {
             traumas.Add(GetNetEntity(woundable), FetchTraumaData(woundable, component));
-            pain.Add(GetNetEntity(woundable), FetchPainData(woundable, component));
+            partPain.Add(GetNetEntity(woundable), FetchPainData(woundable, rawPainByPart, totalRawPain, totalPainSuppression));
             bleeding.Add(_bodySystem.GetTargetBodyPart(woundable), component.Bleeds > 0);
         }
+        // </Onyx-PainFix Edited>
     }
 
     private Dictionary<TargetBodyPart, bool> FetchBleedData(BodyComponent body)
@@ -516,16 +538,63 @@ public sealed class HealthAnalyzerSystem : EntitySystem
         return traumasList;
     }
 
-    private FixedPoint2 FetchPainData(EntityUid target,
-        WoundableComponent woundable)
+    // <Onyx-PainFix>
+    private Dictionary<EntityUid, FixedPoint2> FetchRawPainData(NerveSystemComponent? nerveSystem)
     {
-        var pain = FixedPoint2.Zero;
+        var rawPainByPart = new Dictionary<EntityUid, FixedPoint2>();
+        if (nerveSystem == null)
+            return rawPainByPart;
 
-        if (!TryComp<NerveComponent>(target, out var nerve))
+        foreach (var ((nerveUid, _), modifier) in nerveSystem.Modifiers)
+        {
+            if (!TryComp<NerveComponent>(nerveUid, out var nerve))
+                continue;
+
+            var pain = ApplyPainModifiers(modifier.Change, modifier.PainDamageType, nerve, nerveSystem);
+            rawPainByPart[nerveUid] = rawPainByPart.GetValueOrDefault(nerveUid) + pain;
+        }
+
+        return rawPainByPart;
+    }
+
+    private FixedPoint2 FetchPainData(
+        EntityUid target,
+        Dictionary<EntityUid, FixedPoint2> rawPainByPart,
+        FixedPoint2 totalRawPain,
+        FixedPoint2 totalPainSuppression)
+    {
+        if (!rawPainByPart.TryGetValue(target, out var pain)
+            || pain <= FixedPoint2.Zero)
+            return FixedPoint2.Zero;
+
+        if (totalRawPain <= FixedPoint2.Zero
+            || totalPainSuppression <= FixedPoint2.Zero)
             return pain;
 
-        return nerve.PainFeels;
+        pain -= totalPainSuppression * pain / totalRawPain;
+        return pain < FixedPoint2.Zero ? FixedPoint2.Zero : pain;
     }
+
+    private FixedPoint2 ApplyPainModifiers(
+        FixedPoint2 pain,
+        PainDamageTypes painType,
+        NerveComponent nerve,
+        NerveSystemComponent nerveSystem)
+    {
+        var modifiedPain = pain * nerve.PainMultiplier;
+        if (nerveSystem.Multipliers.Count == 0)
+            return modifiedPain;
+
+        var multiplier = FixedPoint2.Zero;
+        foreach (var (_, painMultiplier) in nerveSystem.Multipliers)
+        {
+            if (painMultiplier.PainDamageType == painType)
+                multiplier += painMultiplier.Change;
+        }
+
+        return modifiedPain * multiplier / nerveSystem.Multipliers.Count;
+    }
+    // </Onyx-PainFix>
 
     private Dictionary<NetEntity, OrganTraumaData> FetchOrganData(EntityUid target)
     {

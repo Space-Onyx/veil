@@ -54,7 +54,7 @@ public sealed class HealthAnalyzerBodyMessage : HealthAnalyzerBaseMessage
     public readonly bool? Unrevivable;
     public readonly NetEntity? SelectedPart;
     public readonly Dictionary<NetEntity, List<WoundableTraumaData>> Traumas;
-    public readonly Dictionary<NetEntity, FixedPoint2> NervePainFeels;
+    public readonly Dictionary<NetEntity, FixedPoint2> PartPain; // <Onyx-PainFix Edited>
 
     public HealthAnalyzerBodyMessage(
         NetEntity? targetEntity,
@@ -66,14 +66,14 @@ public sealed class HealthAnalyzerBodyMessage : HealthAnalyzerBaseMessage
         Dictionary<TargetBodyPart, bool> bleeding,
         FixedPoint2 vitalDamage,  // Goobstation
         Dictionary<NetEntity, List<WoundableTraumaData>> traumas,
-        Dictionary<NetEntity, FixedPoint2> nervePainFeels,
+        Dictionary<NetEntity, FixedPoint2> partPain, // <Onyx-PainFix Edited>
         NetEntity? selectedPart = null)
         : base(targetEntity, temperature, bloodLevel, scanMode, HealthAnalyzerMode.Body, body, bleeding, vitalDamage)  // Goobstation
     {
         Unrevivable = unrevivable;
         SelectedPart = selectedPart;
         Traumas = traumas;
-        NervePainFeels = nervePainFeels;
+        PartPain = partPain; // <Onyx-PainFix Edited>
     }
 }
 
