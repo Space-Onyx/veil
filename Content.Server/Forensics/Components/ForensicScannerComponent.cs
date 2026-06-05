@@ -84,6 +84,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System.Threading;
+using Content.Shared.Forensics;
 using Robust.Shared.Audio;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype;
@@ -119,6 +120,14 @@ namespace Content.Server.Forensics
         /// </summary>
         [ViewVariables(VVAccess.ReadOnly), DataField]
         public List<(string, TimeSpan)> SolutionDNAs = new(); // Goobstation
+
+        // <Onyx-ClothingDirt>
+        /// <summary>
+        /// DNA from blood reagents stored as clothing dirt.
+        /// </summary>
+        [ViewVariables(VVAccess.ReadOnly), DataField]
+        public List<ForensicClothingBloodDna> ClothingBloodDNAs = new();
+        // </Onyx-ClothingDirt>
 
         /// <summary>
         /// Residue that the forensic scanner found from the <see cref="ForensicsComponent"/> on an entity.

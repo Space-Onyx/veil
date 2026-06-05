@@ -153,10 +153,28 @@ public sealed class FootprintSystem : EntitySystem
         var addBack = puddleSolSol.SplitSolutionWithOnly(puddleSolSol.Volume, nonStickProtos.ToArray());
 
         // <Onyx-ClothingDirt>
-        _clothingDirt.TryDirtyWorn(entity.Owner,
-            puddleSolSol,
-            FixedPoint2.Min(puddleSolSol.Volume, FixedPoint2.New(1)),
-            ClothingDirtSystem.PuddleStepSlots);
+        var dirtAmount = FixedPoint2.Min(puddleSolSol.Volume, FixedPoint2.New(1));
+        if (standing)
+        {
+            _clothingDirt.TryDirtyWornPreferred(entity.Owner,
+                puddleSolSol,
+                dirtAmount,
+                ClothingDirtSystem.PuddleStepPrimarySlots,
+                ClothingDirtSystem.PuddleStepFallbackSlots);
+        }
+        else
+        {
+            _clothingDirt.TryDirtyWornPreferred(entity.Owner,
+                puddleSolSol,
+                dirtAmount,
+                ClothingDirtSystem.PuddleCrawlPreferredSlots,
+                ClothingDirtSystem.PuddleCrawlFallbackSlots);
+
+            _clothingDirt.TryDirtyWorn(entity.Owner,
+                puddleSolSol,
+                dirtAmount,
+                ClothingDirtSystem.PuddleCrawlAdditionalSlots);
+        }
         // </Onyx-ClothingDirt>
         _solution.TryTransferSolution(puddleSolution.Value, solution.Value.Comp.Solution, GetFootprintVolume(entity, solution.Value));
 

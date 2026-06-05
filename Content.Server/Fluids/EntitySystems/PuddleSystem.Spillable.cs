@@ -150,10 +150,9 @@ public sealed partial class PuddleSystem
 
             _adminLogger.Add(LogType.MeleeHit, $"{ToPrettyString(args.User)} splashed {SharedSolutionContainerSystem.ToPrettyString(splitSolution):solution} from {ToPrettyString(entity.Owner):entity} onto {ToPrettyString(hit):target}");
             // <Onyx-ClothingDirt>
-            _clothingDirt.TryDirtyWorn(hit,
+            _clothingDirt.TryDirtyWornSplash(hit,
                 splitSolution,
-                FixedPoint2.Min(splitSolution.Volume, FixedPoint2.New(1)),
-                ClothingDirtSystem.SplashSlots);
+                FixedPoint2.Min(splitSolution.Volume, FixedPoint2.New(1)));
             // </Onyx-ClothingDirt>
             _reactive.DoEntityReaction(hit, splitSolution, ReactionMethod.Touch);
 

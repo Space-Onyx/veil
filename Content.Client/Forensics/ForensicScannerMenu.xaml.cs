@@ -168,6 +168,14 @@ namespace Content.Client.Forensics
             }
             // Goobstation End
             text.AppendLine();
+            // <Onyx-ClothingDirt>
+            text.AppendLine(Loc.GetString("forensic-scanner-interface-clothing-blood"));
+            foreach (var clothingBloodDna in msg.ClothingBloodDNAs)
+            {
+                text.AppendLine(GetClothingBloodDnaText(clothingBloodDna));
+            }
+            text.AppendLine();
+            // </Onyx-ClothingDirt>
             text.AppendLine(Loc.GetString("forensic-scanner-interface-residues"));
             foreach (var residue in msg.Residues)
             {
@@ -175,5 +183,13 @@ namespace Content.Client.Forensics
             }
             Diagnostics.Text = text.ToString();
         }
+
+        // <Onyx-ClothingDirt>
+        private string GetClothingBloodDnaText(ForensicClothingBloodDna clothingBloodDna)
+        {
+            return Loc.GetString("forensic-scanner-interface-clothing-blood-dna",
+                ("dna", clothingBloodDna.DNA));
+        }
+        // </Onyx-ClothingDirt>
     }
 }

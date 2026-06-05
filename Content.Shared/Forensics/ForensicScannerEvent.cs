@@ -94,6 +94,7 @@ namespace Content.Shared.Forensics
         public readonly List<string> Fibers = new();
         public readonly List<(string, TimeSpan)> TouchDNAs = new(); // Goobstation
         public readonly List<(string, TimeSpan)> SolutionDNAs = new(); // Goobstation
+        public readonly List<ForensicClothingBloodDna> ClothingBloodDNAs = new(); // <Onyx-ClothingDirt>
         public readonly List<string> Residues = new();
         public readonly string LastScannedName = string.Empty;
         public readonly TimeSpan PrintCooldown = TimeSpan.Zero;
@@ -104,6 +105,7 @@ namespace Content.Shared.Forensics
             List<string> fibers,
             List<(string, TimeSpan)> touchDnas, // Goobstation
             List<(string, TimeSpan)> solutionDnas, // Goobstation
+            List<ForensicClothingBloodDna> clothingBloodDnas, // <Onyx-ClothingDirt>
             List<string> residues,
             string lastScannedName,
             TimeSpan printCooldown,
@@ -113,12 +115,16 @@ namespace Content.Shared.Forensics
             Fibers = fibers;
             TouchDNAs = touchDnas;
             SolutionDNAs = solutionDnas;
+            ClothingBloodDNAs = clothingBloodDnas; // <Onyx-ClothingDirt>
             Residues = residues;
             LastScannedName = lastScannedName;
             PrintCooldown = printCooldown;
             PrintReadyAt = printReadyAt;
         }
     }
+
+    [Serializable, NetSerializable]
+    public readonly record struct ForensicClothingBloodDna(string DNA); // <Onyx-ClothingDirt>
 
     [Serializable, NetSerializable]
     public enum ForensicScannerUiKey : byte

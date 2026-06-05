@@ -1,10 +1,10 @@
 using Content.Goobstation.Maths.FixedPoint;
-using Content.Shared._Goobstation.Heretic.Components;
 using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Chemistry.Reagent;
 using Content.Shared.Examine;
 using Content.Shared.Inventory;
+using Content.Shared.Item;
 using Robust.Shared.Network;
 using Robust.Shared.Prototypes;
 
@@ -15,24 +15,27 @@ public sealed class ClothingDirtSystem : EntitySystem
     public const string DefaultSolutionName = "dirt";
     private const float DryUpdateInterval = 5f;
 
-    public static readonly SlotFlags SplashSlots =
-        SlotFlags.OUTERCLOTHING | SlotFlags.INNERCLOTHING | SlotFlags.FEET | SlotFlags.GLOVES;
+    public static readonly SlotFlags SplashPreferredSlots = SlotFlags.OUTERCLOTHING;
+    public static readonly SlotFlags SplashFallbackSlots = SlotFlags.INNERCLOTHING;
+    public static readonly SlotFlags SplashAdditionalSlots = SlotFlags.GLOVES;
 
-    public static readonly SlotFlags PuddleStepSlots = SlotFlags.INNERCLOTHING | SlotFlags.FEET;
+    public static readonly SlotFlags PuddleStepPrimarySlots = SlotFlags.FEET;
+    public static readonly SlotFlags PuddleStepFallbackSlots = SlotFlags.INNERCLOTHING;
+    public static readonly SlotFlags PuddleCrawlPreferredSlots = SlotFlags.OUTERCLOTHING;
+    public static readonly SlotFlags PuddleCrawlFallbackSlots = SlotFlags.INNERCLOTHING;
+    public static readonly SlotFlags PuddleCrawlAdditionalSlots =
+        SlotFlags.GLOVES | SlotFlags.HEAD | SlotFlags.MASK;
     public static readonly SlotFlags BleedSlots = SlotFlags.INNERCLOTHING;
 
-    private static readonly SlotFlags WornExamineSlots =
-        SlotFlags.HEAD | SlotFlags.EYES | SlotFlags.EARS | SlotFlags.MASK |
-        SlotFlags.OUTERCLOTHING | SlotFlags.INNERCLOTHING | SlotFlags.NECK |
-        SlotFlags.BACK | SlotFlags.BELT | SlotFlags.GLOVES | SlotFlags.IDCARD |
-        SlotFlags.LEGS | SlotFlags.FEET | SlotFlags.SUITSTORAGE | SlotFlags.RING |
-        SlotFlags.UNDERWEART | SlotFlags.UNDERWEARB | SlotFlags.SOCKS;
-
     [Dependency] private readonly InventorySystem _inventory = default!;
+    [Dependency] private readonly SharedItemSystem _item = default!;
     [Dependency] private readonly INetManager _net = default!;
     [Dependency] private readonly IPrototypeManager _prototype = default!;
     [Dependency] private readonly SharedSolutionContainerSystem _solutions = default!;
 
+    private readonly HashSet<EntityUid> _dryingClothing = new();
+    private readonly List<EntityUid> _dryingBuffer = new();
+    private readonly List<DirtCleaner> _dirtCleaners = new();
     private float _dryUpdateAccumulator;
 
     public override void Initialize()
@@ -40,8 +43,9 @@ public sealed class ClothingDirtSystem : EntitySystem
         base.Initialize();
 
         SubscribeLocalEvent<ClothingDirtableComponent, MapInitEvent>(OnMapInit);
+        SubscribeLocalEvent<ClothingDirtableComponent, ComponentShutdown>(OnShutdown);
         SubscribeLocalEvent<ClothingDirtableComponent, ExaminedEvent>(OnExamined);
-        SubscribeLocalEvent<InventoryComponent, ExaminedEvent>(OnInventoryExamined);
+        SubscribeLocalEvent<ClothingDirtableComponent, SolutionContainerChangedEvent>(OnSolutionChanged);
     }
 
     public override void Update(float frameTime)
@@ -58,11 +62,19 @@ public sealed class ClothingDirtSystem : EntitySystem
         var elapsed = _dryUpdateAccumulator;
         _dryUpdateAccumulator = 0f;
 
-        var query = EntityQueryEnumerator<ClothingDirtableComponent>();
-        while (query.MoveNext(out var uid, out var component))
+        if (_dryingClothing.Count == 0)
+            return;
+
+        _dryingBuffer.Clear();
+        _dryingBuffer.AddRange(_dryingClothing);
+
+        foreach (var uid in _dryingBuffer)
         {
-            if (!component.DryingActive)
+            if (!TryComp(uid, out ClothingDirtableComponent? component))
+            {
+                _dryingClothing.Remove(uid);
                 continue;
+            }
 
             component.DryAccumulator += elapsed;
             if (component.DryAccumulator < component.DryInterval)
@@ -78,8 +90,23 @@ public sealed class ClothingDirtSystem : EntitySystem
         if (_solutions.EnsureSolutionEntity(ent.Owner, ent.Comp.Solution, out var solution, ent.Comp.Capacity)
             && solution != null)
         {
-            ent.Comp.DryingActive = HasDryableDirt(solution.Value.Comp.Solution, ent.Comp);
+            SetDryingActive(ent, HasDryableDirt(solution.Value.Comp.Solution, ent.Comp));
+            UpdateDirtVisuals(ent, solution.Value.Comp.Solution);
         }
+    }
+
+    private void OnShutdown(Entity<ClothingDirtableComponent> ent, ref ComponentShutdown args)
+    {
+        _dryingClothing.Remove(ent.Owner);
+    }
+
+    private void OnSolutionChanged(Entity<ClothingDirtableComponent> ent, ref SolutionContainerChangedEvent args)
+    {
+        if (!_net.IsServer || args.SolutionId != ent.Comp.Solution)
+            return;
+
+        SetDryingActive(ent, HasDryableDirt(args.Solution, ent.Comp));
+        UpdateDirtVisuals(ent, args.Solution);
     }
 
     private void OnExamined(Entity<ClothingDirtableComponent> ent, ref ExaminedEvent args)
@@ -97,26 +124,6 @@ public sealed class ClothingDirtSystem : EntitySystem
             ("color", color),
             ("desc", primary.LocalizedPhysicalDescription),
             ("chemCount", solution.Contents.Count)));
-    }
-
-    private void OnInventoryExamined(Entity<InventoryComponent> ent, ref ExaminedEvent args)
-    {
-        if (!args.IsInDetailsRange
-            || !_inventory.TryGetContainerSlotEnumerator(ent.Owner, out var enumerator, WornExamineSlots))
-            return;
-
-        while (enumerator.NextItem(out var item))
-        {
-            if (HasComp<StripMenuInvisibleComponent>(item))
-                continue;
-
-            if (!IsDirtyClothing(item))
-                continue;
-
-            args.PushMarkup(Loc.GetString("clothing-dirtable-worn-examine",
-                ("target", ent.Owner)));
-            return;
-        }
     }
 
     public bool TryDirtyClothing(
@@ -141,15 +148,9 @@ public sealed class ClothingDirtSystem : EntitySystem
         if (!_solutions.TryAddSolution(dirtSolution.Value, sample))
             return false;
 
-        component.DryingActive = HasDryableDirt(dirt, component);
+        SetDryingActive((clothing, component), HasDryableDirt(dirt, component));
+        UpdateDirtVisuals((clothing, component), dirt);
         return true;
-    }
-
-    private bool IsDirtyClothing(EntityUid clothing, ClothingDirtableComponent? component = null)
-    {
-        return Resolve(clothing, ref component, logMissing: false)
-               && _solutions.TryGetSolution(clothing, component.Solution, out _, out var solution)
-               && solution.Volume > FixedPoint2.Zero;
     }
 
     private Solution MakeCappedDirtSample(
@@ -164,8 +165,24 @@ public sealed class ClothingDirtSystem : EntitySystem
         if (target <= FixedPoint2.Zero)
             return sample;
 
+        if (removeFromSource)
+            AddCappedDirtFromContents(new List<ReagentQuantity>(source.Contents), source, dirt, sample, target, component, true);
+        else
+            AddCappedDirtFromContents(source.Contents, source, dirt, sample, target, component, false);
+
+        return sample;
+    }
+
+    private void AddCappedDirtFromContents(
+        List<ReagentQuantity> sourceContents,
+        Solution source,
+        Solution dirt,
+        Solution sample,
+        FixedPoint2 target,
+        ClothingDirtableComponent component,
+        bool removeFromSource)
+    {
         var remainingVolume = target;
-        var sourceContents = new List<ReagentQuantity>(source.Contents);
         foreach (var reagent in sourceContents)
         {
             if (remainingVolume <= FixedPoint2.Zero)
@@ -187,16 +204,21 @@ public sealed class ClothingDirtSystem : EntitySystem
             if (removeFromSource)
                 source.RemoveReagent(reagent.Reagent, accepted);
         }
-
-        return sample;
     }
 
     private void DryClothing(Entity<ClothingDirtableComponent> ent)
     {
-        if (!_solutions.TryGetSolution(ent.Owner, ent.Comp.Solution, out var dirtSolution, out var dirt)
-            || dirt.Volume <= FixedPoint2.Zero)
+        if (!_solutions.TryGetSolution(ent.Owner, ent.Comp.Solution, out var dirtSolution, out var dirt))
         {
-            ent.Comp.DryingActive = false;
+            SetDryingActive(ent, false);
+            ClearDirtVisuals(ent);
+            return;
+        }
+
+        if (dirt.Volume <= FixedPoint2.Zero)
+        {
+            SetDryingActive(ent, false);
+            UpdateDirtVisuals(ent, dirt);
             return;
         }
 
@@ -217,9 +239,12 @@ public sealed class ClothingDirtSystem : EntitySystem
         }
 
         if (dried)
+        {
             _solutions.UpdateChemicals(dirtSolution.Value);
+            UpdateDirtVisuals(ent, dirt);
+        }
 
-        ent.Comp.DryingActive = HasDryableDirt(dirt, ent.Comp);
+        SetDryingActive(ent, HasDryableDirt(dirt, ent.Comp));
         if (!ent.Comp.DryingActive)
             ent.Comp.DryAccumulator = 0f;
     }
@@ -280,15 +305,74 @@ public sealed class ClothingDirtSystem : EntitySystem
             : component.DryMinimum;
     }
 
+    private void UpdateDirtVisuals(Entity<ClothingDirtableComponent> ent, Solution dirt)
+    {
+        Color? color = null;
+        if (dirt.Volume > FixedPoint2.Zero)
+        {
+            var alpha = Math.Clamp(dirt.Volume.Float() / ent.Comp.Capacity.Float(),
+                ent.Comp.MinVisualAlpha,
+                ent.Comp.MaxVisualAlpha);
+
+            color = dirt.GetColor(_prototype).WithAlpha(alpha);
+        }
+
+        if (ent.Comp.DirtColor == color)
+            return;
+
+        ent.Comp.DirtColor = color;
+        Dirty(ent);
+        _item.VisualsChanged(ent.Owner);
+    }
+
+    private void ClearDirtVisuals(Entity<ClothingDirtableComponent> ent)
+    {
+        if (ent.Comp.DirtColor == null)
+            return;
+
+        ent.Comp.DirtColor = null;
+        Dirty(ent);
+        _item.VisualsChanged(ent.Owner);
+    }
+
+    private void SetDryingActive(Entity<ClothingDirtableComponent> ent, bool active)
+    {
+        ent.Comp.DryingActive = active;
+
+        if (!_net.IsServer)
+            return;
+
+        if (active)
+            _dryingClothing.Add(ent.Owner);
+        else
+            _dryingClothing.Remove(ent.Owner);
+    }
+
     private bool CanWashDirt(Solution dirt)
     {
-        var cleaners = GetDirtCleaners(dirt);
-        return cleaners.Count > 0 && GetWashableDirtVolume(dirt, cleaners) > FixedPoint2.Zero;
+        var hasCleaner = false;
+        var hasWashableDirt = false;
+
+        foreach (var reagent in dirt.Contents)
+        {
+            if (reagent.Quantity <= FixedPoint2.Zero)
+                continue;
+
+            if (IsCleanerReagent(reagent.Reagent))
+                hasCleaner = true;
+            else
+                hasWashableDirt = true;
+
+            if (hasCleaner && hasWashableDirt)
+                return true;
+        }
+
+        return false;
     }
 
     private List<DirtCleaner> GetDirtCleaners(Solution dirt)
     {
-        var cleaners = new List<DirtCleaner>();
+        _dirtCleaners.Clear();
         foreach (var reagent in dirt.Contents)
         {
             if (reagent.Quantity <= FixedPoint2.Zero
@@ -296,10 +380,10 @@ public sealed class ClothingDirtSystem : EntitySystem
                 || prototype.ClothingDirtCleanMultiplier <= FixedPoint2.Zero)
                 continue;
 
-            cleaners.Add(new DirtCleaner(reagent.Reagent, reagent.Quantity, prototype.ClothingDirtCleanMultiplier));
+            _dirtCleaners.Add(new DirtCleaner(reagent.Reagent, reagent.Quantity, prototype.ClothingDirtCleanMultiplier));
         }
 
-        return cleaners;
+        return _dirtCleaners;
     }
 
     private FixedPoint2 GetWashableDirtVolume(Solution dirt, List<DirtCleaner> cleaners)
@@ -324,12 +408,12 @@ public sealed class ClothingDirtSystem : EntitySystem
     {
         var removedTotal = FixedPoint2.Zero;
         var remaining = amount;
-        var contents = new List<ReagentQuantity>(dirt.Contents);
-        foreach (var reagent in contents)
+        for (var i = dirt.Contents.Count - 1; i >= 0; i--)
         {
             if (remaining <= FixedPoint2.Zero)
                 break;
 
+            var reagent = dirt.Contents[i];
             if (IsCleanerReagent(reagent.Reagent, cleaners))
                 continue;
 
@@ -356,6 +440,12 @@ public sealed class ClothingDirtSystem : EntitySystem
         return false;
     }
 
+    private bool IsCleanerReagent(ReagentId reagent)
+    {
+        return _prototype.Resolve<ReagentPrototype>(reagent.Prototype, out var prototype)
+               && prototype.ClothingDirtCleanMultiplier > FixedPoint2.Zero;
+    }
+
     public bool TryDirtyWorn(
         EntityUid wearer,
         Solution source,
@@ -363,29 +453,75 @@ public sealed class ClothingDirtSystem : EntitySystem
         SlotFlags slots,
         bool removeFromSource = false)
     {
+        return TryDirtyWornIfAnyItem(wearer, source, amount, slots, removeFromSource, out _);
+    }
+
+    private bool TryDirtyWornIfAnyItem(
+        EntityUid wearer,
+        Solution source,
+        FixedPoint2 amount,
+        SlotFlags slots,
+        bool removeFromSource,
+        out bool hadItem)
+    {
         if (source.Volume <= FixedPoint2.Zero || amount <= FixedPoint2.Zero)
+        {
+            hadItem = false;
             return false;
+        }
 
         if (!_inventory.TryGetContainerSlotEnumerator(wearer, out var enumerator, slots))
+        {
+            hadItem = false;
             return false;
+        }
 
-        var clothing = new List<Entity<ClothingDirtableComponent>>();
+        hadItem = false;
+        var dirtied = false;
         while (enumerator.NextItem(out var item))
         {
+            hadItem = true;
+
             if (TryComp(item, out ClothingDirtableComponent? dirtable))
-                clothing.Add((item, dirtable));
+                dirtied |= TryDirtyClothing(item, source, amount, removeFromSource, dirtable);
+
+            if (source.Volume <= FixedPoint2.Zero)
+                break;
         }
 
-        if (clothing.Count == 0)
-            return false;
+        return dirtied;
+    }
 
-        var dirtied = false;
-        foreach (var item in clothing)
-        {
-            if (TryDirtyClothing(item.Owner, source, amount, removeFromSource, item.Comp))
-                dirtied = true;
-        }
+    public bool TryDirtyWornPreferred(
+        EntityUid wearer,
+        Solution source,
+        FixedPoint2 amount,
+        SlotFlags preferredSlots,
+        SlotFlags fallbackSlots,
+        bool removeFromSource = false)
+    {
+        var dirtied = TryDirtyWornIfAnyItem(wearer, source, amount, preferredSlots, removeFromSource, out var hadPreferredItem);
+        if (hadPreferredItem)
+            return dirtied;
 
+        return TryDirtyWornIfAnyItem(wearer, source, amount, fallbackSlots, removeFromSource, out _);
+    }
+
+    public bool TryDirtyWornSplash(
+        EntityUid wearer,
+        Solution source,
+        FixedPoint2 amount,
+        bool removeFromSource = false)
+    {
+        var dirtied = TryDirtyWornPreferred(
+            wearer,
+            source,
+            amount,
+            SplashPreferredSlots,
+            SplashFallbackSlots,
+            removeFromSource);
+
+        dirtied |= TryDirtyWorn(wearer, source, amount, SplashAdditionalSlots, removeFromSource);
         return dirtied;
     }
 

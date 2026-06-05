@@ -97,6 +97,10 @@
 
 using System.Linq;
 using System.Text;
+using Content.Shared._Onyx.Clothing;
+using Content.Shared.Chemistry.Components;
+using Content.Shared.Chemistry.EntitySystems;
+using Content.Shared.Chemistry.Reagent;
 using Content.Server.Popups;
 using Content.Shared.UserInterface;
 using Content.Shared.DoAfter;
@@ -129,8 +133,17 @@ namespace Content.Server.Forensics
         [Dependency] private readonly MetaDataSystem _metaData = default!;
         [Dependency] private readonly ForensicsSystem _forensicsSystem = default!;
         [Dependency] private readonly TagSystem _tag = default!;
+        [Dependency] private readonly SharedSolutionContainerSystem _solutions = default!; // <Onyx-ClothingDirt>
 
         private static readonly ProtoId<TagPrototype> DNASolutionScannableTag = "DNASolutionScannable";
+        private static readonly HashSet<string> ClothingBloodReagents =
+        [
+            "Blood",
+            "InsectBlood",
+            "CopperBlood",
+            "BloodChangeling",
+            "BlackBlood",
+        ]; // <Onyx-ClothingDirt>
 
         public override void Initialize()
         {
@@ -152,6 +165,7 @@ namespace Content.Server.Forensics
                 component.Fibers,
                 component.TouchDNAs,
                 component.SolutionDNAs,
+                component.ClothingBloodDNAs, // <Onyx-ClothingDirt>
                 component.Residues,
                 component.LastScannedName,
                 component.PrintCooldown,
@@ -175,6 +189,7 @@ namespace Content.Server.Forensics
                     scanner.Fingerprints = new();
                     scanner.Fibers = new();
                     scanner.TouchDNAs = new();
+                    scanner.ClothingBloodDNAs = new(); // <Onyx-ClothingDirt>
                     scanner.Residues = new();
                 }
                 else
@@ -182,6 +197,7 @@ namespace Content.Server.Forensics
                     scanner.Fingerprints = forensics.Fingerprints.ToList();
                     scanner.Fibers = forensics.Fibers.ToList();
                     scanner.TouchDNAs = forensics.DNAs.ToList();
+                    scanner.ClothingBloodDNAs = GetClothingBloodDNAs(args.Args.Target.Value); // <Onyx-ClothingDirt>
                     scanner.Residues = forensics.Residues.ToList();
                 }
 
@@ -192,6 +208,11 @@ namespace Content.Server.Forensics
                 {
                     scanner.SolutionDNAs = new();
                 }
+
+                // <Onyx-ClothingDirt>
+                if (!HasComp<ForensicsComponent>(args.Args.Target.Value))
+                    scanner.ClothingBloodDNAs = GetClothingBloodDNAs(args.Args.Target.Value);
+                // </Onyx-ClothingDirt>
 
                 scanner.LastScannedName = MetaData(args.Args.Target.Value).EntityName;
             }
@@ -348,6 +369,14 @@ namespace Content.Server.Forensics
             }
             // Goobstation End
             text.AppendLine();
+            // <Onyx-ClothingDirt>
+            text.AppendLine(Loc.GetString("forensic-scanner-interface-clothing-blood"));
+            foreach (var clothingBloodDna in component.ClothingBloodDNAs)
+            {
+                text.AppendLine(GetClothingBloodDnaText(clothingBloodDna));
+            }
+            text.AppendLine();
+            // </Onyx-ClothingDirt>
             text.AppendLine(Loc.GetString("forensic-scanner-interface-residues"));
             foreach (var residue in component.Residues)
             {
@@ -371,9 +400,51 @@ namespace Content.Server.Forensics
             component.Fibers = new();
             component.TouchDNAs = new();
             component.SolutionDNAs = new();
+            component.ClothingBloodDNAs = new(); // <Onyx-ClothingDirt>
             component.LastScannedName = string.Empty;
 
             UpdateUserInterface(uid, component);
         }
+
+        // <Onyx-ClothingDirt>
+        private List<ForensicClothingBloodDna> GetClothingBloodDNAs(EntityUid target)
+        {
+            var results = new List<ForensicClothingBloodDna>();
+
+            if (!TryComp<ClothingDirtableComponent>(target, out var dirtable)
+                || !_solutions.TryGetSolution(target, dirtable.Solution, out _, out var dirt)
+                || dirt.Volume == 0)
+            {
+                return results;
+            }
+
+            var seen = new HashSet<string>();
+            foreach (var reagent in dirt.Contents)
+            {
+                if (!ClothingBloodReagents.Contains(reagent.Reagent.Prototype))
+                    continue;
+
+                foreach (var data in reagent.Reagent.EnsureReagentData())
+                {
+                    if (data is not DnaData dnaData
+                        || string.IsNullOrWhiteSpace(dnaData.DNA)
+                        || !seen.Add(dnaData.DNA))
+                    {
+                        continue;
+                    }
+
+                    results.Add(new ForensicClothingBloodDna(dnaData.DNA));
+                }
+            }
+
+            return results;
+        }
+
+        private string GetClothingBloodDnaText(ForensicClothingBloodDna clothingBloodDna)
+        {
+            return Loc.GetString("forensic-scanner-interface-clothing-blood-dna",
+                ("dna", clothingBloodDna.DNA));
+        }
+        // </Onyx-ClothingDirt>
     }
 }

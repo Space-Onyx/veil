@@ -746,10 +746,9 @@ public sealed partial class PuddleSystem : SharedPuddleSystem
 
             targets.Add(owner);
             // <Onyx-ClothingDirt>
-            _clothingDirt.TryDirtyWorn(owner,
+            _clothingDirt.TryDirtyWornSplash(owner,
                 splitSolution,
-                FixedPoint2.Min(splitSolution.Volume, FixedPoint2.New(1)),
-                ClothingDirtSystem.SplashSlots);
+                FixedPoint2.Min(splitSolution.Volume, FixedPoint2.New(1)));
             // </Onyx-ClothingDirt>
             _reactive.DoEntityReaction(owner, splitSolution, ReactionMethod.Touch);
             _popups.PopupEntity(
