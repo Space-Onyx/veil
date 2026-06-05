@@ -21,6 +21,7 @@ using Content.Shared._Onyx.SpeechBarks;
 using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;
 using Content.Shared.Verbs;
+using Content.Shared.Wagging;
 using Robust.Shared.Audio;
 using Robust.Shared.GameObjects.Components.Localization;
 
@@ -28,6 +29,8 @@ namespace Content.Server.Humanoid;
 
 public sealed partial class HumanoidAppearanceSystem : SharedHumanoidAppearanceSystem
 {
+    private const string WaggingMarkingSuffix = "Animated"; // <Onyx-Marking>
+
     [Dependency] private readonly MarkingManager _markingManager = default!;
 
     public override void Initialize()
@@ -72,8 +75,38 @@ public sealed partial class HumanoidAppearanceSystem : SharedHumanoidAppearanceS
             grammar.Gender = sourceHumanoid.Gender;
         }
 
+        OnMarkingsChanged(target, targetHumanoid); // <Onyx-Marking>
         Dirty(target, targetHumanoid);
     }
+
+    // <Onyx-Marking>
+    protected override void OnMarkingsChanged(EntityUid uid, HumanoidAppearanceComponent humanoid)
+    {
+        if (HasWaggableTail(humanoid))
+            EnsureComp<WaggingComponent>(uid);
+        else if (HasComp<WaggingComponent>(uid))
+            RemComp<WaggingComponent>(uid);
+    }
+
+    private bool HasWaggableTail(HumanoidAppearanceComponent humanoid)
+    {
+        if (!humanoid.MarkingSet.Markings.TryGetValue(MarkingCategories.Tail, out var markings))
+            return false;
+
+        foreach (var marking in markings)
+        {
+            var markingId = marking.MarkingId;
+            if (markingId.EndsWith(WaggingMarkingSuffix)
+                && _markingManager.Markings.ContainsKey(markingId[..^WaggingMarkingSuffix.Length]))
+                return true;
+
+            if (_markingManager.Markings.ContainsKey($"{markingId}{WaggingMarkingSuffix}"))
+                return true;
+        }
+
+        return false;
+    }
+    // </Onyx-Marking>
 
     /// <summary>
     ///     Removes a marking from a humanoid by ID.
@@ -91,6 +124,7 @@ public sealed partial class HumanoidAppearanceSystem : SharedHumanoidAppearanceS
         }
 
         humanoid.MarkingSet.Remove(prototype.MarkingCategory, marking);
+        OnMarkingsChanged(uid, humanoid); // <Onyx-Marking>
 
         if (sync)
             Dirty(uid, humanoid);
@@ -114,6 +148,7 @@ public sealed partial class HumanoidAppearanceSystem : SharedHumanoidAppearanceS
         }
 
         humanoid.MarkingSet.Remove(category, index);
+        OnMarkingsChanged(uid, humanoid); // <Onyx-Marking>
         Dirty(uid, humanoid);
     }
 
@@ -143,6 +178,7 @@ public sealed partial class HumanoidAppearanceSystem : SharedHumanoidAppearanceS
         }
 
         humanoid.MarkingSet.Replace(category, index, marking);
+        OnMarkingsChanged(uid, humanoid); // <Onyx-Marking>
         Dirty(uid, humanoid);
     }
 

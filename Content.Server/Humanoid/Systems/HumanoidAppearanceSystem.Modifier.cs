@@ -97,6 +97,7 @@ public sealed partial class HumanoidAppearanceSystem
         }
 
         component.MarkingSet = message.MarkingSet;
+        OnMarkingsChanged(uid, component); // <Onyx-Marking>
         Dirty(uid, component);
 
         if (message.ResendState)

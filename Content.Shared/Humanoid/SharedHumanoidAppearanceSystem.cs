@@ -78,6 +78,10 @@ public abstract class SharedHumanoidAppearanceSystem : EntitySystem
     [Dependency] private readonly HeightAdjustSystem _heightAdjust = default!; // Goobstation: port EE height/width sliders
     [Dependency] private readonly MarkingManager _markingManager = default!;
     [Dependency] private readonly GrammarSystem _grammarSystem = default!;
+
+    protected virtual void OnMarkingsChanged(EntityUid uid, HumanoidAppearanceComponent humanoid) // <Onyx-Marking>
+    {
+    }
     private ISharedSponsorsManager? _sponsors;
     [Dependency] private readonly SharedIdentitySystem _identity = default!;
 
@@ -328,6 +332,8 @@ public abstract class SharedHumanoidAppearanceSystem : EntitySystem
 
         if (sync)
             Dirty(uid, humanoid);
+
+        OnMarkingsChanged(uid, humanoid); // <Onyx-Marking>
     }
 
     /// <summary>
@@ -426,6 +432,8 @@ public abstract class SharedHumanoidAppearanceSystem : EntitySystem
         {
             Dirty(uid, humanoid);
         }
+
+        OnMarkingsChanged(uid, humanoid); // <Onyx-Marking>
     }
 
     // goob edit - genderfluid potion.
@@ -597,6 +605,7 @@ public abstract class SharedHumanoidAppearanceSystem : EntitySystem
         humanoid.Width = profile.Width; // Onyx - Height & Weight
 
         RaiseLocalEvent(uid, new ProfileLoadFinishedEvent()); // Shitmed Change
+        OnMarkingsChanged(uid, humanoid); // <Onyx-Marking>
         Dirty(uid, humanoid);
     }
 
@@ -631,6 +640,8 @@ public abstract class SharedHumanoidAppearanceSystem : EntitySystem
 
         if (sync)
             Dirty(uid, humanoid);
+
+        OnMarkingsChanged(uid, humanoid); // <Onyx-Marking>
     }
 
     // CorvaxGoob-TTS-Start
@@ -672,6 +683,7 @@ public abstract class SharedHumanoidAppearanceSystem : EntitySystem
 
         humanoid.Comp.MarkingSet.AddBack(prototype.MarkingCategory, markingObject);
         Dirty(humanoid);
+        OnMarkingsChanged(humanoid, humanoid.Comp); // <Onyx-Marking>
     }
     // Corvax-Wega-Genetics-end
 
@@ -707,6 +719,8 @@ public abstract class SharedHumanoidAppearanceSystem : EntitySystem
 
         if (sync)
             Dirty(uid, humanoid);
+
+        OnMarkingsChanged(uid, humanoid); // <Onyx-Marking>
     }
 
     // ADT Barks start

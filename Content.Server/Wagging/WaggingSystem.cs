@@ -32,15 +32,31 @@ public sealed class WaggingSystem : EntitySystem
         base.Initialize();
 
         SubscribeLocalEvent<WaggingComponent, MapInitEvent>(OnWaggingMapInit);
+        SubscribeLocalEvent<WaggingComponent, ComponentStartup>(OnWaggingStartup); // <Onyx-Marking>
         SubscribeLocalEvent<WaggingComponent, ComponentShutdown>(OnWaggingShutdown);
         SubscribeLocalEvent<WaggingComponent, ToggleActionEvent>(OnWaggingToggle);
         SubscribeLocalEvent<WaggingComponent, MobStateChangedEvent>(OnMobStateChanged);
     }
 
+    // <Onyx-Marking>
+    private void OnWaggingStartup(EntityUid uid, WaggingComponent component, ComponentStartup args)
+    {
+        EnsureWaggingAction(uid, component);
+    }
+
     private void OnWaggingMapInit(EntityUid uid, WaggingComponent component, MapInitEvent args)
     {
+        EnsureWaggingAction(uid, component);
+    }
+
+    private void EnsureWaggingAction(EntityUid uid, WaggingComponent component)
+    {
+        if (component.ActionEntity != null)
+            return;
+
         _actions.AddAction(uid, ref component.ActionEntity, component.Action, uid);
     }
+    // </Onyx-Marking>
 
     private void OnWaggingShutdown(EntityUid uid, WaggingComponent component, ComponentShutdown args)
     {
