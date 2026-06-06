@@ -14,7 +14,11 @@ chat-radio-supply = Снабжение
 chat-radio-syndicate = Синдикат
 chat-radio-freelance = Фриланс
 # not headset but whatever
-chat-radio-handheld = Портативный
+chat-radio-handheld = Портативный 1
+chat-radio-handheld-preset-2 = Портативный 2
+chat-radio-handheld-preset-3 = Портативный 3
+chat-radio-handheld-preset-4 = Портативный 4
+chat-radio-handheld-preset-5 = Портативный 5
 chat-radio-binary = Двоичный
 chat-radio-xenoborg = Ксеноборги
 chat-radio-mothership = Материнский шаттл
