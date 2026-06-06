@@ -656,7 +656,7 @@ public abstract class SharedHumanoidAppearanceSystem : EntitySystem
     }
     // CorvaxGoob-TTS-End
 
-    // Corvax-Wega-Genetics-start
+    // Onyx-Genetics-start
     public void AddMarkingWithColors(
         Entity<HumanoidAppearanceComponent> humanoid,
         string markingId,
@@ -685,7 +685,7 @@ public abstract class SharedHumanoidAppearanceSystem : EntitySystem
         Dirty(humanoid);
         OnMarkingsChanged(humanoid, humanoid.Comp); // <Onyx-Marking>
     }
-    // Corvax-Wega-Genetics-end
+    // Onyx-Genetics-end
 
     private void EnsureDefaultMarkings(EntityUid uid, HumanoidAppearanceComponent? humanoid)
     {

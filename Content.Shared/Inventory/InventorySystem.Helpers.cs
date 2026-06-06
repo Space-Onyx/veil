@@ -169,6 +169,6 @@ public partial class InventorySystem
         return true;
     }
 
-    public void CloneInventory(Entity<InventoryComponent> ent, InventoryComponent targetInventory) // Corvax-Wega-Genetics
-        => ent.Comp.Clone(targetInventory); // Corvax-Wega-Genetics
+    public void CloneInventory(Entity<InventoryComponent> ent, InventoryComponent targetInventory) // Onyx-Genetics
+        => ent.Comp.Clone(targetInventory); // Onyx-Genetics
 }

@@ -7,7 +7,7 @@ using Robust.Client.UserInterface.CustomControls;
 using Robust.Client.UserInterface.XAML;
 using Robust.Shared.Player;
 
-namespace Content.Client._Wega.Genetics.Ui;
+namespace Content.Client._Onyx.Genetics.Ui;
 
 [GenerateTypedNameReferences]
 public sealed partial class MindCommunicationPanel : DefaultWindow

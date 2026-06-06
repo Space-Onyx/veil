@@ -741,160 +741,53 @@ namespace Content.Server.Genetics.System
 
         private void ModifyUniqueIdentifiers(UniqueIdentifiersData uniqueIdentifiers, string block, int value, float intensity)
         {
-            var fields = new List<(string[] Field, string Name)>
-            {
-                (uniqueIdentifiers.HairColorR, nameof(uniqueIdentifiers.HairColorR)),
-                (uniqueIdentifiers.HairColorG, nameof(uniqueIdentifiers.HairColorG)),
-                (uniqueIdentifiers.HairColorB, nameof(uniqueIdentifiers.HairColorB)),
-                (uniqueIdentifiers.SecondaryHairColorR, nameof(uniqueIdentifiers.SecondaryHairColorR)),
-                (uniqueIdentifiers.SecondaryHairColorG, nameof(uniqueIdentifiers.SecondaryHairColorG)),
-                (uniqueIdentifiers.SecondaryHairColorB, nameof(uniqueIdentifiers.SecondaryHairColorB)),
-                (uniqueIdentifiers.BeardColorR, nameof(uniqueIdentifiers.BeardColorR)),
-                (uniqueIdentifiers.BeardColorG, nameof(uniqueIdentifiers.BeardColorG)),
-                (uniqueIdentifiers.BeardColorB, nameof(uniqueIdentifiers.BeardColorB)),
-                (uniqueIdentifiers.SkinTone, nameof(uniqueIdentifiers.SkinTone)),
-                (uniqueIdentifiers.FurColorR, nameof(uniqueIdentifiers.FurColorR)),
-                (uniqueIdentifiers.FurColorG, nameof(uniqueIdentifiers.FurColorG)),
-                (uniqueIdentifiers.FurColorB, nameof(uniqueIdentifiers.FurColorB)),
-                (uniqueIdentifiers.HeadAccessoryColorR, nameof(uniqueIdentifiers.HeadAccessoryColorR)),
-                (uniqueIdentifiers.HeadAccessoryColorG, nameof(uniqueIdentifiers.HeadAccessoryColorG)),
-                (uniqueIdentifiers.HeadAccessoryColorB, nameof(uniqueIdentifiers.HeadAccessoryColorB)),
-                (uniqueIdentifiers.HeadMarkingColorR, nameof(uniqueIdentifiers.HeadMarkingColorR)),
-                (uniqueIdentifiers.HeadMarkingColorG, nameof(uniqueIdentifiers.HeadMarkingColorG)),
-                (uniqueIdentifiers.HeadMarkingColorB, nameof(uniqueIdentifiers.HeadMarkingColorB)),
-                (uniqueIdentifiers.BodyMarkingColorR, nameof(uniqueIdentifiers.BodyMarkingColorR)),
-                (uniqueIdentifiers.BodyMarkingColorG, nameof(uniqueIdentifiers.BodyMarkingColorG)),
-                (uniqueIdentifiers.BodyMarkingColorB, nameof(uniqueIdentifiers.BodyMarkingColorB)),
-                (uniqueIdentifiers.TailMarkingColorR, nameof(uniqueIdentifiers.TailMarkingColorR)),
-                (uniqueIdentifiers.TailMarkingColorG, nameof(uniqueIdentifiers.TailMarkingColorG)),
-                (uniqueIdentifiers.TailMarkingColorB, nameof(uniqueIdentifiers.TailMarkingColorB)),
-                (uniqueIdentifiers.EyeColorR, nameof(uniqueIdentifiers.EyeColorR)),
-                (uniqueIdentifiers.EyeColorG, nameof(uniqueIdentifiers.EyeColorG)),
-                (uniqueIdentifiers.EyeColorB, nameof(uniqueIdentifiers.EyeColorB)),
-                (uniqueIdentifiers.Gender, nameof(uniqueIdentifiers.Gender)),
-                (uniqueIdentifiers.BeardStyle, nameof(uniqueIdentifiers.BeardStyle)),
-                (uniqueIdentifiers.HairStyle, nameof(uniqueIdentifiers.HairStyle)),
-                (uniqueIdentifiers.HeadAccessoryStyle, nameof(uniqueIdentifiers.HeadAccessoryStyle)),
-                (uniqueIdentifiers.HeadMarkingStyle, nameof(uniqueIdentifiers.HeadMarkingStyle)),
-                (uniqueIdentifiers.BodyMarkingStyle, nameof(uniqueIdentifiers.BodyMarkingStyle)),
-                (uniqueIdentifiers.TailMarkingStyle, nameof(uniqueIdentifiers.TailMarkingStyle))
-            };
+            _dnaModifier.EnsureSkinColorBlocks(uniqueIdentifiers);
+            var fields = GetUniqueIdentifierFields(uniqueIdentifiers);
 
             if (_random.NextFloat() < 0.025f)
             {
                 var randomField = fields[_random.Next(fields.Count)];
                 int randomIndex = _random.Next(0, randomField.Field.Length);
-                if (randomField.Name == nameof(uniqueIdentifiers.SkinTone))
-                {
-                    randomField.Field[randomIndex] = GenerateSkinToneComponent(randomIndex, intensity, 1.0f);
-                }
-                else
-                {
-                    randomField.Field[randomIndex] = GenerateRandomHexValue(randomField.Field[randomIndex], intensity, 1.0f);
-                }
+                randomField.Field[randomIndex] = GenerateRandomHexValue(randomField.Field[randomIndex], intensity, 1.0f);
                 return;
             }
 
             if (!int.TryParse(block, out int blockNumber))
                 return;
 
-            var blockMap = new Dictionary<int, int>
-            {
-                { 1, 0 }, { 2, 1 }, { 3, 2 }, { 4, 3 }, { 5, 4 }, { 6, 5 }, { 7, 6 },
-                { 8, 7 }, { 9, 8 }, { 13, 9 },
-                { 14, 10 }, { 15, 11 }, { 16, 12 }, { 17, 13 }, { 18, 14 }, { 19, 15 },
-                { 20, 16 }, { 21, 17 }, { 22, 18 }, { 23, 19 }, { 24, 20 }, { 25, 21 },
-                { 26, 22 }, { 27, 23 }, { 28, 24 }, { 29, 25 }, { 30, 26 }, { 31, 27 },
-                { 32, 28 }, { 33, 29 }, { 34, 30 }, { 35, 31 }, { 36, 32 }, { 37, 33 },
-                { 38, 34 }
-            };
-
-            if (!blockMap.ContainsKey(blockNumber))
+            if (!UniqueIdentifierBlocks.TryGet(uniqueIdentifiers, blockNumber, out var field))
                 return;
 
-            int blockIndex = blockMap[blockNumber];
-            if (blockIndex < 0 || blockIndex >= fields.Count)
-                return;
-
-            var field = fields[blockIndex].Field;
             if (value < 0 || value >= field.Length)
                 return;
-
-            if (blockNumber == 13)
-            {
-                if (value >= 0 && value < uniqueIdentifiers.SkinTone.Length)
-                {
-                    uniqueIdentifiers.SkinTone[value] =
-                        GenerateSkinToneComponent(value, intensity, 1.0f);
-                }
-                return;
-            }
 
             field[value] = GenerateRandomHexValue(field[value], intensity, 1.0f);
         }
 
         private void ModifyUniqueIdentifiers(UniqueIdentifiersData uniqueIdentifiers, float intensity, float duration)
         {
-            var fields = new List<(string[] Field, string Name)>
-            {
-                (uniqueIdentifiers.HairColorR, nameof(uniqueIdentifiers.HairColorR)),
-                (uniqueIdentifiers.HairColorG, nameof(uniqueIdentifiers.HairColorG)),
-                (uniqueIdentifiers.HairColorB, nameof(uniqueIdentifiers.HairColorB)),
-                (uniqueIdentifiers.SecondaryHairColorR, nameof(uniqueIdentifiers.SecondaryHairColorR)),
-                (uniqueIdentifiers.SecondaryHairColorG, nameof(uniqueIdentifiers.SecondaryHairColorG)),
-                (uniqueIdentifiers.SecondaryHairColorB, nameof(uniqueIdentifiers.SecondaryHairColorB)),
-                (uniqueIdentifiers.BeardColorR, nameof(uniqueIdentifiers.BeardColorR)),
-                (uniqueIdentifiers.BeardColorG, nameof(uniqueIdentifiers.BeardColorG)),
-                (uniqueIdentifiers.BeardColorB, nameof(uniqueIdentifiers.BeardColorB)),
-                (uniqueIdentifiers.SkinTone, nameof(uniqueIdentifiers.SkinTone)),
-                (uniqueIdentifiers.FurColorR, nameof(uniqueIdentifiers.FurColorR)),
-                (uniqueIdentifiers.FurColorG, nameof(uniqueIdentifiers.FurColorG)),
-                (uniqueIdentifiers.FurColorB, nameof(uniqueIdentifiers.FurColorB)),
-                (uniqueIdentifiers.HeadAccessoryColorR, nameof(uniqueIdentifiers.HeadAccessoryColorR)),
-                (uniqueIdentifiers.HeadAccessoryColorG, nameof(uniqueIdentifiers.HeadAccessoryColorG)),
-                (uniqueIdentifiers.HeadAccessoryColorB, nameof(uniqueIdentifiers.HeadAccessoryColorB)),
-                (uniqueIdentifiers.HeadMarkingColorR, nameof(uniqueIdentifiers.HeadMarkingColorR)),
-                (uniqueIdentifiers.HeadMarkingColorG, nameof(uniqueIdentifiers.HeadMarkingColorG)),
-                (uniqueIdentifiers.HeadMarkingColorB, nameof(uniqueIdentifiers.HeadMarkingColorB)),
-                (uniqueIdentifiers.BodyMarkingColorR, nameof(uniqueIdentifiers.BodyMarkingColorR)),
-                (uniqueIdentifiers.BodyMarkingColorG, nameof(uniqueIdentifiers.BodyMarkingColorG)),
-                (uniqueIdentifiers.BodyMarkingColorB, nameof(uniqueIdentifiers.BodyMarkingColorB)),
-                (uniqueIdentifiers.TailMarkingColorR, nameof(uniqueIdentifiers.TailMarkingColorR)),
-                (uniqueIdentifiers.TailMarkingColorG, nameof(uniqueIdentifiers.TailMarkingColorG)),
-                (uniqueIdentifiers.TailMarkingColorB, nameof(uniqueIdentifiers.TailMarkingColorB)),
-                (uniqueIdentifiers.EyeColorR, nameof(uniqueIdentifiers.EyeColorR)),
-                (uniqueIdentifiers.EyeColorG, nameof(uniqueIdentifiers.EyeColorG)),
-                (uniqueIdentifiers.EyeColorB, nameof(uniqueIdentifiers.EyeColorB)),
-                (uniqueIdentifiers.Gender, nameof(uniqueIdentifiers.Gender)),
-                (uniqueIdentifiers.BeardStyle, nameof(uniqueIdentifiers.BeardStyle)),
-                (uniqueIdentifiers.HairStyle, nameof(uniqueIdentifiers.HairStyle)),
-                (uniqueIdentifiers.HeadAccessoryStyle, nameof(uniqueIdentifiers.HeadAccessoryStyle)),
-                (uniqueIdentifiers.HeadMarkingStyle, nameof(uniqueIdentifiers.HeadMarkingStyle)),
-                (uniqueIdentifiers.BodyMarkingStyle, nameof(uniqueIdentifiers.BodyMarkingStyle)),
-                (uniqueIdentifiers.TailMarkingStyle, nameof(uniqueIdentifiers.TailMarkingStyle))
-            };
+            _dnaModifier.EnsureSkinColorBlocks(uniqueIdentifiers);
+            var fields = GetUniqueIdentifierFields(uniqueIdentifiers);
 
             int fieldsToModify = Math.Clamp((int)intensity, 1, 3);
             for (int i = 0; i < fieldsToModify; i++)
             {
                 var fieldIndex = _random.Next(fields.Count);
-                var fieldName = fields[fieldIndex].Name;
                 var field = fields[fieldIndex].Field;
-
-                if (fieldName == nameof(uniqueIdentifiers.SkinTone))
-                {
-                    for (int j = 0; j < field.Length; j++)
-                    {
-                        field[j] = GenerateSkinToneComponent(j, intensity, duration);
-                    }
-                    continue;
-                }
 
                 for (int j = 0; j < field.Length; j++)
                 {
                     field[j] = GenerateRandomHexValue(field[j], intensity, duration);
                 }
             }
+        }
+
+        private static List<(string[] Field, int Block)> GetUniqueIdentifierFields(UniqueIdentifiersData uniqueIdentifiers)
+        {
+            return UniqueIdentifierBlocks.All
+                .Select(block => (block.GetValues(uniqueIdentifiers), block.Block))
+                .Where(block => block.Item1.Length > 0)
+                .ToList();
         }
 
         private void ModifyEnzymesPrototypes(List<EnzymesPrototypeInfo> enzymesPrototypes, string block, int value, float intensity)
@@ -938,7 +831,7 @@ namespace Content.Server.Genetics.System
 
         private string GenerateRandomHexValue(string value, float intensity, float duration)
         {
-            int baseValue = Convert.ToInt32(value, 16);
+            int baseValue = ParseHexDigit(value);
 
             float changeStrength = Math.Clamp((intensity * duration) / 100f, 0f, 1f);
             changeStrength = (float)Math.Sqrt(changeStrength);
@@ -958,15 +851,22 @@ namespace Content.Server.Genetics.System
             return modifiedValue.ToString("X1");
         }
 
-        private string GenerateSkinToneComponent(int index, float intensity, float duration)
+        private static int ParseHexDigit(string value)
         {
-            switch (index)
-            {
-                case 0: return (_random.NextFloat() < intensity / 100f) ? "1" : "0";
-                case 1: int digit1 = _random.Next(0, 10); return digit1.ToString("X1");
-                case 2: int digit2 = _random.Next(0, 10); return digit2.ToString("X1");
-                default: return "0";
-            }
+            if (string.IsNullOrEmpty(value))
+                return 0;
+
+            var digit = value[0];
+            if (digit >= '0' && digit <= '9')
+                return digit - '0';
+
+            if (digit >= 'A' && digit <= 'F')
+                return digit - 'A' + 10;
+
+            if (digit >= 'a' && digit <= 'f')
+                return digit - 'a' + 10;
+
+            return 0;
         }
 
         private void AddRadiationDamage(EntityUid uid, float intensity)

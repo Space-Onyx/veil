@@ -14,9 +14,10 @@ using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.XAML;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
+using System.Linq;
 using System.Numerics;
 
-namespace Content.Client._Wega.Genetics.Ui;
+namespace Content.Client._Onyx.Genetics.Ui;
 
 [GenerateTypedNameReferences]
 public sealed partial class DnaModifierWindow : FancyWindow
@@ -93,6 +94,16 @@ public sealed partial class DnaModifierWindow : FancyWindow
         ExportButton1.OnPressed += _ => OnExportOnDiskPressed(1);
         ExportButton2.OnPressed += _ => OnExportOnDiskPressed(2);
         ExportButton3.OnPressed += _ => OnExportOnDiskPressed(3);
+
+        EjectButton.OnPressed += _ => _entNetworkManager.SendSystemNetworkMessage(
+            new DnaModifierConsoleEjectEvent(_console));
+        FromDisk1.OnPressed += _ => OnExportFromDiskPressed(1);
+        FromDisk2.OnPressed += _ => OnExportFromDiskPressed(2);
+        FromDisk3.OnPressed += _ => OnExportFromDiskPressed(3);
+        ClearButtonDisk.OnPressed += _ => _entNetworkManager.SendSystemNetworkMessage(
+            new DnaModifierConsoleClearDiskEvent(_console));
+        EjectRejuveButton.OnPressed += _ => _entNetworkManager.SendSystemNetworkMessage(
+            new DnaModifierConsoleEjectRejuveEvent(_console));
     }
 
     private DnaModifierBoundUserInterfaceState? _lastUpdate;
@@ -105,9 +116,6 @@ public sealed partial class DnaModifierWindow : FancyWindow
         UpdateCooldowns();
 
         // Upper state
-        EjectButton.OnPressed += _ => _entNetworkManager.SendSystemNetworkMessage(
-            new DnaModifierConsoleEjectEvent(_console));
-
         if (!string.IsNullOrWhiteSpace(state.ScannerBodyInfo))
         {
             NameLabel.Text = state.ScannerBodyInfo;
@@ -213,13 +221,7 @@ public sealed partial class DnaModifierWindow : FancyWindow
         FromDisk2.Disabled = state.HasDisk ? false : true;
         FromDisk3.Disabled = state.HasDisk ? false : true;
 
-        FromDisk1.OnPressed += _ => OnExportFromDiskPressed(1);
-        FromDisk2.OnPressed += _ => OnExportFromDiskPressed(2);
-        FromDisk3.OnPressed += _ => OnExportFromDiskPressed(3);
-
         ClearButtonDisk.Disabled = state.HasDisk ? false : true;
-        ClearButtonDisk.OnPressed += _ => _entNetworkManager.SendSystemNetworkMessage(
-            new DnaModifierConsoleClearDiskEvent(_console));
 
         UpdateDiskContainer(state.Enzyme);
 
@@ -227,8 +229,6 @@ public sealed partial class DnaModifierWindow : FancyWindow
         RejuveContainer.RemoveAllChildren();
         CreateBeakerUI(RejuveContainer, state.InputContainerInfo);
         EjectRejuveButton.Disabled = state.ScannerHasBeaker ? false : true;
-        EjectRejuveButton.OnPressed += _ => _entNetworkManager.SendSystemNetworkMessage(
-            new DnaModifierConsoleEjectRejuveEvent(_console));
     }
 
     private void UpdateCooldowns()
@@ -624,44 +624,10 @@ public sealed partial class DnaModifierWindow : FancyWindow
     private void InitilizeUniqueIdentifiers(UniqueIdentifiersData unique)
     {
         _initializedUi = true;
-        var blocks = new List<(string BlockName, string[] Values)>
-        {
-            ("1", unique.HairColorR),
-            ("2", unique.HairColorG),
-            ("3", unique.HairColorB),
-            ("4", unique.SecondaryHairColorR),
-            ("5", unique.SecondaryHairColorG),
-            ("6", unique.SecondaryHairColorB),
-            ("7", unique.BeardColorR),
-            ("8", unique.BeardColorG),
-            ("9", unique.BeardColorB),
-            ("13", unique.SkinTone),
-            ("14", unique.FurColorR),
-            ("15", unique.FurColorG),
-            ("16", unique.FurColorB),
-            ("17", unique.HeadAccessoryColorR),
-            ("18", unique.HeadAccessoryColorG),
-            ("19", unique.HeadAccessoryColorB),
-            ("20", unique.HeadMarkingColorR),
-            ("21", unique.HeadMarkingColorG),
-            ("22", unique.HeadMarkingColorB),
-            ("23", unique.BodyMarkingColorR),
-            ("24", unique.BodyMarkingColorG),
-            ("25", unique.BodyMarkingColorB),
-            ("26", unique.TailMarkingColorR),
-            ("27", unique.TailMarkingColorG),
-            ("28", unique.TailMarkingColorB),
-            ("29", unique.EyeColorR),
-            ("30", unique.EyeColorG),
-            ("31", unique.EyeColorB),
-            ("32", unique.Gender),
-            ("33", unique.BeardStyle),
-            ("34", unique.HairStyle),
-            ("35", unique.HeadAccessoryStyle),
-            ("36", unique.HeadMarkingStyle),
-            ("37", unique.BodyMarkingStyle),
-            ("38", unique.TailMarkingStyle)
-        };
+        var blocks = UniqueIdentifierBlocks.All
+            .Select(block => (BlockName: $"{block.Block}", Values: block.GetValues(unique)))
+            .Where(block => block.Item2.Length > 0)
+            .ToList();
 
         var rowContainer = new BoxContainer
         {

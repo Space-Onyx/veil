@@ -70,7 +70,7 @@ public sealed partial class InventoryComponent : Component
     [DataField, AutoNetworkedField]
     public Dictionary<string, DisplacementData> MaleDisplacements = new();
 
-    // Corvax-Wega-Genetics-start
+    // Onyx-Genetics-start
     public void Clone(InventoryComponent targetInventory)
     {
         this.SpeciesId = targetInventory.SpeciesId;
@@ -78,7 +78,7 @@ public sealed partial class InventoryComponent : Component
         this.FemaleDisplacements = targetInventory.FemaleDisplacements;
         this.MaleDisplacements = targetInventory.MaleDisplacements;
     }
-    // Corvax-Wega-Genetics-end
+    // Onyx-Genetics-end
 
 }
 

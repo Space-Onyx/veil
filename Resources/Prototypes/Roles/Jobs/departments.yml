@@ -217,7 +217,7 @@
   - Paramedic
   - Surgeon # CorvaxGoob-Surgeon
   - Virologist # Gooby goob ba gooby goob ba
-  - Geneticist # Corvax-Wega-Genetics
+  - Geneticist # <Onyx-Genetics>
 
 - type: department
   id: Security
@@ -264,7 +264,7 @@
   weight: 10
   roles:
   - RadioHost # Goobstation
-  - Geneticist # Corvax-Wega
+  - Geneticist # <Onyx-Genetics>
   - Boxer
   - Reporter
   - Zookeeper

@@ -4,7 +4,7 @@ using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controllers;
 using Robust.Shared.Timing;
 
-namespace Content.Client._Wega.Genetics.Ui;
+namespace Content.Client._Onyx.Genetics.Ui;
 
 public sealed class MindCommunicationUIController : UIController
 {

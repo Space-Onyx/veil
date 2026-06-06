@@ -110,7 +110,7 @@ using Content.Shared.Access.Components;
 using Content.Shared.CartridgeLoader;
 using Content.Shared.Chat;
 using Content.Shared.DeviceNetwork.Components;
-using Content.Shared.Genetics; // Corvax-Wega-Genetics
+using Content.Shared.Genetics; // Onyx-Genetics
 using Content.Shared.Implants;
 using Content.Shared.Inventory;
 using Content.Shared.Light;
@@ -172,7 +172,7 @@ namespace Content.Server.PDA
 
         private void OnEntityRenamed(ref EntityRenamedEvent ev)
         {
-            if (HasComp<IdCardComponent>(ev.Uid) || HasComp<DnaClonedComponent>(ev.Uid)) // Corvax-Wega-Genetics-Edit
+            if (HasComp<IdCardComponent>(ev.Uid) || HasComp<DnaClonedComponent>(ev.Uid)) // Onyx-Genetics-Edit
                 return;
 
             if (_idCard.TryFindIdCard(ev.Uid, out var idCard))

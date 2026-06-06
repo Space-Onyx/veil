@@ -46,14 +46,14 @@ namespace Content.Shared.Humanoid.Markings
         Overlay
     }
 
-    // Corvax-Wega-Genetics-start
+    // Onyx-Genetics-start
     [Serializable, NetSerializable]
     public enum MarkingTypes : byte
     {
         Base,
         NonGenetics
     }
-    // Corvax-Wega-Genetics-end
+    // Onyx-Genetics-end
 
     public static class MarkingCategoriesConversion
     {

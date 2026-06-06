@@ -2,7 +2,7 @@
     xmlns="https://spacestation14.io"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:gfx="clr-namespace:Robust.Client.Graphics;assembly=Robust.Client"
-    x:Class="Content.Client._Wega.Genetics.Ui.MindCommunicationPanel"
+    x:Class="Content.Client._Onyx.Genetics.Ui.MindCommunicationPanel"
     Title="{Loc 'mind-communication-title'}"
     MinSize="320 250"
     SetSize="320 250">

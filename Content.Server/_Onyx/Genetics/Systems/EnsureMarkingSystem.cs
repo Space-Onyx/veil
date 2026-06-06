@@ -59,13 +59,9 @@ public sealed class EnsureMarkingSystem : EntitySystem
         if (bestMatch == null)
             return;
 
-        string redHex = colorR[0] + colorR[1];
-        string greenHex = colorG[0] + colorG[1];
-        string blueHex = colorB[0] + colorB[1];
-
-        int red = Convert.ToInt32(redHex, 16);
-        int green = Convert.ToInt32(greenHex, 16);
-        int blue = Convert.ToInt32(blueHex, 16);
+        int red = ParseHexByte(colorR[0], colorR[1]);
+        int green = ParseHexByte(colorG[0], colorG[1]);
+        int blue = ParseHexByte(colorB[0], colorB[1]);
 
         var mainColor = new Color(red / 255f, green / 255f, blue / 255f);
 
@@ -76,13 +72,9 @@ public sealed class EnsureMarkingSystem : EntitySystem
             secondaryColorG != null &&
             secondaryColorB != null)
         {
-            string secondaryRedHex = secondaryColorR[0] + secondaryColorR[1];
-            string secondaryGreenHex = secondaryColorG[0] + secondaryColorG[1];
-            string secondaryBlueHex = secondaryColorB[0] + secondaryColorB[1];
-
-            int secondaryRed = Convert.ToInt32(secondaryRedHex, 16);
-            int secondaryGreen = Convert.ToInt32(secondaryGreenHex, 16);
-            int secondaryBlue = Convert.ToInt32(secondaryBlueHex, 16);
+            int secondaryRed = ParseHexByte(secondaryColorR[0], secondaryColorR[1]);
+            int secondaryGreen = ParseHexByte(secondaryColorG[0], secondaryColorG[1]);
+            int secondaryBlue = ParseHexByte(secondaryColorB[0], secondaryColorB[1]);
 
             var secondaryColor = new Color(secondaryRed / 255f, secondaryGreen / 255f, secondaryBlue / 255f);
             colors.Add(secondaryColor);
@@ -120,11 +112,34 @@ public sealed class EnsureMarkingSystem : EntitySystem
             if (i >= targetStyle.Length)
                 break;
 
-            int markingValue = Convert.ToInt32(markingStyle[i], 16);
-            int targetValue = Convert.ToInt32(targetStyle[i], 16);
+            int markingValue = ParseHexDigit(markingStyle[i]);
+            int targetValue = ParseHexDigit(targetStyle[i]);
             score += Math.Abs(markingValue - targetValue);
         }
 
         return score;
+    }
+
+    private static int ParseHexByte(string high, string low)
+    {
+        return (ParseHexDigit(high) << 4) | ParseHexDigit(low);
+    }
+
+    private static int ParseHexDigit(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return 0;
+
+        var digit = value[0];
+        if (digit >= '0' && digit <= '9')
+            return digit - '0';
+
+        if (digit >= 'A' && digit <= 'F')
+            return digit - 'A' + 10;
+
+        if (digit >= 'a' && digit <= 'f')
+            return digit - 'a' + 10;
+
+        return 0;
     }
 }

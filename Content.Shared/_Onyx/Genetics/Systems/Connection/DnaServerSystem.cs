@@ -19,6 +19,13 @@ public sealed class DnaServerSystem : EntitySystem
     private void OnStartup(Entity<DnaServerComponent> ent, ref ComponentStartup args)
     {
         ent.Comp.ServerId = GenerateId();
+        var query = EntityQueryEnumerator<DnaClientComponent>();
+        while (query.MoveNext(out var uid, out var client))
+        {
+            if (!client.ConnectedToServer)
+                RegisterClient((ent.Owner, ent.Comp), (uid, client));
+        }
+
         Dirty(ent);
     }
 
