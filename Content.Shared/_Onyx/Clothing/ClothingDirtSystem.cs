@@ -153,6 +153,45 @@ public sealed class ClothingDirtSystem : EntitySystem
         return true;
     }
 
+    public bool TryWashClothing(
+        EntityUid clothing,
+        ReagentId cleanerReagent,
+        FixedPoint2 amount,
+        ClothingDirtableComponent? component = null)
+    {
+        if (!_net.IsServer
+            || amount <= FixedPoint2.Zero
+            || !Resolve(clothing, ref component, logMissing: false)
+            || !_prototype.Resolve<ReagentPrototype>(cleanerReagent.Prototype, out var cleanerPrototype)
+            || cleanerPrototype.ClothingDirtCleanMultiplier <= FixedPoint2.Zero)
+        {
+            return false;
+        }
+
+        if (!_solutions.TryGetSolution(clothing, component.Solution, out var dirtSolution, out var dirt)
+            || dirt.Volume <= FixedPoint2.Zero)
+        {
+            return false;
+        }
+
+        _dirtCleaners.Clear();
+        _dirtCleaners.Add(new DirtCleaner(cleanerReagent, amount, cleanerPrototype.ClothingDirtCleanMultiplier));
+
+        var washableVolume = GetWashableDirtVolume(dirt, _dirtCleaners);
+        if (washableVolume <= FixedPoint2.Zero)
+            return false;
+
+        var washAmount = FixedPoint2.Min(amount * cleanerPrototype.ClothingDirtCleanMultiplier, washableVolume);
+        var removed = RemoveWashableDirt(dirt, _dirtCleaners, washAmount, washableVolume);
+        if (removed <= FixedPoint2.Zero)
+            return false;
+
+        _solutions.UpdateChemicals(dirtSolution.Value);
+        UpdateDirtVisuals((clothing, component), dirt);
+        SetDryingActive((clothing, component), HasDryableDirt(dirt, component));
+        return true;
+    }
+
     private Solution MakeCappedDirtSample(
         Solution source,
         Solution dirt,

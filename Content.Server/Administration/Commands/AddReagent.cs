@@ -81,7 +81,13 @@ namespace Content.Server.Administration.Commands
             if (quantityFloat > 0)
                 solutionContainerSystem.TryAddReagent(solution.Value, args[2], quantity, out _);
             else
-                solutionContainerSystem.RemoveReagent(solution.Value, args[2], quantity);
+            {
+                // <Onyx-ClothingDirt>
+                var removed = solution.Value.Comp.Solution.RemoveReagent(args[2], quantity, ignoreReagentData: true);
+                if (removed > FixedPoint2.Zero)
+                    solutionContainerSystem.UpdateChemicals(solution.Value);
+                // </Onyx-ClothingDirt>
+            }
         }
     }
 }

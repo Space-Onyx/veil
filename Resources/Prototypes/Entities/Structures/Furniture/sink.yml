@@ -58,6 +58,7 @@
   - type: ReagentTank
   - type: Drain
     autoDrain: false
+  - type: ClothingDirtWasher # <Onyx-ClothingDirt>
   - type: DumpableSolution
     solution: drainBuffer
   - type: Damageable
