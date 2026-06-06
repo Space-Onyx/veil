@@ -1283,14 +1283,17 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
         if (component.EnzymesPrototypes == null)
             return;
 
-        // < Onyx > added
         if (!_cfg.GetCVar(CCVars.RadiationEnableMutations))
             return;
-        // < Onyx > end
 
-        if (_random.Prob(0.05f))
+        var mutationStrength = radiationDamage.Float() * MathF.Max(0f, _cfg.GetCVar(CCVars.RadiationMutationStrengthModifier));
+        if (mutationStrength < 1f)
+            return;
+
+        var mutationChance = Math.Clamp(0.05f * mutationStrength, 0f, 1f);
+        if (_random.Prob(mutationChance))
         {
-            int countToModify = 1;
+            var countToModify = Math.Clamp((int) MathF.Floor(mutationStrength), 1, 10);
 
             var diseaseEnzymes = component.EnzymesPrototypes
                 .Where(enzyme =>

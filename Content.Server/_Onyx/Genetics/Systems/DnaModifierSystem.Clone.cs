@@ -7,7 +7,6 @@ using Content.Shared.Genetics;
 using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;
 using Content.Shared.Inventory;
-// using Content.Shared.Speech.Synthesis.Components; // Onyx remove
 using Content.Shared.Wagging;
 
 namespace Content.Server.Genetics.System;
@@ -52,9 +51,6 @@ public sealed partial class DnaModifierSystem
 
         if (TryComp<TTSComponent>(entity, out var tts) && TryComp<TTSComponent>(target, out var targetTts))
             tts.VoicePrototypeId = targetTts.VoicePrototypeId;
-
-        // if (TryComp<SpeechSynthesisComponent>(entity, out var barks) && TryComp<SpeechSynthesisComponent>(target, out var targetBarks))
-        //     barks.VoicePrototypeId = targetBarks.VoicePrototypeId; // Onyx remove
 
         if (TryComp<InventoryComponent>(entity, out var inventory) && TryComp<InventoryComponent>(target, out var targetInventory))
         {
