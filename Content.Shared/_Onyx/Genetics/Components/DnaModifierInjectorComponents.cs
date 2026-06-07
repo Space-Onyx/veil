@@ -14,6 +14,15 @@ public sealed partial class DnaModifierInjectorComponent : Component
     [ViewVariables(VVAccess.ReadOnly)]
     public List<EnzymesPrototypeInfo>? EnzymesPrototypes { get; set; } = default!;
 
+    [ViewVariables(VVAccess.ReadOnly)]
+    public bool ApplyStoredSampleDamage { get; set; }
+
+    [ViewVariables(VVAccess.ReadOnly)]
+    public bool StoredSampleStabilized { get; set; }
+
+    [ViewVariables(VVAccess.ReadOnly)]
+    public bool EvolutionStabilized { get; set; }
+
     [DataField("injectSound")]
     public SoundSpecifier InjectSound = new SoundPathSpecifier("/Audio/Items/hypospray.ogg");
 }

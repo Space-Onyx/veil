@@ -1,6 +1,7 @@
 using System.Linq;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
+using Content.Shared.Database;
 using Content.Shared.DoAfter;
 using Content.Shared.Genetics;
 using Content.Shared.Interaction;
@@ -14,7 +15,7 @@ public sealed partial class DnaModifierSystem
     [Dependency] private readonly AudioSystem _audio = default!;
     [Dependency] private readonly SharedDoAfterSystem _doAfterSystem = default!;
 
-    private static readonly ProtoId<DamageTypePrototype> Damage = "Poison";
+    private static readonly ProtoId<DamageTypePrototype> DnaInjectionDamage = "Cellular";
 
     private void InitializeInjector()
     {
@@ -24,7 +25,13 @@ public sealed partial class DnaModifierSystem
         SubscribeLocalEvent<DnaModifierCleanRandomizeComponent, ComponentStartup>(OnCleanRandomize);
     }
 
-    public void OnFillingInjector(EntityUid injector, UniqueIdentifiersData? uniqueIdentifiers, List<EnzymesPrototypeInfo>? enzymesPrototypes)
+    public void OnFillingInjector(
+        EntityUid injector,
+        UniqueIdentifiersData? uniqueIdentifiers,
+        List<EnzymesPrototypeInfo>? enzymesPrototypes,
+        bool applyStoredSampleDamage = false,
+        bool storedSampleStabilized = false,
+        bool evolutionStabilized = false)
     {
         if (!TryComp(injector, out DnaModifierInjectorComponent? comp))
             return;
@@ -39,6 +46,9 @@ public sealed partial class DnaModifierSystem
         comp.EnzymesPrototypes = enzymesPrototypes != null
             ? CloneEnzymesPrototypes(enzymesPrototypes)
             : null;
+        comp.ApplyStoredSampleDamage = applyStoredSampleDamage;
+        comp.StoredSampleStabilized = storedSampleStabilized;
+        comp.EvolutionStabilized = evolutionStabilized;
 
         Dirty(injector, comp);
     }
@@ -66,12 +76,12 @@ public sealed partial class DnaModifierSystem
         if (args.Handled || args.Cancelled || !args.Used.HasValue || !args.Target.HasValue)
             return;
 
-        TryDoInject((uid, component), args.Target.Value);
+        TryDoInject((uid, component), args.Target.Value, args.User);
 
         args.Handled = true;
     }
 
-    private bool TryDoInject(Entity<DnaModifierInjectorComponent> ent, EntityUid target)
+    private bool TryDoInject(Entity<DnaModifierInjectorComponent> ent, EntityUid target, EntityUid user)
     {
         if (ent.Comp.UniqueIdentifiers == null && ent.Comp.EnzymesPrototypes == null)
             return false;
@@ -79,10 +89,27 @@ public sealed partial class DnaModifierSystem
         if (!TryComp(target, out DnaModifierComponent? dnaModifier))
             return false;
 
-        if (ent.Comp.UniqueIdentifiers != null)
+        if (ent.Comp.ApplyStoredSampleDamage
+            && ent.Comp.UniqueIdentifiers != null
+            && !CanApplyStoredDnaSample(target, ent.Comp.UniqueIdentifiers, true, user))
         {
-            dnaModifier.UniqueIdentifiers = ent.Comp.UniqueIdentifiers;
+            return false;
         }
+
+        if (ent.Comp.ApplyStoredSampleDamage
+            && ent.Comp.UniqueIdentifiers != null
+            && !ent.Comp.StoredSampleStabilized
+            && RequiresIdentityStabilizer(target, ent.Comp.UniqueIdentifiers))
+        {
+            PopupDnaFailure(target, "dna-modifier-fail-identity-stabilizer", user);
+            return false;
+        }
+
+        if (!TryStartDnaModificationCooldown(target, user))
+            return false;
+
+        if (ent.Comp.UniqueIdentifiers != null)
+            dnaModifier.UniqueIdentifiers = ent.Comp.UniqueIdentifiers;
 
         if (ent.Comp.EnzymesPrototypes != null)
         {
@@ -102,12 +129,51 @@ public sealed partial class DnaModifierSystem
         }
 
         Dirty(target, dnaModifier);
-        ChangeDna(target);
+
+        if (ent.Comp.ApplyStoredSampleDamage)
+        {
+            _entitiesApplyingStoredDna.Add(target);
+            if (ent.Comp.StoredSampleStabilized)
+                _entitiesApplyingIdentityStabilizer.Add(target);
+
+            if (ent.Comp.EvolutionStabilized)
+                _entitiesApplyingEvolutionStabilizer.Add(target);
+
+            try
+            {
+                ChangeDna(target);
+            }
+            finally
+            {
+                _entitiesApplyingStoredDna.Remove(target);
+                _entitiesApplyingIdentityStabilizer.Remove(target);
+                _entitiesApplyingEvolutionStabilizer.Remove(target);
+            }
+        }
+        else if (ent.Comp.EvolutionStabilized)
+        {
+            _entitiesApplyingEvolutionStabilizer.Add(target);
+            try
+            {
+                ChangeDna(target);
+            }
+            finally
+            {
+                _entitiesApplyingEvolutionStabilizer.Remove(target);
+            }
+        }
+        else
+        {
+            ChangeDna(target);
+        }
 
         _audio.PlayPvs(ent.Comp.InjectSound, target);
 
-        var damage = new DamageSpecifier { DamageDict = { { Damage, 5 } } };
-        _damage.TryChangeDamage(target, damage, true);
+        if (ent.Comp.ApplyStoredSampleDamage)
+            ApplyDnaInjectionDamage(target);
+
+        _admin.Add(LogType.Action, LogImpact.High,
+            $"{ToPrettyString(user):user} injected {ToPrettyString(target):target} with a DNA injector. Stored sample: {ent.Comp.ApplyStoredSampleDamage}. Identity stabilized: {ent.Comp.StoredSampleStabilized}. Evolution stabilized: {ent.Comp.EvolutionStabilized}.");
 
         _entManager.DeleteEntity(ent);
 

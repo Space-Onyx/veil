@@ -34,3 +34,21 @@
           organ: Brain
           identifier: CerebrogenUltra
           percentPerUnit: 0.01
+
+- type: reagent
+  id: GeneticStabilizer
+  name: reagent-name-genetic-stabilizer
+  group: Medicine
+  desc: reagent-desc-genetic-stabilizer
+  physicalDesc: reagent-physical-desc-translucent
+  flavor: medicine
+  color: "#66d8ff"
+
+- type: reagent
+  id: EvolutionCatalyst
+  name: reagent-name-evolution-catalyst
+  group: Medicine
+  desc: reagent-desc-evolution-catalyst
+  physicalDesc: reagent-physical-desc-shiny
+  flavor: bitter
+  color: "#d0ff66"

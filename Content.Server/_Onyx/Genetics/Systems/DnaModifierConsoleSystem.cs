@@ -7,6 +7,7 @@ using Content.Shared.Chemistry;
 using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.Components.SolutionManager;
 using Content.Shared.Chemistry.EntitySystems;
+using Content.Shared.Chemistry.Reagent;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
@@ -22,6 +23,7 @@ using Content.Shared.Genetics.UI;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Power;
+using Content.Shared.Popups;
 using Content.Shared.UserInterface;
 using JetBrains.Annotations;
 using Robust.Server.GameObjects;
@@ -47,6 +49,7 @@ namespace Content.Server.Genetics.System
         [Dependency] private readonly IEntityManager _entManager = default!;
         [Dependency] private readonly IGameTiming _timing = default!;
         [Dependency] private readonly ItemSlotsSystem _itemSlotsSystem = default!;
+        [Dependency] private readonly SharedPopupSystem _popup = default!;
         [Dependency] private readonly PowerReceiverSystem _powerReceiverSystem = default!;
         [Dependency] private readonly QuickDialogSystem _quickDialog = default!;
         [Dependency] private readonly IRobustRandom _random = default!;
@@ -56,6 +59,7 @@ namespace Content.Server.Genetics.System
 
         private static readonly EntProtoId Injector = "DnaInjector";
         private static readonly ProtoId<DamageTypePrototype> RadDamage = "Radiation";
+        private static readonly ProtoId<DamageTypePrototype> DnaInjectionDamage = "Cellular";
 
         public override void Initialize()
         {
@@ -373,6 +377,34 @@ namespace Content.Server.Genetics.System
         private void PlayClickSound(Entity<DnaModifierConsoleComponent> ent)
             => _audio.PlayPvs(ent.Comp.ClickSound, ent, AudioParams.Default.WithVolume(-2f));
 
+        private bool TryConsumeConsoleReagent(
+            EntityUid consoleUid,
+            DnaModifierConsoleComponent console,
+            ProtoId<ReagentPrototype> reagent,
+            FixedPoint2 amount)
+        {
+            if (console.GeneticScanner == null || amount <= FixedPoint2.Zero)
+                return false;
+
+            if (!_itemSlotsSystem.TryGetSlot(console.GeneticScanner.Value, SharedDnaModifier.InputSlotName, out var slot)
+                || slot.Item == null
+                || !_solutionContainerSystem.TryGetSolution(slot.Item.Value, SharedDnaModifier.SolutionSlotName, out var sourceSolution, out var solution))
+            {
+                _popup.PopupEntity(Loc.GetString("dna-modifier-fail-no-stabilizer-container"), consoleUid, consoleUid, PopupType.MediumCaution);
+                return false;
+            }
+
+            var reagentId = new ReagentId(reagent.Id, null);
+            if (solution.GetReagentQuantity(reagentId) < amount)
+            {
+                _popup.PopupEntity(Loc.GetString("dna-modifier-fail-no-stabilizer"), consoleUid, consoleUid, PopupType.MediumCaution);
+                return false;
+            }
+
+            _solutionContainerSystem.RemoveReagent(sourceSolution.Value, reagentId, amount);
+            return true;
+        }
+
         private void OnEjectPressed(DnaModifierConsoleEjectEvent args)
         {
             if (!TryComp<DnaModifierConsoleComponent>(GetEntity(args.Uid), out var console) || console.GeneticScanner == null)
@@ -565,8 +597,17 @@ namespace Content.Server.Genetics.System
             if (!_dnaClient.TryGetBufferData((clientEntity, client), args.Index, out var data))
                 return;
 
+            var stabilized = data.Identifier == null
+                || TryConsumeConsoleReagent(clientEntity, console, console.IdentityStabilizerReagent, console.IdentityStabilizerCost);
+
+            if (!stabilized)
+            {
+                _popup.PopupEntity(Loc.GetString("dna-modifier-fail-identity-stabilizer"), clientEntity, clientEntity, PopupType.MediumCaution);
+                return;
+            }
+
             _dnaModifier.OnFillingInjector(_entManager.SpawnEntity(Injector, Transform(clientEntity).Coordinates),
-                data.Identifier, data.Info);
+                data.Identifier, data.Info, true, data.Identifier != null);
 
             console.LastInjectorTime = _timing.CurTime;
 
@@ -588,9 +629,12 @@ namespace Content.Server.Genetics.System
             if (targetBlock == null)
                 return;
 
+            var evolutionStabilized = targetBlock.Order != 55
+                || TryConsumeConsoleReagent(clientEntity, console, console.EvolutionStabilizerReagent, console.EvolutionStabilizerCost);
+
             var singleBlockInfo = new List<EnzymesPrototypeInfo> { targetBlock };
             _dnaModifier.OnFillingInjector(_entManager.SpawnEntity(Injector, Transform(clientEntity).Coordinates),
-                null, singleBlockInfo);
+                null, singleBlockInfo, evolutionStabilized: evolutionStabilized);
 
             console.LastInjectorTime = _timing.CurTime;
 
@@ -615,13 +659,20 @@ namespace Content.Server.Genetics.System
             if (!_dnaClient.TryGetBufferData((clientEntity, client), args.Index, out var data))
                 return;
 
+            var stabilized = !_dnaModifier.RequiresIdentityStabilizer(scanBody.Value, data.Identifier)
+                || TryConsumeConsoleReagent(clientEntity, console, console.IdentityStabilizerReagent, console.IdentityStabilizerCost);
+
+            if (!stabilized)
+            {
+                _popup.PopupEntity(Loc.GetString("dna-modifier-fail-identity-stabilizer"), scanBody.Value, scanBody.Value, PopupType.MediumCaution);
+                return;
+            }
+
             PlayClickSound((clientEntity, console));
-            _dnaModifier.ChangeDna((scanBody.Value, dnaModifier), data);
+            if (!_dnaModifier.TryApplyStoredDnaSample((scanBody.Value, dnaModifier), data, stabilized))
+                return;
 
             console.LastSubjectInjectTime = _timing.CurTime;
-
-            var damage = new DamageSpecifier { DamageDict = { { RadDamage, 20 } } };
-            _damage.TryChangeDamage(scanBody.Value, damage, true);
         }
 
         private void OnExportOnDiskPressed(DnaModifierConsoleExportOnDiskEvent args)
@@ -697,10 +748,23 @@ namespace Content.Server.Genetics.System
                 ModifyEnzymesPrototypes(dnaModifier.EnzymesPrototypes, args.CurrentBlock, args.CurrentValue, args.Intensity);
             }
 
-            AddRadiationDamage(scanBody.Value, args.Intensity);
+            var evolutionStabilized = args.CurrentTab == 1
+                && args.CurrentBlock == "55"
+                && TryConsumeConsoleReagent(GetEntity(args.Uid), console, console.EvolutionStabilizerReagent, console.EvolutionStabilizerCost);
+
+            _dnaModifier.BeginConsoleIrradiation(scanBody.Value);
+            try
+            {
+                AddRadiationDamage(scanBody.Value, args.Intensity);
+            }
+            finally
+            {
+                _dnaModifier.EndConsoleIrradiation(scanBody.Value);
+            }
+
             Dirty(scanBody.Value, dnaModifier);
 
-            _dnaModifier.ChangeDna((scanBody.Value, dnaModifier), args.CurrentTab);
+            _dnaModifier.TryChangeDnaWithEvolutionStabilizer((scanBody.Value, dnaModifier), args.CurrentTab, evolutionStabilized);
 
             PlayClickSound((GetEntity(args.Uid), console));
             UpdateUserInterface(GetEntity(args.Uid), console);
@@ -730,7 +794,16 @@ namespace Content.Server.Genetics.System
                 ModifyEnzymesPrototypes(dnaModifier.EnzymesPrototypes, args.Intensity, args.Duration);
             }
 
-            AddRadiationDamage(scanBody.Value, args.Intensity);
+            _dnaModifier.BeginConsoleIrradiation(scanBody.Value);
+            try
+            {
+                AddRadiationDamage(scanBody.Value, args.Intensity);
+            }
+            finally
+            {
+                _dnaModifier.EndConsoleIrradiation(scanBody.Value);
+            }
+
             Dirty(scanBody.Value, dnaModifier);
 
             _dnaModifier.ChangeDna((scanBody.Value, dnaModifier), type);

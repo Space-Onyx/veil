@@ -8,3 +8,25 @@
       amount: 1
   products:
     Cerebrogen: 3
+
+- type: reaction
+  id: GeneticStabilizer
+  impact: Medium
+  reactants:
+    UnstableMutagen:
+      amount: 1
+    Stellibinin:
+      amount: 1
+  products:
+    GeneticStabilizer: 2
+
+- type: reaction
+  id: EvolutionCatalyst
+  impact: Medium
+  reactants:
+    UnstableMutagen:
+      amount: 1
+    Epinephrine:
+      amount: 1
+  products:
+    EvolutionCatalyst: 2

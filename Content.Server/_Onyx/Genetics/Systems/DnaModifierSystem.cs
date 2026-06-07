@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Content.Server.Administration.Logs;
 using Content.Server.Chat.Systems;
 using Content.Server.Inventory;
+using Content.Server.NPC;
+using Content.Server.NPC.HTN;
 using Content.Server.Prayer;
 using Content.Shared._EinsteinEngines.HeightAdjust;
 using Content.Shared.Buckle;
@@ -24,7 +26,11 @@ using Content.Shared.Mind;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
+using Content.Shared.NPC;
+using Content.Shared.NPC.Components;
+using Content.Shared.NPC.Systems;
 using Content.Shared.Popups;
+using Content.Shared.Stunnable;
 using Robust.Shared.Enums;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
@@ -32,6 +38,7 @@ using Robust.Shared.Random;
 using Robust.Server.Player;
 using Robust.Shared.Configuration;
 using Content.Shared.CCVar;
+using Robust.Shared.Timing;
 
 namespace Content.Server.Genetics.System;
 
@@ -53,14 +60,27 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
     [Dependency] private readonly MetaDataSystem _metaData = default!;
     [Dependency] private readonly SharedMindSystem _mindSystem = default!;
     [Dependency] private readonly MobThresholdSystem _mobThreshold = default!;
+    [Dependency] private readonly NpcFactionSystem _npcFaction = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly PrayerSystem _prayerSystem = default!;
     [Dependency] private readonly IPrototypeManager _prototype = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private readonly SharedStunSystem _stun = default!;
+    [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
 
     private static readonly ProtoId<EmotePrototype> Scream = "Scream";
-    private HashSet<EntityUid> _entitiesUndergoingDnaChange = new HashSet<EntityUid>();
+    private static readonly TimeSpan DnaModificationCooldown = TimeSpan.FromMinutes(2);
+    private static readonly TimeSpan EvolutionKnockdownTime = TimeSpan.FromSeconds(4);
+    private const float StandardMinHeight = 0.85f;
+    private const float StandardMaxHeight = 2f;
+    private const float StandardMinWidth = 0.85f;
+    private const float StandardMaxWidth = 2f;
+    private readonly HashSet<EntityUid> _entitiesUndergoingDnaChange = new();
+    private readonly HashSet<EntityUid> _entitiesApplyingStoredDna = new();
+    private readonly HashSet<EntityUid> _entitiesApplyingIdentityStabilizer = new();
+    private readonly HashSet<EntityUid> _entitiesApplyingEvolutionStabilizer = new();
+    private readonly HashSet<EntityUid> _entitiesReceivingConsoleRadiation = new();
 
     public override void Initialize()
     {
@@ -101,6 +121,13 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
                 }
             }
             instabilityComponent.NextTimeTick -= frameTime;
+        }
+
+        var cooldownQuery = EntityQueryEnumerator<DnaRecentlyModifiedComponent>();
+        while (cooldownQuery.MoveNext(out var uid, out var cooldown))
+        {
+            if (_timing.CurTime >= cooldown.ExpiresAt)
+                RemCompDeferred<DnaRecentlyModifiedComponent>(uid);
         }
     }
 
@@ -405,8 +432,10 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
             };
 
             var species = _prototype.Index(humanoid.Species);
-            uniqueIdentifiers.Height = EncodeRangedBlock(humanoid.Height, species.MinHeight, species.MaxHeight);
-            uniqueIdentifiers.Width = EncodeRangedBlock(humanoid.Width, species.MinWidth, species.MaxWidth);
+            var heightRange = GetHeightRange(species);
+            var widthRange = GetWidthRange(species);
+            uniqueIdentifiers.Height = EncodeRangedBlock(humanoid.Height, heightRange.Min, heightRange.Max);
+            uniqueIdentifiers.Width = EncodeRangedBlock(humanoid.Width, widthRange.Min, widthRange.Max);
 
             component.UniqueIdentifiers = uniqueIdentifiers;
         }
@@ -679,6 +708,67 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
         TryChangeStructuralEnzymes(ent);
     }
 
+    public bool TryApplyStoredDnaSample(Entity<DnaModifierComponent> ent, EnzymeInfo sample, bool stabilized = false)
+    {
+        if (!CanApplyStoredDnaSample(ent, sample.Identifier, true))
+            return false;
+
+        if (!TryStartDnaModificationCooldown(ent))
+            return false;
+
+        if (!stabilized && RequiresIdentityStabilizer(ent, sample.Identifier))
+        {
+            PopupDnaFailure(ent, "dna-modifier-fail-identity-stabilizer");
+            return false;
+        }
+
+        _entitiesApplyingStoredDna.Add(ent);
+        if (stabilized)
+            _entitiesApplyingIdentityStabilizer.Add(ent);
+
+        try
+        {
+            ChangeDna(ent, sample);
+        }
+        finally
+        {
+            _entitiesApplyingStoredDna.Remove(ent);
+            _entitiesApplyingIdentityStabilizer.Remove(ent);
+        }
+
+        ApplyDnaInjectionDamage(ent);
+        _admin.Add(LogType.Action, LogImpact.High,
+            $"{ToPrettyString(ent):target} was injected with a stored DNA sample. Stabilized: {stabilized}.");
+        return true;
+    }
+
+    public bool TryChangeDnaWithEvolutionStabilizer(Entity<DnaModifierComponent> ent, int type, bool stabilized)
+    {
+        if (stabilized)
+            _entitiesApplyingEvolutionStabilizer.Add(ent);
+
+        try
+        {
+            ChangeDna(ent, type);
+        }
+        finally
+        {
+            _entitiesApplyingEvolutionStabilizer.Remove(ent);
+        }
+
+        return true;
+    }
+
+    public void BeginConsoleIrradiation(EntityUid target)
+    {
+        _entitiesReceivingConsoleRadiation.Add(target);
+    }
+
+    public void EndConsoleIrradiation(EntityUid target)
+    {
+        _entitiesReceivingConsoleRadiation.Remove(target);
+    }
+
     public void ChangeDna(Entity<DnaModifierComponent> ent, int type)
     {
         switch (type)
@@ -713,11 +803,21 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
             return;
 
         var uniqueIdentifiers = ent.Comp.UniqueIdentifiers;
-        UpdateRace((ent, humanoid), uniqueIdentifiers);
+        var protectIdentity = HasProtectedIdentity(ent)
+            && (!_entitiesApplyingStoredDna.Contains(ent) || !_entitiesApplyingIdentityStabilizer.Contains(ent));
+
+        if (protectIdentity)
+            PreserveProtectedIdentity((ent, humanoid), uniqueIdentifiers);
+        else
+            UpdateRace((ent, humanoid), uniqueIdentifiers);
+
         UpdateSkin((ent, humanoid), uniqueIdentifiers);
         UpdateMarkings((ent, humanoid), uniqueIdentifiers);
         UpdateEyeColor((ent, humanoid), uniqueIdentifiers);
-        UpdateGender((ent, humanoid), uniqueIdentifiers);
+
+        if (!protectIdentity)
+            UpdateGender((ent, humanoid), uniqueIdentifiers);
+
         UpdateScale((ent, humanoid), uniqueIdentifiers);
 
         Dirty(ent, humanoid);
@@ -725,6 +825,12 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
 
     private void UpdateRace(Entity<HumanoidAppearanceComponent> humanoid, UniqueIdentifiersData uniqueIdentifiers)
     {
+        if (!IsRoundStartSpecies(humanoid.Comp.Species))
+        {
+            uniqueIdentifiers.Race = Array.Empty<string>();
+            return;
+        }
+
         if (uniqueIdentifiers.Race.Length < 3)
         {
             if (IsRoundStartSpecies(humanoid.Comp.Species))
@@ -816,15 +922,17 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
     private void UpdateScale(Entity<HumanoidAppearanceComponent> humanoid, UniqueIdentifiersData uniqueIdentifiers)
     {
         var species = _prototype.Index(humanoid.Comp.Species);
+        var heightRange = GetHeightRange(species);
+        var widthRange = GetWidthRange(species);
 
         if (uniqueIdentifiers.Height.Length < 3)
-            uniqueIdentifiers.Height = EncodeRangedBlock(humanoid.Comp.Height, species.MinHeight, species.MaxHeight);
+            uniqueIdentifiers.Height = EncodeRangedBlock(humanoid.Comp.Height, heightRange.Min, heightRange.Max);
 
         if (uniqueIdentifiers.Width.Length < 3)
-            uniqueIdentifiers.Width = EncodeRangedBlock(humanoid.Comp.Width, species.MinWidth, species.MaxWidth);
+            uniqueIdentifiers.Width = EncodeRangedBlock(humanoid.Comp.Width, widthRange.Min, widthRange.Max);
 
-        var height = DecodeRangedBlock(uniqueIdentifiers.Height, species.MinHeight, species.MaxHeight, humanoid.Comp.Height);
-        var width = DecodeRangedBlock(uniqueIdentifiers.Width, species.MinWidth, species.MaxWidth, humanoid.Comp.Width);
+        var height = DecodeRangedBlock(uniqueIdentifiers.Height, heightRange.Min, heightRange.Max, humanoid.Comp.Height);
+        var width = DecodeRangedBlock(uniqueIdentifiers.Width, widthRange.Min, widthRange.Max, humanoid.Comp.Width);
 
         if (!species.ScaleHeight)
             height = species.DefaultHeight;
@@ -915,6 +1023,12 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
             if (hexValue < 8 || dnaLowest.Parent == null)
                 return;
 
+            if (RequiresEvolutionStabilizer(target) && !_entitiesApplyingEvolutionStabilizer.Contains(target))
+            {
+                PopupDnaFailure(target, "dna-modifier-fail-evolution-stabilizer");
+                return;
+            }
+
             var parent = dnaLowest.Parent.Value;
             DropInventoryAndHands(target);
 
@@ -934,14 +1048,18 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
                 dnaModifier.Instability = component.Instability;
 
                 Dirty(parent, dnaModifier);
-                ChangeDna(parent);
+                ChangeDnaWithStoredSampleContext(target, (parent, dnaModifier));
             }
+
+            ApplyEvolutionCost(parent);
 
             var parentXform = Transform(parent);
             _transform.SetCoordinates(parent, parentXform, Transform(target).Coordinates);
             _transform.AttachToGridOrMap(parent, parentXform);
 
             _entManager.DeleteEntity(target);
+            _admin.Add(LogType.Action, LogImpact.High,
+                $"{ToPrettyString(target):target} evolved back into {ToPrettyString(parent):parent} through DNA block 55.");
             return;
         }
 
@@ -953,9 +1071,16 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
             if (!HasComp<HumanoidAppearanceComponent>(target))
                 return;
 
+            if (RequiresEvolutionStabilizer(target) && !_entitiesApplyingEvolutionStabilizer.Contains(target))
+            {
+                PopupDnaFailure(target, "dna-modifier-fail-evolution-stabilizer");
+                return;
+            }
+
             // Degrade into the configured lower form and leave all carried items behind.
             _buckle.TryUnbuckle(target, target, true);
             var child = _entManager.SpawnEntity(component.Lowest, Transform(target).Coordinates);
+            PreserveNpcState(target, child);
             if (TryComp<DamageableComponent>(child, out var damageParent)
                 && _mobThreshold.GetScaledDamage(target, child, out var damage, out _) && damage != null)
             {
@@ -983,7 +1108,8 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
             EnsureEvolutionEndpoints(childDnaModifier, component);
 
             Dirty(child, childDnaModifier);
-            ChangeDna(child);
+            ChangeDnaWithStoredSampleContext(target, (child, childDnaModifier));
+            ApplyEvolutionCost(child);
 
             _admin.Add(LogType.Action, LogImpact.High, $"{ToPrettyString(target):user} gene down up a step.");
 
@@ -999,9 +1125,16 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
             if (string.IsNullOrEmpty(component.Upper) || IsCurrentPrototype(target, component.Upper.Value))
                 return;
 
+            if (RequiresEvolutionStabilizer(target) && !_entitiesApplyingEvolutionStabilizer.Contains(target))
+            {
+                PopupDnaFailure(target, "dna-modifier-fail-evolution-stabilizer");
+                return;
+            }
+
             // Evolve into the configured upper form and leave all carried items behind.
             _buckle.TryUnbuckle(target, target, true);
             var child = _entManager.SpawnEntity(component.Upper, Transform(target).Coordinates);
+            PreserveNpcState(target, child);
             if (TryComp<DamageableComponent>(child, out var parentDamage)
                 && _mobThreshold.GetScaledDamage(target, child, out var damageLowest, out _) && damageLowest != null)
             {
@@ -1028,7 +1161,8 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
             EnsureEvolutionEndpoints(childDnaModifier, component);
 
             Dirty(child, childDnaModifier);
-            ChangeDna(child);
+            ChangeDnaWithStoredSampleContext(target, (child, childDnaModifier));
+            ApplyEvolutionCost(child);
 
             _admin.Add(LogType.Action, LogImpact.High, $"{ToPrettyString(target):user} gene went up a step.");
 
@@ -1047,6 +1181,206 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
     {
         target.Upper ??= source.Upper;
         target.Lowest ??= source.Lowest;
+    }
+
+    private void ChangeDnaWithStoredSampleContext(EntityUid source, Entity<DnaModifierComponent?> target)
+    {
+        if (!_entitiesApplyingStoredDna.Contains(source))
+        {
+            ChangeDna(target);
+            return;
+        }
+
+        _entitiesApplyingStoredDna.Add(target);
+        if (_entitiesApplyingIdentityStabilizer.Contains(source))
+            _entitiesApplyingIdentityStabilizer.Add(target);
+
+        if (_entitiesApplyingEvolutionStabilizer.Contains(source))
+            _entitiesApplyingEvolutionStabilizer.Add(target);
+
+        try
+        {
+            ChangeDna(target);
+        }
+        finally
+        {
+            _entitiesApplyingStoredDna.Remove(target);
+            _entitiesApplyingIdentityStabilizer.Remove(target);
+            _entitiesApplyingEvolutionStabilizer.Remove(target);
+        }
+    }
+
+    private bool TryStartDnaModificationCooldown(EntityUid target, EntityUid? user = null)
+    {
+        if (TryComp<DnaRecentlyModifiedComponent>(target, out var cooldown)
+            && _timing.CurTime < cooldown.ExpiresAt)
+        {
+            PopupDnaFailure(target, "dna-modifier-fail-cooldown", user);
+            return false;
+        }
+
+        var newCooldown = EnsureComp<DnaRecentlyModifiedComponent>(target);
+        newCooldown.ExpiresAt = _timing.CurTime + DnaModificationCooldown;
+        Dirty(target, newCooldown);
+        return true;
+    }
+
+    private bool CanApplyStoredDnaSample(EntityUid target, UniqueIdentifiersData? identifiers, bool showPopup = false, EntityUid? user = null)
+    {
+        if (!TryComp<HumanoidAppearanceComponent>(target, out var humanoid))
+        {
+            if (showPopup)
+                PopupDnaFailure(target, "dna-modifier-fail-incompatible", user);
+
+            return false;
+        }
+
+        if (!IsRoundStartSpecies(humanoid.Species))
+        {
+            if (showPopup)
+                PopupDnaFailure(target, "dna-modifier-fail-roundstart", user);
+
+            return false;
+        }
+
+        if (identifiers == null)
+            return true;
+
+        if (identifiers.Race.Length < 3)
+        {
+            if (showPopup)
+                PopupDnaFailure(target, "dna-modifier-fail-bad-sample", user);
+
+            return false;
+        }
+
+        var sampleSpecies = GetSpeciesFromBlock(identifiers.Race);
+        var valid = sampleSpecies != null && IsRoundStartSpecies(sampleSpecies);
+        if (!valid && showPopup)
+            PopupDnaFailure(target, "dna-modifier-fail-bad-sample", user);
+
+        return valid;
+    }
+
+    private void ApplyDnaInjectionDamage(EntityUid target)
+    {
+        var damage = new DamageSpecifier { DamageDict = { { DnaInjectionDamage, 50 } } };
+        _damage.TryChangeDamage(target, damage, true);
+    }
+
+    private bool HasProtectedIdentity(EntityUid target)
+    {
+        return _mindSystem.TryGetMind(target, out _, out _)
+            || TryComp<ActorComponent>(target, out _);
+    }
+
+    public bool RequiresIdentityStabilizer(EntityUid target, UniqueIdentifiersData? identifiers)
+    {
+        if (identifiers == null || !HasProtectedIdentity(target))
+            return false;
+
+        if (!TryComp<HumanoidAppearanceComponent>(target, out var humanoid))
+            return false;
+
+        if (identifiers.Race.Length >= 3)
+        {
+            var species = GetSpeciesFromBlock(identifiers.Race);
+            if (species != null && humanoid.Species != species)
+                return true;
+        }
+
+        if (identifiers.Gender.Length >= 3)
+        {
+            var targetSex = GetSexFromGenderBlock(identifiers.Gender);
+            if (targetSex != null && humanoid.Sex != targetSex)
+                return true;
+        }
+
+        return false;
+    }
+
+    private Sex? GetSexFromGenderBlock(string[] gender)
+    {
+        if (gender.Length < 3)
+            return null;
+
+        var values = gender
+            .Select(ParseHexDigit)
+            .ToArray();
+
+        return (values[0], values[1], values[2]) switch
+        {
+            ( <= 0x5, <= 0x7, <= 0x3) => Sex.Female,
+            ( < 0x8, <= 0x7, >= 0x4 and < 0x9) => Sex.Male,
+            ( >= 0x8, >= 0x7, >= 0x9) => Sex.Unsexed,
+            _ => Sex.Unsexed
+        };
+    }
+
+    private bool RequiresEvolutionStabilizer(EntityUid target)
+    {
+        if (!TryComp<HumanoidAppearanceComponent>(target, out var humanoid))
+            return HasProtectedIdentity(target);
+
+        return IsRoundStartSpecies(humanoid.Species);
+    }
+
+    private void PreserveProtectedIdentity(Entity<HumanoidAppearanceComponent> humanoid, UniqueIdentifiersData uniqueIdentifiers)
+    {
+        uniqueIdentifiers.Race = GetSpeciesBlockOrEmpty(humanoid.Comp.Species);
+        uniqueIdentifiers.Gender = GenerateGenderBlock(humanoid.Comp.Sex);
+    }
+
+    private void ApplyEvolutionCost(EntityUid target)
+    {
+        var damage = new DamageSpecifier { DamageDict = { { DnaInjectionDamage, 25 } } };
+        _damage.TryChangeDamage(target, damage, true);
+        _stun.TryKnockdown(target, EvolutionKnockdownTime, true);
+    }
+
+    private void PopupDnaFailure(EntityUid target, string locId, EntityUid? user = null)
+    {
+        _popup.PopupEntity(Loc.GetString(locId), target, user ?? target, PopupType.MediumCaution);
+    }
+
+    private void PreserveNpcState(EntityUid source, EntityUid target)
+    {
+        if (TryComp<HTNComponent>(source, out var sourceHtn))
+        {
+            var targetHtn = EnsureComp<HTNComponent>(target);
+            targetHtn.RootTask = new HTNCompoundTask { Task = sourceHtn.RootTask.Task };
+            targetHtn.Blackboard = sourceHtn.Blackboard.ShallowClone();
+            targetHtn.Blackboard.SetValue(NPCBlackboard.Owner, target);
+            targetHtn.CheckServices = sourceHtn.CheckServices;
+            targetHtn.PlanCooldown = sourceHtn.PlanCooldown;
+            targetHtn.ConstantlyReplan = sourceHtn.ConstantlyReplan;
+            targetHtn.Enabled = sourceHtn.Enabled;
+        }
+
+        if (TryComp<NpcFactionMemberComponent>(source, out var sourceFactions))
+        {
+            _npcFaction.ClearFactions((target, null), false);
+            _npcFaction.ClearFriendlyFactions((target, null), false);
+            _npcFaction.ClearHostileFactions((target, null), false);
+            _npcFaction.AddFactions((target, null), sourceFactions.Factions, false);
+
+            if (sourceFactions.AddFriendlyFactions != null)
+            {
+                foreach (var faction in sourceFactions.AddFriendlyFactions)
+                    _npcFaction.AddFriendlyFaction((target, null), faction, false);
+            }
+
+            if (sourceFactions.AddHostileFactions != null)
+            {
+                foreach (var faction in sourceFactions.AddHostileFactions)
+                    _npcFaction.AddHostileFaction((target, null), faction, false);
+            }
+
+            _npcFaction.RefreshFactionCache((target, null));
+        }
+
+        if (HasComp<ActiveNPCComponent>(source))
+            EnsureComp<ActiveNPCComponent>(target);
     }
 
     private UniqueIdentifiersData? CloneUniqueIdentifiersForTarget(UniqueIdentifiersData? source, EntityUid target)
@@ -1096,6 +1430,30 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
 
         var normalized = Math.Clamp(ParseHexBlock(block) / (float)0xFFF, 0f, 1f);
         return Math.Clamp(min + (max - min) * normalized, min, max);
+    }
+
+    private (float Min, float Max) GetHeightRange(SpeciesPrototype species)
+    {
+        return NormalizeScaleRange(species.MinHeight, species.MaxHeight, StandardMinHeight, StandardMaxHeight);
+    }
+
+    private (float Min, float Max) GetWidthRange(SpeciesPrototype species)
+    {
+        return NormalizeScaleRange(species.MinWidth, species.MaxWidth, StandardMinWidth, StandardMaxWidth);
+    }
+
+    private (float Min, float Max) NormalizeScaleRange(float min, float max, float fallbackMin, float fallbackMax)
+    {
+        if (!float.IsFinite(min)
+            || !float.IsFinite(max)
+            || min <= 0f
+            || max <= 0f
+            || max <= min)
+        {
+            return (fallbackMin, fallbackMax);
+        }
+
+        return (min, max);
     }
 
     private string[] GetSpeciesBlockOrEmpty(ProtoId<SpeciesPrototype> species)
@@ -1276,6 +1634,9 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
         if (args.DamageDelta == null || !args.DamageIncreased || !args.DamageDelta.DamageDict.ContainsKey("Radiation"))
             return;
 
+        if (_entitiesReceivingConsoleRadiation.Contains(uid))
+            return;
+
         var radiationDamage = args.DamageDelta.DamageDict["Radiation"];
         if (radiationDamage < 1f)
             return;
@@ -1293,6 +1654,8 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
         var mutationChance = Math.Clamp(0.05f * mutationStrength, 0f, 1f);
         if (_random.Prob(mutationChance))
         {
+            // Ambient radiation mutates only disease structural enzymes. Race, height and width
+            // blocks stay under explicit console/sample control so passive radiation cannot reshape identity.
             var countToModify = Math.Clamp((int) MathF.Floor(mutationStrength), 1, 10);
 
             var diseaseEnzymes = component.EnzymesPrototypes
