@@ -146,7 +146,7 @@
 
 - type: marking
   id: GauzeLeftArm
-  bodyPart: LArm, LHand
+  bodyPart: LArm
   markingCategory: Overlay
   speciesRestriction: [Dwarf, Human, Reptilian, Arachnid, Felinid, Vulpkanin, Rodentia, Tajaran, Feroxi, Yowie] # Delta V - Felinid, Vulpkanin, Rodentia; Goob - Tajaran, Yowies
   coloring:
