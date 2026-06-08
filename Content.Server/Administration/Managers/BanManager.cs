@@ -70,7 +70,7 @@ public sealed partial class BanManager : IBanManager, IPostInjectInit
     private string _serverName = string.Empty;
     private string _webhookUrl = string.Empty;
     private const string WebhookDefaultName = "Onyx Bans";
-    private const string WebhookDefaultAvatarUrl = "https://images-ext-1.discordapp.net/external/6BfbWgaTaYadOagIrOPkAwAr05u4NGq0EHxmJC5EuFc/https/cdn.discordapp.com/icons/1474158623834898648/253afc0fa0bc68b69a257b3ef30c7cd9.png?format=webp&quality=lossless&width=102&height=102";
+    private const string WebhookDefaultAvatarUrl = "https://images-ext-1.discordapp.net/external/yso5HF9OQbXGZSCZqgHfz--iY7xUUDNQZNaf4ZyUlc8/https/cdn.discordapp.com/icons/1474158623834898648/7d7a93eb38b49361352752f4a646c9a9.png?format=webp&quality=lossless&width=102&height=102";
 
     private readonly Dictionary<ICommonSession, List<BanDef>> _cachedRoleBans = new();
     // Cached ban exemption flags are used to handle
