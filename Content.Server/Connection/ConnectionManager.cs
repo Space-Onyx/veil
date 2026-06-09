@@ -381,18 +381,18 @@ namespace Content.Server.Connection
                     }
 
                     var linkCodeLine = linkCode is not null
-                        ? $"Введите временный HEX-код: {linkCode}\n"
+                        ? $"Введите временный код: {linkCode}\n"
                         : "Не удалось сгенерировать код привязки. Попробуйте снова через несколько секунд.\n";
 
                     return (
                         ConnectionDenyReason.DiscordAuth,
-                        $"You are not authorized through discord!\n\n"
+                        $"Вы не авторизованы через Discord!\n\n"
                         + "Присоединитесь к нашему дискорд серверу:\n"
                         + "https://discord.com/invite/f5rcgkkgzm\n\n"
                         + "И авторизуйтесь здесь:\n"
                         + "https://discord.com/channels/1474158623834898648/1488907777941307453\n\n"
                         + linkCodeLine
-                        + "ВНИМАНИЕ: Не показывайте этот HEX-код никому, кроме администрации!",
+                        + "ВНИМАНИЕ: Не показывайте этот код никому, кроме администрации!",
                         null
                     );
                 }
