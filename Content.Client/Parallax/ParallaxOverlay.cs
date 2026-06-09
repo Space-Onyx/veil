@@ -21,6 +21,7 @@ using System.Numerics;
 using Content.Client.Parallax.Managers;
 using Content.Client.Viewport;
 using Content.Shared.CCVar;
+using Content.Shared.Parallax;
 using Content.Shared.Parallax.Biomes;
 using Robust.Client.Graphics;
 using Robust.Shared.Configuration;
@@ -53,8 +54,18 @@ public sealed class ParallaxOverlay : Overlay
 
     protected override bool BeforeDraw(in OverlayDrawArgs args)
     {
-        if (args.MapId == MapId.Nullspace || _entManager.HasComponent<BiomeComponent>(_mapSystem.GetMapOrInvalid(args.MapId)))
+        if (args.MapId == MapId.Nullspace) // <Onyx-PlanetParallax Edited>
             return false;
+
+        // <Onyx-PlanetParallax>
+        var mapUid = _mapSystem.GetMapOrInvalid(args.MapId);
+
+        if (_entManager.HasComponent<BiomeComponent>(mapUid) &&
+            !_entManager.HasComponent<ParallaxComponent>(mapUid))
+        {
+            return false;
+        }
+        // </Onyx-PlanetParallax>
 
         return true;
     }
