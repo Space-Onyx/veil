@@ -768,12 +768,6 @@ public sealed partial class BanManager : IBanManager, IPostInjectInit
 
     private sealed class WebhookPayload
     {
-        [JsonPropertyName("username")]
-        public string Username { get; set; } = string.Empty;
-
-        [JsonPropertyName("avatar_url")]
-        public string AvatarUrl { get; set; } = string.Empty;
-
         [JsonPropertyName("embeds")]
         public List<Embed> Embeds { get; set; } = [];
 
