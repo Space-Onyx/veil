@@ -4,6 +4,8 @@ using Content.Server.Chat.Systems;
 using Robust.Shared.Configuration;
 using Content.Shared._Onyx.CCVar;
 using Content.Server.Mind;
+using Content.Server.Radio;
+using Content.Server.Radio.Components;
 using Robust.Shared.Player;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
@@ -15,6 +17,7 @@ public sealed class SpeechBarksSystem : EntitySystem
     [Dependency] private readonly IPrototypeManager _proto = default!;
     [Dependency] private readonly IConfigurationManager _cfg = default!;
     [Dependency] private readonly EntityLookupSystem _lookup = default!;
+
     [Dependency] private readonly MindSystem _mind = default!;
     [Dependency] private readonly ISharedPlayerManager _player = default!;
     private bool _isEnabled = false;
@@ -26,6 +29,7 @@ public sealed class SpeechBarksSystem : EntitySystem
         _cfg.OnValueChanged(ADTCCVars.BarksEnabled, v => _isEnabled = v, true);
 
         SubscribeLocalEvent<SpeechBarksComponent, EntitySpokeEvent>(OnEntitySpoke);
+        SubscribeLocalEvent<WearingHeadsetComponent, HeadsetRadioReceiveRelayEvent>(OnHeadsetRadioReceive);
     }
 
     private void OnEntitySpoke(EntityUid uid, SpeechBarksComponent component, EntitySpokeEvent args)
@@ -53,5 +57,33 @@ public sealed class SpeechBarksSystem : EntitySystem
                         ev.Data.MaxVar,
                         args.IsWhisper), session);
         }
+    }
+
+    private void OnHeadsetRadioReceive(Entity<WearingHeadsetComponent> ent, ref HeadsetRadioReceiveRelayEvent args)
+    {
+        if (!_isEnabled)
+            return;
+
+        if (!TryComp(ent.Owner, out ActorComponent? actor))
+            return;
+
+        var source = args.RelayedEvent.MessageSource;
+        if (!TryComp(source, out SpeechBarksComponent? component))
+            return;
+
+        var ev = new TransformSpeakerBarkEvent(source, component.Data.Copy());
+        RaiseLocalEvent(source, ev);
+
+        var soundSpecifier = ev.Data.Sound ?? _proto.Index(ev.Data.Proto).Sound;
+
+        RaiseNetworkEvent(new PlaySpeechBarksEvent(
+            GetNetEntity(source),
+            args.RelayedEvent.OriginalChatMsg.Message,
+            soundSpecifier,
+            ev.Data.Pitch,
+            ev.Data.MinVar,
+            ev.Data.MaxVar,
+            false,
+            true), actor.PlayerSession);
     }
 }

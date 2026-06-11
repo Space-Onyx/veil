@@ -1,3 +1,8 @@
+ui-options-barks-or-tts = Вид озвучки
+ui-options-barks-speech = Барки
+ui-options-barks-volume = Громкость барков:
+ui-options-barks-radio-volume = Громкость барков в гарнитуре:
+
 humanoid-profile-editor-bark-label = Голос (Барк):
 humanoid-profile-editor-bark-play = Прослушать
 humanoid-profile-editor-bark-window-title = Выбор барка

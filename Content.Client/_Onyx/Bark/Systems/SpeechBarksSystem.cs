@@ -1,12 +1,9 @@
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Content.Shared._Onyx.SpeechBarks;
-using Content.Shared.Chat;
-using Robust.Shared.Player;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Configuration;
-using System.Threading.Tasks;
 using Robust.Client.Player;
 using Content.Shared._Onyx.CCVar;
 using Robust.Shared.Timing;
@@ -28,6 +25,7 @@ public sealed class SpeechBarksSystem : EntitySystem
     private const float MinimalVolume = -10f;
     private const float WhisperFade = 4f;
     private float _volume = 0.0f;
+    private float _radioVolume = 0.25f;
 
     private List<ActiveBark> _activeBarks = new();
 
@@ -36,6 +34,7 @@ public sealed class SpeechBarksSystem : EntitySystem
         base.Initialize();
 
         _cfg.OnValueChanged(ADTCCVars.BarksVolume, OnVolumeChanged, true);
+        _cfg.OnValueChanged(ADTCCVars.BarksRadioVolume, OnRadioVolumeChanged, true);
 
         SubscribeNetworkEvent<PlaySpeechBarksEvent>(OnEntitySpoke);
     }
@@ -44,25 +43,36 @@ public sealed class SpeechBarksSystem : EntitySystem
     {
         base.Shutdown();
         _cfg.UnsubValueChanged(ADTCCVars.BarksVolume, OnVolumeChanged);
+        _cfg.UnsubValueChanged(ADTCCVars.BarksRadioVolume, OnRadioVolumeChanged);
     }
 
     private void OnVolumeChanged(float volume)
         => _volume = volume;
 
-    private float AdjustVolume(string message, bool isWhisper)
+    private void OnRadioVolumeChanged(float volume)
+        => _radioVolume = volume;
+
+    private float AdjustVolume(string message, bool isWhisper, bool isRadio, float volumeScale = 1f)
     {
         var volume = isWhisper ? _volume - WhisperFade : _volume;
 
         if (message.EndsWith("!"))
             volume += 1.5f;
 
-        return MinimalVolume + SharedAudioSystem.GainToVolume(volume);
+        var radioVolume = isRadio ? _radioVolume : 1f;
+        var effectiveVolumeScale = volumeScale * radioVolume;
+
+        if (isRadio && effectiveVolumeScale <= 0f)
+            return float.NegativeInfinity;
+
+        return MinimalVolume + SharedAudioSystem.GainToVolume(volume) + SharedAudioSystem.GainToVolume(effectiveVolumeScale);
     }
 
     private float AdjustDistance(bool isWhisper)
     {
         return isWhisper ? 5 : 10;
     }
+
 
     private void OnEntitySpoke(PlaySpeechBarksEvent ev)
     {
@@ -72,20 +82,42 @@ public sealed class SpeechBarksSystem : EntitySystem
         if (ev.Message == null)
             return;
 
-        if (!TryGetEntity(ev.Source, out var source) || Transform(source.Value).MapID == MapId.Nullspace)
-            return;
+        EntityUid? source = null;
+        if (!ev.IsRadio)
+        {
+            if (!TryGetEntity(ev.Source, out var sourceUid) || Transform(sourceUid.Value).MapID == MapId.Nullspace)
+                return;
+
+            source = sourceUid;
+        }
+
+        if (ev.Source != null)
+        {
+            if (ev.IsRadio)
+            {
+                _activeBarks.RemoveAll(bark => bark.Speaker == ev.Source && bark.IsRadio);
+            }
+            else
+            {
+                _activeBarks.RemoveAll(bark => bark.Speaker == ev.Source && !bark.IsRadio);
+            }
+        }
 
         var barkMessage = RemoveInlineActions(ev.Message);
+
         if (string.IsNullOrWhiteSpace(barkMessage))
             return;
 
         var bark = new ActiveBark(source,
+                                  ev.Source,
                                   ev.SoundSpecifier,
-                                  AdjustVolume(barkMessage, ev.IsWhisper),
+                                  AdjustVolume(barkMessage, ev.IsWhisper, ev.IsRadio, ev.VolumeScale),
                                   ev.Pitch,
                                   AdjustDistance(ev.IsWhisper),
                                   (ev.LowVar, ev.HighVar),
-                                  barkMessage.Length / 3 + 1);
+
+                                  barkMessage.Length / 3 + 1,
+                                  ev.IsRadio);
         _activeBarks.Add(bark);
     }
 
@@ -170,12 +202,15 @@ public sealed class SpeechBarksSystem : EntitySystem
             return;
 
         var bark = new ActiveBark(null,
+                                  null,
                                   proto.Sound,
-                                  AdjustVolume("Test message", false),
+                                  AdjustVolume("Test message", false, false),
                                   pitch,
                                   AdjustDistance(false),
+
                                   (lowVar, highVar),
-                                  9);
+                                  9,
+                                  false);
         _activeBarks.Add(bark);
     }
 
@@ -213,6 +248,12 @@ public sealed class SpeechBarksSystem : EntitySystem
                 continue;
             }
 
+            if (item.IsRadio)
+            {
+                _audio.PlayGlobal(_audio.ResolveSound(item.Sound), _player.LocalSession, audioParams);
+                continue;
+            }
+
             if (_player.LocalEntity is { Valid: true } player)
             {
                 if (item.Source == _player.LocalEntity)
@@ -231,6 +272,7 @@ public sealed class SpeechBarksSystem : EntitySystem
     private sealed class ActiveBark
     {
         public readonly EntityUid? Source;
+        public readonly NetEntity? Speaker;
         public readonly SoundSpecifier Sound = default!;
         public readonly float Volume = default!;
         public readonly float Pitch = default!;
@@ -238,14 +280,17 @@ public sealed class SpeechBarksSystem : EntitySystem
         public readonly (float, float) DelayVariation = default!;
         public readonly int Length = default!;
         public readonly bool HasSource;
+        public readonly bool IsRadio;
 
         public TimeSpan NextSound = TimeSpan.Zero;
         public int BarksPlayed = 0;
 
-        public ActiveBark(EntityUid? source, SoundSpecifier sound, float volume, float pitch, float distance, (float, float) delay, int length)
+        public ActiveBark(EntityUid? source, NetEntity? speaker, SoundSpecifier sound, float volume, float pitch, float distance, (float, float) delay, int length, bool isRadio)
         {
             Source = source;
+            Speaker = speaker;
             HasSource = source.HasValue;
+            IsRadio = isRadio;
             Sound = sound;
             Volume = volume;
             Pitch = pitch;

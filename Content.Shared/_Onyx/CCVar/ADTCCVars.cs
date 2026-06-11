@@ -28,4 +28,7 @@ public sealed class ADTCCVars
 
     public static readonly CVarDef<float> BarksVolume =
         CVarDef.Create("barks.volume", 1f, CVar.CLIENTONLY | CVar.ARCHIVE);
+
+    public static readonly CVarDef<float> BarksRadioVolume =
+        CVarDef.Create("barks.radio_volume", 0.25f, CVar.CLIENTONLY | CVar.ARCHIVE);
 }

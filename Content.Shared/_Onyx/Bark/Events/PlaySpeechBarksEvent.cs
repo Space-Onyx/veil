@@ -13,6 +13,8 @@ public sealed class PlaySpeechBarksEvent : EntityEventArgs
     public float LowVar;
     public float HighVar;
     public bool IsWhisper;
+    public bool IsRadio;
+    public float VolumeScale;
 
     public PlaySpeechBarksEvent(
         NetEntity source,
@@ -21,7 +23,9 @@ public sealed class PlaySpeechBarksEvent : EntityEventArgs
         float pitch,
         float lowVar,
         float highVar,
-        bool isWhisper)
+        bool isWhisper,
+        bool isRadio = false,
+        float volumeScale = 1f)
     {
         Source = source;
         Message = message;
@@ -30,5 +34,7 @@ public sealed class PlaySpeechBarksEvent : EntityEventArgs
         LowVar = lowVar;
         HighVar = highVar;
         IsWhisper = isWhisper;
+        IsRadio = isRadio;
+        VolumeScale = volumeScale;
     }
 }

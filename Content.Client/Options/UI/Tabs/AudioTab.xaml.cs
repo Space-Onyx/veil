@@ -122,6 +122,11 @@ public sealed partial class AudioTab : Control
             SliderVolumeBarks,
             scale: ContentAudioSystem.BarksMultiplier);
 
+        Control.AddOptionPercentSlider(
+            ADTCCVars.BarksRadioVolume,
+            SliderVolumeRadioBarks,
+            scale: ContentAudioSystem.BarksMultiplier);
+
         Control.AddOptionDropDown<bool>(
             ADTCCVars.ReplaceTTSWithBarks,
             DropDownBarksOrTTS,
@@ -134,6 +139,7 @@ public sealed partial class AudioTab : Control
         Control.AddOptionPercentSlider(
             CVars.MidiVolume,
             SliderVolumeMidi,
+
             scale: ContentAudioSystem.MidiVolumeMultiplier);
 
         Control.AddOptionPercentSlider(

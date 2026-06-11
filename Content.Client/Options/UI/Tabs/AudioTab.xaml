@@ -53,9 +53,11 @@ SPDX-License-Identifier: AGPL-3.0-or-later
                 <!-- ADT Barks start -->
                 <ui:OptionDropDown Name="DropDownBarksOrTTS" Title="{Loc 'ui-options-barks-or-tts'}"
                                  Margin="0 0 0 8" />
+                <ui:OptionSlider Name="SliderVolumeRadioBarks" Title="{Loc 'ui-options-barks-radio-volume'}" />
                 <!-- ADT Barks end -->
                 <CheckBox Name="LobbyMusicCheckBox" Text="{Loc 'ui-options-lobby-music'}" />
                 <CheckBox Name="RestartSoundsCheckBox" Text="{Loc 'ui-options-restart-sounds'}" />
+
                 <CheckBox Name="EventMusicCheckBox" Text="{Loc 'ui-options-event-music'}" />
                 <CheckBox Name="AdminSoundsCheckBox" Text="{Loc 'ui-options-admin-sounds'}" />
                 <CheckBox Name="BwoinkSoundCheckBox" Text="{Loc 'ui-options-bwoink-sound'}" />

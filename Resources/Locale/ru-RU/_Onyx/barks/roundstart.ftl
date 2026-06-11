@@ -16,6 +16,7 @@ bark-weh-name = Вех!
 bark-merp-name = Мерп!
 bark-chrip-1-name = Чирикание
 bark-chrip-2-name = Тявканье
+
 bark-flowey-name = Флауи (Undertale)
 bark-mettaton-name = Меттатон (Undertale)
 bark-papyrus-name = Папирус (Undertale)
@@ -26,6 +27,7 @@ bark-asgore-name = Азгор (Undertale)
 bark-gaster-name = Гастер (Undertale)
 bark-undyne-name = Андаин (Undertale)
 bark-temmie-name = Темми (Undertale)
+
 bark-roxlscaard-name = Рокслз Каард (Deltarune)
 bark-queen-name = Королева (Deltarune)
 bark-noelle-name = Ноэлль (Deltarune)
@@ -33,9 +35,11 @@ bark-tenna-name = Мистер Ант Тенна (Deltarune)
 bark-noellesmom-name = Мама Ноэлль (Deltarune)
 bark-gersonboom-name = Герсон Бум (Deltarune)
 bark-jackenstein-name = Джекинштейн (Deltarune)
+
 bark-charkis-name = Чаркис (Deltarune: Chapter REwritten)
 bark-junkil-name = Джанкил Д. Джанкил (Deltarune: Chapter REwritten)
 bark-scampton-name = Скамптон Великий (Deltarune: Chapter REwritten)
+
 bark-TSUAlphys-name = Альфис (TS!Underswap)
 bark-bugerpant-name = Бугерпант (TS!Underswap)
 bark-CoffinK-name = Коффин-К (TS!Underswap)
