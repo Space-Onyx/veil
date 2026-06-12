@@ -1,5 +1,5 @@
 - type: loadoutEffectGroup
-  id: OnyxUnderwearSpeciesRestrictions
+  id: OnyxUnderwearBottomSpeciesRestrictions
   effects:
   - !type:SpeciesLoadoutEffect
     species:
@@ -8,18 +8,54 @@
     - Reptilian
     - SlimePerson
     - Dwarf
-    - DemonSpecies
+    - Demon
     - Felinid
-    - KoboltSpecies
-    - DraskSpecies
-    - TajaranSpecies
-    - UrsusSpecies
-    - VulpkaninSpecies
+    - Tajaran
+    - Vulpkanin
     - Shadekin
     - Demon
     - Oni
     - Rodentia
     - Harpy
+
+- type: loadoutEffectGroup
+  id: OnyxUnderwearTopSpeciesRestrictions
+  effects:
+  - !type:SpeciesLoadoutEffect
+    species:
+    - Human
+    - Feroxi
+    - Reptilian
+    - SlimePerson
+    - Dwarf
+    - Demon
+    - Felinid
+    - Tajaran
+    - Vulpkanin
+    - Shadekin
+    - Demon
+    - Oni
+    - Rodentia
+    - Harpy
+
+- type: loadoutEffectGroup
+  id: OnyxUnderwearSocksSpeciesRestrictions
+  effects:
+  - !type:SpeciesLoadoutEffect
+    species:
+    - Human
+    - Feroxi
+    - Reptilian
+    - SlimePerson
+    - Dwarf
+    - Demon
+    - Felinid
+    - Tajaran
+    - Vulpkanin
+    - Shadekin
+    - Demon
+    - Oni
+    - Rodentia
 
 # Нижнее белье (Трусы)
 
@@ -27,7 +63,7 @@
   id: OnyxUnderwearBoxersWhite
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearBottomSpeciesRestrictions
   equipment:
     underwearb: OnyxClothingUnderwearBottomBoxersWhite
 
@@ -35,7 +71,7 @@
   id: OnyxUnderwearBoxersAmerica
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearBottomSpeciesRestrictions
   equipment:
     underwearb: OnyxClothingUnderwearBottomBoxersAmerica
 
@@ -43,7 +79,7 @@
   id: OnyxUnderwearBoxersBoom
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearBottomSpeciesRestrictions
   equipment:
     underwearb: OnyxClothingUnderwearBottomBoxersBoom
 
@@ -51,7 +87,7 @@
   id: OnyxUnderwearBriefsWhite
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearBottomSpeciesRestrictions
   equipment:
     underwearb: OnyxClothingUnderwearBottomBriefsWhite
 
@@ -61,7 +97,7 @@
   id: OnyxUnderwearBoxersQM
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearBottomSpeciesRestrictions
   equipment:
     underwearb: OnyxClothingUnderwearBottomBoxersQM
 
@@ -69,7 +105,7 @@
   id: OnyxUnderwearBoxersRD
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearBottomSpeciesRestrictions
   equipment:
     underwearb: OnyxClothingUnderwearBottomBoxersRD
 
@@ -77,7 +113,7 @@
   id: OnyxUnderwearBoxersCap
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearBottomSpeciesRestrictions
   equipment:
     underwearb: OnyxClothingUnderwearBottomBoxersCap
 
@@ -85,7 +121,7 @@
   id: OnyxUnderwearBoxersHOP
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearBottomSpeciesRestrictions
   equipment:
     underwearb: OnyxClothingUnderwearBottomBoxersHOP
 
@@ -93,7 +129,7 @@
   id: OnyxUnderwearBoxersHOS
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearBottomSpeciesRestrictions
   equipment:
     underwearb: OnyxClothingUnderwearBottomBoxersHOS
 
@@ -101,7 +137,7 @@
   id: OnyxUnderwearBoxersCMO
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearBottomSpeciesRestrictions
   equipment:
     underwearb: OnyxClothingUnderwearBottomBoxersCMO
 
@@ -109,7 +145,7 @@
   id: OnyxUnderwearBoxersCE
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearBottomSpeciesRestrictions
   equipment:
     underwearb: OnyxClothingUnderwearBottomBoxersCE
 
@@ -117,7 +153,7 @@
   id: OnyxUnderwearBoxersBlueshield
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearBottomSpeciesRestrictions
   equipment:
     underwearb: OnyxClothingUnderwearBottomBoxersBlueshield
 
@@ -127,7 +163,7 @@
   id: OnyxUnderwearPantiesWhite
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearBottomSpeciesRestrictions
   equipment:
     underwearb: OnyxClothingUnderwearBottomPantiesWhite
 
@@ -135,7 +171,7 @@
   id: OnyxUnderwearPantiesComfyWhite
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearBottomSpeciesRestrictions
   equipment:
     underwearb: OnyxClothingUnderwearBottomPantiesComfyWhite
 
@@ -143,7 +179,7 @@
   id: OnyxUnderwearPantiesLace
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearBottomSpeciesRestrictions
   equipment:
     underwearb: OnyxClothingUnderwearBottomPantiesLace
 
@@ -151,7 +187,7 @@
   id: OnyxUnderwearPantiesLaceBlue
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearBottomSpeciesRestrictions
   equipment:
     underwearb: OnyxClothingUnderwearBottomPantiesLaceBlueAlternative
 
@@ -159,7 +195,7 @@
   id: OnyxUnderwearPantiesLaceRed
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearBottomSpeciesRestrictions
   equipment:
     underwearb: OnyxClothingUnderwearBottomPantiesLaceRedAlternative
 
@@ -167,7 +203,7 @@
   id: OnyxUnderwearPantiesLaceBlack
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearBottomSpeciesRestrictions
   equipment:
     underwearb: OnyxClothingUnderwearBottomPantiesLaceBlack
 
@@ -175,7 +211,7 @@
   id: OnyxUnderwearMonokiniWhite
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearBottomSpeciesRestrictions
   equipment:
     underwearb: OnyxClothingUnderwearBottomMonokiniWhite
 
@@ -183,7 +219,7 @@
   id: OnyxUnderwearMonokiniBlack
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearBottomSpeciesRestrictions
   equipment:
     underwearb: OnyxClothingUnderwearBottomMonokiniBlack
 
@@ -193,7 +229,7 @@
   id: OnyxUnderwearPantiesQM
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearBottomSpeciesRestrictions
   equipment:
     underwearb: OnyxClothingUnderwearBottomPantiesQM
 
@@ -201,7 +237,7 @@
   id: OnyxUnderwearPantiesRD
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearBottomSpeciesRestrictions
   equipment:
     underwearb: OnyxClothingUnderwearBottomPantiesRD
 
@@ -209,7 +245,7 @@
   id: OnyxUnderwearPantiesCap
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearBottomSpeciesRestrictions
   equipment:
     underwearb: OnyxClothingUnderwearBottomPantiesCap
 
@@ -217,7 +253,7 @@
   id: OnyxUnderwearPantiesHOP
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearBottomSpeciesRestrictions
   equipment:
     underwearb: OnyxClothingUnderwearBottomPantiesHOP
 
@@ -225,7 +261,7 @@
   id: OnyxUnderwearPantiesHOS
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearBottomSpeciesRestrictions
   equipment:
     underwearb: OnyxClothingUnderwearBottomPantiesHOS
 
@@ -233,7 +269,7 @@
   id: OnyxUnderwearPantiesCMO
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearBottomSpeciesRestrictions
   equipment:
     underwearb: OnyxClothingUnderwearBottomPantiesCMO
 
@@ -241,7 +277,7 @@
   id: OnyxUnderwearPantiesCE
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearBottomSpeciesRestrictions
   equipment:
     underwearb: OnyxClothingUnderwearBottomPantiesCE
 
@@ -249,7 +285,7 @@
   id: OnyxUnderwearPantiesBlueshield
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearBottomSpeciesRestrictions
   equipment:
     underwearb: OnyxClothingUnderwearBottomPantiesBlueshield
 
@@ -259,7 +295,7 @@
   id: OnyxUnderwearTShirt
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearTopSpeciesRestrictions
   equipment:
     underweart: OnyxClothingUnderwearTopTShirt
 
@@ -269,7 +305,7 @@
   id: OnyxUnderwearBraWhite
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearTopSpeciesRestrictions
   equipment:
     underweart: OnyxClothingUnderwearTopBraWhite
 
@@ -277,7 +313,7 @@
   id: OnyxUnderwearBraComfyWhite
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearTopSpeciesRestrictions
   equipment:
     underweart: OnyxClothingUnderwearTopBraComfyWhite
 
@@ -285,7 +321,7 @@
   id: OnyxUnderwearBraSports
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearTopSpeciesRestrictions
   equipment:
     underweart: OnyxClothingUnderwearTopBraSports
 
@@ -293,7 +329,7 @@
   id: OnyxUnderwearBraSportsAlternative
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearTopSpeciesRestrictions
   equipment:
     underweart: OnyxClothingUnderwearTopBraSportsAlternative
 
@@ -301,7 +337,7 @@
   id: OnyxUnderwearBraSportsBlack
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearTopSpeciesRestrictions
   equipment:
     underweart: OnyxClothingUnderwearTopBraSportsBlack
 
@@ -309,7 +345,7 @@
   id: OnyxUnderwearBraPea
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearTopSpeciesRestrictions
   equipment:
     underweart: OnyxClothingUnderwearTopBraPea
 
@@ -317,7 +353,7 @@
   id: OnyxUnderwearBraLace
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearTopSpeciesRestrictions
   equipment:
     underweart: OnyxClothingUnderwearTopBraLace
 
@@ -325,7 +361,7 @@
   id: OnyxUnderwearBraLaceBlue
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearTopSpeciesRestrictions
   equipment:
     underweart: OnyxClothingUnderwearTopBraLaceBlueAlternative
 
@@ -333,7 +369,7 @@
   id: OnyxUnderwearBraLaceRed
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearTopSpeciesRestrictions
   equipment:
     underweart: OnyxClothingUnderwearTopBraLaceRedAlternative
 
@@ -341,7 +377,7 @@
   id: OnyxUnderwearBraLaceBlack
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearTopSpeciesRestrictions
   equipment:
     underweart: OnyxClothingUnderwearTopBraLaceBlack
 
@@ -349,7 +385,7 @@
   id: OnyxUnderwearTopMonokiniWhite
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearTopSpeciesRestrictions
   equipment:
     underweart: OnyxClothingUnderwearTopMonokiniWhite
 
@@ -357,7 +393,7 @@
   id: OnyxUnderwearTopMonokiniBlack
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearTopSpeciesRestrictions
   equipment:
     underweart: OnyxClothingUnderwearTopMonokiniBlack
 
@@ -367,7 +403,7 @@
   id: OnyxUnderwearBraQM
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearTopSpeciesRestrictions
   equipment:
     underweart: OnyxClothingUnderwearTopBraQM
 
@@ -375,7 +411,7 @@
   id: OnyxUnderwearBraRD
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearTopSpeciesRestrictions
   equipment:
     underweart: OnyxClothingUnderwearTopBraRD
 
@@ -383,7 +419,7 @@
   id: OnyxUnderwearBraCap
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearTopSpeciesRestrictions
   equipment:
     underweart: OnyxClothingUnderwearTopBraCap
 
@@ -391,7 +427,7 @@
   id: OnyxUnderwearBraHOP
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearTopSpeciesRestrictions
   equipment:
     underweart: OnyxClothingUnderwearTopBraHOP
 
@@ -399,7 +435,7 @@
   id: OnyxUnderwearBraHOS
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearTopSpeciesRestrictions
   equipment:
     underweart: OnyxClothingUnderwearTopBraHOS
 
@@ -407,7 +443,7 @@
   id: OnyxUnderwearBraCMO
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearTopSpeciesRestrictions
   equipment:
     underweart: OnyxClothingUnderwearTopBraCMO
 
@@ -415,7 +451,7 @@
   id: OnyxUnderwearBraCE
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearTopSpeciesRestrictions
   equipment:
     underweart: OnyxClothingUnderwearTopBraCE
 
@@ -423,7 +459,7 @@
   id: OnyxUnderwearBraBlueshield
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearTopSpeciesRestrictions
   equipment:
     underweart: OnyxClothingUnderwearTopBraBlueshield
 
@@ -433,7 +469,7 @@
   id: OnyxUnderwearSocksHigh
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksHigh
 
@@ -441,7 +477,7 @@
   id: OnyxUnderwearSocksShort
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksShort
 
@@ -449,7 +485,7 @@
   id: OnyxUnderwearSocksThigh
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksThigh
 
@@ -457,7 +493,7 @@
   id: OnyxUnderwearSocksNormal
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksNormal
 
@@ -465,7 +501,7 @@
   id: OnyxUnderwearSocksComfyBlue
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksComfyBlue
 
@@ -473,7 +509,7 @@
   id: OnyxUnderwearSocksComfyGrey
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksComfyGrey
 
@@ -481,7 +517,7 @@
   id: OnyxUnderwearSocksComfyRed
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksComfyRed
 
@@ -489,7 +525,7 @@
   id: OnyxUnderwearSocksComfyViolet
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksComfyViolet
 
@@ -497,7 +533,7 @@
   id: OnyxUnderwearSocksBee
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: ClothingUnderSocksBee
 
@@ -505,7 +541,7 @@
   id: OnyxUnderwearSocksBeeThigh
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksBee
 
@@ -513,7 +549,7 @@
   id: OnyxUnderwearSocksCoder
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: ClothingUnderSocksCoder
 
@@ -521,7 +557,7 @@
   id: OnyxUnderwearStockings
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksStockingsWhite
 
@@ -529,7 +565,7 @@
   id: OnyxUnderwearStockingsLace
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksLaceThigh
 
@@ -537,7 +573,7 @@
   id: OnyxUnderwearStockingsBlack
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksStockingsBlack
 
@@ -545,7 +581,7 @@
   id: OnyxUnderwearStockingsComfyBlue
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksKneeComfyBlue
 
@@ -553,7 +589,7 @@
   id: OnyxUnderwearStockingsComfyGrey
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksKneeComfyGrey
 
@@ -561,7 +597,7 @@
   id: OnyxUnderwearStockingsComfyRed
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksKneeComfyRed
 
@@ -569,7 +605,7 @@
   id: OnyxUnderwearStockingsComfyViolet
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksKneeComfyViolet
 
@@ -579,7 +615,7 @@
   id: OnyxUnderwearStockingsBlueshield
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksStockingsBlueshield
 
@@ -587,7 +623,7 @@
   id: OnyxUnderwearSocksBlueshield
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksBlueshield
 
@@ -595,7 +631,7 @@
   id: OnyxUnderwearStockingsCentcom
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksThighCentcom
 
@@ -603,7 +639,7 @@
   id: OnyxUnderwearSocksKneeCentcom
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksKneeCentcom
 
@@ -611,7 +647,7 @@
   id: OnyxUnderwearSocksCentcom
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksCentcom
 
@@ -619,7 +655,7 @@
   id: OnyxUnderwearSocksAzure
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksAzure
 
@@ -627,7 +663,7 @@
   id: OnyxUnderwearSocksKneeAzure
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksKneeAzure
 
@@ -635,7 +671,7 @@
   id: OnyxUnderwearSocksThighAzure
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksThighAzure
 
@@ -643,7 +679,7 @@
   id: OnyxUnderwearSocksBlack
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksBlack
 
@@ -651,7 +687,7 @@
   id: OnyxUnderwearSocksKneeBlack
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksKneeBlack
 
@@ -659,7 +695,7 @@
   id: OnyxUnderwearSocksThighBlack
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksThighBlack
 
@@ -667,7 +703,7 @@
   id: OnyxUnderwearSocksCyan
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksCyan
 
@@ -675,7 +711,7 @@
   id: OnyxUnderwearSocksKneeCyan
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksKneeCyan
 
@@ -683,7 +719,7 @@
   id: OnyxUnderwearSocksThighCyan
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksThighCyan
 
@@ -691,7 +727,7 @@
   id: OnyxUnderwearSocksFurr
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksFurr
 
@@ -699,7 +735,7 @@
   id: OnyxUnderwearSocksKneeFurr
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksKneeFurr
 
@@ -707,7 +743,7 @@
   id: OnyxUnderwearSocksThighFurr
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksThighFurr
 
@@ -715,7 +751,7 @@
   id: OnyxUnderwearSocksGreen
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksGreen
 
@@ -723,7 +759,7 @@
   id: OnyxUnderwearSocksKneeGreen
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksKneeGreen
 
@@ -731,7 +767,7 @@
   id: OnyxUnderwearSocksThighGreen
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksThighGreen
 
@@ -739,7 +775,7 @@
   id: OnyxUnderwearSocksHomelander
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksHomelander
 
@@ -747,7 +783,7 @@
   id: OnyxUnderwearSocksKneeHomelander
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksKneeHomelander
 
@@ -755,7 +791,7 @@
   id: OnyxUnderwearSocksThighHomelander
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksThighHomelander
 
@@ -763,7 +799,7 @@
   id: OnyxUnderwearSocksHotpink
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksHotpink
 
@@ -771,7 +807,7 @@
   id: OnyxUnderwearSocksKneeHotpink
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksKneeHotpink
 
@@ -779,7 +815,7 @@
   id: OnyxUnderwearSocksThighHotpink
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksThighHotpink
 
@@ -787,7 +823,7 @@
   id: OnyxUnderwearSocksOrange
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksOrange
 
@@ -795,7 +831,7 @@
   id: OnyxUnderwearSocksKneeOrange
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksKneeOrange
 
@@ -803,7 +839,7 @@
   id: OnyxUnderwearSocksThighOrange
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksThighOrange
 
@@ -811,7 +847,7 @@
   id: OnyxUnderwearSocksPink
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksPink
 
@@ -819,7 +855,7 @@
   id: OnyxUnderwearSocksKneePink
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksKneePink
 
@@ -827,7 +863,7 @@
   id: OnyxUnderwearSocksThighCreepy
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksThighCreepy
 
@@ -835,7 +871,7 @@
   id: OnyxUnderwearSocksKneeFishnet
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksKneeFishnet
 
@@ -843,7 +879,7 @@
   id: OnyxUnderwearSocksFullFishnet
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksFullFishnet
 
@@ -851,7 +887,7 @@
   id: OnyxUnderwearSocksKneeThin
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksKneeThin
 
@@ -859,7 +895,7 @@
   id: OnyxUnderwearSocksThighThin
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksThighThin
 
@@ -867,7 +903,7 @@
   id: OnyxUnderwearSocksThighBlue
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksThighBlue
 
@@ -875,7 +911,7 @@
   id: OnyxUnderwearSocksThighFishnet
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksThighFishnet
 
@@ -883,7 +919,7 @@
   id: OnyxUnderwearSocksThighGrey
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksThighGrey
 
@@ -891,7 +927,7 @@
   id: OnyxUnderwearSocksThighPantyhose
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksThighPantyhose
 
@@ -899,7 +935,7 @@
   id: OnyxUnderwearSocksThighPurple
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksThighPurple
 
@@ -907,7 +943,7 @@
   id: OnyxUnderwearSocksThighRed
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksThighRed
 
@@ -915,7 +951,7 @@
   id: OnyxUnderwearSocksYellow
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksYellow
 
@@ -923,7 +959,7 @@
   id: OnyxUnderwearSocksKneeYellow
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksKneeYellow
 
@@ -931,7 +967,7 @@
   id: OnyxUnderwearSocksThighYellow
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksThighYellow
 
@@ -941,7 +977,7 @@
   id: OnyxUnderwearSocksKneehRainbow
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksKneeRainbow
 
@@ -949,7 +985,7 @@
   id: OnyxUnderwearSocksThighRainbow
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksThighRainbow
 
@@ -957,7 +993,7 @@
   id: OnyxUnderwearSocksThighMonochrome
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksThighMonochrome
 
@@ -967,7 +1003,7 @@
   id: OnyxUnderwearSocksHOP
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksHop
 
@@ -975,7 +1011,7 @@
   id: OnyxUnderwearSocksKneeHOP
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksKneeHop
 
@@ -983,7 +1019,7 @@
   id: OnyxUnderwearSocksThighHOP
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksThighHop
 
@@ -991,7 +1027,7 @@
   id: OnyxUnderwearSocksHOS
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksHos
 
@@ -999,7 +1035,7 @@
   id: OnyxUnderwearSocksKneeHOS
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksKneeHos
 
@@ -1007,7 +1043,7 @@
   id: OnyxUnderwearSocksThighHOS
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksThighHos
 
@@ -1015,7 +1051,7 @@
   id: OnyxUnderwearSocksCaptain
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksCaptain
 
@@ -1023,7 +1059,7 @@
   id: OnyxUnderwearSocksKneeCaptain
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksKneeCaptain
 
@@ -1031,6 +1067,6 @@
   id: OnyxUnderwearSocksThighCaptain
   effects:
   - !type:GroupLoadoutEffect
-    proto: OnyxUnderwearSpeciesRestrictions
+    proto: OnyxUnderwearSocksSpeciesRestrictions
   equipment:
     socks: OnyxClothingUnderwearSocksThighCaptain
