@@ -22,7 +22,7 @@ public sealed partial class RadiationBlockerComponent : Component
     public bool Enabled = true;
 
     /// <summary>
-    ///     How many rads per second does the blocker absorb?
+    ///     Radiation attenuation per tile. Higher values allow less radiation through.
     /// </summary>
     [DataField("resistance")]
     public float RadResistance = 1f;

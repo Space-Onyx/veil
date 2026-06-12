@@ -330,8 +330,9 @@ public partial class RadiationSystem
         {
             if (resistanceMap.TryGetValue(point, out var resData))
             {
-                var passRatioFromRadResistance = (1 / (resData > 2 ? (resData / 2) : 1));
-                var passthroughRatio = MathF.Pow(passRatioFromRadResistance, dist);
+                // Treat resistance as attenuation per tile. This makes ordinary walls with
+                // resistance values of 1-2 meaningfully shield nearby rooms.
+                var passthroughRatio = MathF.Exp(-resData * dist); // <Onyx-RadTweak>
                 ray.Rads *= passthroughRatio;
 
                 // save data for debug
