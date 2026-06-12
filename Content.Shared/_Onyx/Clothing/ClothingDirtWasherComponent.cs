@@ -1,4 +1,6 @@
 using Content.Goobstation.Maths.FixedPoint;
+using Content.Shared.DoAfter;
+using Robust.Shared.Serialization;
 
 namespace Content.Shared._Onyx.Clothing;
 
@@ -10,4 +12,10 @@ public sealed partial class ClothingDirtWasherComponent : Component
 
     [DataField]
     public FixedPoint2 Amount = FixedPoint2.New(1);
+
+    [DataField]
+    public TimeSpan WashTime = TimeSpan.FromSeconds(2);
 }
+
+[Serializable, NetSerializable]
+public sealed partial class WashClothingDoAfterEvent : SimpleDoAfterEvent;

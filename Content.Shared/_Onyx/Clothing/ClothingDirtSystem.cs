@@ -465,6 +465,23 @@ public sealed class ClothingDirtSystem : EntitySystem
             remaining -= removed;
         }
 
+        if (remaining > FixedPoint2.Zero)
+        {
+            for (var i = dirt.Contents.Count - 1; i >= 0; i--)
+            {
+                if (remaining <= FixedPoint2.Zero)
+                    break;
+
+                var reagent = dirt.Contents[i];
+                if (IsCleanerReagent(reagent.Reagent, cleaners))
+                    continue;
+
+                var removed = dirt.RemoveReagent(reagent.Reagent, FixedPoint2.Min(reagent.Quantity, remaining));
+                removedTotal += removed;
+                remaining -= removed;
+            }
+        }
+
         return removedTotal;
     }
 

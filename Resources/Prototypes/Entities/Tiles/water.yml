@@ -51,6 +51,7 @@
 #CorvaxGoob-errorfix-end
   - type: DrainableSolution
     solution: pool
+  - type: ClothingDirtWasher # <Onyx-ClothingDirt>
   - type: SpeedModifierContacts
     walkSpeedModifier: 0.5
     sprintSpeedModifier: 0.5
@@ -145,6 +146,7 @@
         Quantity: 100
   - type: DrainableSolution
     solution: pool
+  - type: ClothingDirtWasher # <Onyx-ClothingDirt>
   - type: SpeedModifierContacts
     walkSpeedModifier: 0.5
     sprintSpeedModifier: 0.5
