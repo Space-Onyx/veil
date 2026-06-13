@@ -28,14 +28,15 @@ public sealed partial class PlateContainerComponent : Component
     [DataField]
     public HashSet<EntProtoId> BlacklistPrototypes = new();
 
+    public TimeSpan NextPopupTime;
+
+    public EntityUid? LastPopupUser;
+
     [DataField]
     public List<Vector2> ItemOffsets = new()
     {
         new(0f, 0.04f),
         new(-0.12f, 0.02f),
         new(0.12f, 0.02f),
-        new(-0.08f, 0.14f),
-        new(0.08f, 0.14f),
-        new(0f, -0.08f),
     };
 }

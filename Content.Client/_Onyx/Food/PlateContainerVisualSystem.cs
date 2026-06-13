@@ -96,7 +96,6 @@ public sealed class PlateContainerVisualSystem : EntitySystem
         }
 
         var keys = new List<string>();
-        _layers[ent.Owner] = keys;
 
         for (var itemIndex = 0; itemIndex < container.ContainedEntities.Count; itemIndex++)
         {
@@ -108,7 +107,8 @@ public sealed class PlateContainerVisualSystem : EntitySystem
                 ? ent.Comp.ItemOffsets[itemIndex]
                 : Vector2.Zero;
 
-            for (var sourceIndex = 0; sourceIndex < itemSprite.AllLayers.Count(); sourceIndex++)
+            var sourceLayerCount = itemSprite.AllLayers.Count();
+            for (var sourceIndex = 0; sourceIndex < sourceLayerCount; sourceIndex++)
             {
                 if (itemSprite[sourceIndex] is not SpriteComponent.Layer source)
                     continue;
@@ -127,6 +127,9 @@ public sealed class PlateContainerVisualSystem : EntitySystem
                 keys.Add(key);
             }
         }
+
+        if (keys.Count > 0)
+            _layers[ent.Owner] = keys;
 
         _item.VisualsChanged(ent.Owner);
     }
