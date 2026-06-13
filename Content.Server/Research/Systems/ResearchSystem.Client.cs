@@ -72,8 +72,7 @@ public sealed partial class ResearchSystem
 
     private void OnClientMapInit(EntityUid uid, ResearchClientComponent component, MapInitEvent args)
     {
-        if (GetServers(uid).FirstOrNull() is { } server)
-            RegisterClient(uid, server, component, server);
+        TryAutoRegisterClient(uid, component);
     }
 
     private void OnClientShutdown(EntityUid uid, ResearchClientComponent component, ComponentShutdown args)
@@ -93,13 +92,25 @@ public sealed partial class ResearchSystem
             if (ent.Comp.Server is not null)
                 return;
 
-            if (GetServers(ent).FirstOrNull() is { } server)
-                RegisterClient(ent, server, ent, server);
+            TryAutoRegisterClient(ent, ent.Comp);
         }
         else
         {
             UnregisterClient(ent, ent.Comp);
         }
+    }
+
+    private void TryAutoRegisterClient(EntityUid uid, ResearchClientComponent component)
+    {
+        if (component.Server is not null)
+            return;
+
+        var server = GetServers(uid)
+            .OrderBy(entity => entity.Comp.Id)
+            .FirstOrNull();
+
+        if (server is { } selected)
+            RegisterClient(uid, selected, component, selected);
     }
 
     private void UpdateClientInterface(EntityUid uid, ResearchClientComponent? component = null)
