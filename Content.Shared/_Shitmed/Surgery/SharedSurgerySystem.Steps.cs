@@ -1183,7 +1183,13 @@ public abstract partial class SharedSurgerySystem
             speed *= SpeedWithoutSurgerySkill;
         // CorvaxGoob-Skills-end
 
-        return stepComp.Duration / speed;
+        // <Onyx-SurgeryPatch>
+        var duration = stepComp.Duration / speed;
+        if (!_noSelfOperate && user == target)
+            duration *= 3f;
+
+        return duration;
+        // </Onyx-SurgeryPatch>
     }
     private (Entity<SurgeryComponent> Surgery, int Step)? GetNextStep(EntityUid body, EntityUid part, Entity<SurgeryComponent?> surgery, List<EntityUid> requirements, EntityUid user)
     {
