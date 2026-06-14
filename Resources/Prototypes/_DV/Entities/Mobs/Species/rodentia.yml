@@ -92,8 +92,8 @@
       - map: [ "enum.HumanoidVisualLayers.LArm" ]
       - map: [ "enum.HumanoidVisualLayers.RLeg" ]
       - map: [ "enum.HumanoidVisualLayers.LLeg" ]
-      - map: [ "underwearb" ]
-      - map: [ "underweart" ]
+      - map: [ "underwearb" ] # <Onyx-UnderWear>
+      - map: [ "underweart" ] # <Onyx-UnderWear>
       - map: [ "jumpsuit" ]
       - map: [ "enum.HumanoidVisualLayers.LHand" ]
       - map: [ "enum.HumanoidVisualLayers.RHand" ]

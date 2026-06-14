@@ -215,14 +215,14 @@
       - map: [ "enum.HumanoidVisualLayers.LLeg" ]
       # - map: [ "enum.HumanoidVisualLayers.Underwear" ] # Onyx-removed
       # - map: [ "enum.HumanoidVisualLayers.Undershirt" ] # Onyx-removed
-      - map: [ "underwearb" ]
-      - map: [ "underweart" ]
+      - map: [ "underwearb" ] # <Onyx-UnderWear>
+      - map: [ "underweart" ] # <Onyx-UnderWear>
       - map: [ "jumpsuit" ]
       - map: [ "enum.HumanoidVisualLayers.LHand" ]
       - map: [ "enum.HumanoidVisualLayers.RHand" ]
       - map: [ "enum.HumanoidVisualLayers.LFoot" ]
       - map: [ "enum.HumanoidVisualLayers.RFoot" ]
-      - map: [ "socks" ] # Onyx
+      - map: [ "socks" ] # <Onyx-UnderWear>
       - map: [ "enum.HumanoidVisualLayers.Handcuffs" ]
         color: "#ffffff"
         sprite: Objects/Misc/handcuffs.rsi

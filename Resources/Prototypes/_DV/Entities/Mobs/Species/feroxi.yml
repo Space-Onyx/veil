@@ -50,8 +50,8 @@
         state: l_leg
       # - map: [ "enum.HumanoidVisualLayers.Underwear" ] # Onyx-removed
       # - map: [ "enum.HumanoidVisualLayers.Undershirt" ] # Onyx-removed
-      - map: [ "underwearb" ]
-      - map: [ "underweart" ]
+      - map: [ "underwearb" ] # <Onyx-UnderWear>
+      - map: [ "underweart" ] # <Onyx-UnderWear>
       - map: [ "jumpsuit" ]
       - map: [ "enum.HumanoidVisualLayers.LHand" ]
       - map: [ "enum.HumanoidVisualLayers.RHand" ]
