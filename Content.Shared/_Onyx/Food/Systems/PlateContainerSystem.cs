@@ -5,8 +5,12 @@ using Content.Shared.Hands.EntitySystems;
 using Content.Shared.IdentityManagement;
 using Content.Shared.Interaction;
 using Content.Shared.Interaction.Components;
+using Content.Shared.Interaction.Events;
 using Content.Shared.Item;
 using Content.Shared.Localizations;
+using Content.Shared.Nutrition.Components;
+using Content.Shared.Nutrition.EntitySystems;
+using Content.Shared.Nutrition.Prototypes;
 using Content.Shared.Popups;
 using Content.Shared.Storage;
 using Content.Shared.Storage.Components;
@@ -14,6 +18,7 @@ using Content.Shared.Tag;
 using Content.Shared.Verbs;
 using Robust.Shared.Containers;
 using Robust.Shared.Map;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
 
@@ -26,6 +31,7 @@ public sealed class PlateContainerSystem : EntitySystem
     [Dependency] private readonly SharedContainerSystem _container = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly SharedHandsSystem _hands = default!;
+    [Dependency] private readonly IngestionSystem _ingestion = default!;
     [Dependency] private readonly SharedItemSystem _item = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly TagSystem _tag = default!;
@@ -40,6 +46,7 @@ public sealed class PlateContainerSystem : EntitySystem
         SubscribeLocalEvent<PlateContainerComponent, ExaminedEvent>(OnExamined);
         SubscribeLocalEvent<PlateContainerComponent, GetVerbsEvent<AlternativeVerb>>(OnGetAlternativeVerbs);
         SubscribeLocalEvent<PlateContainerComponent, ContainerIsInsertingAttemptEvent>(OnInsertAttempt);
+        SubscribeLocalEvent<PlateContainerComponent, UseInHandEvent>(OnUseInHand);
     }
 
     private void OnInit(Entity<PlateContainerComponent> ent, ref ComponentInit args)
@@ -69,6 +76,14 @@ public sealed class PlateContainerSystem : EntitySystem
 
         ArrangeContents(ent.Owner, ent.Comp, container);
         args.Handled = true;
+    }
+
+    private void OnUseInHand(Entity<PlateContainerComponent> ent, ref UseInHandEvent args)
+    {
+        if (args.Handled || !TryGetTopEdible(GetContainer(ent.Owner), out var edible, out _))
+            return;
+
+        args.Handled = _ingestion.TryIngest(args.User, edible);
     }
 
     private void OnExamined(Entity<PlateContainerComponent> ent, ref ExaminedEvent args)
@@ -118,6 +133,13 @@ public sealed class PlateContainerSystem : EntitySystem
             return;
 
         var user = args.User;
+        if (TryGetTopEdible(container, out var edible, out var edibleType) &&
+            _ingestion.TryGetIngestionVerb(user, edible, edibleType, out var eatVerb))
+        {
+            eatVerb.Priority = 0;
+            args.Verbs.Add(eatVerb);
+        }
+
         args.Verbs.Add(new AlternativeVerb
         {
             Act = () =>
@@ -133,6 +155,28 @@ public sealed class PlateContainerSystem : EntitySystem
             Text = Loc.GetString("plate-container-verb-remove"),
             Priority = 1,
         });
+    }
+
+    private bool TryGetTopEdible(
+        BaseContainer container,
+        out EntityUid edible,
+        out ProtoId<EdiblePrototype> edibleType)
+    {
+        for (var i = container.ContainedEntities.Count - 1; i >= 0; i--)
+        {
+            var item = container.ContainedEntities[i];
+            var type = _ingestion.GetEdibleType((item, CompOrNull<EdibleComponent>(item)));
+            if (type == null)
+                continue;
+
+            edible = item;
+            edibleType = type.Value;
+            return true;
+        }
+
+        edible = default;
+        edibleType = default;
+        return false;
     }
 
     private void OnInsertAttempt(Entity<PlateContainerComponent> ent, ref ContainerIsInsertingAttemptEvent args)
