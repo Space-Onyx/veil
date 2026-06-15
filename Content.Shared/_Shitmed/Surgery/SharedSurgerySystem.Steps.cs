@@ -944,7 +944,7 @@ public abstract partial class SharedSurgerySystem
             return;
 
         // <Onyx-SurgeryTweak>
-        const float baseInfectionChance = 0.22f;
+        const float baseInfectionChance = 0.45f;
         const float genericMaskMultiplier = 0.6f;
         const float genericGlovesMultiplier = 0.5f;
 
