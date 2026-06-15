@@ -82,10 +82,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using Content.Server.DeviceNetwork.Components;
-using Content.Server.Medical.CrewMonitoring;
-using Content.Server.Medical.SuitSensors;
-using Content.Server.SurveillanceCamera;
-using Content.Shared.DeviceLinking;
 using Content.Shared.DeviceNetwork.Events;
 using JetBrains.Annotations;
 
@@ -105,7 +101,6 @@ namespace Content.Server.DeviceNetwork.Systems
         /// <summary>
         /// Gets the position of both the sending and receiving entity and checks if the receiver is in range of the sender.
         /// </summary>
-        // <Onyx-Tweak edited>
         private void OnBeforePacketSent(EntityUid uid, WirelessNetworkComponent component, BeforePacketSentEvent args)
         {
             var ownPosition = args.SenderPosition;
@@ -115,45 +110,11 @@ namespace Content.Server.DeviceNetwork.Systems
             if (!TryComp<WirelessNetworkComponent>(args.Sender, out var sendingComponent))
                 return;
 
-            if (xform.MapID != args.SenderTransform.MapID)
+            if (xform.MapID != args.SenderTransform.MapID
+                || (ownPosition - _transformSystem.GetWorldPosition(xform)).Length() > sendingComponent.Range)
             {
                 args.Cancel();
-
-                return;
             }
-
-            if ((ownPosition - _transformSystem.GetWorldPosition(xform)).Length() > sendingComponent.Range)
-                args.Cancel();
         }
-        // </Onyx-Tweak edited>
-
-        // <Onyx-Tweak>
-        private bool IsSurveillanceDevice(EntityUid uid)
-        {
-            return HasComp<SurveillanceCameraMonitorComponent>(uid) ||
-                   HasComp<SurveillanceCameraRouterComponent>(uid) ||
-                   HasComp<SurveillanceCameraComponent>(uid);
-        }
-
-        private bool IsCrewMonitoringDevice(EntityUid uid)
-        {
-            return HasComp<CrewMonitoringServerComponent>(uid) ||
-                   HasComp<CrewMonitoringConsoleComponent>(uid) ||
-                   HasComp<SuitSensorComponent>(uid);
-        }
-
-        private bool IsDeviceLinkEndpoint(EntityUid uid)
-        {
-            return HasComp<DeviceLinkSourceComponent>(uid) ||
-                   HasComp<DeviceLinkSinkComponent>(uid);
-        }
-
-        private bool CanUseCrossMapWireless(EntityUid receiver, EntityUid sender)
-        {
-            return (IsSurveillanceDevice(receiver) && IsSurveillanceDevice(sender))
-                || (IsCrewMonitoringDevice(receiver) && IsCrewMonitoringDevice(sender))
-                || (IsDeviceLinkEndpoint(receiver) && IsDeviceLinkEndpoint(sender));
-        }
-        // </Onyx-Tweak>
     }
 }

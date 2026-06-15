@@ -19,7 +19,6 @@ public sealed partial class ResearchSystem
     private void InitializeServer()
     {
         SubscribeLocalEvent<ResearchServerComponent, ComponentStartup>(OnServerStartup);
-        SubscribeLocalEvent<ResearchServerComponent, MapInitEvent>(OnServerMapInit);
         SubscribeLocalEvent<ResearchServerComponent, ComponentShutdown>(OnServerShutdown);
         SubscribeLocalEvent<ResearchServerComponent, TechnologyDatabaseModifiedEvent>(OnServerDatabaseModified);
     }
@@ -30,22 +29,6 @@ public sealed partial class ResearchSystem
             .Max(s => s.Id) + 1;
         component.Id = unusedId;
         Dirty(uid, component);
-    }
-
-    private void OnServerMapInit(EntityUid uid, ResearchServerComponent component, MapInitEvent args)
-    {
-        var serverGrid = Transform(uid).GridUid;
-        if (serverGrid is null)
-            return;
-
-        var query = EntityQueryEnumerator<ResearchClientComponent, TransformComponent>();
-        while (query.MoveNext(out var clientUid, out var client, out var xform))
-        {
-            if (client.Server is not null || xform.GridUid != serverGrid)
-                continue;
-
-            TryAutoRegisterClient(clientUid, client);
-        }
     }
 
     private void OnServerShutdown(EntityUid uid, ResearchServerComponent component, ComponentShutdown args)

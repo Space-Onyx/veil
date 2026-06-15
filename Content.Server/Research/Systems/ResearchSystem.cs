@@ -37,6 +37,7 @@ namespace Content.Server.Research.Systems
         [Dependency] private readonly IAdminLogManager _adminLog = default!;
         [Dependency] private readonly IGameTiming _timing = default!;
         [Dependency] private readonly AccessReaderSystem _accessReader = default!;
+        [Dependency] private readonly EntityLookupSystem _lookup = default!;
         [Dependency] private readonly UserInterfaceSystem _uiSystem = default!;
         [Dependency] private readonly SharedPopupSystem _popup = default!;
         [Dependency] private readonly RadioSystem _radio = default!;
@@ -83,10 +84,7 @@ namespace Content.Server.Research.Systems
         /// <returns></returns>
         public string[] GetServerNames(EntityUid client)
         {
-            return GetServers(client)
-                .OrderBy(x => x.Comp.Id)
-                .Select(x => x.Comp.ServerName)
-                .ToArray();
+            return GetServers(client).Select(x => x.Comp.ServerName).ToArray();
         }
 
         /// <summary>
@@ -95,11 +93,9 @@ namespace Content.Server.Research.Systems
         /// <returns></returns>
         public int[] GetServerIds(EntityUid client)
         {
-            return GetServers(client)
-                .OrderBy(x => x.Comp.Id)
-                .Select(x => x.Comp.Id)
-                .ToArray();
-        }        
+            return GetServers(client).Select(x => x.Comp.Id).ToArray();
+        }
+
         public HashSet<Entity<ResearchServerComponent>> GetServers(EntityUid client)
         {
             var clientXform = Transform(client);
@@ -107,14 +103,7 @@ namespace Content.Server.Research.Systems
                 return [];
 
             var set = new HashSet<Entity<ResearchServerComponent>>();
-            var query = EntityQueryEnumerator<ResearchServerComponent, TransformComponent>();
-            while (query.MoveNext(out var uid, out var server, out var xform))
-            {
-                if (xform.GridUid != grid)
-                    continue;
-
-                set.Add((uid, server));
-            }
+            _lookup.GetGridEntities(grid, set);
             return set;
         }
 
