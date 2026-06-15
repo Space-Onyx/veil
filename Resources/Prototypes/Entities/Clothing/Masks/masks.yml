@@ -569,6 +569,8 @@
       Cloth: 25
   - type: StaticPrice
     price: 5
+  - type: SurgeryInfectionProtection # <Onyx-SurgeryTweak>
+    chanceMultiplier: 0.25
   # Goobstation
   - type: DiseaseProtection
     # really strong protection

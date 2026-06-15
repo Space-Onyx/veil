@@ -280,6 +280,8 @@
   - type: Fiber
     fiberMaterial: fibers-latex
   - type: FingerprintMask
+  - type: SurgeryInfectionProtection # <Onyx-SurgeryTweak>
+    chanceMultiplier: 0.25
 
 - type: entity
   parent: ClothingHandsButcherable
@@ -294,6 +296,8 @@
   - type: Fiber
     fiberMaterial: fibers-nitrile
   - type: FingerprintMask
+  - type: SurgeryInfectionProtection # <Onyx-SurgeryTweak>
+    chanceMultiplier: 0.1
 ####
 - type: entity
   parent: ClothingHandsButcherable

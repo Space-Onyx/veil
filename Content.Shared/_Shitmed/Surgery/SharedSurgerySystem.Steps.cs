@@ -51,6 +51,7 @@ using System.Linq;
 using Content.Shared._Shitmed.Surgery;
 using Content.Shared._Onyx.Surgery.Conditions;
 using Content.Shared._Onyx.Surgery.Augments;
+using Content.Shared._Onyx.Surgery.Infections;
 using Content.Shared._CorvaxGoob.Skills;
 
 namespace Content.Shared._Shitmed.Medical.Surgery;
@@ -933,10 +934,6 @@ public abstract partial class SharedSurgerySystem
     #region Helper Methods
     private void HandleSanitization(SurgeryStepEvent args)
     {
-        if (_inventory.TryGetSlotEntity(args.User, "gloves", out var _)
-            && _inventory.TryGetSlotEntity(args.User, "mask", out var _))
-            return;
-
         var sepsisEv = new SurgerySanitizationEvent();
         RaiseLocalEvent(args.User, sepsisEv);
         if (sepsisEv.Handled)
@@ -946,8 +943,28 @@ public abstract partial class SharedSurgerySystem
             surgeryTargetComponent.SepsisImmune)
             return;
 
-        var sepsis = new DamageSpecifier(_prototypes.Index<DamageTypePrototype>("Poison"), 5);
-        var ev = new SurgeryStepDamageEvent(args.User, args.Body, args.Part, args.Surgery, sepsis, 0.5f);
+        // <Onyx-SurgeryTweak>
+        const float baseInfectionChance = 0.22f;
+        const float genericMaskMultiplier = 0.6f;
+        const float genericGlovesMultiplier = 0.5f;
+
+        var chance = baseInfectionChance;
+        if (_inventory.TryGetSlotEntity(args.User, "mask", out var mask))
+        {
+            chance *= TryComp<SurgeryInfectionProtectionComponent>(mask, out var protection)
+                ? protection.ChanceMultiplier
+                : genericMaskMultiplier;
+        }
+
+        if (_inventory.TryGetSlotEntity(args.User, "gloves", out var gloves))
+        {
+            chance *= TryComp<SurgeryInfectionProtectionComponent>(gloves, out var protection)
+                ? protection.ChanceMultiplier
+                : genericGlovesMultiplier;
+        }
+
+        var ev = new SurgeryInfectionAttemptEvent(args.User, chance);
+        // </Onyx-SurgeryTweak>
         RaiseLocalEvent(args.Body, ref ev);
     }
 
