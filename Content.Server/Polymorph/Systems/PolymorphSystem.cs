@@ -495,8 +495,11 @@ public sealed partial class PolymorphSystem : EntitySystem
 
         _tag.RemoveTag(uid, SharedBindSoulSystem.IgnoreBindSoulTag); // Goobstation
 
-        // CorvaxGoob edit start - items that failed to transfer must not disappear to paused map
-        if (_inventory.TryGetContainerSlotEnumerator(uid, out var safetyEnum))
+        // CorvaxGoob edit start - items that failed to transfer must not disappear to paused map.
+        // <Onyx-Fix Edited>
+        if (configuration.Inventory == PolymorphInventoryChange.Transfer &&
+            _inventory.TryGetContainerSlotEnumerator(uid, out var safetyEnum))
+        // </Onyx-Fix Edited>
         {
             while (safetyEnum.MoveNext(out var slot))
             {
@@ -504,11 +507,16 @@ public sealed partial class PolymorphSystem : EntitySystem
                     _inventory.TryUnequip(uid, slot.ID, silent: true, force: true);
             }
         }
-        foreach (var held in _hands.EnumerateHeld(uid))
+        // <Onyx-Fix Edited>
+        if (configuration.Inventory == PolymorphInventoryChange.Transfer)
         {
-            if (!HasComp<UnremoveableComponent>(held))
-                _hands.TryDrop(uid, held, checkActionBlocker: false);
+            foreach (var held in _hands.EnumerateHeld(uid))
+            {
+                if (!HasComp<UnremoveableComponent>(held))
+                    _hands.TryDrop(uid, held, checkActionBlocker: false);
+            }
         }
+        // </Onyx-Fix Edited>
         // CorvaxGoob edit end
 
         //Ensures a map to banish the entity to
