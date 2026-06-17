@@ -27,6 +27,7 @@
     - Toxin
     - Airloss
     - Genetic
+    - Anomaly
   supportedTypes: # Goobstation
     - Holy
 
@@ -105,5 +106,6 @@
   - Toxin
   - Airloss
   - Genetic
+  - Anomaly
   supportedTypes: # Goobstation
   - Holy
