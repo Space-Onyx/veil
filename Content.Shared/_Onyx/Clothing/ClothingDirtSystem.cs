@@ -22,7 +22,7 @@ public sealed class ClothingDirtSystem : EntitySystem
     public static readonly SlotFlags SplashAdditionalSlots = SlotFlags.GLOVES;
 
     public static readonly SlotFlags PuddleStepPrimarySlots = SlotFlags.FEET;
-    public static readonly SlotFlags PuddleStepFallbackSlots = SlotFlags.INNERCLOTHING;
+    public static readonly SlotFlags PuddleStepFallbackSlots = SlotFlags.SOCKS;
     public static readonly SlotFlags PuddleCrawlPreferredSlots = SlotFlags.OUTERCLOTHING;
     public static readonly SlotFlags PuddleCrawlFallbackSlots = SlotFlags.INNERCLOTHING;
     public static readonly SlotFlags PuddleCrawlAdditionalSlots =
