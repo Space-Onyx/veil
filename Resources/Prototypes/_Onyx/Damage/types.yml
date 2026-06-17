@@ -1,0 +1,5 @@
+- type: damageType
+  id: Entropy
+  name: damage-type-entropy
+  armorCoefficientPrice: 1
+  armorFlatPrice: 1
