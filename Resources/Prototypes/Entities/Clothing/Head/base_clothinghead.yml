@@ -121,6 +121,8 @@
     requiresSpecialDigestion: true
   - type: SolutionContainerManager
     solutions:
+      dirt:
+        maxVol: 20
       food:
         maxVol: 10
         reagents:

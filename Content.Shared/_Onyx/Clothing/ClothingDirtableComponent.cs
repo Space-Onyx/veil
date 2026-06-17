@@ -11,10 +11,10 @@ public sealed partial class ClothingDirtableComponent : Component
     public string Solution = ClothingDirtSystem.DefaultSolutionName;
 
     [DataField]
-    public FixedPoint2 Capacity = FixedPoint2.New(10);
+    public FixedPoint2 Capacity = FixedPoint2.New(20);
 
     [DataField]
-    public FixedPoint2 MaxReagentAmount = FixedPoint2.New(2);
+    public FixedPoint2 MaxReagentAmount = FixedPoint2.New(10);
 
     [DataField]
     public FixedPoint2 DryMinimum = FixedPoint2.New(0.5f);
@@ -27,6 +27,12 @@ public sealed partial class ClothingDirtableComponent : Component
 
     [DataField]
     public float MaxVisualAlpha = 0.7f;
+
+    [DataField]
+    public float DeepDirtThreshold = 0.75f;
+
+    [DataField]
+    public FixedPoint2 DeepDirtTransferFraction = FixedPoint2.New(0.35f);
 
     [AutoNetworkedField]
     public Color? DirtColor;

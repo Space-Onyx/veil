@@ -419,6 +419,11 @@ public sealed partial class PuddleSystem : SharedPuddleSystem
 
         // Take 15% of the puddle solution
         var splitSol = _solutionContainerSystem.SplitSolution(entity.Comp.Solution.Value, solution.Volume * 0.15f);
+        // <Onyx-ClothingDirt>
+        _clothingDirt.TryDirtyWornPuddleStep(args.Slipped,
+            splitSol,
+            FixedPoint2.Min(splitSol.Volume, FixedPoint2.New(1)));
+        // </Onyx-ClothingDirt>
         _reactive.DoEntityReaction(args.Slipped, splitSol, ReactionMethod.Touch);
 
         // <Goobstation>

@@ -55,7 +55,7 @@
   - type: SolutionContainerManager
     solutions:
       dirt:
-        maxVol: 10
+        maxVol: 20
   # <Onyx-ClothingDirt>
 
 - type: entity

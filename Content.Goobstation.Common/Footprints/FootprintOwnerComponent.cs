@@ -8,7 +8,7 @@ namespace Content.Goobstation.Common.Footprints;
 public sealed partial class FootprintOwnerComponent : Component
 {
     [DataField]
-    public float MaxFootVolume = 10;
+    public float MaxFootVolume = 20; // <Onyx-ClothingDirt edited>
 
     [DataField]
     public float MaxBodyVolume = 20;

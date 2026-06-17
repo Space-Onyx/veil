@@ -15,6 +15,8 @@ public sealed class ClothingDirtSystem : EntitySystem
     public const string DefaultSolutionName = "dirt";
     private const float DryUpdateInterval = 5f;
 
+    public static readonly SlotFlags UnderwearSlots = SlotFlags.UNDERWEART | SlotFlags.UNDERWEARB;
+
     public static readonly SlotFlags SplashPreferredSlots = SlotFlags.OUTERCLOTHING;
     public static readonly SlotFlags SplashFallbackSlots = SlotFlags.INNERCLOTHING;
     public static readonly SlotFlags SplashAdditionalSlots = SlotFlags.GLOVES;
@@ -36,6 +38,7 @@ public sealed class ClothingDirtSystem : EntitySystem
     private readonly HashSet<EntityUid> _dryingClothing = new();
     private readonly List<EntityUid> _dryingBuffer = new();
     private readonly List<DirtCleaner> _dirtCleaners = new();
+    private readonly List<ReagentQuantity> _sourceBuffer = new();
     private float _dryUpdateAccumulator;
 
     public override void Initialize()
@@ -133,23 +136,85 @@ public sealed class ClothingDirtSystem : EntitySystem
         bool removeFromSource = false,
         ClothingDirtableComponent? component = null)
     {
+        return TryDirtyClothingDetailed(clothing, source, amount, removeFromSource, component).Dirtied;
+    }
+
+    private DirtApplicationResult TryDirtyClothingDetailed(
+        EntityUid clothing,
+        Solution source,
+        FixedPoint2 amount,
+        bool removeFromSource = false,
+        ClothingDirtableComponent? component = null)
+    {
         if (!Resolve(clothing, ref component, logMissing: false) || source.Volume <= FixedPoint2.Zero)
-            return false;
+            return DirtApplicationResult.Empty;
 
         if (!_solutions.EnsureSolutionEntity(clothing, component.Solution, out var dirtSolution, component.Capacity)
             || dirtSolution == null)
-            return false;
+            return DirtApplicationResult.Empty;
 
         var dirt = dirtSolution.Value.Comp.Solution;
         var sample = MakeCappedDirtSample(source, dirt, amount, component, removeFromSource);
         if (sample.Volume <= FixedPoint2.Zero)
-            return false;
+            return DirtApplicationResult.Empty;
 
         if (!_solutions.TryAddSolution(dirtSolution.Value, sample))
-            return false;
+            return DirtApplicationResult.Empty;
 
         SetDryingActive((clothing, component), HasDryableDirt(dirt, component));
         UpdateDirtVisuals((clothing, component), dirt);
+        return new DirtApplicationResult(true, sample.Volume, IsDeepDirty(dirt, component));
+    }
+
+    public bool TryAddCleanerToClothing(
+        EntityUid clothing,
+        ReagentId cleanerReagent,
+        FixedPoint2 amount,
+        ClothingDirtableComponent? component = null)
+    {
+        if (amount <= FixedPoint2.Zero)
+            return false;
+
+        var cleaner = new Solution();
+        cleaner.AddReagent(cleanerReagent, amount);
+        if (TryDirtyClothing(clothing, cleaner, amount, component: component))
+        {
+            if (Resolve(clothing, ref component, logMissing: false))
+                ProcessDirtCleaners((clothing, component));
+
+            return true;
+        }
+
+        if (!Resolve(clothing, ref component, logMissing: false)
+            || !_prototype.Resolve<ReagentPrototype>(cleanerReagent.Prototype, out var cleanerPrototype)
+            || cleanerPrototype.ClothingDirtCleanMultiplier <= FixedPoint2.Zero
+            || !_solutions.TryGetSolution(clothing, component.Solution, out var dirtSolution, out var dirt))
+        {
+            return false;
+        }
+
+        var cleanerRoom = component.MaxReagentAmount - dirt.GetReagentQuantity(cleanerReagent);
+        var roomNeeded = FixedPoint2.Min(amount, cleanerRoom);
+        if (roomNeeded <= FixedPoint2.Zero)
+            return false;
+
+        _dirtCleaners.Clear();
+        _dirtCleaners.Add(new DirtCleaner(cleanerReagent, roomNeeded, cleanerPrototype.ClothingDirtCleanMultiplier));
+
+        var washableVolume = GetWashableDirtVolume(dirt, _dirtCleaners);
+        var removed = RemoveWashableDirt(dirt, _dirtCleaners, FixedPoint2.Min(roomNeeded, washableVolume), washableVolume);
+        if (removed <= FixedPoint2.Zero)
+            return false;
+
+        _solutions.UpdateChemicals(dirtSolution.Value);
+        UpdateDirtVisuals((clothing, component), dirt);
+
+        cleaner = new Solution();
+        cleaner.AddReagent(cleanerReagent, roomNeeded);
+        if (!TryDirtyClothing(clothing, cleaner, roomNeeded, component: component))
+            return false;
+
+        ProcessDirtCleaners((clothing, component));
         return true;
     }
 
@@ -204,10 +269,16 @@ public sealed class ClothingDirtSystem : EntitySystem
         if (target <= FixedPoint2.Zero)
             return sample;
 
-        if (removeFromSource)
-            AddCappedDirtFromContents(new List<ReagentQuantity>(source.Contents), source, dirt, sample, target, component, true);
-        else
+        if (!removeFromSource)
+        {
             AddCappedDirtFromContents(source.Contents, source, dirt, sample, target, component, false);
+            return sample;
+        }
+
+        _sourceBuffer.Clear();
+        _sourceBuffer.AddRange(source.Contents);
+        AddCappedDirtFromContents(_sourceBuffer, source, dirt, sample, target, component, true);
+        _sourceBuffer.Clear();
 
         return sample;
     }
@@ -322,6 +393,19 @@ public sealed class ClothingDirtSystem : EntitySystem
         return washed;
     }
 
+    private void ProcessDirtCleaners(Entity<ClothingDirtableComponent> ent)
+    {
+        if (!_solutions.TryGetSolution(ent.Owner, ent.Comp.Solution, out var dirtSolution, out var dirt))
+            return;
+
+        if (!WashDirt(dirt))
+            return;
+
+        _solutions.UpdateChemicals(dirtSolution.Value);
+        UpdateDirtVisuals(ent, dirt);
+        SetDryingActive(ent, HasDryableDirt(dirt, ent.Comp));
+    }
+
     private bool HasDryableDirt(Solution dirt, ClothingDirtableComponent component)
     {
         if (CanWashDirt(dirt))
@@ -342,6 +426,16 @@ public sealed class ClothingDirtSystem : EntitySystem
                && prototype.EvaporationSpeed > FixedPoint2.Zero
             ? FixedPoint2.Zero
             : component.DryMinimum;
+    }
+
+    private bool IsDeepDirty(Solution dirt, ClothingDirtableComponent component)
+    {
+        var thresholdCapacity = FixedPoint2.Min(component.Capacity, component.MaxReagentAmount);
+        if (thresholdCapacity <= FixedPoint2.Zero)
+            return false;
+
+        var threshold = FixedPoint2.New(thresholdCapacity.Float() * component.DeepDirtThreshold);
+        return dirt.Volume >= threshold;
     }
 
     private void UpdateDirtVisuals(Entity<ClothingDirtableComponent> ent, Solution dirt)
@@ -520,32 +614,9 @@ public sealed class ClothingDirtSystem : EntitySystem
         bool removeFromSource,
         out bool hadItem)
     {
-        if (source.Volume <= FixedPoint2.Zero || amount <= FixedPoint2.Zero)
-        {
-            hadItem = false;
-            return false;
-        }
-
-        if (!_inventory.TryGetContainerSlotEnumerator(wearer, out var enumerator, slots))
-        {
-            hadItem = false;
-            return false;
-        }
-
-        hadItem = false;
-        var dirtied = false;
-        while (enumerator.NextItem(out var item))
-        {
-            hadItem = true;
-
-            if (TryComp(item, out ClothingDirtableComponent? dirtable))
-                dirtied |= TryDirtyClothing(item, source, amount, removeFromSource, dirtable);
-
-            if (source.Volume <= FixedPoint2.Zero)
-                break;
-        }
-
-        return dirtied;
+        var result = TryDirtyWornLayer(wearer, source, amount, slots, removeFromSource);
+        hadItem = result.HadItem;
+        return result.Dirtied;
     }
 
     public bool TryDirtyWornPreferred(
@@ -569,16 +640,142 @@ public sealed class ClothingDirtSystem : EntitySystem
         FixedPoint2 amount,
         bool removeFromSource = false)
     {
-        var dirtied = TryDirtyWornPreferred(
+        var dirtied = TryDirtyWornLayered(
             wearer,
             source,
             amount,
+            removeFromSource,
             SplashPreferredSlots,
             SplashFallbackSlots,
-            removeFromSource);
+            UnderwearSlots);
+
+        dirtied |= TryDirtyWornLayered(
+            wearer,
+            source,
+            amount,
+            removeFromSource,
+            SlotFlags.FEET,
+            SlotFlags.SOCKS);
 
         dirtied |= TryDirtyWorn(wearer, source, amount, SplashAdditionalSlots, removeFromSource);
         return dirtied;
+    }
+
+    public bool TryDirtyWornPuddleStep(
+        EntityUid wearer,
+        Solution source,
+        FixedPoint2 amount,
+        bool removeFromSource = false)
+    {
+        var dirtied = TryDirtyWornLayered(
+            wearer,
+            source,
+            amount,
+            removeFromSource,
+            PuddleStepPrimarySlots,
+            SlotFlags.SOCKS);
+
+        dirtied |= TryDirtyWornLayered(
+            wearer,
+            source,
+            amount,
+            removeFromSource,
+            PuddleStepFallbackSlots,
+            UnderwearSlots);
+
+        return dirtied;
+    }
+
+    public bool TryDirtyWornPuddleCrawl(
+        EntityUid wearer,
+        Solution source,
+        FixedPoint2 amount,
+        bool removeFromSource = false)
+    {
+        var dirtied = TryDirtyWornLayered(
+            wearer,
+            source,
+            amount,
+            removeFromSource,
+            PuddleCrawlPreferredSlots,
+            PuddleCrawlFallbackSlots,
+            UnderwearSlots);
+
+        dirtied |= TryDirtyWorn(wearer, source, amount, PuddleCrawlAdditionalSlots, removeFromSource);
+        return dirtied;
+    }
+
+    public bool TryDirtyWornLayered(
+        EntityUid wearer,
+        Solution source,
+        FixedPoint2 amount,
+        bool removeFromSource = false,
+        params SlotFlags[] layers)
+    {
+        if (source.Volume <= FixedPoint2.Zero || amount <= FixedPoint2.Zero || layers.Length == 0)
+            return false;
+
+        var currentAmount = amount;
+        var dirtied = false;
+
+        foreach (var layer in layers)
+        {
+            var result = TryDirtyWornLayer(wearer, source, currentAmount, layer, removeFromSource);
+            if (!result.HadItem)
+                continue;
+
+            dirtied |= result.Dirtied;
+            if (!result.DeepDirty || result.DeepAmount <= FixedPoint2.Zero)
+                return dirtied;
+
+            currentAmount = FixedPoint2.Min(result.DeepAmount, source.Volume);
+            if (currentAmount <= FixedPoint2.Zero)
+                return dirtied;
+        }
+
+        return dirtied;
+    }
+
+    private LayerDirtResult TryDirtyWornLayer(
+        EntityUid wearer,
+        Solution source,
+        FixedPoint2 amount,
+        SlotFlags slots,
+        bool removeFromSource)
+    {
+        if (source.Volume <= FixedPoint2.Zero || amount <= FixedPoint2.Zero)
+            return LayerDirtResult.Empty;
+
+        if (!_inventory.TryGetContainerSlotEnumerator(wearer, out var enumerator, slots))
+            return LayerDirtResult.Empty;
+
+        var hadItem = false;
+        var dirtied = false;
+        var deepDirty = false;
+        var deepAmount = FixedPoint2.Zero;
+        while (enumerator.NextItem(out var item))
+        {
+            hadItem = true;
+
+            if (TryComp(item, out ClothingDirtableComponent? dirtable))
+            {
+                var alreadyDeepDirty = _solutions.TryGetSolution(item, dirtable.Solution, out _, out var dirt)
+                                       && IsDeepDirty(dirt, dirtable);
+                var result = TryDirtyClothingDetailed(item, source, amount, removeFromSource, dirtable);
+                dirtied |= result.Dirtied;
+
+                if (alreadyDeepDirty || result.DeepDirty)
+                {
+                    deepDirty = true;
+                    deepAmount = FixedPoint2.Max(deepAmount, amount * dirtable.DeepDirtTransferFraction);
+                }
+            }
+
+            if (source.Volume <= FixedPoint2.Zero)
+                break;
+        }
+
+        return new LayerDirtResult(hadItem, dirtied, deepDirty, deepAmount);
     }
 
     public Solution MakeBloodDirt(string reagent, FixedPoint2 amount, List<ReagentData>? data)
@@ -589,4 +786,17 @@ public sealed class ClothingDirtSystem : EntitySystem
     }
 
     private readonly record struct DirtCleaner(ReagentId Reagent, FixedPoint2 Quantity, FixedPoint2 CleanMultiplier);
+    private readonly record struct DirtApplicationResult(bool Dirtied, FixedPoint2 Amount, bool DeepDirty)
+    {
+        public static readonly DirtApplicationResult Empty = new(false, FixedPoint2.Zero, false);
+    }
+
+    private readonly record struct LayerDirtResult(
+        bool HadItem,
+        bool Dirtied,
+        bool DeepDirty,
+        FixedPoint2 DeepAmount)
+    {
+        public static readonly LayerDirtResult Empty = new(false, false, false, FixedPoint2.Zero);
+    }
 }

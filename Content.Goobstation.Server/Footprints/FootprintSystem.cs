@@ -20,6 +20,7 @@ using Content.Shared._Onyx.Clothing;
 using Content.Goobstation.Maths.FixedPoint;
 using Content.Shared.Fluids;
 using Content.Shared.Fluids.Components;
+using Content.Shared.Inventory;
 using Content.Shared.Standing;
 using Robust.Server.GameObjects;
 using Robust.Shared.Map;
@@ -42,6 +43,7 @@ public sealed class FootprintSystem : EntitySystem
     [Dependency] private readonly IPrototypeManager _prototype = default!;
     [Dependency] private readonly IConfigurationManager _configuration = default!;
     [Dependency] private readonly ClothingDirtSystem _clothingDirt = default!; // <Onyx-ClothingDirt>
+    [Dependency] private readonly InventorySystem _inventory = default!; // <Onyx-ClothingDirt>
 
     private EntityQuery<NoFootprintsComponent> _noFootprintsQuery = default!;
 
@@ -54,6 +56,9 @@ public sealed class FootprintSystem : EntitySystem
     public const string FootprintSolution = "print";
 
     public const string PuddleSolution = "puddle";
+
+    private static readonly FixedPoint2 MinimumWornDirtForFootprints = FixedPoint2.New(0.1f); // <Onyx-ClothingDirt>
+    private static readonly FixedPoint2 WornDirtFootprintVolume = FixedPoint2.New(0.1f); // <Onyx-ClothingDirt>
 
     private float _minimumPuddleSize;
 
@@ -139,9 +144,6 @@ public sealed class FootprintSystem : EntitySystem
         if (!_solution.TryGetSolution(puddle.Value.Owner, PuddleSolution, out var puddleSolution, out _))
             return false;
 
-        if (!_solution.EnsureSolutionEntity(entity.Owner, FootprintOwnerSolution, out _, out var solution, FixedPoint2.Max(entity.Comp.MaxFootVolume, entity.Comp.MaxBodyVolume)))
-            return false;
-
         var puddleSolSol = puddleSolution.Value.Comp.Solution;
         // don't transfer reagents that don't stick to skin to our footsteps
         var nonStickProtos = new List<string>(); // has to be string or it dies
@@ -164,17 +166,20 @@ public sealed class FootprintSystem : EntitySystem
         }
         else
         {
-            _clothingDirt.TryDirtyWornPreferred(entity.Owner,
+            _clothingDirt.TryDirtyWornPuddleCrawl(entity.Owner,
                 puddleSolSol,
-                dirtAmount,
-                ClothingDirtSystem.PuddleCrawlPreferredSlots,
-                ClothingDirtSystem.PuddleCrawlFallbackSlots);
-
-            _clothingDirt.TryDirtyWorn(entity.Owner,
-                puddleSolSol,
-                dirtAmount,
-                ClothingDirtSystem.PuddleCrawlAdditionalSlots);
+                dirtAmount);
         }
+
+        if (standing && HasWornFootwearOrSocks(entity.Owner))
+        {
+            puddleSolSol.AddSolution(addBack, _prototype);
+            _solution.UpdateChemicals(puddleSolution.Value, false);
+            return true;
+        }
+
+        if (!_solution.EnsureSolutionEntity(entity.Owner, FootprintOwnerSolution, out _, out var solution, FixedPoint2.Max(entity.Comp.MaxFootVolume, entity.Comp.MaxBodyVolume)))
+            return false;
         // </Onyx-ClothingDirt>
         _solution.TryTransferSolution(puddleSolution.Value, solution.Value.Comp.Solution, GetFootprintVolume(entity, solution.Value));
 
@@ -198,18 +203,27 @@ public sealed class FootprintSystem : EntitySystem
 
     private void FootprintInteraction(Entity<FootprintOwnerComponent> entity, Entity<MapGridComponent> grid, Vector2i tile, EntityCoordinates coordinates, Angle rotation, bool standing)
     {
-        if (!_solution.TryGetSolution(entity.Owner, FootprintOwnerSolution, out var solution, out _))
+        if (!TryGetFootprintSource(entity, standing, out var solution, out var consumeSource, out var clothingSource)) // <Onyx-ClothingDirt edited>
             return;
 
         var volume = standing ? GetFootprintVolume(entity, solution.Value) : GetBodyprintVolume(entity, solution.Value);
-
-        if (volume < entity.Comp.MinFootprintVolume)
+        // <Onyx-ClothingDirt>
+        if (clothingSource)
         {
-            // Goobstation start
-            // after footprints stop, some of the solution remains forever which causes some unexpected behavior
-            // removing all solution once footprints stop helps resolve this issue, the amount of reagent lost is negligible
-            _solution.RemoveAllSolution(solution.Value);
-            // Goobstation end
+            var availableDirt = solution.Value.Comp.Solution.Volume - MinimumWornDirtForFootprints;
+            if (availableDirt <= FixedPoint2.Zero)
+                return;
+
+            volume = FixedPoint2.Min(WornDirtFootprintVolume, availableDirt);
+        }
+        // </Onyx-ClothingDirt>
+
+        if (!clothingSource && volume < entity.Comp.MinFootprintVolume)
+        {
+            // <Onyx-ClothingDirt>
+            if (consumeSource)
+                _solution.RemoveAllSolution(solution.Value);
+            // </Onyx-ClothingDirt>
             return;
         }
 
@@ -222,10 +236,19 @@ public sealed class FootprintSystem : EntitySystem
 
         if (!_solution.EnsureSolutionEntity(footprint.Value.Owner, FootprintSolution, out _, out var footprintSolution, MaxFootprintVolumeOnTile))
             return;
+        // <Onyx-ClothingDirt>
+        var visualVolume = clothingSource
+            ? FixedPoint2.Max(volume, FixedPoint2.New(entity.Comp.MinFootprintVolume))
+            : volume;
+        var color = solution.Value.Comp.Solution.GetColor(_prototype).WithAlpha((float)visualVolume / (float)(standing ? entity.Comp.MaxFootprintVolume : entity.Comp.MaxBodyprintVolume) / 2f);
+        // </Onyx-ClothingDirt>
 
-        var color = solution.Value.Comp.Solution.GetColor(_prototype).WithAlpha((float)volume / (float)(standing ? entity.Comp.MaxFootprintVolume : entity.Comp.MaxBodyprintVolume) / 2f);
-
-        _solution.TryTransferSolution(footprintSolution.Value, solution.Value.Comp.Solution, volume);
+        // <Onyx-ClothingDirt>
+        if (consumeSource || clothingSource)
+        {
+            _solution.TryTransferSolution(footprintSolution.Value, solution.Value.Comp.Solution, volume);
+        }
+        // </Onyx-ClothingDirt>
 
         if (footprintSolution.Value.Comp.Solution.Volume >= MaxFootprintVolumeOnTile)
         {
@@ -302,6 +325,90 @@ public sealed class FootprintSystem : EntitySystem
     {
         return FixedPoint2.Min(solution.Comp.Solution.Volume, (entity.Comp.MaxBodyprintVolume - entity.Comp.MinBodyprintVolume) * (solution.Comp.Solution.Volume / entity.Comp.MaxBodyVolume) + entity.Comp.MinBodyprintVolume);
     }
+
+    // <Onyx-ClothingDirt>
+    private bool TryGetFootprintSource(
+        Entity<FootprintOwnerComponent> entity,
+        bool standing,
+        [NotNullWhen(true)] out Entity<SolutionComponent>? solution,
+        out bool consumeSource,
+        out bool clothingSource)
+    {
+        consumeSource = true;
+        clothingSource = false;
+
+        if (standing)
+        {
+            if (TryGetWornDirtSource(entity.Owner, SlotFlags.FEET, out solution, out var hadFootwear))
+            {
+                consumeSource = false;
+                clothingSource = true;
+                return true;
+            }
+
+            if (hadFootwear)
+                return false;
+
+            if (TryGetWornDirtSource(entity.Owner, SlotFlags.SOCKS, out solution, out var hadSocks))
+            {
+                consumeSource = false;
+                clothingSource = true;
+                return true;
+            }
+
+            if (hadSocks)
+                return false;
+        }
+
+        return _solution.TryGetSolution(entity.Owner, FootprintOwnerSolution, out solution, out _);
+    }
+
+    private bool HasWornFootwearOrSocks(EntityUid wearer)
+    {
+        return HasWornItem(wearer, SlotFlags.FEET) || HasWornItem(wearer, SlotFlags.SOCKS);
+    }
+
+    private bool HasWornItem(EntityUid wearer, SlotFlags slots)
+    {
+        if (!_inventory.TryGetContainerSlotEnumerator(wearer, out var enumerator, slots))
+            return false;
+
+        return enumerator.NextItem(out _);
+    }
+
+    private bool TryGetWornDirtSource(
+        EntityUid wearer,
+        SlotFlags slots,
+        [NotNullWhen(true)] out Entity<SolutionComponent>? solution,
+        out bool hadItem)
+    {
+        solution = null;
+        hadItem = false;
+
+        if (!_inventory.TryGetContainerSlotEnumerator(wearer, out var enumerator, slots))
+            return false;
+
+        while (enumerator.NextItem(out var item))
+        {
+            hadItem = true;
+
+            if (_noFootprintsQuery.HasComp(item))
+                continue;
+
+            if (!TryComp<ClothingDirtableComponent>(item, out var dirtable)
+                || !_solution.TryGetSolution(item, dirtable.Solution, out var dirtSolution, out var dirt)
+                || dirt.Volume <= FixedPoint2.Zero)
+            {
+                continue;
+            }
+
+            solution = dirtSolution.Value;
+            return true;
+        }
+
+        return false;
+    }
+    // </Onyx-ClothingDirt>
 
     private bool TryGetAnchoredEntity<T>(Entity<MapGridComponent> grid, Vector2i pos, [NotNullWhen(true)] out Entity<T>? entity) where T : IComponent
     {
