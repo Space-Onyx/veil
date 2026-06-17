@@ -876,9 +876,7 @@
       prob: 0.01
       orGroup: Useful
    # CorvaxGoob-changes-start:
-    - id: SyndicateJawsOfLife
-      prob: 0.005
-      orGroup: Useful
+    # <Onyx-Patch edited>
     - id: JawsOfLife
       prob: 0.01
       orGroup: Useful
@@ -908,9 +906,6 @@
       orGroup: Useful
     - id: MacroBombImplanter
       prob: 0.0001
-      orGroup: Useful
-    - id: ChameleonControllerImplanter
-      prob: 0.001
       orGroup: Useful
     - id: NutrimentImplanter
       prob: 0.001
@@ -957,12 +952,6 @@
     - id: UpgradedCyberneticLungs
       prob: 0.001
       orGroup: Useful
-    - id: OrganDionaLungs
-      prob: 0.01
-      orGroup: Useful
-    - id: OrganXenomorphEyes
-      prob: 0.001
-      orGroup: Useful
     - id: DiagnosticCyberneticEyes
       prob: 0.01
       orGroup: Useful
@@ -999,24 +988,6 @@
     - id: MobCleanBot
       prob: 0.005
       orGroup: Useful
-    - id: GygaxCentralElectronics
-      prob: 0.001
-      orGroup: Useful
-    - id: GygaxPeripheralsElectronics
-      prob: 0.001
-      orGroup: Useful
-    - id: GygaxTargetingElectronics
-      prob: 0.001
-      orGroup: Useful
-    - id: MechGygaxSyndieBattery
-      prob: 0.0001
-      orGroup: Useful
-    - id: ScrewdriverAbductor
-      prob: 0.01
-      orGroup: Useful
-    - id: MobSkeletonBiker
-      prob: 0.0005
-      orGroup: Useful
     - id: BoxMagazineShotgunBeanbag
       prob: 0.01
       orGroup: Useful
@@ -1024,9 +995,6 @@
       prob: 0.01
       orGroup: Useful
     - id: CrayonBox
-      prob: 0.01
-      orGroup: Useful
-    - id: UplinkLighterBox
       prob: 0.01
       orGroup: Useful
     - id: MysteryLighterBox
@@ -1053,9 +1021,6 @@
     - id: MechClarke
       prob: 0.001
       orGroup: Useful
-    - id: CrateCargoGambling # WTF?!!!!!
-      prob: 0.005
-      orGroup: Useful
     - id: ResearchDisk
       prob: 0.01
       orGroup: Useful
@@ -1074,6 +1039,7 @@
     - id: MicroManipulatorStockPart
       prob: 0.01
       orGroup: Useful
+    # </Onyx-Patch edited>
    # CorvaxGoob-changes-end
     #notuseful
     - id: LidSalami
