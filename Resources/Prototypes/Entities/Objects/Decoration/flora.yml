@@ -305,6 +305,8 @@
   id: FloraTree
   name: tree
   components:
+  - type: Photosynthesis
+    molesPerSecond: 0.008
   - type: Sprite
     layers:
     - state: tree01
@@ -324,6 +326,8 @@
   id: FloraTreeSnow
   name: snowy tree
   components:
+  - type: Photosynthesis
+    molesPerSecond: 0.008
   - type: Sprite
     layers:
     - state: treesnow01
@@ -351,6 +355,8 @@
   id: FloraTreeLarge
   name: large tree
   components:
+  - type: Photosynthesis
+    molesPerSecond: 0.016
   - type: Sprite
     layers:
     - state: treelarge01
@@ -370,6 +376,8 @@
   id: FloraTreeConifer
   name: snowy conifer
   components:
+  - type: Photosynthesis
+    molesPerSecond: 0.008
   - type: Sprite
     layers:
     - state: treeconifer01
@@ -386,6 +394,8 @@
   id: FloraTreeChristmas01
   name: christmas tree
   components:
+  - type: Photosynthesis
+    molesPerSecond: 0.008
   - type: Sprite
     state: treechristmas01
 
@@ -395,6 +405,8 @@
   suffix: Safe Presents
   name: christmas tree
   components:
+  - type: Photosynthesis
+    molesPerSecond: 0.008
   - type: Sprite
     state: treechristmas02
   - type: Fixtures
@@ -486,6 +498,8 @@
   name: glowing tree
   description: A marvelous tree filled with strange energy.
   components:
+  - type: Photosynthesis
+    molesPerSecond: 0.012
   - type: PointLight
     radius: 2.0
     energy: 4.5

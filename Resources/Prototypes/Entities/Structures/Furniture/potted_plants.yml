@@ -153,6 +153,7 @@
     noRot: true
   - type: Speech
     speechVerb: Plant # for pais (In the secret stash)
+  - type: Photosynthesis
   - type: SecretStash
     tryInsertItemSound: /Audio/Effects/plant_rustle.ogg
     tryRemoveItemSound: /Audio/Effects/plant_rustle.ogg
