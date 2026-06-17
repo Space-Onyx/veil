@@ -114,3 +114,6 @@
 
 - type: Tag
   id: OnyxSocks
+
+- type: Tag
+  id: SuppressFlammableParticles

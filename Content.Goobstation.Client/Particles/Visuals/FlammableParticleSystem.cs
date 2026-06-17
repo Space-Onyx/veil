@@ -3,6 +3,7 @@
 using Content.Shared.Atmos;
 using Content.Shared.Atmos.Components;
 using Content.Goobstation.Shared.Particles;
+using Content.Shared.Tag;
 using Robust.Client.GameObjects;
 using Robust.Shared.Prototypes;
 
@@ -16,9 +17,11 @@ public sealed class FlammableParticleSystem : EntitySystem
     [Dependency] private readonly ParticleSystem _particles = default!;
     [Dependency] private readonly AppearanceSystem _appearance = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private readonly TagSystem _tag = default!; // <Onyx-Tweak>
 
     private static readonly ProtoId<ParticleEffectPrototype> FireEffect = "SfFireContinuous";
     private static readonly ProtoId<ParticleEffectPrototype> SmokeEffect = "SfFireSmoke";
+    private static readonly ProtoId<TagPrototype> SuppressFlammableParticlesTag = "SuppressFlammableParticles"; // <Onyx-Tweak>
 
     private const float MaxStacks = 10f;
 
@@ -48,6 +51,19 @@ public sealed class FlammableParticleSystem : EntitySystem
             stacks = 0f;
 
         _active.TryGetValue(ent, out var state);
+
+        // <Onyx-Tweak>
+        if (_tag.HasTag(ent, SuppressFlammableParticlesTag))
+        {
+            if (state is { OnFire: true })
+            {
+                StopState(state);
+                state.OnFire = false;
+            }
+
+            return;
+        }
+        // <Onyx-Tweak>
 
         if (onFire)
         {

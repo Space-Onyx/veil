@@ -18,6 +18,7 @@
     - type: Tag
       tags:
       - Candle
+      - SuppressFlammableParticles # <Onyx-Tweak>
     - type: Sprite
       noRot: true
       sprite: Objects/Misc/candles.rsi
