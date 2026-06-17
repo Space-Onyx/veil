@@ -1,0 +1,5 @@
+- type: damageGroup
+  id: Anomaly
+  name: damage-group-anomaly
+  damageTypes:
+  - Entropy
