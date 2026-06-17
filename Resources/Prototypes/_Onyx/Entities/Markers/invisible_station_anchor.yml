@@ -1,0 +1,16 @@
+- type: entity
+  id: InvisibleStationAnchor
+  name: invisible station anchor
+  description: An invisible marker that prevents its station from moving.
+  parent: MarkerBase
+  suffix: Station Anchor
+  components:
+  - type: Sprite
+    layers:
+    - sprite: _CorvaxNext/Markers/environment.rsi
+      state: base-green
+      shader: unshaded
+    - sprite: _CorvaxNext/Markers/environment.rsi
+      state: wall
+      shader: unshaded
+  - type: StationAnchor
