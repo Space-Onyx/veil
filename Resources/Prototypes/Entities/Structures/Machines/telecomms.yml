@@ -197,6 +197,9 @@
   - type: TelecomSignalLog
   - type: TelecomRouter
     maxBuses: 1
+    standalone: true
+  - type: TelecomCalibration
+    bandwidth: 32
   - type: DeviceLinkSink
     ports:
     - TelecomServerInput

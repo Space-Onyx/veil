@@ -14,6 +14,9 @@ public enum TelecomSignalStatus : byte
     NoProcessor,
     NoBroadcaster,
     ChannelDisabled,
+    Degraded,
+    Congested,
+    SignalLoss,
 }
 
 [Serializable, NetSerializable]
@@ -42,19 +45,23 @@ public sealed class TelecomTrafficChannelInfo(string id, string name, bool enabl
 public sealed class TelecomTrafficLogInfo(
     string timestamp,
     string channel,
-    string source,
     string message,
     TelecomSignalStatus status,
     int messageLength,
-    double timestampSeconds)
+    double timestampSeconds,
+    int signalQuality,
+    int loadPercent,
+    int latencyMilliseconds)
 {
     public readonly string Timestamp = timestamp;
     public readonly string Channel = channel;
-    public readonly string Source = source;
     public readonly string Message = message;
     public readonly TelecomSignalStatus Status = status;
     public readonly int MessageLength = messageLength;
     public readonly double TimestampSeconds = timestampSeconds;
+    public readonly int SignalQuality = signalQuality;
+    public readonly int LoadPercent = loadPercent;
+    public readonly int LatencyMilliseconds = latencyMilliseconds;
 }
 
 [Serializable, NetSerializable]
@@ -66,7 +73,10 @@ public sealed class TelecomTrafficConsoleState(
     List<TelecomTrafficLogInfo> logs,
     int trafficBins,
     int trafficBinSeconds,
-    double currentTimeSeconds) : BoundUserInterfaceState
+    double currentTimeSeconds,
+    int estimatedCalibration,
+    int estimatedLoad,
+    int telemetryIntervalSeconds) : BoundUserInterfaceState
 {
     public readonly List<TelecomTrafficServerInfo> Servers = servers;
     public readonly NetEntity? SelectedServer = selectedServer;
@@ -76,6 +86,9 @@ public sealed class TelecomTrafficConsoleState(
     public readonly int TrafficBins = trafficBins;
     public readonly int TrafficBinSeconds = trafficBinSeconds;
     public readonly double CurrentTimeSeconds = currentTimeSeconds;
+    public readonly int EstimatedCalibration = estimatedCalibration;
+    public readonly int EstimatedLoad = estimatedLoad;
+    public readonly int TelemetryIntervalSeconds = telemetryIntervalSeconds;
 }
 
 [Serializable, NetSerializable]

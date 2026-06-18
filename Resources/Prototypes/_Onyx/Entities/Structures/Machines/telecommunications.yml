@@ -52,8 +52,11 @@
     - state: telecom-open
       map: ["enum.WiresVisualLayers.MaintenancePanel"]
   - type: TelecomBus
-    maxProcessors: 1
+    maxReceivers: 4
+    maxProcessors: 4
     maxServers: 2
+  - type: TelecomCalibration
+    bandwidth: 32
   - type: DeviceLinkSink
     ports:
     - TelecomBusInput
@@ -92,7 +95,9 @@
     color: "#39b8ee"
   - type: LitOnPowered
   - type: TelecomReceiver
-    maxProcessors: 2
+    maxBuses: 2
+  - type: TelecomCalibration
+    bandwidth: 12
   - type: DeviceLinkSource
     ports:
     - TelecomReceiverOutput
@@ -115,8 +120,9 @@
       shader: unshaded
       map: ["enum.PowerDeviceVisualLayers.Powered"]
   - type: TelecomProcessor
-    maxReceivers: 1
     maxBuses: 1
+  - type: TelecomCalibration
+    bandwidth: 8
   - type: DeviceLinkSink
     ports:
     - TelecomProcessorInput
@@ -156,6 +162,8 @@
   - type: LitOnPowered
   - type: TelecomBroadcaster
     maxServers: 2
+  - type: TelecomCalibration
+    bandwidth: 10
   - type: DeviceLinkSink
     ports:
     - TelecomBroadcasterInput

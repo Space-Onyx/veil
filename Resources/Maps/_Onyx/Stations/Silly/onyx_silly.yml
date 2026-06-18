@@ -60115,14 +60115,14 @@ entities:
         6351:
         - - TelecomReceiverOutput
           - TelecomBusInput
-- proto: TelecomServer
+- proto: OnyxTelecomServer
   entities:
   - uid: 8453
     components:
     - type: Transform
       pos: 13.5,9.5
       parent: 7718
-- proto: TelecomServerFilled
+- proto: OnyxTelecomServerFilled
   entities:
   - uid: 6354
     components:

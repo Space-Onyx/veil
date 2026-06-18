@@ -8,6 +8,20 @@ ent-TelecomBroadcaster = telecommunication broadcaster
     .desc = Broadcasts signals received from the telecommunication router.
 ent-TelecomTrafficConsole = telecommunication traffic monitor
     .desc = Monitors telecommunication servers, signal logs, and routing status.
+ent-OnyxTelecomServer = telecommunication server
+    .desc = A telecommunications server that requires a receiver, processor, bus, and broadcaster chain.
+ent-OnyxTelecomServerFilled = { ent-OnyxTelecomServer }
+ent-OnyxTelecomServerFilledCommon = { ent-OnyxTelecomServer }
+ent-OnyxTelecomServerFilledCargo = { ent-OnyxTelecomServer }
+ent-OnyxTelecomServerFilledEngineering = { ent-OnyxTelecomServer }
+ent-OnyxTelecomServerFilledMedical = { ent-OnyxTelecomServer }
+ent-OnyxTelecomServerFilledScience = { ent-OnyxTelecomServer }
+ent-OnyxTelecomServerFilledSecurity = { ent-OnyxTelecomServer }
+ent-OnyxTelecomServerFilledService = { ent-OnyxTelecomServer }
+ent-OnyxTelecomServerFilledCommand = { ent-OnyxTelecomServer }
+ent-OnyxTelecomServerFilledLegal = { ent-OnyxTelecomServer }
+ent-OnyxTelecomServerCircuitboard = telecommunication server machine board
+    .desc = A machine printed circuit board for a telecommunications server that uses the full signal chain.
 
 signal-port-name-telecom-receiver-output = Receiver output
 signal-port-description-telecom-receiver-output = Connects the receiver to up to two processors.
@@ -43,7 +57,8 @@ telecom-server-label-command = Command server
 telecom-server-label-legal = Legal server
 
 telecom-signal-log-count = The server log contains {$count} of {$capacity} signal records.
-telecom-signal-log-last = Last signal: [{$time}] [{$channel}] {$source}: {$message}
+telecom-signal-log-last = Last signal: [{$time}] [{$channel}] {$message}
+telecom-signal-log-lost = <! SIGNAL LOST !>
 
 telecom-traffic-console-title = Telecommunications traffic monitor
 telecom-traffic-console-heading = TELECOMMUNICATIONS NETWORK CONTROL SYSTEM
@@ -83,9 +98,24 @@ telecom-traffic-status-nobus = NO MAINFRAME BUS
 telecom-traffic-status-noprocessor = NO PROCESSOR
 telecom-traffic-status-nobroadcaster = NO BROADCASTER
 telecom-traffic-status-channeldisabled = CHANNEL DISABLED
+telecom-traffic-status-degraded = DEGRADED
+telecom-traffic-status-congested = CONGESTION
+telecom-traffic-status-signalloss = SIGNAL LOSS
 
 telecom-traffic-console-channels-title = Channels
 telecom-traffic-console-channels-empty = This server has no encryption-key channels.
 telecom-traffic-console-channel-enabled = Enabled
 telecom-traffic-console-channel-disabled = Disabled
 telecom-traffic-console-toggle-channel = Toggle channel
+telecom-traffic-console-diagnostics = ESTIMATED CALIBRATION: {$calibration}%  |  LOAD: {$load}%  |  TELEMETRY REFRESH: {$interval}s
+telecom-traffic-console-log-entry-diagnostic = [{$time}] {$status} [{$channel}] {$size} B | SIGNAL {$quality}% | LOAD {$load}% | LATENCY {$latency} ms
+telecom-traffic-console-log-entry-header = [{$time}] {$status} [{$channel}] {$size} B | SIGNAL {$quality}% | LOAD {$load}% | LATENCY {$latency} ms
+telecom-traffic-console-log-entry-message = "{$message}"
+telecom-traffic-console-log-entry-lost = [{$time}] {$status} [{$channel}] <! SIGNAL LOST !> | {$size} B | SIGNAL {$quality}% | LOAD {$load}% | LATENCY {$latency} ms
+
+telecom-calibration-panel-closed = Open the maintenance panel before calibrating the node.
+telecom-calibration-complete = The telecommunications node has been calibrated.
+telecom-calibration-examine-nominal = Its calibration is nominal ({$calibration}%).
+telecom-calibration-examine-drifting = Its calibration is beginning to drift ({$calibration}%).
+telecom-calibration-examine-poor = Its calibration is poor and may affect communications ({$calibration}%).
+telecom-calibration-examine-critical = Its calibration is critically unstable ({$calibration}%).

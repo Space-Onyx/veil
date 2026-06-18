@@ -1,5 +1,11 @@
 - type: latheRecipe
   parent: [ BaseCircuitboardRecipe, BaseEngineeringMachineRecipeCategory ]
+  id: OnyxTelecomServerCircuitboard
+  icon: { sprite: Structures/Machines/telecomms.rsi, state: telecom-nopower }
+  result: OnyxTelecomServerCircuitboard
+
+- type: latheRecipe
+  parent: [ BaseCircuitboardRecipe, BaseEngineeringMachineRecipeCategory ]
   id: TelecomBusCircuitboard
   icon: { sprite: Structures/Machines/telecomms.rsi, state: telecom-nopower }
   result: TelecomBusCircuitboard

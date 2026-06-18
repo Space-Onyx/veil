@@ -102,6 +102,7 @@
   - PortableGeneratorJrPacmanMachineCircuitboard
   - EmitterCircuitboard
   - TelecomServerCircuitboard
+  - OnyxTelecomServerCircuitboard
   - SMESAdvancedMachineCircuitboard
   - HolopadMachineCircuitboard
   - TeslaCoilCircuitboard

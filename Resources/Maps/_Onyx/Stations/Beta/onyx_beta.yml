@@ -91874,7 +91874,7 @@ entities:
         1139:
         - - TelecomReceiverOutput
           - TelecomBusInput
-- proto: TelecomServerFilledCargo
+- proto: OnyxTelecomServerFilledCargo
   entities:
   - uid: 1806
     components:
@@ -91889,7 +91889,7 @@ entities:
         8362:
         - - TelecomServerMonitorOutput
           - TelecomConsoleInput
-- proto: TelecomServerFilledCommand
+- proto: OnyxTelecomServerFilledCommand
   entities:
   - uid: 7588
     components:
@@ -91904,7 +91904,7 @@ entities:
         8362:
         - - TelecomServerMonitorOutput
           - TelecomConsoleInput
-- proto: TelecomServerFilledCommon
+- proto: OnyxTelecomServerFilledCommon
   entities:
   - uid: 1144
     components:
@@ -91919,7 +91919,7 @@ entities:
         8362:
         - - TelecomServerMonitorOutput
           - TelecomConsoleInput
-- proto: TelecomServerFilledEngineering
+- proto: OnyxTelecomServerFilledEngineering
   entities:
   - uid: 11233
     components:
@@ -91935,7 +91935,7 @@ entities:
         8362:
         - - TelecomServerMonitorOutput
           - TelecomConsoleInput
-- proto: TelecomServerFilledLegal
+- proto: OnyxTelecomServerFilledLegal
   entities:
   - uid: 6314
     components:
@@ -91950,7 +91950,7 @@ entities:
         8362:
         - - TelecomServerMonitorOutput
           - TelecomConsoleInput
-- proto: TelecomServerFilledMedical
+- proto: OnyxTelecomServerFilledMedical
   entities:
   - uid: 412
     components:
@@ -91965,7 +91965,7 @@ entities:
         8362:
         - - TelecomServerMonitorOutput
           - TelecomConsoleInput
-- proto: TelecomServerFilledScience
+- proto: OnyxTelecomServerFilledScience
   entities:
   - uid: 1135
     components:
@@ -91980,7 +91980,7 @@ entities:
         8362:
         - - TelecomServerMonitorOutput
           - TelecomConsoleInput
-- proto: TelecomServerFilledService
+- proto: OnyxTelecomServerFilledService
   entities:
   - uid: 1142
     components:

@@ -14,7 +14,7 @@ namespace Content.Server._Onyx.Telecommunications;
 
 public sealed class TelecomTrafficConsoleSystem : EntitySystem
 {
-    private const float UpdateInterval = 1f;
+    private const float BaseUpdateInterval = 5f;
     private const int TrafficBins = 12;
     private static readonly TimeSpan BinDuration = TimeSpan.FromSeconds(5);
 
@@ -39,10 +39,11 @@ public sealed class TelecomTrafficConsoleSystem : EntitySystem
         while (query.MoveNext(out var uid, out var component))
         {
             component.UpdateAccumulator += frameTime;
-            if (component.UpdateAccumulator < UpdateInterval)
+            var updateInterval = GetTelemetryInterval(component.SelectedServer);
+            if (component.UpdateAccumulator < updateInterval)
                 continue;
 
-            component.UpdateAccumulator -= UpdateInterval;
+            component.UpdateAccumulator = 0f;
             UpdateUi((uid, component));
         }
     }
@@ -133,11 +134,18 @@ public sealed class TelecomTrafficConsoleSystem : EntitySystem
         var logs = new List<TelecomTrafficLogInfo>();
         var selectedChannels = new List<TelecomTrafficChannelInfo>();
         var routingEnabled = false;
+        var estimatedCalibration = 0;
+        var estimatedLoad = 0;
+        var telemetryInterval = (int) BaseUpdateInterval;
 
         if (ent.Comp.SelectedServer is { } selected &&
             TryComp<TelecomSignalLogComponent>(selected, out var log))
         {
             routingEnabled = log.RoutingEnabled;
+            var metrics = _chain.GetServerMetrics(selected);
+            estimatedCalibration = (int) MathF.Round(metrics.Quality * 100f);
+            estimatedLoad = (int) MathF.Round(metrics.MaxUtilization * 100f);
+            telemetryInterval = (int) MathF.Ceiling(GetTelemetryInterval(selected));
 
             var disabledChannels = TryComp<TelecomRouterComponent>(selected, out var router)
                 ? router.DisabledChannels
@@ -162,11 +170,13 @@ public sealed class TelecomTrafficConsoleSystem : EntitySystem
                 logs.Add(new TelecomTrafficLogInfo(
                     FormatTime(entry.Timestamp),
                     entry.Channel,
-                    entry.Source,
                     entry.Message,
-                    entry.Status,
+                    SanitizeStatus(entry.Status),
                     entry.MessageLength,
-                    entry.Timestamp.TotalSeconds));
+                    entry.Timestamp.TotalSeconds,
+                    entry.SignalQuality,
+                    entry.LoadPercent,
+                    entry.LatencyMilliseconds));
             }
         }
 
@@ -181,7 +191,10 @@ public sealed class TelecomTrafficConsoleSystem : EntitySystem
                 logs,
                 TrafficBins,
                 (int) BinDuration.TotalSeconds,
-                _timing.CurTime.TotalSeconds));
+                _timing.CurTime.TotalSeconds,
+                estimatedCalibration,
+                estimatedLoad,
+                telemetryInterval));
     }
 
     private List<TelecomTrafficServerInfo> GetServers(EntityUid console)
@@ -227,5 +240,27 @@ public sealed class TelecomTrafficConsoleSystem : EntitySystem
     private static string FormatTime(TimeSpan time)
     {
         return $"{(int) time.TotalHours:00}:{time.Minutes:00}:{time.Seconds:00}";
+    }
+
+    private float GetTelemetryInterval(EntityUid? server)
+    {
+        if (server == null || !Exists(server.Value))
+            return BaseUpdateInterval;
+
+        var quality = _chain.GetServerMetrics(server.Value).Quality;
+        return BaseUpdateInterval + (1f - quality) * 15f;
+    }
+
+    private static TelecomSignalStatus SanitizeStatus(TelecomSignalStatus status)
+    {
+        return status switch
+        {
+            TelecomSignalStatus.NoReceiver or
+            TelecomSignalStatus.NoBus or
+            TelecomSignalStatus.NoProcessor or
+            TelecomSignalStatus.NoBroadcaster or
+            TelecomSignalStatus.NoRoute => TelecomSignalStatus.SignalLoss,
+            _ => status,
+        };
     }
 }

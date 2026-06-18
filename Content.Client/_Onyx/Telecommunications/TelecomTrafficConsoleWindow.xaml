@@ -58,6 +58,7 @@
                             <BoxContainer Orientation="Vertical" HorizontalExpand="True">
                                 <Label Name="SelectedServerLabel" StyleClasses="ConsoleSubHeading"/>
                                 <Label Name="RoutingStatusLabel" StyleClasses="ConsoleText"/>
+                                <Label Name="DiagnosticStatusLabel" StyleClasses="ConsoleText"/>
                             </BoxContainer>
                             <Button Name="RoutingButton" MinWidth="190"/>
                         </BoxContainer>
@@ -156,6 +157,7 @@
                                              ReserveScrollbarSpace="True">
                                 <BoxContainer Name="LogContainer"
                                               Orientation="Vertical"
+                                              MaxWidth="720"
                                               SeparationOverride="4"/>
                             </ScrollContainer>
                         </BoxContainer>

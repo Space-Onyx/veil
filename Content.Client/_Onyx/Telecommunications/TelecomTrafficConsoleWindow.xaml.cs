@@ -100,6 +100,11 @@ public sealed partial class TelecomTrafficConsoleWindow : DefaultWindow
         RoutingStatusLabel.FontColorOverride = _routingEnabled
             ? Color.FromHex("#45e67b")
             : Color.FromHex("#e65454");
+        DiagnosticStatusLabel.Text = Loc.GetString(
+            "telecom-traffic-console-diagnostics",
+            ("calibration", state.EstimatedCalibration),
+            ("load", state.EstimatedLoad),
+            ("interval", state.TelemetryIntervalSeconds));
 
         var selected = state.Servers.FirstOrDefault(server => server.Entity == state.SelectedServer);
         SelectedServerLabel.Text = selected == null
@@ -263,6 +268,7 @@ public sealed partial class TelecomTrafficConsoleWindow : DefaultWindow
             var color = entry.Status switch
             {
                 TelecomSignalStatus.Routed => Color.FromHex("#45e67b"),
+                TelecomSignalStatus.Degraded => Color.FromHex("#e6b845"),
                 TelecomSignalStatus.Garbled => Color.FromHex("#e6b845"),
                 _ => Color.FromHex("#e65454"),
             };
@@ -270,16 +276,33 @@ public sealed partial class TelecomTrafficConsoleWindow : DefaultWindow
             var label = new RichTextLabel
             {
                 HorizontalExpand = true,
+                MaxWidth = 620,
+                HorizontalAlignment = HAlignment.Left,
+                VerticalAlignment = VAlignment.Top,
                 Margin = new Thickness(4, 1),
                 ModulateSelfOverride = color,
             };
-            label.SetMessage(FormattedMessage.FromUnformatted(Loc.GetString(
-                "telecom-traffic-console-log-entry",
+
+            var entryText = Loc.GetString(
+                string.IsNullOrEmpty(entry.Message)
+                    ? "telecom-traffic-console-log-entry-lost"
+                    : "telecom-traffic-console-log-entry-header",
                 ("time", entry.Timestamp),
                 ("status", Loc.GetString($"telecom-traffic-status-{entry.Status.ToString().ToLowerInvariant()}")),
                 ("channel", entry.Channel),
-                ("source", entry.Source),
-                ("message", entry.Message))));
+                ("size", entry.MessageLength),
+                ("quality", entry.SignalQuality),
+                ("load", entry.LoadPercent),
+                ("latency", entry.LatencyMilliseconds));
+
+            if (!string.IsNullOrEmpty(entry.Message))
+            {
+                entryText += "\n" + Loc.GetString(
+                    "telecom-traffic-console-log-entry-message",
+                    ("message", entry.Message));
+            }
+
+            label.SetMessage(FormattedMessage.FromUnformatted(entryText));
             LogContainer.AddChild(label);
             shown++;
         }
@@ -306,7 +329,7 @@ public sealed partial class TelecomTrafficConsoleWindow : DefaultWindow
 
     private static bool IsSuccessful(TelecomSignalStatus status)
     {
-        return status is TelecomSignalStatus.Routed or TelecomSignalStatus.Garbled;
+        return status is TelecomSignalStatus.Routed or TelecomSignalStatus.Degraded or TelecomSignalStatus.Garbled;
     }
 
     private static bool MatchesSearch(TelecomTrafficLogInfo entry, string search)
@@ -315,8 +338,9 @@ public sealed partial class TelecomTrafficConsoleWindow : DefaultWindow
             return true;
 
         return entry.Channel.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-               entry.Source.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-               entry.Message.Contains(search, StringComparison.OrdinalIgnoreCase);
+               entry.Message.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+               Loc.GetString($"telecom-traffic-status-{entry.Status.ToString().ToLowerInvariant()}")
+                   .Contains(search, StringComparison.OrdinalIgnoreCase);
     }
 
     private void OnServerListSelected(ItemList.ItemListSelectedEventArgs args)

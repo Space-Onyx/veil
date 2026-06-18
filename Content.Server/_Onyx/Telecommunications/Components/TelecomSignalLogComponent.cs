@@ -21,7 +21,9 @@ public sealed partial class TelecomSignalLogComponent : Component
 public sealed record TelecomSignalLogEntry(
     TimeSpan Timestamp,
     string Channel,
-    string Source,
     string Message,
     TelecomSignalStatus Status,
-    int MessageLength);
+    int MessageLength,
+    int SignalQuality,
+    int LoadPercent,
+    int LatencyMilliseconds);

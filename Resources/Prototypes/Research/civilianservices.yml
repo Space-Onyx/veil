@@ -54,7 +54,7 @@
     - SurveillanceWirelessCameraAnchoredCircuitboard
     - SurveillanceCameraMonitorCircuitboard
     - SurveillanceWirelessCameraMonitorCircuitboard
-    - TelecomServerCircuitboard
+    - OnyxTelecomServerCircuitboard
     - TelecomBusCircuitboard
     - TelecomReceiverCircuitboard
     - TelecomProcessorCircuitboard

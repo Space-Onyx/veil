@@ -7,6 +7,9 @@ public sealed partial class TelecomRouterComponent : Component
     public int MaxBuses = 1;
 
     [DataField, ViewVariables(VVAccess.ReadWrite)]
+    public bool Standalone;
+
+    [DataField, ViewVariables(VVAccess.ReadWrite)]
     public HashSet<string> DisabledChannels = new();
 
     [ViewVariables(VVAccess.ReadOnly)]

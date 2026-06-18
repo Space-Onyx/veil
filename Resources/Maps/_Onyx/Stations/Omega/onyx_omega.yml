@@ -99971,7 +99971,7 @@ entities:
         14883:
         - - TelecomReceiverOutput
           - TelecomBusInput
-- proto: TelecomServerFilled
+- proto: OnyxTelecomServerFilled
   entities:
   - uid: 14880
     components:
@@ -99986,7 +99986,7 @@ entities:
         12710:
         - - TelecomServerMonitorOutput
           - TelecomConsoleInput
-- proto: TelecomServerFilledCommand
+- proto: OnyxTelecomServerFilledCommand
   entities:
   - uid: 12709
     components:
