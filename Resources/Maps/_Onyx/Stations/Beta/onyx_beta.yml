@@ -4,8 +4,8 @@ meta:
   engineVersion: 266.0.0
   forkId: ""
   forkVersion: ""
-  time: 05/30/2026 17:59:20
-  entityCount: 15862
+  time: 06/18/2026 08:36:18
+  entityCount: 15863
 maps:
 - 1
 grids:
@@ -7269,90 +7269,6 @@ entities:
     - type: Action
       container: 14
       originalIconColor: '#FFFFFFFF'
-- proto: OnyxClothingUnderwearSocksKneeSyndieRed
-  entities:
-  - uid: 16
-    components:
-    - type: Transform
-      pos: 10.085296,-39.519505
-      parent: 2
-- proto: OnyxClothingUnderwearSocksSyndieRed
-  entities:
-  - uid: 17
-    components:
-    - type: Transform
-      pos: 10.741546,-38.12888
-      parent: 2
-- proto: OnyxClothingUnderwearSocksThighSyndieRed
-  entities:
-  - uid: 18
-    components:
-    - type: Transform
-      pos: 9.288421,-38.19138
-      parent: 2
-- proto: OnyxClothingUniformSwimBlack
-  entities:
-  - uid: 20
-    components:
-    - type: Transform
-      parent: 19
-    - type: Physics
-      canCollide: False
-    - type: InsideEntityStorage
-- proto: OnyxClothingUniformSwimBlue
-  entities:
-  - uid: 21
-    components:
-    - type: Transform
-      parent: 19
-    - type: Physics
-      canCollide: False
-    - type: InsideEntityStorage
-- proto: OnyxClothingUniformSwimDarkGreen
-  entities:
-  - uid: 22
-    components:
-    - type: Transform
-      parent: 19
-    - type: Physics
-      canCollide: False
-    - type: InsideEntityStorage
-- proto: OnyxClothingUniformSwimGreen
-  entities:
-  - uid: 23
-    components:
-    - type: Transform
-      parent: 19
-    - type: Physics
-      canCollide: False
-    - type: InsideEntityStorage
-- proto: OnyxClothingUniformSwimPurple
-  entities:
-  - uid: 24
-    components:
-    - type: Transform
-      parent: 19
-    - type: Physics
-      canCollide: False
-    - type: InsideEntityStorage
-- proto: OnyxClothingUniformSwimRed
-  entities:
-  - uid: 25
-    components:
-    - type: Transform
-      parent: 19
-    - type: Physics
-      canCollide: False
-    - type: InsideEntityStorage
-- proto: OnyxClothingUniformSwimsuitWinth
-  entities:
-  - uid: 26
-    components:
-    - type: Transform
-      parent: 19
-    - type: Physics
-      canCollide: False
-    - type: InsideEntityStorage
 - proto: AirAlarm
   entities:
   - uid: 27
@@ -9598,7 +9514,7 @@ entities:
       pos: -2.5,18.5
       parent: 2
     - type: Door
-      secondsUntilStateChange: -331322.22
+      secondsUntilStateChange: -331368.34
       state: Opening
     - type: DeviceLinkSource
       lastSignals:
@@ -9789,7 +9705,7 @@ entities:
       pos: 70.5,-0.5
       parent: 2
     - type: Door
-      secondsUntilStateChange: -161758.28
+      secondsUntilStateChange: -161804.42
       state: Opening
     - type: DeviceLinkSource
       lastSignals:
@@ -10125,7 +10041,7 @@ entities:
       pos: 30.5,-13.5
       parent: 2
     - type: Door
-      secondsUntilStateChange: -193824.98
+      secondsUntilStateChange: -193871.12
       state: Opening
     - type: DeviceLinkSource
       lastSignals:
@@ -10458,7 +10374,7 @@ entities:
       pos: 9.5,14.5
       parent: 2
     - type: Door
-      secondsUntilStateChange: -63249.94
+      secondsUntilStateChange: -63296.082
       state: Opening
     - type: DeviceLinkSource
       lastSignals:
@@ -10487,7 +10403,7 @@ entities:
       pos: -14.5,-17.5
       parent: 2
     - type: Door
-      secondsUntilStateChange: -28401.93
+      secondsUntilStateChange: -28448.07
       state: Opening
     - type: DeviceLinkSource
       lastSignals:
@@ -10667,7 +10583,7 @@ entities:
       pos: 38.5,-9.5
       parent: 2
     - type: Door
-      secondsUntilStateChange: -168863.8
+      secondsUntilStateChange: -168909.94
       state: Opening
     - type: DeviceLinkSource
       lastSignals:
@@ -10678,7 +10594,7 @@ entities:
       pos: 43.5,-9.5
       parent: 2
     - type: Door
-      secondsUntilStateChange: -181633.86
+      secondsUntilStateChange: -181680
       state: Opening
     - type: DeviceLinkSource
       lastSignals:
@@ -43714,7 +43630,7 @@ entities:
       rot: 3.141592653589793 rad
       pos: -2.5,-25.5
       parent: 2
-  - uid: 6428
+  - uid: 6427
     components:
     - type: Transform
       rot: -1.5707963267948966 rad
@@ -43722,7 +43638,7 @@ entities:
       parent: 2
 - proto: DisposalJunctionFlipped
   entities:
-  - uid: 6427
+  - uid: 6428
     components:
     - type: Transform
       rot: 3.141592653589793 rad
@@ -50814,13 +50730,6 @@ entities:
       parent: 2
     - type: Fixtures
       fixtures: {}
-  - uid: 7442
-    components:
-    - type: Transform
-      pos: -7.5,-25.5
-      parent: 2
-    - type: Fixtures
-      fixtures: {}
   - uid: 7443
     components:
     - type: Transform
@@ -50831,6 +50740,7 @@ entities:
   - uid: 7444
     components:
     - type: Transform
+      rot: 3.141592653589793 rad
       pos: -5.5,-25.5
       parent: 2
     - type: Fixtures
@@ -50892,6 +50802,14 @@ entities:
     - type: Transform
       rot: 3.141592653589793 rad
       pos: 18.5,-16.5
+      parent: 2
+    - type: Fixtures
+      fixtures: {}
+  - uid: 15545
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -7.5,-25.5
       parent: 2
     - type: Fixtures
       fixtures: {}
@@ -73753,7 +73671,7 @@ entities:
       pos: 35.5,-39.5
       parent: 2
     - type: Door
-      secondsUntilStateChange: -145462.23
+      secondsUntilStateChange: -145508.38
       state: Closing
   - uid: 10597
     components:
@@ -76264,6 +76182,90 @@ entities:
     - type: Transform
       pos: 20.514269,39.614853
       parent: 2
+- proto: OnyxClothingUnderwearSocksKneeSyndieRed
+  entities:
+  - uid: 16
+    components:
+    - type: Transform
+      pos: 10.085296,-39.519505
+      parent: 2
+- proto: OnyxClothingUnderwearSocksSyndieRed
+  entities:
+  - uid: 17
+    components:
+    - type: Transform
+      pos: 10.741546,-38.12888
+      parent: 2
+- proto: OnyxClothingUnderwearSocksThighSyndieRed
+  entities:
+  - uid: 18
+    components:
+    - type: Transform
+      pos: 9.288421,-38.19138
+      parent: 2
+- proto: OnyxClothingUniformSwimBlack
+  entities:
+  - uid: 20
+    components:
+    - type: Transform
+      parent: 19
+    - type: Physics
+      canCollide: False
+    - type: InsideEntityStorage
+- proto: OnyxClothingUniformSwimBlue
+  entities:
+  - uid: 21
+    components:
+    - type: Transform
+      parent: 19
+    - type: Physics
+      canCollide: False
+    - type: InsideEntityStorage
+- proto: OnyxClothingUniformSwimDarkGreen
+  entities:
+  - uid: 22
+    components:
+    - type: Transform
+      parent: 19
+    - type: Physics
+      canCollide: False
+    - type: InsideEntityStorage
+- proto: OnyxClothingUniformSwimGreen
+  entities:
+  - uid: 23
+    components:
+    - type: Transform
+      parent: 19
+    - type: Physics
+      canCollide: False
+    - type: InsideEntityStorage
+- proto: OnyxClothingUniformSwimPurple
+  entities:
+  - uid: 24
+    components:
+    - type: Transform
+      parent: 19
+    - type: Physics
+      canCollide: False
+    - type: InsideEntityStorage
+- proto: OnyxClothingUniformSwimRed
+  entities:
+  - uid: 25
+    components:
+    - type: Transform
+      parent: 19
+    - type: Physics
+      canCollide: False
+    - type: InsideEntityStorage
+- proto: OnyxClothingUniformSwimsuitWinth
+  entities:
+  - uid: 26
+    components:
+    - type: Transform
+      parent: 19
+    - type: Physics
+      canCollide: False
+    - type: InsideEntityStorage
 - proto: OperatingTable
   entities:
   - uid: 10885
@@ -83871,7 +83873,7 @@ entities:
       pos: 52.5,-19.5
       parent: 2
     - type: DnaServer
-      serverId: 37
+      serverId: 38
 - proto: RiotShield
   entities:
   - uid: 12203
@@ -84503,6 +84505,32 @@ entities:
     components:
     - type: Transform
       pos: 44.5,26.5
+      parent: 2
+- proto: Shower
+  entities:
+  - uid: 7442
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -7.5,-27.5
+      parent: 2
+  - uid: 15543
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: -5.5,-25.5
+      parent: 2
+  - uid: 15544
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: -7.5,-25.5
+      parent: 2
+  - uid: 15863
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: 18.5,-16.5
       parent: 2
 - proto: ShuttersNormal
   entities:
@@ -104032,32 +104060,6 @@ entities:
     - type: Transform
       pos: 21.5,2.5
       parent: 2
-- proto: WeatherRainAdmeme
-  entities:
-  - uid: 15543
-    components:
-    - type: Transform
-      rot: -1.5707963267948966 rad
-      pos: -7.5,-25.5
-      parent: 2
-    - type: Fixtures
-      fixtures: {}
-  - uid: 15544
-    components:
-    - type: Transform
-      rot: -1.5707963267948966 rad
-      pos: -5.5,-25.5
-      parent: 2
-    - type: Fixtures
-      fixtures: {}
-  - uid: 15545
-    components:
-    - type: Transform
-      rot: -1.5707963267948966 rad
-      pos: -7.5,-27.5
-      parent: 2
-    - type: Fixtures
-      fixtures: {}
 - proto: WebBed
   entities:
   - uid: 15546
@@ -104467,7 +104469,7 @@ entities:
       lastSignals:
         DoorStatus: True
     - type: Door
-      secondsUntilStateChange: -41064.848
+      secondsUntilStateChange: -41110.99
       state: Opening
     - type: Airlock
       autoClose: False

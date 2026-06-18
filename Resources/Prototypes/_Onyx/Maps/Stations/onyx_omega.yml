@@ -7,7 +7,7 @@
   minPlayers: 0
   maxPlayers: 25
   stations:
-    CorvaxOmega:
+    OnyxOmega:
       stationProto: StandardNanotrasenStation
       components:
         - type: StationNameSetup
