@@ -6,16 +6,6 @@
   description: A functional range with a range of functions.
   components:
   - type: Microwave
-    capacity: 10
-    canMicrowaveIdsSafely: false
-    explosionChance: 0
-    lightningChance: 0
-    beginCookingSound: /Audio/_NF/Machines/egg-timer.ogg
-    foodDoneSound: /Audio/Machines/ding.ogg
-    loopingSound: /Audio/_NF/Effects/silence.ogg
-    validRecipeTypes: Oven
-    canHeat: true
-    canIrradiate: false
   - type: Appearance
   - type: GenericVisualizer
     visuals:
