@@ -316,6 +316,8 @@
     state: rtg_damaged
   - type: RadiationSource # ideally only when opened.
     intensity: 2
+    terminalDecayDistance: 5
+    terminalDecaySlope: 0.2
   - type: Destructible
     thresholds:
     - trigger:
