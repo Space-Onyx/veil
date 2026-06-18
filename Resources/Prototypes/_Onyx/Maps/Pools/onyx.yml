@@ -2,15 +2,14 @@
   id: OnyxMapPool
   maps:
   # Highpop 50+
-  - OnyxBox
-  - OnyxKerberos
-  - OnyxGate
-  - OnyxOrigin
+  #- OnyxBox
+  #- OnyxKerberos
+  #- OnyxGate
+  #- OnyxOrigin
 
   # Midpop 25–50
-  - OnyxKettle
-  - CorvaxBagel
-  - CorvaxPaper
+  #- OnyxKettle
+  #- CorvaxPaper
 
   # Lowpop 0–25
   - OnyxOmega
@@ -18,6 +17,6 @@
   #- CorvaxMaus
   - OnyxBeta
   #- OnyxAtlas
-  - CorvaxPacked
-  - CorvaxTushkan
-  - CorvaxCluster
+  - OnyxPacked
+  - OnyxTushkan
+  - OnyxCluster

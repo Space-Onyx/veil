@@ -193,6 +193,21 @@
     keysExtractionMethod: Prying
     keySlots: 10
   - type: TelecomServer
+  # <Onyx-Telecomms>
+  - type: TelecomSignalLog
+  - type: TelecomRouter
+    maxBuses: 1
+  - type: DeviceLinkSink
+    ports:
+    - TelecomServerInput
+  - type: DeviceLinkSource
+    ports:
+    - TelecomServerOutput
+    - TelecomServerMonitorOutput
+    range: 25
+  - type: Label
+    currentLabel: telecom-server-label-unassigned
+  # </Onyx-Telecomms>
   - type: ContainerContainer
     containers:
       key_slots: !type:Container
@@ -204,6 +219,8 @@
   id: TelecomServerFilled
   suffix: Filled All
   components:
+  - type: Label # <Onyx-Telecomms>
+    currentLabel: telecom-server-label-all
   - type: ContainerFill
     containers:
       key_slots:
@@ -221,6 +238,8 @@
   id: TelecomServerFilledCommon
   suffix: Common
   components:
+  - type: Label # <Onyx-Telecomms>
+    currentLabel: telecom-server-label-common
   - type: ContainerFill
     containers:
       key_slots:
@@ -231,6 +250,8 @@
   id: TelecomServerFilledCargo
   suffix: Cargo
   components:
+  - type: Label # <Onyx-Telecomms>
+    currentLabel: telecom-server-label-cargo
   - type: ContainerFill
     containers:
       key_slots:
@@ -241,6 +262,8 @@
   id: TelecomServerFilledEngineering
   suffix: Engineering
   components:
+  - type: Label # <Onyx-Telecomms>
+    currentLabel: telecom-server-label-engineering
   - type: ContainerFill
     containers:
       key_slots:
@@ -251,6 +274,8 @@
   id: TelecomServerFilledMedical
   suffix: Medical
   components:
+  - type: Label # <Onyx-Telecomms>
+    currentLabel: telecom-server-label-medical
   - type: ContainerFill
     containers:
       key_slots:
@@ -261,6 +286,8 @@
   id: TelecomServerFilledScience
   suffix: Science
   components:
+  - type: Label # <Onyx-Telecomms>
+    currentLabel: telecom-server-label-science
   - type: ContainerFill
     containers:
       key_slots:
@@ -271,6 +298,8 @@
   id: TelecomServerFilledSecurity
   suffix: Security
   components:
+  - type: Label # <Onyx-Telecomms>
+    currentLabel: telecom-server-label-security
   - type: ContainerFill
     containers:
       key_slots:
@@ -281,6 +310,8 @@
   id: TelecomServerFilledService
   suffix: Service
   components:
+  - type: Label # <Onyx-Telecomms>
+    currentLabel: telecom-server-label-service
   - type: ContainerFill
     containers:
       key_slots:
@@ -291,6 +322,8 @@
   id: TelecomServerFilledCommand
   suffix: Command
   components:
+  - type: Label # <Onyx-Telecomms>
+    currentLabel: telecom-server-label-command
   - type: ContainerFill
     containers:
       key_slots:

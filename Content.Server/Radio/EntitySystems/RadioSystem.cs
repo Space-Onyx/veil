@@ -45,6 +45,7 @@ using Content.Goobstation.Shared.Loudspeaker.Events; // goob - loudspeakers
 using Content.Server.Administration.Logs;
 using Content.Server.Chat.Systems;
 using Content.Server._Onyx.Chat;
+using Content.Server._Onyx.Telecommunications;
 using Content.Server._EinsteinEngines.Language;
 using Content.Server.Power.Components;
 using Content.Server.Radio.Components;
@@ -85,6 +86,7 @@ public sealed partial class RadioSystem : EntitySystem
     [Dependency] private readonly EntityWhitelistSystem _whitelist = default!; // Goobstation - Whitelisted radio channels
     [Dependency] private readonly InventorySystem _inventory = default!;
     [Dependency] private readonly IConfigurationManager _cfg = default!;
+    [Dependency] private readonly TelecommunicationsChainSystem _telecommunications = default!; // <Onyx-Telecomms>
 
     // set used to prevent radio feedback loops.
     private readonly HashSet<string> _messages = new();
@@ -173,6 +175,25 @@ public sealed partial class RadioSystem : EntitySystem
         if (!_messages.Add(message))
             return;
 
+        // <Onyx-Telecomms>
+        var sendAttemptEv = new RadioSendAttemptEvent(channel, radioSource);
+        RaiseLocalEvent(ref sendAttemptEv);
+        RaiseLocalEvent(radioSource, ref sendAttemptEv);
+        var canSend = !sendAttemptEv.Cancelled;
+
+        var sourceXform = Transform(radioSource);
+        var sourceMapId = sourceXform.MapID;
+        var sourceServerExempt = _exemptQuery.HasComp(radioSource);
+        var transmittedMessage = message;
+        var canBroadcast = canSend;
+
+        if (canBroadcast && !channel.LongRange && !sourceServerExempt)
+        {
+            var route = _telecommunications.RouteSignal(sourceMapId, channel, messageSource, message);
+            canBroadcast = route.CanBroadcast;
+            transmittedMessage = route.Message;
+        }
+        // </Onyx-Telecomms>
         var evt = new TransformSpeakerNameEvent(messageSource, MetaData(messageSource).EntityName);
         RaiseLocalEvent(messageSource, evt);
 
@@ -183,7 +204,7 @@ public sealed partial class RadioSystem : EntitySystem
         if (evt.SpeechVerb != null && _prototype.TryIndex(evt.SpeechVerb, out var evntProto))
             speech = evntProto;
         else
-            speech = _chat.GetSpeechVerb(messageSource, message);
+            speech = _chat.GetSpeechVerb(messageSource, transmittedMessage); // <Onyx-Telecomms edited>
 
         // CorvaxGoob-Anonymous-Radio-Start
         if (channel.Anonymous)
@@ -194,8 +215,8 @@ public sealed partial class RadioSystem : EntitySystem
         // CorvaxGoob-Anonymous-Radio-End
 
         var content = escapeMarkup
-            ? FormattedMessage.EscapeText(message)
-            : message;
+            ? FormattedMessage.EscapeText(transmittedMessage)
+            : transmittedMessage; // <Onyx-Telecomms edited>
 
         // DS14-start
         var headsetColor = TryComp(radioSource, out HeadsetComponent? headset) ? headset.Color : channel.Color;
@@ -241,20 +262,8 @@ public sealed partial class RadioSystem : EntitySystem
         var ev = new RadioReceiveEvent(messageSource, channel, msg, notUdsMsg, language, radioSource);
         // Einstein Engines - Language end
 
-        var sendAttemptEv = new RadioSendAttemptEvent(channel, radioSource);
-        RaiseLocalEvent(ref sendAttemptEv);
-        RaiseLocalEvent(radioSource, ref sendAttemptEv);
-        var canSend = !sendAttemptEv.Cancelled;
-
-        // <Onyx-Tweak edited>
-        var sourceXform = Transform(radioSource);
-        var sourceMapId = sourceXform.MapID;
-        var hasActiveServer = HasActiveServer(sourceMapId, channel.ID);
-        // </Onyx-Tweak edited>
-        var sourceServerExempt = _exemptQuery.HasComp(radioSource);
-
         var radioQuery = EntityQueryEnumerator<ActiveRadioComponent, TransformComponent>();
-        while (canSend && radioQuery.MoveNext(out var receiver, out var radio, out var transform))
+        while (canBroadcast && radioQuery.MoveNext(out var receiver, out var radio, out var transform)) // <Onyx-Telecomms edited>
         {
             if (!radio.ReceiveAllChannels)
             {
@@ -266,11 +275,6 @@ public sealed partial class RadioSystem : EntitySystem
             // <Onyx-Tweak>
             if (!channel.LongRange && transform.MapID != sourceMapId && !radio.GlobalReceive
                 && !(HasActiveTransmitter(transform.MapID) && HasActiveTransmitter(sourceMapId))) // goob - intermap transmitters
-                continue;
-
-            // don't need telecom server for long range channels or handheld radios and intercoms
-            var needServer = !channel.LongRange && !sourceServerExempt;
-            if (needServer && !hasActiveServer)
                 continue;
 
             // check if message can be sent to specific receiver
@@ -416,23 +420,6 @@ public sealed partial class RadioSystem : EntitySystem
             ("language", languageDisplay));
     }
     // Einstein Engines - Language end
-
-    /// <inheritdoc cref="TelecomServerComponent"/>
-    // <Onyx-Tweak Edited>
-    private bool HasActiveServer(MapId mapId, string channelId)
-    {
-        var servers = EntityQuery<TelecomServerComponent, EncryptionKeyHolderComponent, ApcPowerReceiverComponent, TransformComponent>();
-        foreach (var (_, keys, power, transform) in servers)
-        {
-            if (!power.Powered || !keys.Channels.Contains(channelId))
-                continue;
-
-            if (transform.MapID == mapId)
-                return true;
-        }
-        return false;
-    }
-    // </Onyx-Tweak Edited>
 
     /// <inheritdoc cref="TelecomServerComponent"/>
     private bool HasActiveTransmitter(MapId mapId)

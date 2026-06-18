@@ -55,6 +55,11 @@
     - SurveillanceCameraMonitorCircuitboard
     - SurveillanceWirelessCameraMonitorCircuitboard
     - TelecomServerCircuitboard
+    - TelecomBusCircuitboard
+    - TelecomReceiverCircuitboard
+    - TelecomProcessorCircuitboard
+    - TelecomBroadcasterCircuitboard
+    - TelecomTrafficConsoleCircuitboard
     - HolopadMachineCircuitboard
   position: 1,2
   technologyPrerequisites:

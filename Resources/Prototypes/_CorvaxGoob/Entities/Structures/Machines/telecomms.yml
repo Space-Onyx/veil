@@ -3,6 +3,8 @@
   id: TelecomServerFilledLegal
   suffix: Legal
   components:
+  - type: Label # <Onyx-Telecomms>
+    currentLabel: telecom-server-label-legal
   - type: ContainerFill
     containers:
       key_slots:
