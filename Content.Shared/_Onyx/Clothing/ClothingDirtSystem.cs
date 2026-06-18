@@ -15,17 +15,15 @@ public sealed class ClothingDirtSystem : EntitySystem
     public const string DefaultSolutionName = "dirt";
     private const float DryUpdateInterval = 5f;
 
-    public static readonly SlotFlags UnderwearSlots = SlotFlags.UNDERWEART | SlotFlags.UNDERWEARB;
+    private static readonly SlotFlags UnderwearSlots = SlotFlags.UNDERWEART | SlotFlags.UNDERWEARB;
 
-    public static readonly SlotFlags SplashPreferredSlots = SlotFlags.OUTERCLOTHING;
-    public static readonly SlotFlags SplashFallbackSlots = SlotFlags.INNERCLOTHING;
-    public static readonly SlotFlags SplashAdditionalSlots = SlotFlags.GLOVES;
+    private static readonly SlotFlags SplashPreferredSlots = SlotFlags.OUTERCLOTHING;
+    private static readonly SlotFlags SplashFallbackSlots = SlotFlags.INNERCLOTHING;
+    private static readonly SlotFlags SplashAdditionalSlots = SlotFlags.GLOVES;
 
-    public static readonly SlotFlags PuddleStepPrimarySlots = SlotFlags.FEET;
-    public static readonly SlotFlags PuddleStepFallbackSlots = SlotFlags.SOCKS;
-    public static readonly SlotFlags PuddleCrawlPreferredSlots = SlotFlags.OUTERCLOTHING;
-    public static readonly SlotFlags PuddleCrawlFallbackSlots = SlotFlags.INNERCLOTHING;
-    public static readonly SlotFlags PuddleCrawlAdditionalSlots =
+    private static readonly SlotFlags PuddleCrawlPreferredSlots = SlotFlags.OUTERCLOTHING;
+    private static readonly SlotFlags PuddleCrawlFallbackSlots = SlotFlags.INNERCLOTHING;
+    private static readonly SlotFlags PuddleCrawlAdditionalSlots =
         SlotFlags.GLOVES | SlotFlags.HEAD | SlotFlags.MASK;
     public static readonly SlotFlags BleedSlots = SlotFlags.INNERCLOTHING;
 
@@ -163,7 +161,7 @@ public sealed class ClothingDirtSystem : EntitySystem
 
         SetDryingActive((clothing, component), HasDryableDirt(dirt, component));
         UpdateDirtVisuals((clothing, component), dirt);
-        return new DirtApplicationResult(true, sample.Volume, IsDeepDirty(dirt, component));
+        return new DirtApplicationResult(true, IsDeepDirty(dirt, component));
     }
 
     public bool TryAddCleanerToClothing(
@@ -603,35 +601,7 @@ public sealed class ClothingDirtSystem : EntitySystem
         SlotFlags slots,
         bool removeFromSource = false)
     {
-        return TryDirtyWornIfAnyItem(wearer, source, amount, slots, removeFromSource, out _);
-    }
-
-    private bool TryDirtyWornIfAnyItem(
-        EntityUid wearer,
-        Solution source,
-        FixedPoint2 amount,
-        SlotFlags slots,
-        bool removeFromSource,
-        out bool hadItem)
-    {
-        var result = TryDirtyWornLayer(wearer, source, amount, slots, removeFromSource);
-        hadItem = result.HadItem;
-        return result.Dirtied;
-    }
-
-    public bool TryDirtyWornPreferred(
-        EntityUid wearer,
-        Solution source,
-        FixedPoint2 amount,
-        SlotFlags preferredSlots,
-        SlotFlags fallbackSlots,
-        bool removeFromSource = false)
-    {
-        var dirtied = TryDirtyWornIfAnyItem(wearer, source, amount, preferredSlots, removeFromSource, out var hadPreferredItem);
-        if (hadPreferredItem)
-            return dirtied;
-
-        return TryDirtyWornIfAnyItem(wearer, source, amount, fallbackSlots, removeFromSource, out _);
+        return TryDirtyWornLayer(wearer, source, amount, slots, removeFromSource).Dirtied;
     }
 
     public bool TryDirtyWornSplash(
@@ -667,23 +637,25 @@ public sealed class ClothingDirtSystem : EntitySystem
         FixedPoint2 amount,
         bool removeFromSource = false)
     {
-        var dirtied = TryDirtyWornLayered(
+        return TryDirtyWornPuddleStep(wearer, source, amount, out _, removeFromSource);
+    }
+
+    public bool TryDirtyWornPuddleStep(
+        EntityUid wearer,
+        Solution source,
+        FixedPoint2 amount,
+        out FixedPoint2 bodyAmount,
+        bool removeFromSource = false)
+    {
+        var result = TryDirtyWornLayeredDetailed(
             wearer,
             source,
             amount,
             removeFromSource,
-            PuddleStepPrimarySlots,
+            SlotFlags.FEET,
             SlotFlags.SOCKS);
-
-        dirtied |= TryDirtyWornLayered(
-            wearer,
-            source,
-            amount,
-            removeFromSource,
-            PuddleStepFallbackSlots,
-            UnderwearSlots);
-
-        return dirtied;
+        bodyAmount = result.PassedAmount;
+        return result.Dirtied;
     }
 
     public bool TryDirtyWornPuddleCrawl(
@@ -705,15 +677,25 @@ public sealed class ClothingDirtSystem : EntitySystem
         return dirtied;
     }
 
-    public bool TryDirtyWornLayered(
+    private bool TryDirtyWornLayered(
         EntityUid wearer,
         Solution source,
         FixedPoint2 amount,
         bool removeFromSource = false,
         params SlotFlags[] layers)
     {
+        return TryDirtyWornLayeredDetailed(wearer, source, amount, removeFromSource, layers).Dirtied;
+    }
+
+    private LayeredDirtResult TryDirtyWornLayeredDetailed(
+        EntityUid wearer,
+        Solution source,
+        FixedPoint2 amount,
+        bool removeFromSource,
+        params SlotFlags[] layers)
+    {
         if (source.Volume <= FixedPoint2.Zero || amount <= FixedPoint2.Zero || layers.Length == 0)
-            return false;
+            return LayeredDirtResult.Empty;
 
         var currentAmount = amount;
         var dirtied = false;
@@ -726,14 +708,14 @@ public sealed class ClothingDirtSystem : EntitySystem
 
             dirtied |= result.Dirtied;
             if (!result.DeepDirty || result.DeepAmount <= FixedPoint2.Zero)
-                return dirtied;
+                return new LayeredDirtResult(dirtied, FixedPoint2.Zero);
 
             currentAmount = FixedPoint2.Min(result.DeepAmount, source.Volume);
             if (currentAmount <= FixedPoint2.Zero)
-                return dirtied;
+                return new LayeredDirtResult(dirtied, FixedPoint2.Zero);
         }
 
-        return dirtied;
+        return new LayeredDirtResult(dirtied, currentAmount);
     }
 
     private LayerDirtResult TryDirtyWornLayer(
@@ -786,9 +768,9 @@ public sealed class ClothingDirtSystem : EntitySystem
     }
 
     private readonly record struct DirtCleaner(ReagentId Reagent, FixedPoint2 Quantity, FixedPoint2 CleanMultiplier);
-    private readonly record struct DirtApplicationResult(bool Dirtied, FixedPoint2 Amount, bool DeepDirty)
+    private readonly record struct DirtApplicationResult(bool Dirtied, bool DeepDirty)
     {
-        public static readonly DirtApplicationResult Empty = new(false, FixedPoint2.Zero, false);
+        public static readonly DirtApplicationResult Empty = new(false, false);
     }
 
     private readonly record struct LayerDirtResult(
@@ -798,5 +780,10 @@ public sealed class ClothingDirtSystem : EntitySystem
         FixedPoint2 DeepAmount)
     {
         public static readonly LayerDirtResult Empty = new(false, false, false, FixedPoint2.Zero);
+    }
+
+    private readonly record struct LayeredDirtResult(bool Dirtied, FixedPoint2 PassedAmount)
+    {
+        public static readonly LayeredDirtResult Empty = new(false, FixedPoint2.Zero);
     }
 }

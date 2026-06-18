@@ -158,24 +158,33 @@ public sealed class FootprintSystem : EntitySystem
         var dirtAmount = FixedPoint2.Min(puddleSolSol.Volume, FixedPoint2.New(1));
         if (standing)
         {
-            _clothingDirt.TryDirtyWornPreferred(entity.Owner,
+            _clothingDirt.TryDirtyWornPuddleStep(entity.Owner,
                 puddleSolSol,
                 dirtAmount,
-                ClothingDirtSystem.PuddleStepPrimarySlots,
-                ClothingDirtSystem.PuddleStepFallbackSlots);
+                out var bodyAmount);
+
+            if (HasWornFootwearOrSocks(entity.Owner))
+            {
+                if (bodyAmount > FixedPoint2.Zero
+                    && _solution.EnsureSolutionEntity(entity.Owner,
+                        FootprintOwnerSolution,
+                        out _,
+                        out var bodySolution,
+                        FixedPoint2.Max(entity.Comp.MaxFootVolume, entity.Comp.MaxBodyVolume)))
+                {
+                    _solution.TryTransferSolution(bodySolution.Value, puddleSolSol, bodyAmount);
+                }
+
+                puddleSolSol.AddSolution(addBack, _prototype);
+                _solution.UpdateChemicals(puddleSolution.Value, false);
+                return true;
+            }
         }
         else
         {
             _clothingDirt.TryDirtyWornPuddleCrawl(entity.Owner,
                 puddleSolSol,
                 dirtAmount);
-        }
-
-        if (standing && HasWornFootwearOrSocks(entity.Owner))
-        {
-            puddleSolSol.AddSolution(addBack, _prototype);
-            _solution.UpdateChemicals(puddleSolution.Value, false);
-            return true;
         }
 
         if (!_solution.EnsureSolutionEntity(entity.Owner, FootprintOwnerSolution, out _, out var solution, FixedPoint2.Max(entity.Comp.MaxFootVolume, entity.Comp.MaxBodyVolume)))
@@ -203,7 +212,7 @@ public sealed class FootprintSystem : EntitySystem
 
     private void FootprintInteraction(Entity<FootprintOwnerComponent> entity, Entity<MapGridComponent> grid, Vector2i tile, EntityCoordinates coordinates, Angle rotation, bool standing)
     {
-        if (!TryGetFootprintSource(entity, standing, out var solution, out var consumeSource, out var clothingSource)) // <Onyx-ClothingDirt edited>
+        if (!TryGetFootprintSource(entity, standing, out var solution, out var clothingSource)) // <Onyx-ClothingDirt edited>
             return;
 
         var volume = standing ? GetFootprintVolume(entity, solution.Value) : GetBodyprintVolume(entity, solution.Value);
@@ -220,10 +229,7 @@ public sealed class FootprintSystem : EntitySystem
 
         if (!clothingSource && volume < entity.Comp.MinFootprintVolume)
         {
-            // <Onyx-ClothingDirt>
-            if (consumeSource)
-                _solution.RemoveAllSolution(solution.Value);
-            // </Onyx-ClothingDirt>
+            _solution.RemoveAllSolution(solution.Value); // <Onyx-ClothingDirt>
             return;
         }
 
@@ -243,12 +249,7 @@ public sealed class FootprintSystem : EntitySystem
         var color = solution.Value.Comp.Solution.GetColor(_prototype).WithAlpha((float)visualVolume / (float)(standing ? entity.Comp.MaxFootprintVolume : entity.Comp.MaxBodyprintVolume) / 2f);
         // </Onyx-ClothingDirt>
 
-        // <Onyx-ClothingDirt>
-        if (consumeSource || clothingSource)
-        {
-            _solution.TryTransferSolution(footprintSolution.Value, solution.Value.Comp.Solution, volume);
-        }
-        // </Onyx-ClothingDirt>
+        _solution.TryTransferSolution(footprintSolution.Value, solution.Value.Comp.Solution, volume); // <Onyx-ClothingDirt>
 
         if (footprintSolution.Value.Comp.Solution.Volume >= MaxFootprintVolumeOnTile)
         {
@@ -331,17 +332,14 @@ public sealed class FootprintSystem : EntitySystem
         Entity<FootprintOwnerComponent> entity,
         bool standing,
         [NotNullWhen(true)] out Entity<SolutionComponent>? solution,
-        out bool consumeSource,
         out bool clothingSource)
     {
-        consumeSource = true;
         clothingSource = false;
 
         if (standing)
         {
             if (TryGetWornDirtSource(entity.Owner, SlotFlags.FEET, out solution, out var hadFootwear))
             {
-                consumeSource = false;
                 clothingSource = true;
                 return true;
             }
@@ -351,7 +349,6 @@ public sealed class FootprintSystem : EntitySystem
 
             if (TryGetWornDirtSource(entity.Owner, SlotFlags.SOCKS, out solution, out var hadSocks))
             {
-                consumeSource = false;
                 clothingSource = true;
                 return true;
             }
