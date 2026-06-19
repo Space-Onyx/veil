@@ -10,4 +10,7 @@ public sealed partial class OceanSwimmingComponent : Component
 
     [ViewVariables]
     public TimeSpan StrokeUntil;
+
+    [ViewVariables]
+    public TimeSpan NextDrowningDamage;
 }

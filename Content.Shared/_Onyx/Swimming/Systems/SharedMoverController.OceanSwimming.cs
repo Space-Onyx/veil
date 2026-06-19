@@ -1,5 +1,7 @@
 using System.Numerics;
 using Content.Shared._Onyx.Swimming.Components;
+using Content.Shared._Onyx.Swimming.Events;
+using Content.Shared.Damage.Components;
 using Content.Shared.Movement.Components;
 
 namespace Content.Shared.Movement.Systems;
@@ -27,6 +29,19 @@ public abstract partial class SharedMoverController
 
         friction = MathF.Max(0f, ocean.WaterDrag);
         acceleration = MathF.Max(0f, ocean.StrokeAcceleration);
+
+        if (TryComp<StaminaComponent>(uid, out var stamina))
+        {
+            var staminaRemaining = MathF.Max(0f, stamina.CritThreshold - stamina.StaminaDamage);
+            if (stamina.Critical || staminaRemaining <= MathF.Max(0f, ocean.MinimumStaminaToSwim))
+            {
+                swimming.NextStroke = Timing.CurTime;
+                swimming.StrokeUntil = TimeSpan.Zero;
+                acceleration = 0f;
+                wishDir = Vector2.Zero;
+                return;
+            }
+        }
 
         var wishLengthSquared = wishDir.LengthSquared();
 
@@ -57,6 +72,11 @@ public abstract partial class SharedMoverController
 
         var power = GetStrokePower(now, swimming.StrokeUntil, duration);
         var speed = MathF.Max(0f, ocean.SwimSpeed);
+
+        var sprint = new OceanSwimmingSprintEvent();
+        RaiseLocalEvent(uid, sprint);
+        if (sprint.IsSprinting)
+            speed *= MathF.Max(1f, ocean.SprintSpeedMultiplier);
 
         wishDir = Vector2.Normalize(wishDir) * speed * power;
     }

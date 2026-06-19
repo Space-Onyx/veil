@@ -27,6 +27,21 @@ public sealed partial class OceanMapComponent : Component
     public float StaminaRecovery = 2f;
 
     [DataField, AutoNetworkedField]
+    public float MinimumStaminaToSwim = 1f;
+
+    [DataField, AutoNetworkedField]
+    public float SprintSpeedMultiplier = 1.4f;
+
+    [DataField, AutoNetworkedField]
+    public float SprintStaminaCostMultiplier = 2f;
+
+    [DataField, AutoNetworkedField]
+    public float DrowningStaminaThreshold = 0.1f;
+
+    [DataField, AutoNetworkedField]
+    public float DrowningDamage = 2f;
+
+    [DataField, AutoNetworkedField]
     public float SubmersionDepth = 0.4f;
 
     [DataField, AutoNetworkedField]
