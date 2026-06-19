@@ -19,7 +19,7 @@ using Robust.Shared.Physics;
 
 namespace Content.Client.Light;
 
-public sealed class RoofOverlay : Overlay
+public sealed partial class RoofOverlay : Overlay // <Onyx-Planetar edited>
 {
     private readonly IEntityManager _entManager;
     [Dependency] private readonly IMapManager _mapManager = default!;
@@ -61,6 +61,7 @@ public sealed class RoofOverlay : Overlay
         var lightoverlay = _overlay.GetOverlay<BeforeLightTargetOverlay>();
         var bounds = lightoverlay.EnlargedBounds;
         var target = lightoverlay.EnlargedLightTarget;
+        var mapUid = args.MapUid; // <Onyx-Planetar>
 
         _grids.Clear();
         _mapManager.FindGridsIntersecting(args.MapId, bounds, ref _grids, approx: true, includeMap: true);
@@ -75,6 +76,14 @@ public sealed class RoofOverlay : Overlay
                 for (var i = 0; i < _grids.Count; i++)
                 {
                     var grid = _grids[i];
+                    // <Onyx-Planetar>
+                    if (UsesProjectedRoofShadows(grid.Owner, mapUid))
+                    {
+                        _grids.RemoveAt(i);
+                        i--;
+                        continue;
+                    }
+                    // </Onyx-Planetar>
 
                     if (!_entManager.TryGetComponent(grid.Owner, out ImplicitRoofComponent? roof))
                         continue;

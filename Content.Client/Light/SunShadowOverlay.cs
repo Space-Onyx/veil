@@ -5,6 +5,8 @@
 
 using System.Numerics;
 using Content.Shared.Light.Components;
+using Content.Shared.Light.EntitySystems;
+using Content.Shared.Maps;
 using Robust.Client.Graphics;
 using Robust.Shared.Enums;
 using Robust.Shared.Map;
@@ -14,7 +16,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Client.Light;
 
-public sealed class SunShadowOverlay : Overlay
+public sealed partial class SunShadowOverlay : Overlay // <Onyx-Planetar edited>
 {
     private static readonly ProtoId<ShaderPrototype> MixShader = "Mix";
 
@@ -25,6 +27,8 @@ public sealed class SunShadowOverlay : Overlay
     [Dependency] private readonly IMapManager _mapManager = default!;
     [Dependency] private readonly IPrototypeManager _protoManager = default!;
     private readonly EntityLookupSystem _lookup;
+    private readonly SharedMapSystem _mapSystem; // <Onyx-Planetar>
+    private readonly SharedRoofSystem _roofSystem; // <Onyx-Planetar>
     private readonly SharedTransformSystem _xformSys;
 
     private readonly HashSet<Entity<SunShadowCastComponent>> _shadows = new();
@@ -37,6 +41,8 @@ public sealed class SunShadowOverlay : Overlay
         IoCManager.InjectDependencies(this);
         _xformSys = _entManager.System<SharedTransformSystem>();
         _lookup = _entManager.System<EntityLookupSystem>();
+        _mapSystem = _entManager.System<SharedMapSystem>(); // <Onyx-Planetar>
+        _roofSystem = _entManager.System<SharedRoofSystem>(); // <Onyx-Planetar>
         ZIndex = AfterLightTargetOverlay.ContentZIndex + 1;
     }
 
@@ -107,6 +113,15 @@ public sealed class SunShadowOverlay : Overlay
                     var invMatrix =
                         _target.GetWorldToLocalMatrix(eye, scale);
                     var indices = new Vector2[PhysicsConstants.MaxPolygonVertices * 2];
+                    // <Onyx-Planetar>
+                    DrawRoofShadows(
+                        worldHandle,
+                        invMatrix,
+                        grid,
+                        expandedBounds,
+                        direction,
+                        sun);
+                    // </Onyx-Planetar>
 
                     // Go through shadows in range.
 
