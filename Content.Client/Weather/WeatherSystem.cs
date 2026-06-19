@@ -195,9 +195,19 @@ public sealed partial class WeatherSystem : SharedWeatherSystem // Goob edit - m
         // End DeltaV Additions
 
         // TODO: Fades (properly)
-        weather.Stream = StopWeatherStream(weather.Stream); // <Onyx-Tweak edited>
+        // <Onyx-Tweak>
+        if (weatherProto.Sound == null ||
+            weather.Stream is { } stream &&
+            !Deleted(stream) &&
+            HasComp<AudioComponent>(stream))
+        {
+            return true;
+        }
+
+        weather.Stream = StopWeatherStream(weather.Stream);
         weather.Stream = _audio.PlayGlobal(weatherProto.Sound, Filter.Local(), true)?.Entity;
-        TrackWeatherStream(uid, weather.Stream); // <Onyx-Tweak>
+        TrackWeatherStream(uid, weather.Stream);
+        // </Onyx-Tweak>
         return true;
     }
 
