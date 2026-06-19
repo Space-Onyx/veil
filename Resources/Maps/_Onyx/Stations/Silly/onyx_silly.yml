@@ -175,7 +175,7 @@ entities:
       originalColor: '#E0A0C0FF'
     - type: SunShadow
       castRoofShadows: true
-      roofHeight: 1
+      roofHeight: 0
     - type: SunShadowCycle
       pathRotation: 45
       reverse: false
