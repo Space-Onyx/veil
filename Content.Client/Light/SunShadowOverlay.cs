@@ -79,7 +79,10 @@ public sealed class SunShadowOverlay : Overlay
 
         foreach (var grid in _grids)
         {
-            if (!_entManager.TryGetComponent(grid.Owner, out SunShadowComponent? sun))
+            // <Onyx-Planetar>
+            if (!_entManager.TryGetComponent(grid.Owner, out SunShadowComponent? sun) &&
+                !_entManager.TryGetComponent(args.MapUid, out sun))
+            // </Onyx-Planetar>
             {
                 continue;
             }

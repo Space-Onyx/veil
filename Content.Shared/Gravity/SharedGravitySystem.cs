@@ -132,10 +132,10 @@ namespace Content.Shared.Gravity
             var alerts = AllEntityQuery<AlertsComponent, TransformComponent>();
             while(alerts.MoveNext(out var uid, out _, out var xform))
             {
-                if (xform.GridUid != ev.ChangedGridIndex)
+                if (!IsAffectedByGravityChange(xform, ev.ChangedGridIndex)) // <Onyx-Planetar edited>
                     continue;
 
-                if (!ev.HasGravity)
+                if (IsWeightless(uid, xform: xform)) // <Onyx-Planetar edited>
                 {
                     _alerts.ShowAlert(uid, WeightlessAlert);
                 }

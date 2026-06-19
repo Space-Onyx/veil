@@ -13,7 +13,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Client.Light.EntitySystems;
 
-public sealed class SunShadowSystem : SharedSunShadowSystem
+public sealed partial class SunShadowSystem : SharedSunShadowSystem // <Onyx-Planetar>
 {
     [Dependency] private readonly ClientGameTicker _ticker = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
@@ -39,8 +39,10 @@ public sealed class SunShadowSystem : SharedSunShadowSystem
                 .Subtract(_ticker.RoundStartTimeSpan)
                 .Subtract(pausedTime)
                 .TotalSeconds % cycle.Duration.TotalSeconds);
-
-            var (direction, alpha) = GetShadow((uid, cycle), time);
+            // <Onyx-Planetar>
+            var (direction, alpha) = GetShadow((uid, cycle), GetCycleTime(cycle, time));
+            ApplyOnyxSettings(cycle, ref direction, ref alpha);
+            // </Onyx-Planetar>
             shadow.Direction = direction;
             shadow.Alpha = alpha;
         }

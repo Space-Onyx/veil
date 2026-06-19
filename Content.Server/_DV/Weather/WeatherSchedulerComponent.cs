@@ -54,4 +54,13 @@ public partial struct WeatherStage
     /// </summary>
     [DataField]
     public LocId? Message;
+
+    // <Onyx-Weather>
+    /// <summary>
+    /// Onyx: Relative chance for this stage to be selected in random mode.
+    /// Non-positive and non-finite weights are ignored.
+    /// </summary>
+    [DataField]
+    public float Weight = 1f;
+    // </Onyx-Weather>
 }

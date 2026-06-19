@@ -70,13 +70,13 @@ public abstract class SharedFloatingVisualizerSystem : EntitySystem
             if (transform.MapID == MapId.Nullspace)
                 continue;
 
-            if (transform.GridUid != args.ChangedGridIndex)
+            if (!GravitySystem.IsAffectedByGravityChange(transform, args.ChangedGridIndex))
                 continue;
 
-            floating.CanFloat = !args.HasGravity;
+            floating.CanFloat = GravitySystem.IsWeightless(uid, xform: transform);
             Dirty(uid, floating);
 
-            if (!args.HasGravity)
+            if (floating.CanFloat)
                 FloatAnimation(uid, floating.Offset, floating.AnimationKey, floating.AnimationTime);
         }
     }

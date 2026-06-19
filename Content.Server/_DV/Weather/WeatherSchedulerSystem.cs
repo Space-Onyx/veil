@@ -9,7 +9,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._DV.Weather;
 
-public sealed class WeatherSchedulerSystem : EntitySystem
+public sealed partial class WeatherSchedulerSystem : EntitySystem // <Onyx-Weather edited>
 {
     [Dependency] private readonly IChatManager _chat = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
@@ -28,24 +28,48 @@ public sealed class WeatherSchedulerSystem : EntitySystem
             if (now < comp.NextUpdate)
                 continue;
 
-            if (comp.Stage >= comp.Stages.Count)
-                comp.Stage = 0;
+            // <Onyx-Weather>
+            if (comp.Stages.Count == 0)
+            {
+                comp.NextUpdate = now + TimeSpan.FromMinutes(1);
+                continue;
+            }
 
-            var stage = comp.Stages[comp.Stage++];
+            var stageIndex = comp.Random
+                ? PickRandomStage(comp)
+                : PickSequentialStage(comp);
+            var stage = comp.Stages[stageIndex];
+            // </Onyx-Weather>
             var duration = stage.Duration.Next(_random);
             comp.NextUpdate = now + TimeSpan.FromSeconds(duration);
 
             var mapId = Comp<MapComponent>(map).MapId;
             if (stage.Weather is {} weather)
             {
+                // <Onyx-Weather>
                 var ending = comp.NextUpdate;
-                // crossfade weather so as one ends the next starts
-                if (HasWeather(comp, comp.Stage - 1))
+                if (comp.Random)
+                {
                     ending += WeatherComponent.ShutdownTime;
-                if (HasWeather(comp, comp.Stage + 1))
-                    ending += WeatherComponent.StartupTime;
+                }
+                else
+                {
+                    // Crossfade weather so as one ends the next starts.
+                    if (HasWeather(comp, comp.Stage - 1))
+                        ending += WeatherComponent.ShutdownTime;
+                    if (HasWeather(comp, comp.Stage + 1))
+                        ending += WeatherComponent.StartupTime;
+                }
+                // </Onyx-Weather>
+
                 _weather.SetWeather(mapId, _proto.Index(weather), ending);
             }
+            // <Onyx-Weather>
+            else if (comp.Random)
+            {
+                _weather.SetWeather(mapId, null, null);
+            }
+            // </Onyx-Weather>
 
             if (stage.Message is {} message)
             {
@@ -62,6 +86,16 @@ public sealed class WeatherSchedulerSystem : EntitySystem
             }
         }
     }
+
+    // <Onyx-Weather>
+    private static int PickSequentialStage(WeatherSchedulerComponent comp)
+    {
+        if (comp.Stage >= comp.Stages.Count)
+            comp.Stage = 0;
+
+        return comp.Stage++;
+    }
+    // </Onyx-Weather>
 
     private bool HasWeather(WeatherSchedulerComponent comp, int stage)
     {
