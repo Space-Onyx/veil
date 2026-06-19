@@ -448,6 +448,10 @@ public abstract partial class SharedMoverController : VirtualController
             accel *= tileDef?.MobAcceleration ?? 1f;
         }
 
+        // <Onyx-OceanSwimming>
+        ApplyOceanSwimming(uid, mover, xform, ref wishDir, ref accel, ref friction);
+        // </Onyx-OceanSwimming>
+
         // Goobstation - momentum steering
         if (weightless && MomentumSteeringQuery.TryComp(uid, out var momSteer))
             _momentumSteering.KillFriction(momSteer, velocity, ref friction);
