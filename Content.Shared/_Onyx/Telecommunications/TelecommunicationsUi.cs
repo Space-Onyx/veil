@@ -17,6 +17,10 @@ public enum TelecomSignalStatus : byte
     Degraded,
     Congested,
     SignalLoss,
+    ReceptionLoss,
+    BusFault,
+    ServerChannelError,
+    BroadcastLoss,
 }
 
 [Serializable, NetSerializable]
@@ -103,7 +107,6 @@ public sealed class TelecomTrafficConsoleState(
     double currentTimeSeconds,
     int estimatedCalibration,
     int estimatedLoad,
-    int telemetryIntervalSeconds,
     List<TelecomHardwareInfo> hardware) : BoundUserInterfaceState
 {
     public readonly List<TelecomTrafficServerInfo> Servers = servers;
@@ -116,7 +119,17 @@ public sealed class TelecomTrafficConsoleState(
     public readonly double CurrentTimeSeconds = currentTimeSeconds;
     public readonly int EstimatedCalibration = estimatedCalibration;
     public readonly int EstimatedLoad = estimatedLoad;
-    public readonly int TelemetryIntervalSeconds = telemetryIntervalSeconds;
+    public readonly List<TelecomHardwareInfo> Hardware = hardware;
+}
+
+[Serializable, NetSerializable]
+public sealed class TelecomTrafficTelemetryMessage(
+    int estimatedQuality,
+    int estimatedLoad,
+    List<TelecomHardwareInfo> hardware) : BoundUserInterfaceMessage
+{
+    public readonly int EstimatedQuality = estimatedQuality;
+    public readonly int EstimatedLoad = estimatedLoad;
     public readonly List<TelecomHardwareInfo> Hardware = hardware;
 }
 

@@ -13,8 +13,5 @@ public sealed partial class TelecomWearComponent : Component
     public float WearPerHour = 2f;
 
     [DataField, ViewVariables(VVAccess.ReadWrite)]
-    public float LoadWearPerHour = 4f;
-
-    [DataField, ViewVariables(VVAccess.ReadWrite)]
     public float DamageLossMultiplier = 0.1f;
 }

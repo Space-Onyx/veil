@@ -14,4 +14,10 @@ public sealed partial class TelecomBusComponent : Component
 
     [DataField, ViewVariables(VVAccess.ReadWrite)]
     public int MaxServers = 2;
+
+    [DataField, ViewVariables(VVAccess.ReadWrite)]
+    public float RouteLossExponent = 2f;
+
+    [DataField, ViewVariables(VVAccess.ReadWrite)]
+    public float RouteLossChanceMultiplier = 0.65f;
 }

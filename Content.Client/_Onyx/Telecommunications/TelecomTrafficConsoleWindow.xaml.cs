@@ -67,6 +67,7 @@ public sealed partial class TelecomTrafficConsoleWindow : DefaultWindow
                 LogScroll.SetScrollValue(Vector2.Zero);
         };
         LogSearch.OnTextChanged += _ => RefreshLog();
+        LogContainer.OnResized += UpdateLogEntryWidths;
     }
 
     public void UpdateState(TelecomTrafficConsoleState state)
@@ -106,8 +107,7 @@ public sealed partial class TelecomTrafficConsoleWindow : DefaultWindow
         DiagnosticStatusLabel.Text = Loc.GetString(
             "telecom-traffic-console-diagnostics",
             ("calibration", state.EstimatedCalibration),
-            ("load", state.EstimatedLoad),
-            ("interval", state.TelemetryIntervalSeconds));
+            ("load", state.EstimatedLoad));
 
         var selected = state.Servers.FirstOrDefault(server => server.Entity == state.SelectedServer);
         SelectedServerLabel.Text = selected == null
@@ -118,6 +118,21 @@ public sealed partial class TelecomTrafficConsoleWindow : DefaultWindow
         RefreshChannelToggles();
         RefreshGraph();
         RefreshLog();
+        RefreshHardware();
+    }
+
+    public void UpdateTelemetry(TelecomTrafficTelemetryMessage telemetry)
+    {
+        DiagnosticStatusLabel.Text = Loc.GetString(
+            "telecom-traffic-console-diagnostics",
+            ("calibration", telemetry.EstimatedQuality),
+            ("load", telemetry.EstimatedLoad));
+
+        if (_state == null)
+            return;
+
+        _state.Hardware.Clear();
+        _state.Hardware.AddRange(telemetry.Hardware);
         RefreshHardware();
     }
 
@@ -422,8 +437,7 @@ public sealed partial class TelecomTrafficConsoleWindow : DefaultWindow
             var label = new RichTextLabel
             {
                 HorizontalExpand = true,
-                MaxWidth = 620,
-                HorizontalAlignment = HAlignment.Left,
+                HorizontalAlignment = HAlignment.Stretch,
                 VerticalAlignment = VAlignment.Top,
                 Margin = new Thickness(4, 1),
                 ModulateSelfOverride = color,
@@ -470,7 +484,26 @@ public sealed partial class TelecomTrafficConsoleWindow : DefaultWindow
             ("shown", shown),
             ("total", _state.Logs.Count));
 
+        UpdateLogEntryWidths();
         LogScroll.SetScrollValue(LiveLogButton.Pressed ? Vector2.Zero : oldScroll);
+    }
+
+    private void UpdateLogEntryWidths()
+    {
+        // RichTextLabel wraps against the width it receives during measurement.
+        // Give every entry the actual viewport width so resizing the window
+        // reflows the text instead of leaving an oversized, clipped line.
+        var width = LogContainer.Size.X - 8f;
+        if (width <= 0f)
+            return;
+
+        foreach (var label in LogContainer.Children.OfType<RichTextLabel>())
+        {
+            if (MathHelper.CloseTo(label.SetWidth, width))
+                continue;
+
+            label.SetWidth = width;
+        }
     }
 
     private static bool IsSuccessful(TelecomSignalStatus status)

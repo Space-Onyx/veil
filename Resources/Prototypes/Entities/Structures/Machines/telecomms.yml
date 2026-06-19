@@ -198,21 +198,28 @@
   - type: TelecomRouter
     maxBuses: 1
     standalone: true
-    qualityDropExponent: 2
-    qualityDropChanceMultiplier: 0.65
     congestionDropThreshold: 1
     congestionDropChanceMultiplier: 0.35
     maxCongestionDropChance: 0.65
     maxTotalDropChance: 0.8
-    garbleQualityThreshold: 0.95
-    garbleQualityChanceMultiplier: 0.25
+    criticalOverloadThreshold: 1.5
+    criticalOverloadDropChance: 0.9
+    criticalOverloadGarbleChance: 1
     garbleLoadThreshold: 0.75
     garbleLoadChanceMultiplier: 0.12
     maxGarbleChance: 0.7
+    garbleCharacterChance: 0.45
+    garbleAlternateSymbolChance: 0.5
     degradedQualityThreshold: 0.9
     degradedLoadThreshold: 0.75
+    channelErrorExponent: 2
+    channelErrorChanceMultiplier: 0.45
+    loggingFailureExponent: 2
+    loggingFailureChanceMultiplier: 0.35
+    channelOutageExponent: 3
+    channelOutageChanceMultiplier: 0.2
+    channelOutageDurationSeconds: 20
     baseLatencyMilliseconds: 40
-    qualityLatencyMultiplier: 800
     loadLatencyThreshold: 0.5
     loadLatencyMultiplier: 1200
   - type: TelecomWear

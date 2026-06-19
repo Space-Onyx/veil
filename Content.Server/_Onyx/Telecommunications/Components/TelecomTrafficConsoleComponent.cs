@@ -6,6 +6,8 @@ public sealed partial class TelecomTrafficConsoleComponent : Component
     [DataField]
     public EntityUid? SelectedServer;
 
-    [DataField]
-    public float UpdateAccumulator;
+    public float TelemetryAccumulator;
+    public float FullRefreshAccumulator;
+    public int LastLogRevision = -1;
+    public int LastTelemetryHash;
 }

@@ -16,6 +16,9 @@ public sealed partial class TelecomSignalLogComponent : Component
 
     [ViewVariables]
     public readonly List<TelecomSignalLogEntry> Entries = new();
+
+    [ViewVariables(VVAccess.ReadOnly)]
+    public int Revision;
 }
 
 public sealed record TelecomSignalLogEntry(

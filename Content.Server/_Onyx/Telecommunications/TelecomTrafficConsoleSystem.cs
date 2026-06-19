@@ -14,7 +14,8 @@ namespace Content.Server._Onyx.Telecommunications;
 
 public sealed class TelecomTrafficConsoleSystem : EntitySystem
 {
-    private const float BaseUpdateInterval = 5f;
+    private const float TelemetryUpdateInterval = 0.25f;
+    private const float FullRefreshInterval = 5f;
     private const int TrafficBins = 12;
     private static readonly TimeSpan BinDuration = TimeSpan.FromSeconds(5);
 
@@ -38,13 +39,29 @@ public sealed class TelecomTrafficConsoleSystem : EntitySystem
         var query = EntityQueryEnumerator<TelecomTrafficConsoleComponent>();
         while (query.MoveNext(out var uid, out var component))
         {
-            component.UpdateAccumulator += frameTime;
-            var updateInterval = GetTelemetryInterval(component.SelectedServer);
-            if (component.UpdateAccumulator < updateInterval)
+            if (!_ui.IsUiOpen(uid, TelecomTrafficConsoleUiKey.Key))
+            {
+                component.TelemetryAccumulator = 0f;
+                component.FullRefreshAccumulator = 0f;
+                continue;
+            }
+
+            component.TelemetryAccumulator += frameTime;
+            component.FullRefreshAccumulator += frameTime;
+            if (component.TelemetryAccumulator < TelemetryUpdateInterval)
                 continue;
 
-            component.UpdateAccumulator = 0f;
-            UpdateUi((uid, component));
+            component.TelemetryAccumulator %= TelemetryUpdateInterval;
+
+            if (HasNewLog(component) ||
+                component.FullRefreshAccumulator >= FullRefreshInterval)
+            {
+                component.FullRefreshAccumulator = 0f;
+                UpdateUi((uid, component));
+                continue;
+            }
+
+            SendTelemetry((uid, component));
         }
     }
 
@@ -121,6 +138,8 @@ public sealed class TelecomTrafficConsoleSystem : EntitySystem
 
     private void UpdateUi(Entity<TelecomTrafficConsoleComponent> ent)
     {
+        ent.Comp.FullRefreshAccumulator = 0f;
+
         var servers = GetServers(ent.Owner);
 
         if (ent.Comp.SelectedServer == null ||
@@ -136,7 +155,6 @@ public sealed class TelecomTrafficConsoleSystem : EntitySystem
         var routingEnabled = false;
         var estimatedCalibration = 0;
         var estimatedLoad = 0;
-        var telemetryInterval = (int) BaseUpdateInterval;
         var hardware = new List<TelecomHardwareInfo>();
 
         if (ent.Comp.SelectedServer is { } selected &&
@@ -147,11 +165,6 @@ public sealed class TelecomTrafficConsoleSystem : EntitySystem
             var metrics = _chain.GetServerMetrics(selected);
             estimatedCalibration = (int) MathF.Round(metrics.Quality * 100f);
             estimatedLoad = (int) MathF.Round(metrics.MaxUtilization * 100f);
-            telemetryInterval = (int) MathF.Ceiling(GetTelemetryInterval(selected));
-
-            var disabledChannels = TryComp<TelecomRouterComponent>(selected, out var router)
-                ? router.DisabledChannels
-                : [];
 
             foreach (var channel in _chain.GetServerChannels(selected)
                          .Select(id => (
@@ -164,7 +177,7 @@ public sealed class TelecomTrafficConsoleSystem : EntitySystem
                 selectedChannels.Add(new TelecomTrafficChannelInfo(
                     channel.Id,
                     channel.Name,
-                    !disabledChannels.Contains(channel.Id)));
+                    _chain.IsServerChannelEnabled(selected, channel.Id)));
             }
 
             foreach (var entry in log.Entries.TakeLast(100).Reverse())
@@ -196,8 +209,67 @@ public sealed class TelecomTrafficConsoleSystem : EntitySystem
                 _timing.CurTime.TotalSeconds,
                 estimatedCalibration,
                 estimatedLoad,
-                telemetryInterval,
                 hardware));
+
+        ent.Comp.LastLogRevision = ent.Comp.SelectedServer is { } server &&
+                                   TryComp<TelecomSignalLogComponent>(server, out var selectedLog)
+            ? selectedLog.Revision
+            : -1;
+        ent.Comp.LastTelemetryHash = GetTelemetryHash(
+            estimatedCalibration,
+            estimatedLoad,
+            hardware);
+    }
+
+    private bool HasNewLog(TelecomTrafficConsoleComponent component)
+    {
+        return component.SelectedServer is { } server &&
+               TryComp<TelecomSignalLogComponent>(server, out var log) &&
+               log.Revision != component.LastLogRevision;
+    }
+
+    private void SendTelemetry(Entity<TelecomTrafficConsoleComponent> ent)
+    {
+        if (ent.Comp.SelectedServer is not { } server ||
+            !Exists(server))
+            return;
+
+        var metrics = _chain.GetServerMetrics(server);
+        var quality = (int) MathF.Round(metrics.Quality * 100f);
+        var load = (int) MathF.Round(metrics.MaxUtilization * 100f);
+        var hardware = _chain.GetServerHardwareInfo(server);
+        var hash = GetTelemetryHash(quality, load, hardware);
+
+        if (hash == ent.Comp.LastTelemetryHash)
+            return;
+
+        ent.Comp.LastTelemetryHash = hash;
+        _ui.ServerSendUiMessage(
+            ent.Owner,
+            TelecomTrafficConsoleUiKey.Key,
+            new TelecomTrafficTelemetryMessage(quality, load, hardware));
+    }
+
+    private static int GetTelemetryHash(
+        int quality,
+        int load,
+        List<TelecomHardwareInfo> hardware)
+    {
+        var hash = new HashCode();
+        hash.Add(quality);
+        hash.Add(load);
+
+        foreach (var entry in hardware)
+        {
+            hash.Add(entry.Type);
+            hash.Add(entry.Index);
+            hash.Add(entry.Powered);
+            hash.Add(entry.Calibration);
+            hash.Add(entry.Wear);
+            hash.Add(entry.LoadPercent);
+        }
+
+        return hash.ToHashCode();
     }
 
     private List<TelecomTrafficServerInfo> GetServers(EntityUid console)
@@ -243,15 +315,6 @@ public sealed class TelecomTrafficConsoleSystem : EntitySystem
     private static string FormatTime(TimeSpan time)
     {
         return $"{(int) time.TotalHours:00}:{time.Minutes:00}:{time.Seconds:00}";
-    }
-
-    private float GetTelemetryInterval(EntityUid? server)
-    {
-        if (server == null || !Exists(server.Value))
-            return BaseUpdateInterval;
-
-        var quality = _chain.GetServerMetrics(server.Value).Quality;
-        return BaseUpdateInterval + (1f - quality) * 15f;
     }
 
     private static TelecomSignalStatus SanitizeStatus(TelecomSignalStatus status)

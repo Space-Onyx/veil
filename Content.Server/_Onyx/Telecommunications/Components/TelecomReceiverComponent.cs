@@ -8,4 +8,10 @@ public sealed partial class TelecomReceiverComponent : Component
 {
     [DataField, ViewVariables(VVAccess.ReadWrite)]
     public int MaxBuses = 2;
+
+    [DataField, ViewVariables(VVAccess.ReadWrite)]
+    public float LossExponent = 2f;
+
+    [DataField, ViewVariables(VVAccess.ReadWrite)]
+    public float LossChanceMultiplier = 0.65f;
 }

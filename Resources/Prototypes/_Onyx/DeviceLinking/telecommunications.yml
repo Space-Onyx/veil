@@ -2,7 +2,7 @@
   id: TelecomReceiverOutput
   name: signal-port-name-telecom-receiver-output
   description: signal-port-description-telecom-receiver-output
-  defaultLinks: [ TelecomProcessorInput ]
+  defaultLinks: [ TelecomBusInput ]
 
 - type: sinkPort
   id: TelecomProcessorInput
@@ -24,7 +24,7 @@
   id: TelecomBusOutput
   name: signal-port-name-telecom-bus-output
   description: signal-port-description-telecom-bus-output
-  defaultLinks: [ TelecomServerInput ]
+  defaultLinks: [ TelecomProcessorInput, TelecomServerInput ]
 
 - type: sinkPort
   id: TelecomServerInput

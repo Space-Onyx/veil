@@ -103,6 +103,11 @@
   - EmitterCircuitboard
   - TelecomServerCircuitboard
   - OnyxTelecomServerCircuitboard
+  - TelecomBusCircuitboard
+  - TelecomReceiverCircuitboard
+  - TelecomProcessorCircuitboard
+  - TelecomBroadcasterCircuitboard
+  - TelecomTrafficConsoleCircuitboard
   - SMESAdvancedMachineCircuitboard
   - HolopadMachineCircuitboard
   - TeslaCoilCircuitboard

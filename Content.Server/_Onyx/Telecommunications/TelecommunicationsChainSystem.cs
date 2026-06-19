@@ -45,6 +45,8 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
     [Dependency] private readonly SharedToolSystem _tools = default!;
     [Dependency] private readonly PopupSystem _popup = default!;
 
+    private float _maintenanceAccumulator;
+
     public override void Initialize()
     {
         base.Initialize();
@@ -57,6 +59,11 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
         SubscribeLocalEvent<TelecomTrafficConsoleComponent, LinkAttemptEvent>(OnConsoleLinkAttempt);
         SubscribeLocalEvent<TelecomRouterComponent, GotEmaggedEvent>(OnRouterEmagged);
         SubscribeLocalEvent<TelecomBroadcasterComponent, GotEmaggedEvent>(OnBroadcasterEmagged);
+        SubscribeLocalEvent<TelecomBroadcasterComponent, DamageChangedEvent>(OnBroadcasterDamaged);
+        SubscribeLocalEvent<TelecomBroadcasterComponent, EmpPulseEvent>(OnBroadcasterEmp);
+        SubscribeLocalEvent<TelecomBroadcasterComponent, ExaminedEvent>(OnBroadcasterExamined);
+        SubscribeLocalEvent<TelecomBroadcasterComponent, InteractUsingEvent>(OnBroadcasterMaintenanceInteract);
+        SubscribeLocalEvent<TelecomBroadcasterComponent, TelecomMaintenanceFinishedEvent>(OnBroadcasterMaintenanceFinished);
         SubscribeLocalEvent<TelecomCalibrationComponent, InteractUsingEvent>(OnCalibrationInteract);
         SubscribeLocalEvent<TelecomCalibrationComponent, TelecomCalibrationFinishedEvent>(OnCalibrationFinished);
         SubscribeLocalEvent<TelecomCalibrationComponent, DamageChangedEvent>(OnCalibrationDamaged);
@@ -72,18 +79,12 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
 
     public override void Update(float frameTime)
     {
-        var query = EntityQueryEnumerator<TelecomCalibrationComponent>();
-        while (query.MoveNext(out _, out var calibration))
-        {
-            calibration.Calibration = Math.Clamp(
-                calibration.Calibration - calibration.DecayPerHour / 3600f * frameTime,
-                0f,
-                100f);
-        }
-
         var nodeQuery = EntityQueryEnumerator<TelecomNodeComponent>();
         while (nodeQuery.MoveNext(out _, out var node))
         {
+            if (node.CurrentLoad <= 0f && node.TelemetryLoad <= 0f)
+                continue;
+
             node.CurrentLoad = Math.Max(
                 0f,
                 node.CurrentLoad - Math.Max(0f, node.LoadRecoveryPerSecond) * frameTime);
@@ -93,13 +94,27 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
                 node.TelemetryLoad - Math.Max(0f, node.TelemetryRecoveryPerSecond) * frameTime);
         }
 
-        var wearQuery = EntityQueryEnumerator<TelecomWearComponent>();
-        while (wearQuery.MoveNext(out var uid, out var wear))
+        _maintenanceAccumulator += frameTime;
+        if (_maintenanceAccumulator < 1f)
+            return;
+
+        var maintenanceDelta = _maintenanceAccumulator;
+        _maintenanceAccumulator = 0f;
+
+        var query = EntityQueryEnumerator<TelecomCalibrationComponent>();
+        while (query.MoveNext(out _, out var calibration))
         {
-            var utilization = GetNodeUtilization(uid);
-            var lossPerHour = wear.WearPerHour + Math.Max(0f, utilization) * wear.LoadWearPerHour;
+            calibration.Calibration = Math.Clamp(
+                calibration.Calibration - calibration.DecayPerHour / 3600f * maintenanceDelta,
+                0f,
+                100f);
+        }
+
+        var wearQuery = EntityQueryEnumerator<TelecomWearComponent>();
+        while (wearQuery.MoveNext(out _, out var wear))
+        {
             wear.Condition = Math.Clamp(
-                wear.Condition - lossPerHour / 3600f * frameTime,
+                wear.Condition - wear.WearPerHour / 3600f * maintenanceDelta,
                 0f,
                 100f);
         }
@@ -122,14 +137,14 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
         var chainStatus = GetChainStatus(server, mapId, out var chain);
         if (chainStatus != TelecomSignalStatus.Routed)
         {
-            AddLogEntry(log, channel, messageSource, message,
+            TryAddServerLog(server, log, channel, messageSource, message,
                 chainStatus, message.Length);
             return new TelecomRouteResult(false, message);
         }
 
         if (!log.RoutingEnabled)
         {
-            AddLogEntry(log, channel, messageSource, message,
+            TryAddServerLog(server, log, channel, messageSource, message,
                 TelecomSignalStatus.RoutingDisabled, message.Length);
             return new TelecomRouteResult(false, message);
         }
@@ -143,72 +158,149 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
 
         if (router.DisabledChannels.Contains(channel.ID))
         {
-            AddLogEntry(log, channel, messageSource, message,
+            TryAddServerLog(server, log, channel, messageSource, message,
                 TelecomSignalStatus.ChannelDisabled, message.Length);
             return new TelecomRouteResult(false, message);
         }
 
-        var metrics = ApplyTrafficLoad(chain, message.Length, router, out var broadcasterSabotaged);
-        var calibrationLoss = 1f - metrics.Quality;
-        var calibrationDropChance =
-            MathF.Pow(calibrationLoss, Math.Max(0.1f, router.QualityDropExponent)) *
-            Math.Max(0f, router.QualityDropChanceMultiplier);
+        if (IsChannelFaulted(router, channel.ID))
+        {
+            TryAddServerLog(server, log, channel, messageSource, message,
+                TelecomSignalStatus.ServerChannelError, message.Length);
+            return new TelecomRouteResult(false, message);
+        }
+
+        var route = SelectRoute(chain);
+        var receiverQuality = GetCalibrationQuality(route.Receiver);
+        var processorQuality = GetCalibrationQuality(route.Processor);
+        var busQuality = GetWearQuality(chain.Bus);
+        var serverQuality = GetWearQuality(chain.Server);
+        var broadcasterQuality = GetBroadcasterQuality(route.Broadcaster);
+
+        if (!chain.Standalone &&
+            TryComp<TelecomReceiverComponent>(route.Receiver, out var receiver) &&
+            _random.Prob(GetFailureChance(
+                receiverQuality,
+                receiver.LossExponent,
+                receiver.LossChanceMultiplier)))
+        {
+            TryAddServerLog(server, log, channel, messageSource, message,
+                TelecomSignalStatus.ReceptionLoss, message.Length);
+            return new TelecomRouteResult(false, message);
+        }
+
+        if (!chain.Standalone &&
+            TryComp<TelecomBusComponent>(chain.Bus, out var bus) &&
+            _random.Prob(GetFailureChance(
+                busQuality,
+                bus.RouteLossExponent,
+                bus.RouteLossChanceMultiplier)))
+        {
+            TryAddServerLog(server, log, channel, messageSource, message,
+                TelecomSignalStatus.BusFault, message.Length);
+            return new TelecomRouteResult(false, message);
+        }
+
+        var metrics = ApplyTrafficLoad(
+            chain,
+            route,
+            message.Length,
+            router,
+            receiverQuality,
+            processorQuality,
+            busQuality,
+            serverQuality,
+            broadcasterQuality,
+            out var broadcasterSabotaged);
         var congestionDropChance = Math.Clamp(
             (metrics.MaxUtilization - router.CongestionDropThreshold) *
             router.CongestionDropChanceMultiplier,
             0f,
             Math.Max(0f, router.MaxCongestionDropChance));
         var totalDropChance = Math.Clamp(
-            calibrationDropChance + congestionDropChance,
+            congestionDropChance,
             0f,
             Math.Max(0f, router.MaxTotalDropChance));
+        var criticalOverload = metrics.MaxUtilization >= router.CriticalOverloadThreshold;
+        if (criticalOverload)
+        {
+            totalDropChance = Math.Max(
+                totalDropChance,
+                Math.Clamp(router.CriticalOverloadDropChance, 0f, 1f));
+        }
 
         if (_random.Prob(totalDropChance))
         {
-            var status = congestionDropChance >= calibrationDropChance
-                ? TelecomSignalStatus.Congested
-                : TelecomSignalStatus.SignalLoss;
-            AddLogEntry(log, channel, messageSource, message, status, message.Length, metrics);
+            TryAddServerLog(server, log, channel, messageSource, message,
+                TelecomSignalStatus.Congested, message.Length, metrics);
             return new TelecomRouteResult(false, message);
         }
 
         var garbleChance = Math.Clamp(
-            Math.Max(0f, router.GarbleQualityThreshold - metrics.Quality) *
-            router.GarbleQualityChanceMultiplier +
+            GetProcessorGarbleChance(route.Processor, processorQuality) +
             Math.Max(0f, metrics.MaxUtilization - router.GarbleLoadThreshold) *
             router.GarbleLoadChanceMultiplier,
             0f,
             Math.Max(0f, router.MaxGarbleChance));
-
-        if (router.Sabotaged || broadcasterSabotaged || _random.Prob(garbleChance))
+        if (criticalOverload)
         {
-            var garbled = GarbleMessage(message);
-            AddLogEntry(log, channel, messageSource, garbled,
-                TelecomSignalStatus.Garbled, garbled.Length, metrics);
-            return new TelecomRouteResult(true, garbled);
+            garbleChance = Math.Max(
+                garbleChance,
+                Math.Clamp(router.CriticalOverloadGarbleChance, 0f, 1f));
         }
 
-        var routedStatus =
-            metrics.Quality < router.DegradedQualityThreshold ||
-            metrics.MaxUtilization > router.DegradedLoadThreshold
-            ? TelecomSignalStatus.Degraded
-            : TelecomSignalStatus.Routed;
-        AddLogEntry(log, channel, messageSource, message,
-            routedStatus, message.Length, metrics);
-        return new TelecomRouteResult(true, message);
-    }
+        var transmittedMessage = message;
+        var garbled = router.Sabotaged ||
+                      broadcasterSabotaged ||
+                      _random.Prob(garbleChance);
+        if (garbled)
+            transmittedMessage = GarbleMessage(message, router);
 
-    public List<EntityUid> GetServers(MapId mapId)
-    {
-        var result = new List<EntityUid>();
-        var query = EntityQueryEnumerator<TelecomServerComponent, TelecomSignalLogComponent, TransformComponent>();
-        while (query.MoveNext(out var uid, out _, out _, out var transform))
+        // The physical path crosses the shared bus again after processing.
+        if (!chain.Standalone &&
+            TryComp<TelecomBusComponent>(chain.Bus, out bus) &&
+            _random.Prob(GetFailureChance(
+                busQuality,
+                bus.RouteLossExponent,
+                bus.RouteLossChanceMultiplier)))
         {
-            if (transform.MapID == mapId)
-                result.Add(uid);
+            TryAddServerLog(server, log, channel, messageSource, transmittedMessage,
+                TelecomSignalStatus.BusFault, transmittedMessage.Length, metrics);
+            return new TelecomRouteResult(false, transmittedMessage);
         }
 
-        return result;
+        if (TryStartChannelFault(router, channel.ID, serverQuality) ||
+            _random.Prob(GetFailureChance(
+                serverQuality,
+                router.ChannelErrorExponent,
+                router.ChannelErrorChanceMultiplier)))
+        {
+            TryAddServerLog(server, log, channel, messageSource, transmittedMessage,
+                TelecomSignalStatus.ServerChannelError, transmittedMessage.Length, metrics);
+            return new TelecomRouteResult(false, transmittedMessage);
+        }
+
+        if (!chain.Standalone &&
+            TryComp<TelecomBroadcasterComponent>(route.Broadcaster, out var broadcaster) &&
+            _random.Prob(GetFailureChance(
+                broadcasterQuality,
+                broadcaster.OutputLossExponent,
+                broadcaster.OutputLossChanceMultiplier)))
+        {
+            TryAddServerLog(server, log, channel, messageSource, transmittedMessage,
+                TelecomSignalStatus.BroadcastLoss, transmittedMessage.Length, metrics);
+            return new TelecomRouteResult(false, transmittedMessage);
+        }
+
+        var routedStatus = garbled
+            ? TelecomSignalStatus.Garbled
+            : metrics.Quality < router.DegradedQualityThreshold ||
+              metrics.MaxUtilization > router.DegradedLoadThreshold
+                ? TelecomSignalStatus.Degraded
+                : TelecomSignalStatus.Routed;
+        TryAddServerLog(server, log, channel, messageSource, transmittedMessage,
+            routedStatus, transmittedMessage.Length, metrics);
+        return new TelecomRouteResult(true, transmittedMessage);
     }
 
     public HashSet<string> GetServerChannels(EntityUid server)
@@ -220,7 +312,15 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
 
     public bool ServerHasChannel(EntityUid server, string channel)
     {
-        return GetServerChannels(server).Contains(channel);
+        return TryComp<EncryptionKeyHolderComponent>(server, out var holder) &&
+               holder.Channels.Contains(channel);
+    }
+
+    public bool IsServerChannelEnabled(EntityUid server, string channel)
+    {
+        return TryComp<TelecomRouterComponent>(server, out var router) &&
+               !router.DisabledChannels.Contains(channel) &&
+               !IsChannelFaulted(router, channel);
     }
 
     public bool IsServerLinkedToConsole(EntityUid server, EntityUid console)
@@ -378,7 +478,82 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
         args.Repeatable = true;
     }
 
-    private string GarbleMessage(string message)
+    private void OnBroadcasterDamaged(Entity<TelecomBroadcasterComponent> ent, ref DamageChangedEvent args)
+    {
+        if (!args.DamageIncreased || args.DamageDelta == null)
+            return;
+
+        ent.Comp.Condition = Math.Max(
+            0f,
+            ent.Comp.Condition -
+            args.DamageDelta.GetTotal().Float() * ent.Comp.DamageLossMultiplier);
+    }
+
+    private void OnBroadcasterEmp(Entity<TelecomBroadcasterComponent> ent, ref EmpPulseEvent args)
+    {
+        var loss = Math.Clamp(args.EnergyConsumption / 1000f * 8f, 3f, 15f);
+        ent.Comp.Condition = Math.Max(0f, ent.Comp.Condition - loss);
+        args.Affected = true;
+    }
+
+    private void OnBroadcasterExamined(Entity<TelecomBroadcasterComponent> ent, ref ExaminedEvent args)
+    {
+        if (!args.IsInDetailsRange)
+            return;
+
+        args.PushMarkup(Loc.GetString(
+            "telecom-broadcaster-condition",
+            ("condition", (int) MathF.Round(ent.Comp.Condition))));
+    }
+
+    private void OnBroadcasterMaintenanceInteract(
+        Entity<TelecomBroadcasterComponent> ent,
+        ref InteractUsingEvent args)
+    {
+        if (args.Handled ||
+            ent.Comp.Condition >= 100f ||
+            !_tools.HasQuality(args.Used, WeldingQuality))
+        {
+            return;
+        }
+
+        if (TryComp<WiresPanelComponent>(ent.Owner, out var panel) && !panel.Open)
+        {
+            _popup.PopupEntity(
+                Loc.GetString("telecom-maintenance-panel-closed"),
+                ent.Owner,
+                args.User,
+                PopupType.Medium);
+            return;
+        }
+
+        args.Handled = _tools.UseTool(
+            args.Used,
+            args.User,
+            ent.Owner,
+            8f,
+            WeldingQuality,
+            new TelecomMaintenanceFinishedEvent(),
+            1f);
+    }
+
+    private void OnBroadcasterMaintenanceFinished(
+        Entity<TelecomBroadcasterComponent> ent,
+        ref TelecomMaintenanceFinishedEvent args)
+    {
+        if (args.Cancelled || args.Handled)
+            return;
+
+        ent.Comp.Condition = 100f;
+        args.Handled = true;
+        _popup.PopupEntity(
+            Loc.GetString("telecom-maintenance-complete"),
+            ent.Owner,
+            args.User,
+            PopupType.Medium);
+    }
+
+    private string GarbleMessage(string message, TelecomRouterComponent router)
     {
         if (string.IsNullOrWhiteSpace(message))
             return message;
@@ -386,8 +561,13 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
         var chars = message.ToCharArray();
         for (var i = 0; i < chars.Length; i++)
         {
-            if (!char.IsWhiteSpace(chars[i]) && _random.Prob(0.45f))
-                chars[i] = _random.Prob(0.5f) ? '~' : '#';
+            if (!char.IsWhiteSpace(chars[i]) &&
+                _random.Prob(Math.Clamp(router.GarbleCharacterChance, 0f, 1f)))
+            {
+                chars[i] = _random.Prob(Math.Clamp(router.GarbleAlternateSymbolChance, 0f, 1f))
+                    ? '~'
+                    : '#';
+            }
         }
 
         return new string(chars);
@@ -856,10 +1036,34 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
             (int) MathF.Round(traffic.Quality * 100f),
             (int) MathF.Round(traffic.MaxUtilization * 100f),
             traffic.LatencyMilliseconds));
+        component.Revision++;
 
         var overflow = component.Entries.Count - Math.Max(1, component.MaxEntries);
         if (overflow > 0)
             component.Entries.RemoveRange(0, overflow);
+    }
+
+    private bool TryAddServerLog(
+        EntityUid server,
+        TelecomSignalLogComponent log,
+        RadioChannelPrototype channel,
+        EntityUid messageSource,
+        string message,
+        TelecomSignalStatus status,
+        int messageLength,
+        TelecomTrafficMetrics? metrics = null)
+    {
+        if (TryComp<TelecomRouterComponent>(server, out var router) &&
+            _random.Prob(GetFailureChance(
+                GetWearQuality(server),
+                router.LoggingFailureExponent,
+                router.LoggingFailureChanceMultiplier)))
+        {
+            return false;
+        }
+
+        AddLogEntry(log, channel, messageSource, message, status, messageLength, metrics);
+        return true;
     }
 
     private void OnLogExamined(Entity<TelecomSignalLogComponent> ent, ref ExaminedEvent args)
@@ -1010,7 +1214,9 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
             : -1;
         var wear = TryComp<TelecomWearComponent>(uid, out var wearComp)
             ? (int) MathF.Round(wearComp.Condition)
-            : -1;
+            : TryComp<TelecomBroadcasterComponent>(uid, out var broadcaster)
+                ? (int) MathF.Round(broadcaster.Condition)
+                : -1;
         var load = TryComp<TelecomNodeComponent>(uid, out var node)
             ? (int) MathF.Round(node.TelemetryLoad / Math.Max(0.1f, node.Bandwidth) * 100f)
             : -1;
@@ -1020,19 +1226,18 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
 
     private TelecomTrafficMetrics ApplyTrafficLoad(
         TelecomChainSnapshot chain,
+        TelecomSelectedRoute route,
         int messageLength,
         TelecomRouterComponent router,
+        float receiverQuality,
+        float processorQuality,
+        float busQuality,
+        float serverQuality,
+        float broadcasterQuality,
         out bool broadcasterSabotaged)
     {
-        var receiver = chain.Standalone ? chain.Server : chain.Receivers[0];
-        var processor = chain.Standalone ? chain.Server : GetLeastLoadedNode(chain.Processors);
-        var broadcaster = chain.Standalone ? chain.Server : chain.Broadcasters[0];
-        var route = chain.Standalone
-            ? new[] { chain.Server }
-            : new[] { receiver, processor, chain.Bus, chain.Server, broadcaster };
-
         if (!chain.Standalone &&
-            TryComp<TelecomNodeComponent>(processor, out var node))
+            TryComp<TelecomNodeComponent>(route.Processor, out var node))
         {
             var packetCost = Math.Max(0f, node.BasePacketCost) +
                 messageLength / Math.Max(1f, node.CharactersPerCostUnit);
@@ -1041,9 +1246,21 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
         }
 
         broadcasterSabotaged = !chain.Standalone &&
-            TryComp<TelecomBroadcasterComponent>(broadcaster, out var broadcasterComponent) &&
+            TryComp<TelecomBroadcasterComponent>(route.Broadcaster, out var broadcasterComponent) &&
             broadcasterComponent.Sabotaged;
-        return ReadPathMetrics(route, router);
+        var quality = chain.Standalone
+            ? serverQuality
+            : (receiverQuality +
+               processorQuality +
+               busQuality +
+               serverQuality +
+               broadcasterQuality) / 5f;
+        return BuildTrafficMetrics(
+            quality,
+            processorQuality,
+            chain.Standalone ? 0f : GetNodeUtilization(route.Processor),
+            route.Processor,
+            router);
     }
 
     private TelecomTrafficMetrics ReadTrafficMetrics(
@@ -1051,13 +1268,18 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
         TelecomRouterComponent router)
     {
         if (chain.Standalone)
-            return BuildTrafficMetrics(GetNodeQuality(chain.Server), 0f, router);
+            return BuildTrafficMetrics(
+                GetWearQuality(chain.Server),
+                1f,
+                0f,
+                chain.Server,
+                router);
 
-        var receiverMetrics = ReadPoolMetrics(chain.Receivers, true);
-        var processorMetrics = ReadPoolMetrics(chain.Processors, true);
-        var broadcasterMetrics = ReadPoolMetrics(chain.Broadcasters, true);
-        var busMetrics = ReadPoolMetrics([chain.Bus], true);
-        var serverMetrics = ReadPoolMetrics([chain.Server], true);
+        var receiverMetrics = ReadPoolMetrics(chain.Receivers);
+        var processorMetrics = ReadPoolMetrics(chain.Processors);
+        var broadcasterMetrics = ReadPoolMetrics(chain.Broadcasters);
+        var busMetrics = ReadPoolMetrics([chain.Bus]);
+        var serverMetrics = ReadPoolMetrics([chain.Server]);
 
         var quality = (
             receiverMetrics.Quality +
@@ -1065,37 +1287,15 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
             busMetrics.Quality +
             serverMetrics.Quality +
             broadcasterMetrics.Quality) / 5f;
-        return BuildTrafficMetrics(quality, processorMetrics.Utilization, router);
+        return BuildTrafficMetrics(
+            quality,
+            processorMetrics.Quality,
+            processorMetrics.Utilization,
+            chain.Processors[0],
+            router);
     }
 
-    private TelecomTrafficMetrics ReadPathMetrics(
-        IEnumerable<EntityUid> route,
-        TelecomRouterComponent router)
-    {
-        var qualityTotal = 0f;
-        var qualityCount = 0;
-        var maxUtilization = 0f;
-
-        foreach (var uid in route)
-        {
-            qualityTotal += GetNodeQuality(uid);
-            qualityCount++;
-
-            if (TryComp<TelecomNodeComponent>(uid, out var node))
-            {
-                maxUtilization = Math.Max(
-                    maxUtilization,
-                    node.CurrentLoad / Math.Max(0.1f, node.Bandwidth));
-            }
-        }
-
-        var quality = qualityCount == 0 ? 1f : qualityTotal / qualityCount;
-        return BuildTrafficMetrics(quality, maxUtilization, router);
-    }
-
-    private TelecomPoolMetrics ReadPoolMetrics(
-        IEnumerable<EntityUid> nodes,
-        bool useTelemetryLoad = false)
+    private TelecomPoolMetrics ReadPoolMetrics(IEnumerable<EntityUid> nodes)
     {
         var qualityTotal = 0f;
         var qualityCount = 0;
@@ -1111,9 +1311,7 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
             {
                 var bandwidth = Math.Max(0.1f, node.Bandwidth);
                 totalBandwidth += bandwidth;
-                totalLoad += useTelemetryLoad
-                    ? node.TelemetryLoad
-                    : node.CurrentLoad;
+                totalLoad += node.TelemetryLoad;
             }
         }
 
@@ -1124,15 +1322,31 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
 
     private TelecomTrafficMetrics BuildTrafficMetrics(
         float quality,
+        float processorQuality,
         float maxUtilization,
+        EntityUid processor,
         TelecomRouterComponent router)
     {
+        var calibrationLatencyMultiplier =
+            TryComp<TelecomProcessorComponent>(processor, out var processorComp)
+                ? processorComp.CalibrationLatencyMultiplier
+                : 0f;
         var latency = (int) MathF.Round(
             router.BaseLatencyMilliseconds +
-            (1f - quality) * router.QualityLatencyMultiplier +
+            (1f - processorQuality) * calibrationLatencyMultiplier +
             Math.Max(0f, maxUtilization - router.LoadLatencyThreshold) *
             router.LoadLatencyMultiplier);
         return new TelecomTrafficMetrics(quality, maxUtilization, latency);
+    }
+
+    private TelecomSelectedRoute SelectRoute(TelecomChainSnapshot chain)
+    {
+        return chain.Standalone
+            ? new TelecomSelectedRoute(chain.Server, chain.Server, chain.Server)
+            : new TelecomSelectedRoute(
+                chain.Receivers[_random.Next(chain.Receivers.Count)],
+                GetLeastLoadedNode(chain.Processors),
+                chain.Broadcasters[_random.Next(chain.Broadcasters.Count)]);
     }
 
     private EntityUid GetLeastLoadedNode(IReadOnlyList<EntityUid> nodes)
@@ -1162,12 +1376,81 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
 
     private float GetNodeQuality(EntityUid uid)
     {
-        var quality = 1f;
-        if (TryComp<TelecomCalibrationComponent>(uid, out var calibration))
-            quality *= Math.Clamp(calibration.Calibration / 100f, 0f, 1f);
-        if (TryComp<TelecomWearComponent>(uid, out var wear))
-            quality *= Math.Clamp(wear.Condition / 100f, 0f, 1f);
-        return quality;
+        if (HasComp<TelecomBroadcasterComponent>(uid))
+            return GetBroadcasterQuality(uid);
+        if (HasComp<TelecomCalibrationComponent>(uid))
+            return GetCalibrationQuality(uid);
+        return GetWearQuality(uid);
+    }
+
+    private float GetCalibrationQuality(EntityUid uid)
+    {
+        return TryComp<TelecomCalibrationComponent>(uid, out var calibration)
+            ? Math.Clamp(calibration.Calibration / 100f, 0f, 1f)
+            : 1f;
+    }
+
+    private float GetWearQuality(EntityUid uid)
+    {
+        return TryComp<TelecomWearComponent>(uid, out var wear)
+            ? Math.Clamp(wear.Condition / 100f, 0f, 1f)
+            : 1f;
+    }
+
+    private float GetBroadcasterQuality(EntityUid uid)
+    {
+        return TryComp<TelecomBroadcasterComponent>(uid, out var broadcaster)
+            ? Math.Clamp(broadcaster.Condition / 100f, 0f, 1f)
+            : 1f;
+    }
+
+    private static float GetFailureChance(float quality, float exponent, float multiplier)
+    {
+        return Math.Clamp(
+            MathF.Pow(1f - Math.Clamp(quality, 0f, 1f), Math.Max(0.1f, exponent)) *
+            Math.Max(0f, multiplier),
+            0f,
+            1f);
+    }
+
+    private float GetProcessorGarbleChance(EntityUid processor, float quality)
+    {
+        if (!TryComp<TelecomProcessorComponent>(processor, out var processorComp))
+            return 0f;
+
+        return Math.Max(0f, processorComp.GarbleQualityThreshold - quality) *
+               Math.Max(0f, processorComp.GarbleChanceMultiplier);
+    }
+
+    private bool IsChannelFaulted(TelecomRouterComponent router, string channel)
+    {
+        if (!router.FaultedChannels.TryGetValue(channel, out var until))
+            return false;
+
+        if (until > _timing.CurTime)
+            return true;
+
+        router.FaultedChannels.Remove(channel);
+        return false;
+    }
+
+    private bool TryStartChannelFault(
+        TelecomRouterComponent router,
+        string channel,
+        float serverQuality)
+    {
+        if (IsChannelFaulted(router, channel) ||
+            !_random.Prob(GetFailureChance(
+                serverQuality,
+                router.ChannelOutageExponent,
+                router.ChannelOutageChanceMultiplier)))
+        {
+            return false;
+        }
+
+        router.FaultedChannels[channel] =
+            _timing.CurTime + TimeSpan.FromSeconds(Math.Max(1f, router.ChannelOutageDurationSeconds));
+        return true;
     }
 
     private void OnCalibrationInteract(Entity<TelecomCalibrationComponent> ent, ref InteractUsingEvent args)
@@ -1355,5 +1638,10 @@ internal readonly record struct TelecomChainSnapshot(
     EntityUid Server,
     List<EntityUid> Broadcasters,
     bool Standalone = false);
+
+internal readonly record struct TelecomSelectedRoute(
+    EntityUid Receiver,
+    EntityUid Processor,
+    EntityUid Broadcaster);
 
 internal readonly record struct TelecomPoolMetrics(float Quality, float Utilization);

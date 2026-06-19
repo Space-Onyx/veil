@@ -10,12 +10,6 @@ public sealed partial class TelecomRouterComponent : Component
     public bool Standalone;
 
     [DataField, ViewVariables(VVAccess.ReadWrite)]
-    public float QualityDropExponent = 2f;
-
-    [DataField, ViewVariables(VVAccess.ReadWrite)]
-    public float QualityDropChanceMultiplier = 0.65f;
-
-    [DataField, ViewVariables(VVAccess.ReadWrite)]
     public float CongestionDropThreshold = 1f;
 
     [DataField, ViewVariables(VVAccess.ReadWrite)]
@@ -28,10 +22,13 @@ public sealed partial class TelecomRouterComponent : Component
     public float MaxTotalDropChance = 0.8f;
 
     [DataField, ViewVariables(VVAccess.ReadWrite)]
-    public float GarbleQualityThreshold = 0.95f;
+    public float CriticalOverloadThreshold = 1.5f;
 
     [DataField, ViewVariables(VVAccess.ReadWrite)]
-    public float GarbleQualityChanceMultiplier = 0.25f;
+    public float CriticalOverloadDropChance = 0.9f;
+
+    [DataField, ViewVariables(VVAccess.ReadWrite)]
+    public float CriticalOverloadGarbleChance = 1f;
 
     [DataField, ViewVariables(VVAccess.ReadWrite)]
     public float GarbleLoadThreshold = 0.75f;
@@ -43,16 +40,40 @@ public sealed partial class TelecomRouterComponent : Component
     public float MaxGarbleChance = 0.7f;
 
     [DataField, ViewVariables(VVAccess.ReadWrite)]
+    public float GarbleCharacterChance = 0.45f;
+
+    [DataField, ViewVariables(VVAccess.ReadWrite)]
+    public float GarbleAlternateSymbolChance = 0.5f;
+
+    [DataField, ViewVariables(VVAccess.ReadWrite)]
     public float DegradedQualityThreshold = 0.9f;
 
     [DataField, ViewVariables(VVAccess.ReadWrite)]
     public float DegradedLoadThreshold = 0.75f;
 
     [DataField, ViewVariables(VVAccess.ReadWrite)]
-    public float BaseLatencyMilliseconds = 40f;
+    public float ChannelErrorExponent = 2f;
 
     [DataField, ViewVariables(VVAccess.ReadWrite)]
-    public float QualityLatencyMultiplier = 800f;
+    public float ChannelErrorChanceMultiplier = 0.45f;
+
+    [DataField, ViewVariables(VVAccess.ReadWrite)]
+    public float LoggingFailureExponent = 2f;
+
+    [DataField, ViewVariables(VVAccess.ReadWrite)]
+    public float LoggingFailureChanceMultiplier = 0.35f;
+
+    [DataField, ViewVariables(VVAccess.ReadWrite)]
+    public float ChannelOutageExponent = 3f;
+
+    [DataField, ViewVariables(VVAccess.ReadWrite)]
+    public float ChannelOutageChanceMultiplier = 0.2f;
+
+    [DataField, ViewVariables(VVAccess.ReadWrite)]
+    public float ChannelOutageDurationSeconds = 20f;
+
+    [DataField, ViewVariables(VVAccess.ReadWrite)]
+    public float BaseLatencyMilliseconds = 40f;
 
     [DataField, ViewVariables(VVAccess.ReadWrite)]
     public float LoadLatencyThreshold = 0.5f;
@@ -68,4 +89,7 @@ public sealed partial class TelecomRouterComponent : Component
 
     [ViewVariables(VVAccess.ReadOnly)]
     public bool ResetArmed;
+
+    [ViewVariables]
+    public readonly Dictionary<string, TimeSpan> FaultedChannels = new();
 }

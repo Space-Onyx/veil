@@ -24,6 +24,14 @@ public sealed class TelecomTrafficConsoleBoundUserInterface(EntityUid owner, Enu
         _window?.UpdateState((TelecomTrafficConsoleState) state);
     }
 
+    protected override void ReceiveMessage(BoundUserInterfaceMessage message)
+    {
+        base.ReceiveMessage(message);
+
+        if (message is TelecomTrafficTelemetryMessage telemetry)
+            _window?.UpdateTelemetry(telemetry);
+    }
+
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);

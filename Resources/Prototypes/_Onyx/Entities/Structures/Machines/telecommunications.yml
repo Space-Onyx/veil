@@ -55,6 +55,8 @@
     maxReceivers: 4
     maxProcessors: 4
     maxServers: 2
+    routeLossExponent: 2
+    routeLossChanceMultiplier: 0.65
   - type: TelecomWear
   - type: DeviceLinkSink
     ports:
@@ -95,6 +97,8 @@
   - type: LitOnPowered
   - type: TelecomReceiver
     maxBuses: 2
+    lossExponent: 2
+    lossChanceMultiplier: 0.65
   - type: TelecomCalibration
   - type: DeviceLinkSource
     ports:
@@ -119,11 +123,14 @@
       map: ["enum.PowerDeviceVisualLayers.Powered"]
   - type: TelecomProcessor
     maxBuses: 1
+    garbleQualityThreshold: 0.95
+    garbleChanceMultiplier: 0.35
+    calibrationLatencyMultiplier: 800
   - type: TelecomCalibration
   - type: TelecomNode
     bandwidth: 8
     basePacketCost: 1
-    charactersPerCostUnit: 80
+    charactersPerCostUnit: 75
     loadRecoveryPerSecond: 8
     telemetryRecoveryPerSecond: 0.8
   - type: DeviceLinkSink
@@ -165,6 +172,9 @@
   - type: LitOnPowered
   - type: TelecomBroadcaster
     maxServers: 2
+    damageLossMultiplier: 0.15
+    outputLossExponent: 2
+    outputLossChanceMultiplier: 0.65
   - type: DeviceLinkSink
     ports:
     - TelecomBroadcasterInput
