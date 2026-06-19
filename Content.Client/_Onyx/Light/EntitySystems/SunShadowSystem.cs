@@ -5,13 +5,15 @@ namespace Content.Client.Light.EntitySystems;
 
 public sealed partial class SunShadowSystem
 {
-    private static float GetCycleTime(SunShadowCycleComponent cycle, float time)
+    private static float GetCycleTime(
+        SunShadowCycleComponent cycle,
+        float time,
+        float durationSeconds)
     {
         if (!cycle.Reverse)
             return time;
 
-        var duration = (float) cycle.Duration.TotalSeconds;
-        return time <= 0f ? 0f : duration - time;
+        return time <= 0f ? 0f : durationSeconds - time;
     }
 
     private static void ApplyOnyxSettings(
