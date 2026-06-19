@@ -55,8 +55,7 @@
     maxReceivers: 4
     maxProcessors: 4
     maxServers: 2
-  - type: TelecomCalibration
-    bandwidth: 32
+  - type: TelecomWear
   - type: DeviceLinkSink
     ports:
     - TelecomBusInput
@@ -97,7 +96,6 @@
   - type: TelecomReceiver
     maxBuses: 2
   - type: TelecomCalibration
-    bandwidth: 12
   - type: DeviceLinkSource
     ports:
     - TelecomReceiverOutput
@@ -122,7 +120,12 @@
   - type: TelecomProcessor
     maxBuses: 1
   - type: TelecomCalibration
+  - type: TelecomNode
     bandwidth: 8
+    basePacketCost: 1
+    charactersPerCostUnit: 80
+    loadRecoveryPerSecond: 8
+    telemetryRecoveryPerSecond: 0.8
   - type: DeviceLinkSink
     ports:
     - TelecomProcessorInput
@@ -162,8 +165,6 @@
   - type: LitOnPowered
   - type: TelecomBroadcaster
     maxServers: 2
-  - type: TelecomCalibration
-    bandwidth: 10
   - type: DeviceLinkSink
     ports:
     - TelecomBroadcasterInput

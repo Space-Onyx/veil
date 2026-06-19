@@ -137,11 +137,13 @@ public sealed class TelecomTrafficConsoleSystem : EntitySystem
         var estimatedCalibration = 0;
         var estimatedLoad = 0;
         var telemetryInterval = (int) BaseUpdateInterval;
+        var hardware = new List<TelecomHardwareInfo>();
 
         if (ent.Comp.SelectedServer is { } selected &&
             TryComp<TelecomSignalLogComponent>(selected, out var log))
         {
             routingEnabled = log.RoutingEnabled;
+            hardware = _chain.GetServerHardwareInfo(selected);
             var metrics = _chain.GetServerMetrics(selected);
             estimatedCalibration = (int) MathF.Round(metrics.Quality * 100f);
             estimatedLoad = (int) MathF.Round(metrics.MaxUtilization * 100f);
@@ -194,7 +196,8 @@ public sealed class TelecomTrafficConsoleSystem : EntitySystem
                 _timing.CurTime.TotalSeconds,
                 estimatedCalibration,
                 estimatedLoad,
-                telemetryInterval));
+                telemetryInterval,
+                hardware));
     }
 
     private List<TelecomTrafficServerInfo> GetServers(EntityUid console)

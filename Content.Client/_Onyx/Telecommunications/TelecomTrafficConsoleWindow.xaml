@@ -45,11 +45,14 @@
                     </BoxContainer>
                 </PanelContainer>
 
-                <BoxContainer Orientation="Vertical"
+                <TabContainer Name="RightTabs"
                               MinWidth="600"
                               HorizontalExpand="True"
-                              VerticalExpand="True"
-                              SeparationOverride="8">
+                              VerticalExpand="True">
+                    <BoxContainer Orientation="Vertical"
+                                  HorizontalExpand="True"
+                                  VerticalExpand="True"
+                                  SeparationOverride="8">
                     <PanelContainer>
                         <PanelContainer.PanelOverride>
                             <gfx:StyleBoxFlat BorderColor="#56c987" BorderThickness="1"/>
@@ -126,7 +129,7 @@
                         </BoxContainer>
                     </PanelContainer>
 
-                    <PanelContainer VerticalExpand="True">
+                        <PanelContainer VerticalExpand="True">
                         <PanelContainer.PanelOverride>
                             <gfx:StyleBoxFlat BorderColor="#56c987" BorderThickness="1"/>
                         </PanelContainer.PanelOverride>
@@ -161,8 +164,18 @@
                                               SeparationOverride="4"/>
                             </ScrollContainer>
                         </BoxContainer>
-                    </PanelContainer>
-                </BoxContainer>
+                        </PanelContainer>
+                    </BoxContainer>
+
+                    <ScrollContainer HScrollEnabled="False"
+                                     VerticalExpand="True"
+                                     ReserveScrollbarSpace="True">
+                        <BoxContainer Name="HardwareList"
+                                      Orientation="Vertical"
+                                      Margin="8"
+                                      SeparationOverride="8"/>
+                    </ScrollContainer>
+                </TabContainer>
             </BoxContainer>
 
             <Label Text="{Loc 'telecom-traffic-console-footer'}"

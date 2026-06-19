@@ -198,8 +198,24 @@
   - type: TelecomRouter
     maxBuses: 1
     standalone: true
-  - type: TelecomCalibration
-    bandwidth: 32
+    qualityDropExponent: 2
+    qualityDropChanceMultiplier: 0.65
+    congestionDropThreshold: 1
+    congestionDropChanceMultiplier: 0.35
+    maxCongestionDropChance: 0.65
+    maxTotalDropChance: 0.8
+    garbleQualityThreshold: 0.95
+    garbleQualityChanceMultiplier: 0.25
+    garbleLoadThreshold: 0.75
+    garbleLoadChanceMultiplier: 0.12
+    maxGarbleChance: 0.7
+    degradedQualityThreshold: 0.9
+    degradedLoadThreshold: 0.75
+    baseLatencyMilliseconds: 40
+    qualityLatencyMultiplier: 800
+    loadLatencyThreshold: 0.5
+    loadLatencyMultiplier: 1200
+  - type: TelecomWear
   - type: DeviceLinkSink
     ports:
     - TelecomServerInput

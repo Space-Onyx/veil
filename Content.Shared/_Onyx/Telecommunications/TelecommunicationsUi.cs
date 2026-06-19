@@ -26,6 +26,33 @@ public enum TelecomTrafficConsoleUiKey : byte
 }
 
 [Serializable, NetSerializable]
+public enum TelecomHardwareType : byte
+{
+    Receiver,
+    Processor,
+    Bus,
+    Broadcaster,
+    Server,
+}
+
+[Serializable, NetSerializable]
+public sealed class TelecomHardwareInfo(
+    TelecomHardwareType type,
+    int index,
+    bool powered,
+    int calibration,
+    int wear,
+    int loadPercent)
+{
+    public readonly TelecomHardwareType Type = type;
+    public readonly int Index = index;
+    public readonly bool Powered = powered;
+    public readonly int Calibration = calibration;
+    public readonly int Wear = wear;
+    public readonly int LoadPercent = loadPercent;
+}
+
+[Serializable, NetSerializable]
 public sealed class TelecomTrafficServerInfo(NetEntity entity, string name, bool routingEnabled)
 {
     public readonly NetEntity Entity = entity;
@@ -76,7 +103,8 @@ public sealed class TelecomTrafficConsoleState(
     double currentTimeSeconds,
     int estimatedCalibration,
     int estimatedLoad,
-    int telemetryIntervalSeconds) : BoundUserInterfaceState
+    int telemetryIntervalSeconds,
+    List<TelecomHardwareInfo> hardware) : BoundUserInterfaceState
 {
     public readonly List<TelecomTrafficServerInfo> Servers = servers;
     public readonly NetEntity? SelectedServer = selectedServer;
@@ -89,6 +117,7 @@ public sealed class TelecomTrafficConsoleState(
     public readonly int EstimatedCalibration = estimatedCalibration;
     public readonly int EstimatedLoad = estimatedLoad;
     public readonly int TelemetryIntervalSeconds = telemetryIntervalSeconds;
+    public readonly List<TelecomHardwareInfo> Hardware = hardware;
 }
 
 [Serializable, NetSerializable]

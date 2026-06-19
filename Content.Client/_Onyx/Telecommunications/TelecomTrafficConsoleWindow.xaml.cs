@@ -35,6 +35,9 @@ public sealed partial class TelecomTrafficConsoleWindow : DefaultWindow
     {
         RobustXamlLoader.Load(this);
 
+        RightTabs.SetTabTitle(0, Loc.GetString("telecom-traffic-console-tab-traffic"));
+        RightTabs.SetTabTitle(1, Loc.GetString("telecom-traffic-console-tab-hardware"));
+
         ServerList.OnItemSelected += OnServerListSelected;
         RoutingButton.OnPressed += _ => OnRoutingToggled?.Invoke(!_routingEnabled);
 
@@ -115,6 +118,149 @@ public sealed partial class TelecomTrafficConsoleWindow : DefaultWindow
         RefreshChannelToggles();
         RefreshGraph();
         RefreshLog();
+        RefreshHardware();
+    }
+
+    private void RefreshHardware()
+    {
+        HardwareList.Children.Clear();
+
+        if (_state == null || _state.Hardware.Count == 0)
+        {
+            HardwareList.AddChild(new Label
+            {
+                Text = Loc.GetString("telecom-traffic-console-hardware-empty"),
+                HorizontalAlignment = HAlignment.Center,
+                Margin = new Thickness(0, 16),
+                StyleClasses = { "ConsoleText" },
+            });
+            return;
+        }
+
+        foreach (var hardware in _state.Hardware)
+        {
+            var panel = new PanelContainer
+            {
+                HorizontalExpand = true,
+                PanelOverride = new Robust.Client.Graphics.StyleBoxFlat
+                {
+                    BackgroundColor = Color.FromHex("#0a1812"),
+                    BorderColor = GetHardwareColor(hardware),
+                    BorderThickness = new Thickness(1),
+                },
+            };
+
+            var content = new BoxContainer
+            {
+                Orientation = BoxContainer.LayoutOrientation.Vertical,
+                Margin = new Thickness(9, 7),
+                SeparationOverride = 3,
+            };
+
+            var typeKey = hardware.Type.ToString().ToLowerInvariant();
+            content.AddChild(new Label
+            {
+                Text = Loc.GetString(
+                    "telecom-traffic-console-hardware-title",
+                    ("type", Loc.GetString($"telecom-traffic-console-hardware-{typeKey}")),
+                    ("index", hardware.Index)),
+                StyleClasses = { "ConsoleSubHeading" },
+            });
+
+            var state = new BoxContainer
+            {
+                Orientation = BoxContainer.LayoutOrientation.Horizontal,
+                SeparationOverride = 18,
+            };
+
+            state.AddChild(MakeHardwareLabel(
+                Loc.GetString(
+                    hardware.Powered
+                        ? "telecom-traffic-console-hardware-powered"
+                        : "telecom-traffic-console-hardware-unpowered"),
+                hardware.Powered ? Color.FromHex("#45e67b") : Color.FromHex("#e65454")));
+
+            if (hardware.Calibration >= 0)
+            {
+                state.AddChild(MakeHardwareLabel(
+                    Loc.GetString(
+                        "telecom-traffic-console-hardware-calibration",
+                        ("value", hardware.Calibration)),
+                    GetPercentColor(hardware.Calibration)));
+            }
+
+            if (hardware.Wear >= 0)
+            {
+                state.AddChild(MakeHardwareLabel(
+                    Loc.GetString(
+                        "telecom-traffic-console-hardware-wear",
+                        ("value", hardware.Wear)),
+                    GetPercentColor(hardware.Wear)));
+            }
+
+            if (hardware.LoadPercent >= 0)
+            {
+                state.AddChild(MakeHardwareLabel(
+                    Loc.GetString(
+                        "telecom-traffic-console-hardware-load",
+                        ("value", hardware.LoadPercent)),
+                    GetLoadColor(hardware.LoadPercent)));
+            }
+
+            content.AddChild(state);
+            panel.AddChild(content);
+            HardwareList.AddChild(panel);
+        }
+    }
+
+    private static Label MakeHardwareLabel(string text, Color color)
+    {
+        return new Label
+        {
+            Text = text,
+            FontColorOverride = color,
+            StyleClasses = { "ConsoleText" },
+        };
+    }
+
+    private static Color GetHardwareColor(TelecomHardwareInfo hardware)
+    {
+        if (!hardware.Powered ||
+            hardware.Calibration is >= 0 and < 40 ||
+            hardware.Wear is >= 0 and < 40 ||
+            hardware.LoadPercent is >= 100)
+        {
+            return Color.FromHex("#e65454");
+        }
+
+        if (hardware.Calibration is >= 0 and < 70 ||
+            hardware.Wear is >= 0 and < 70 ||
+            hardware.LoadPercent is >= 75)
+        {
+            return Color.FromHex("#e6b845");
+        }
+
+        return Color.FromHex("#56c987");
+    }
+
+    private static Color GetPercentColor(int value)
+    {
+        return value switch
+        {
+            >= 70 => Color.FromHex("#45e67b"),
+            >= 40 => Color.FromHex("#e6b845"),
+            _ => Color.FromHex("#e65454"),
+        };
+    }
+
+    private static Color GetLoadColor(int value)
+    {
+        return value switch
+        {
+            >= 100 => Color.FromHex("#e65454"),
+            >= 75 => Color.FromHex("#e6b845"),
+            _ => Color.FromHex("#45e67b"),
+        };
     }
 
     private void RefreshChannels()
