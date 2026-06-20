@@ -26,3 +26,4 @@ pointing-system-other-point-at-tile = {CAPITALIZE(THE($otherName))} points at th
 
 parallax-pointing-target-water = water
 parallax-pointing-target-ocean = ocean
+parallax-pointing-target-bedrock = bedrock

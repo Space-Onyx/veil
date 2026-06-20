@@ -50,6 +50,8 @@
   - OreBSCrystal
   #- OreGibtonite # It's broken right now sadly because of how Gatherable works :(
   addComponents:
+  - type: Parallax
+    parallax: bedrock
   - type: FTLDestination
     whitelist: # TODO fix shuttles FTLing on planets and remove this whitelist
       components:

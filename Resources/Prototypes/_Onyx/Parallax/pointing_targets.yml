@@ -17,3 +17,7 @@
 - type: parallaxPointingTarget
   id: PilgrimAiur
   name: parallax-pointing-target-ocean
+
+- type: parallaxPointingTarget
+  id: bedrock
+  name: parallax-pointing-target-bedrock

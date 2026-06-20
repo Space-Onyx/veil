@@ -16,3 +16,4 @@ pointing-system-other-point-at-tile = { CAPITALIZE($otherName) } указыва�
 
 parallax-pointing-target-water = воду
 parallax-pointing-target-ocean = океан
+parallax-pointing-target-bedrock = коренную породу
