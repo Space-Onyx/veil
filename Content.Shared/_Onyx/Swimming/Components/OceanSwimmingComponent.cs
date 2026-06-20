@@ -16,4 +16,10 @@ public sealed partial class OceanSwimmingComponent : Component
 
     [ViewVariables]
     public bool StaminaExhausted;
+
+    [ViewVariables]
+    public string? SuspendedSprintDrainKey;
+
+    [ViewVariables]
+    public float SuspendedSprintDrainRate;
 }

@@ -73,6 +73,9 @@ public abstract partial class SharedMoverController
         var power = GetStrokePower(now, swimming.StrokeUntil, duration);
         var speed = MathF.Max(0f, ocean.SwimSpeed);
 
+        if (TryComp<SwimmingModifierComponent>(uid, out var modifier))
+            speed *= MathF.Max(0f, modifier.SpeedMultiplier);
+
         var sprint = new OceanSwimmingSprintEvent();
         RaiseLocalEvent(uid, sprint);
         if (sprint.IsSprinting)

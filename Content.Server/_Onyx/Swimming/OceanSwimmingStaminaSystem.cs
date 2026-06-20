@@ -34,6 +34,7 @@ public sealed class OceanSwimmingStaminaSystem : EntitySystem
         base.Initialize();
 
         _asphyxiation = _prototype.Index(AsphyxiationDamageType);
+        SubscribeLocalEvent<OceanSwimmingComponent, ComponentShutdown>(OnSwimmingShutdown);
     }
 
     public override void Update(float frameTime)
@@ -64,10 +65,16 @@ public sealed class OceanSwimmingStaminaSystem : EntitySystem
             var staminaCost = MathF.Max(0f, ocean.StaminaCost);
             var staminaRecovery = MathF.Max(0f, ocean.StaminaRecovery);
 
+            if (TryComp<SwimmingModifierComponent>(uid, out var modifier))
+                staminaCost *= MathF.Max(0f, modifier.StaminaCostMultiplier);
+
+            var sprint = new OceanSwimmingSprintEvent();
+            RaiseLocalEvent(uid, sprint);
+
+            UpdateSprintDrain(uid, swimming, stamina, sprint, moving);
+
             if (moving)
             {
-                var sprint = new OceanSwimmingSprintEvent();
-                RaiseLocalEvent(uid, sprint);
                 if (sprint.IsSprinting)
                     staminaCost *= MathF.Max(1f, ocean.SprintStaminaCostMultiplier);
 
@@ -85,6 +92,9 @@ public sealed class OceanSwimmingStaminaSystem : EntitySystem
             }
             else if (stamina.StaminaDamage > 0f && staminaRecovery > 0f)
             {
+                if (sprint.IsSprinting)
+                    staminaRecovery /= MathF.Max(0.01f, sprint.StaminaRegenMultiplier);
+
                 _stamina.TakeStaminaDamage(
                     uid,
                     -staminaRecovery * frameTime,
@@ -103,6 +113,61 @@ public sealed class OceanSwimmingStaminaSystem : EntitySystem
             stamina.NextUpdate = suppressUntil;
             Dirty(uid, stamina);
         }
+    }
+
+    private void UpdateSprintDrain(
+        EntityUid uid,
+        OceanSwimmingComponent swimming,
+        StaminaComponent stamina,
+        OceanSwimmingSprintEvent sprint,
+        bool moving)
+    {
+        if (moving)
+        {
+            RestoreSprintDrain(uid, swimming, stamina);
+            return;
+        }
+
+        if (!sprint.IsSprinting || sprint.StaminaDrainKey is not { } drainKey)
+        {
+            swimming.SuspendedSprintDrainKey = null;
+            swimming.SuspendedSprintDrainRate = 0f;
+            return;
+        }
+
+        if (!stamina.ActiveDrains.TryGetValue(drainKey, out var drain) || drain.DrainRate <= 0f)
+            return;
+
+        swimming.SuspendedSprintDrainKey = drainKey;
+        swimming.SuspendedSprintDrainRate = drain.DrainRate;
+        _stamina.ModifyStaminaDrain(uid, drainKey, 0f, stamina);
+    }
+
+    private void RestoreSprintDrain(
+        EntityUid uid,
+        OceanSwimmingComponent swimming,
+        StaminaComponent stamina)
+    {
+        if (swimming.SuspendedSprintDrainKey is not { } drainKey)
+            return;
+
+        if (stamina.ActiveDrains.ContainsKey(drainKey))
+        {
+            _stamina.ModifyStaminaDrain(
+                uid,
+                drainKey,
+                swimming.SuspendedSprintDrainRate,
+                stamina);
+        }
+
+        swimming.SuspendedSprintDrainKey = null;
+        swimming.SuspendedSprintDrainRate = 0f;
+    }
+
+    private void OnSwimmingShutdown(Entity<OceanSwimmingComponent> ent, ref ComponentShutdown args)
+    {
+        if (TryComp<StaminaComponent>(ent, out var stamina))
+            RestoreSprintDrain(ent, ent.Comp, stamina);
     }
 
     private void ApplyDrowning(

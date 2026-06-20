@@ -15,5 +15,7 @@ public sealed class OceanSwimmingSprintSystem : EntitySystem
     private void OnGetSprint(Entity<SprinterComponent> ent, ref OceanSwimmingSprintEvent args)
     {
         args.IsSprinting = ent.Comp.IsSprinting;
+        args.StaminaDrainKey = ent.Comp.StaminaDrainKey;
+        args.StaminaRegenMultiplier = ent.Comp.StaminaRegenMultiplier;
     }
 }
