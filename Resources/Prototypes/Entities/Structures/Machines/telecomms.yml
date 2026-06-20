@@ -222,6 +222,19 @@
     baseLatencyMilliseconds: 40
     loadLatencyThreshold: 0.5
     loadLatencyMultiplier: 1200
+  - type: TelecomCalibration
+    decayPerHour: 12
+  - type: TelecomProcessor
+    maxBuses: 0
+    garbleQualityThreshold: 0.95
+    garbleChanceMultiplier: 0.35
+    calibrationLatencyMultiplier: 800
+  - type: TelecomNode
+    bandwidth: 8
+    basePacketCost: 1
+    charactersPerCostUnit: 75
+    loadRecoveryPerSecond: 8
+    telemetryRecoveryPerSecond: 0.8
   - type: TelecomWear
   - type: DeviceLinkSink
     ports:

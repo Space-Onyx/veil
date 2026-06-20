@@ -102,8 +102,11 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
         _maintenanceAccumulator = 0f;
 
         var query = EntityQueryEnumerator<TelecomCalibrationComponent>();
-        while (query.MoveNext(out _, out var calibration))
+        while (query.MoveNext(out var uid, out var calibration))
         {
+            if (!IsIntegratedProcessorActive(uid))
+                continue;
+
             calibration.Calibration = Math.Clamp(
                 calibration.Calibration - calibration.DecayPerHour / 3600f * maintenanceDelta,
                 0f,
@@ -1209,7 +1212,9 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
     {
         var index = result.Count(entry => entry.Type == type) + 1;
         var powered = TryComp<ApcPowerReceiverComponent>(uid, out var power) && power.Powered;
-        var calibration = TryComp<TelecomCalibrationComponent>(uid, out var calibrationComp)
+        var integratedProcessorActive = IsIntegratedProcessorActive(uid);
+        var calibration = integratedProcessorActive &&
+                          TryComp<TelecomCalibrationComponent>(uid, out var calibrationComp)
             ? (int) MathF.Round(calibrationComp.Calibration)
             : -1;
         var wear = TryComp<TelecomWearComponent>(uid, out var wearComp)
@@ -1217,7 +1222,8 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
             : TryComp<TelecomBroadcasterComponent>(uid, out var broadcaster)
                 ? (int) MathF.Round(broadcaster.Condition)
                 : -1;
-        var load = TryComp<TelecomNodeComponent>(uid, out var node)
+        var load = integratedProcessorActive &&
+                   TryComp<TelecomNodeComponent>(uid, out var node)
             ? (int) MathF.Round(node.TelemetryLoad / Math.Max(0.1f, node.Bandwidth) * 100f)
             : -1;
 
@@ -1236,8 +1242,7 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
         float broadcasterQuality,
         out bool broadcasterSabotaged)
     {
-        if (!chain.Standalone &&
-            TryComp<TelecomNodeComponent>(route.Processor, out var node))
+        if (TryComp<TelecomNodeComponent>(route.Processor, out var node))
         {
             var packetCost = Math.Max(0f, node.BasePacketCost) +
                 messageLength / Math.Max(1f, node.CharactersPerCostUnit);
@@ -1249,7 +1254,7 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
             TryComp<TelecomBroadcasterComponent>(route.Broadcaster, out var broadcasterComponent) &&
             broadcasterComponent.Sabotaged;
         var quality = chain.Standalone
-            ? serverQuality
+            ? (processorQuality + serverQuality) / 2f
             : (receiverQuality +
                processorQuality +
                busQuality +
@@ -1258,7 +1263,7 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
         return BuildTrafficMetrics(
             quality,
             processorQuality,
-            chain.Standalone ? 0f : GetNodeUtilization(route.Processor),
+            GetNodeUtilization(route.Processor),
             route.Processor,
             router);
     }
@@ -1269,9 +1274,9 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
     {
         if (chain.Standalone)
             return BuildTrafficMetrics(
-                GetWearQuality(chain.Server),
-                1f,
-                0f,
+                (GetCalibrationQuality(chain.Server) + GetWearQuality(chain.Server)) / 2f,
+                GetCalibrationQuality(chain.Server),
+                GetNodeTelemetryUtilization(chain.Server),
                 chain.Server,
                 router);
 
@@ -1374,13 +1379,26 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
             : 0f;
     }
 
+    private float GetNodeTelemetryUtilization(EntityUid uid)
+    {
+        return TryComp<TelecomNodeComponent>(uid, out var node)
+            ? node.TelemetryLoad / Math.Max(0.1f, node.Bandwidth)
+            : 0f;
+    }
+
     private float GetNodeQuality(EntityUid uid)
     {
         if (HasComp<TelecomBroadcasterComponent>(uid))
             return GetBroadcasterQuality(uid);
-        if (HasComp<TelecomCalibrationComponent>(uid))
-            return GetCalibrationQuality(uid);
-        return GetWearQuality(uid);
+        if (HasComp<TelecomWearComponent>(uid))
+            return GetWearQuality(uid);
+        return GetCalibrationQuality(uid);
+    }
+
+    private bool IsIntegratedProcessorActive(EntityUid uid)
+    {
+        return !HasComp<TelecomServerComponent>(uid) ||
+               TryComp<TelecomRouterComponent>(uid, out var router) && router.Standalone;
     }
 
     private float GetCalibrationQuality(EntityUid uid)
@@ -1455,6 +1473,9 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
 
     private void OnCalibrationInteract(Entity<TelecomCalibrationComponent> ent, ref InteractUsingEvent args)
     {
+        if (!IsIntegratedProcessorActive(ent.Owner))
+            return;
+
         if (args.Handled || !_tools.HasQuality(args.Used, SharedToolSystem.PulseQuality))
             return;
 
@@ -1481,6 +1502,9 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
         Entity<TelecomCalibrationComponent> ent,
         ref TelecomCalibrationFinishedEvent args)
     {
+        if (!IsIntegratedProcessorActive(ent.Owner))
+            return;
+
         if (args.Cancelled || args.Handled)
             return;
 
@@ -1497,6 +1521,9 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
         Entity<TelecomCalibrationComponent> ent,
         ref DamageChangedEvent args)
     {
+        if (!IsIntegratedProcessorActive(ent.Owner))
+            return;
+
         if (!args.DamageIncreased || args.DamageDelta == null)
             return;
 
@@ -1508,6 +1535,9 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
 
     private void OnCalibrationEmp(Entity<TelecomCalibrationComponent> ent, ref EmpPulseEvent args)
     {
+        if (!IsIntegratedProcessorActive(ent.Owner))
+            return;
+
         var loss = Math.Clamp(args.EnergyConsumption / 1000f * 15f, 5f, 25f);
         ent.Comp.Calibration = Math.Max(0f, ent.Comp.Calibration - loss);
         args.Affected = true;
@@ -1515,7 +1545,7 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
 
     private void OnCalibrationExamined(Entity<TelecomCalibrationComponent> ent, ref ExaminedEvent args)
     {
-        if (!args.IsInDetailsRange)
+        if (!args.IsInDetailsRange || !IsIntegratedProcessorActive(ent.Owner))
             return;
 
         var status = ent.Comp.Calibration switch
@@ -1611,8 +1641,11 @@ public sealed class TelecommunicationsChainSystem : EntitySystem
     private void OnSolarFlare(ref TelecomSolarFlareEvent args)
     {
         var query = EntityQueryEnumerator<TelecomCalibrationComponent>();
-        while (query.MoveNext(out _, out var calibration))
+        while (query.MoveNext(out var uid, out var calibration))
         {
+            if (!IsIntegratedProcessorActive(uid))
+                continue;
+
             var variance = _random.NextFloat(0.8f, 1.2f);
             calibration.Calibration = Math.Max(
                 0f,
