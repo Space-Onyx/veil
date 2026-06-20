@@ -33,10 +33,6 @@
   maleLastNames: NamesMothLast
   # <Onyx>
   baseScale: "0.87, 0.87"
-  minHeight: 0.90
-  maxHeight: 2
-  maxWidth: 2
-  minWidth: 0.90
   defaultHeightCm: 170
   defaultWeightKg: 57
   minHeightCm: 140

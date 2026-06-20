@@ -191,38 +191,17 @@ public sealed partial class SpeciesPrototype : IPrototype
     // End DV - CD Character Records shouldn't nuke species heights
 
     // Onyx added
-    /// <summary>
-    /// The minimum height for this species
-    /// </summary>
-    [DataField("minHeight")]
-    public float MinHeight = 0.85f; // DeltaV - less trolling with the heights
+    public const float ReferenceHeightCm = 175f;
+    public const float ReferenceWeightKg = 65f;
 
     /// <summary>
-    /// The maximum height for this species
-    /// </summary>
-    [DataField("maxHeight")]
-    public float MaxHeight = 2f; // DeltaV - less trolling with the heights
-
-    /// <summary>
-    /// The default height for this species
-    /// </summary>
-    [DataField("defaultHeight")]
-    public float DefaultHeight = 1f;
-
-    /// <summary>
-    /// The default width for this species
-    /// </summary>
-    [DataField("defaultWidth")]
-    public float DefaultWidth = 1f;
-
-    /// <summary>
-    /// The default height in cm for this species (used for UI display)
+    /// The default height in cm for this species.
     /// </summary>
     [DataField("defaultHeightCm")]
     public int DefaultHeightCm = 175;
 
     /// <summary>
-    /// The default weight in kg for this species (used for UI display)
+    /// The default weight in kg for this species.
     /// </summary>
     [DataField("defaultWeightKg")]
     public int DefaultWeightKg = 65;
@@ -243,7 +222,7 @@ public sealed partial class SpeciesPrototype : IPrototype
     /// The minimum weight in kg for this species
     /// </summary>
     [DataField("minWeightKg")]
-    public int MinWeightKg = 40;
+    public int MinWeightKg = 65;
 
     /// <summary>
     /// The maximum weight in kg for this species
@@ -264,16 +243,35 @@ public sealed partial class SpeciesPrototype : IPrototype
     public bool ScaleHeight = true;
 
     /// <summary>
-    /// The minimum width for this species
+    /// Internal scale limits derived from the species' real-world units.
+    /// These are intentionally not prototype fields: cm and kg are the single source of truth.
     /// </summary>
-    [DataField("minWidth")]
-    public float MinWidth = 0.85f;
+    public float MinHeight => HeightCmToScale(MinHeightCm);
+    public float DefaultHeight => HeightCmToScale(DefaultHeightCm);
+    public float MaxHeight => HeightCmToScale(MaxHeightCm);
+    public float MinWidth => WeightKgToScale(MinWeightKg);
+    public float DefaultWidth => WeightKgToScale(DefaultWeightKg);
+    public float MaxWidth => WeightKgToScale(MaxWeightKg);
 
-    /// <summary>
-    /// The maximum width for this species
-    /// </summary>
-    [DataField("maxWidth")]
-    public float MaxWidth = 2f;
+    public float HeightCmToScale(float heightCm)
+    {
+        return heightCm / (ReferenceHeightCm * BaseScale.Y);
+    }
+
+    public float HeightScaleToCm(float heightScale)
+    {
+        return heightScale * ReferenceHeightCm * BaseScale.Y;
+    }
+
+    public float WeightKgToScale(float weightKg)
+    {
+        return weightKg / (ReferenceWeightKg * BaseScale.X);
+    }
+
+    public float WidthScaleToKg(float widthScale)
+    {
+        return widthScale * ReferenceWeightKg * BaseScale.X;
+    }
     // Onyx end
 }
 

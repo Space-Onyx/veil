@@ -350,8 +350,8 @@ namespace Content.Shared.Preferences
             {
                 sex = random.Pick(speciesPrototype.Sexes);
                 age = random.Next(speciesPrototype.MinAge, speciesPrototype.OldAge);
-                height = MathF.Round(random.NextFloat(speciesPrototype.MinHeight, speciesPrototype.MaxHeight), 2); // Onyx - Height & Weight
-                width = MathF.Round(random.NextFloat(speciesPrototype.MinWidth, speciesPrototype.MaxWidth), 2); // Onyx - Height & Weight
+                height = speciesPrototype.HeightCmToScale(random.Next(speciesPrototype.MinHeightCm, speciesPrototype.MaxHeightCm + 1)); // Onyx - Height & Weight
+                width = speciesPrototype.WeightKgToScale(random.Next(speciesPrototype.MinWeightKg, speciesPrototype.MaxWeightKg + 1)); // Onyx - Height & Weight
             }
 
             // CorvaxGoob-TTS-Start
@@ -785,11 +785,11 @@ namespace Content.Shared.Preferences
             // Begin Onyx - Height & Weight
             var height = Height;
             if (speciesPrototype != null)
-                height = Math.Clamp(MathF.Round(Height, 2), speciesPrototype.MinHeight, speciesPrototype.MaxHeight);
+                height = Math.Clamp(Height, speciesPrototype.MinHeight, speciesPrototype.MaxHeight);
 
             var width = Width;
             if (speciesPrototype != null)
-                width = Math.Clamp(MathF.Round(Width, 2), speciesPrototype.MinWidth, speciesPrototype.MaxWidth);
+                width = Math.Clamp(Width, speciesPrototype.MinWidth, speciesPrototype.MaxWidth);
             // End Onyx - Height & Weight
 
             var appearance = HumanoidCharacterAppearance.EnsureValid(Appearance, Species, Sex, sponsorPrototypes);
@@ -842,8 +842,8 @@ namespace Content.Shared.Preferences
             FlavorText = flavortext;
             OOCNotes = oocnotes; // <Vortex-OOCNotex>
             Age = age;
-            // Height = height; // Goobstation: port EE height/width sliders // CorvaxGoob-Clearing
-            // Width = width; // Goobstation: port EE height/width sliders // CorvaxGoob-Clearing
+            Height = height;
+            Width = width;
             Sex = sex;
             Gender = gender;
             Appearance = appearance;

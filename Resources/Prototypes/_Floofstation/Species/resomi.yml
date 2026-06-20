@@ -26,12 +26,12 @@
   - Female
   # begin Goobstation: port EE height/width sliders
   # resomi sprites look very wrong when too big or too wide
-  minHeight: 0.80
-  defaultHeight: 0.90
-  maxHeight: 1
-  minWidth: 0.85
-  defaultWidth: 1
-  maxWidth: 1
+  defaultHeightCm: 158
+  defaultWeightKg: 65
+  minHeightCm: 140
+  maxHeightCm: 175
+  minWeightKg: 55
+  maxWeightKg: 65
   # end Goobstation: port EE height/width sliders
 
 - type: speciesBaseSprites

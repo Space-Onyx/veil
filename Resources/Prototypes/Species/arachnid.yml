@@ -32,10 +32,6 @@
   - Unsexed
   # <Onyx>
   baseScale: "1.16, 1.16"
-  minHeight: 0.80
-  maxHeight: 2
-  maxWidth: 2
-  minWidth: 0.90
   defaultHeightCm: 185
   defaultWeightKg: 73
   minHeightCm: 140

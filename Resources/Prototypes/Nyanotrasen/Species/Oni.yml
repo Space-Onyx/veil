@@ -29,10 +29,6 @@
   lastNames: NamesOniLast
   naming: LastNoFirst
   # <Onyx>
-  minHeight: 0.9
-  maxHeight: 2
-  maxWidth: 2
-  minWidth: 1
   defaultHeightCm: 185
   defaultWeightKg: 70
   minHeightCm: 160

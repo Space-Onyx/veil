@@ -18,10 +18,6 @@
   skinColoration: HumanToned
   # <Onyx>
   baseScale: "1, 0.81"
-  minHeight: 0.9
-  MaxHeight: 2
-  maxWidth: 2
-  minWidth: 0.95
   defaultHeightCm: 155
   defaultWeightKg: 70
   minHeightCm: 130

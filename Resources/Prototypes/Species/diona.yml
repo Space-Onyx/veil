@@ -33,10 +33,6 @@
   naming: TheFirstofLast
   # <Onyx>
   baseScale: "0.84, 0.85"
-  minHeight: 0.90
-  maxHeight: 2
-  maxWidth: 2
-  minWidth: 0.945
   minHeightCm: 140
   maxHeightCm: 205
   minWeightKg: 40

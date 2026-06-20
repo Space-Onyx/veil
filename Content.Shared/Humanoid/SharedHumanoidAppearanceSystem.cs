@@ -601,8 +601,9 @@ public abstract class SharedHumanoidAppearanceSystem : EntitySystem
         }
 
         humanoid.Age = profile.Age;
-        humanoid.Height = profile.Height; // Onyx - Height & Weight
-        humanoid.Width = profile.Width; // Onyx - Height & Weight
+        var species = _proto.Index(profile.Species);
+        humanoid.Height = Math.Clamp(profile.Height, species.MinHeight, species.MaxHeight); // Onyx - Height & Weight
+        humanoid.Width = Math.Clamp(profile.Width, species.MinWidth, species.MaxWidth); // Onyx - Height & Weight
 
         RaiseLocalEvent(uid, new ProfileLoadFinishedEvent()); // Shitmed Change
         OnMarkingsChanged(uid, humanoid); // <Onyx-Marking>

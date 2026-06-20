@@ -23,10 +23,6 @@
   femaleFirstNames: NamesTajaranFirst
   lastNames: NamesTajaranLast
   # <Onyx>
-  minHeight: 0.86
-  maxHeight: 2
-  maxWidth: 2
-  minWidth: 0.90
   defaultHeightCm: 175
   defaultWeightKg: 65
   minHeightCm: 140

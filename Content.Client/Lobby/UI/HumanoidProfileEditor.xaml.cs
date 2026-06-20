@@ -435,7 +435,7 @@ namespace Content.Client.Lobby.UI
                 CDWidth.Text = kg.ToString(CultureInfo.InvariantCulture);
                 var sliderPercent = (float)(kg - prototype.MinWeightKg) / (prototype.MaxWeightKg - prototype.MinWeightKg);
                 WidthSlider.Value = sliderPercent;
-                var width = kg / (65f * prototype.BaseScale.X);
+                var width = prototype.WeightKgToScale(kg);
                 SetProfileWidth(width);
                 UpdateCalculatedWeightLabel();
             };
@@ -449,7 +449,7 @@ namespace Content.Client.Lobby.UI
                 defaultWeightKg = Math.Clamp(defaultWeightKg, prototype.MinWeightKg, prototype.MaxWeightKg);
                 var sliderPercent = (float)(defaultWeightKg - prototype.MinWeightKg) / (prototype.MaxWeightKg - prototype.MinWeightKg);
                 WidthSlider.Value = sliderPercent;
-                var defaultWidth = defaultWeightKg / (65f * prototype.BaseScale.X);
+                var defaultWidth = prototype.WeightKgToScale(defaultWeightKg);
                 SetProfileWidth(defaultWidth);
                 UpdateWidthControls();
             };
@@ -462,7 +462,7 @@ namespace Content.Client.Lobby.UI
                 var kg = MathHelper.Lerp(prototype.MinWeightKg, prototype.MaxWeightKg, WidthSlider.Value);
                 kg = Math.Clamp(kg, prototype.MinWeightKg, prototype.MaxWeightKg);
                 CDWidth.Text = kg.ToString(CultureInfo.InvariantCulture);
-                var width = kg / (65f * prototype.BaseScale.X);
+                var width = prototype.WeightKgToScale(kg);
                 SetProfileWidth(width);
                 UpdateCalculatedWeightLabel(); // <Onyx-Tweak>
             };
@@ -747,7 +747,7 @@ namespace Content.Client.Lobby.UI
                 CDHeight.Text = cm.ToString(CultureInfo.InvariantCulture);
                 var sliderPercent = (float)(cm - prototype.MinHeightCm) / (prototype.MaxHeightCm - prototype.MinHeightCm);
                 HeightSlider.Value = sliderPercent;
-                var height = cm / (175f * prototype.BaseScale.Y);
+                var height = prototype.HeightCmToScale(cm);
                 SetProfileHeight(height);
             };
 
@@ -760,7 +760,7 @@ namespace Content.Client.Lobby.UI
                 defaultHeightCm = Math.Clamp(defaultHeightCm, prototype.MinHeightCm, prototype.MaxHeightCm);
                 var sliderPercent = (float)(defaultHeightCm - prototype.MinHeightCm) / (prototype.MaxHeightCm - prototype.MinHeightCm);
                 HeightSlider.Value = sliderPercent;
-                var defaultHeight = defaultHeightCm / (175f * prototype.BaseScale.Y);
+                var defaultHeight = prototype.HeightCmToScale(defaultHeightCm);
                 SetProfileHeight(defaultHeight);
                 UpdateHeightControls();
             };
@@ -773,7 +773,7 @@ namespace Content.Client.Lobby.UI
                 var cm = prototype.MinHeightCm + (int)(HeightSlider.Value * (prototype.MaxHeightCm - prototype.MinHeightCm));
                 cm = Math.Clamp(cm, prototype.MinHeightCm, prototype.MaxHeightCm);
                 CDHeight.Text = cm.ToString(CultureInfo.InvariantCulture);
-                var height = cm / (175f * prototype.BaseScale.Y);
+                var height = prototype.HeightCmToScale(cm);
                 SetProfileHeight(height);
             };
 
@@ -1734,8 +1734,8 @@ namespace Content.Client.Lobby.UI
             var prototype = _prototypeManager.Index<SpeciesPrototype>(newSpecies);
             var defaultHeightCm = prototype.DefaultHeightCm;
             var defaultWeightKg = prototype.DefaultWeightKg;
-            var defaultHeight = defaultHeightCm / (175f * prototype.BaseScale.Y);
-            var defaultWidth = defaultWeightKg / (65f * prototype.BaseScale.X);
+            var defaultHeight = prototype.HeightCmToScale(defaultHeightCm);
+            var defaultWidth = prototype.WeightKgToScale(defaultWeightKg);
             Profile = Profile?.WithHeight(defaultHeight).WithWidth(defaultWidth);
             OnSkinColorOnValueChanged(); // Species may have special color prefs, make sure to update it.
             Markings.SetSpecies(newSpecies); // Repopulate the markings tab as well.
@@ -2275,7 +2275,7 @@ namespace Content.Client.Lobby.UI
                 return;
             var prototype = _prototypeManager.Index<SpeciesPrototype>(Profile.Species);
 
-            var clampedCm = Math.Clamp((int)(Profile.Height * 175f * prototype.BaseScale.Y), prototype.MinHeightCm, prototype.MaxHeightCm);
+            var clampedCm = Math.Clamp((int)MathF.Round(prototype.HeightScaleToCm(Profile.Height)), prototype.MinHeightCm, prototype.MaxHeightCm);
 
             var sliderPercent = (float)(clampedCm - prototype.MinHeightCm) / (prototype.MaxHeightCm - prototype.MinHeightCm);
             HeightSlider.Value = sliderPercent;
@@ -2300,7 +2300,7 @@ namespace Content.Client.Lobby.UI
             var prototype = _prototypeManager.Index<SpeciesPrototype>(Profile.Species);
 
             // Clamp kg to species limits
-            var clampedKg = Math.Clamp((int)(Profile.Width * 65f * prototype.BaseScale.X), prototype.MinWeightKg, prototype.MaxWeightKg);
+            var clampedKg = Math.Clamp((int)MathF.Round(prototype.WidthScaleToKg(Profile.Width)), prototype.MinWeightKg, prototype.MaxWeightKg);
 
             var sliderPercent = (float)(clampedKg - prototype.MinWeightKg) / (prototype.MaxWeightKg - prototype.MinWeightKg);
             WidthSlider.Value = sliderPercent;
@@ -2317,8 +2317,8 @@ namespace Content.Client.Lobby.UI
             }
 
             var prototype = _prototypeManager.Index<SpeciesPrototype>(Profile.Species);
-            var heightCm = Math.Clamp(Profile.Height * 175f * prototype.BaseScale.Y, prototype.MinHeightCm, prototype.MaxHeightCm);
-            var widthKg = Math.Clamp(Profile.Width * 65f * prototype.BaseScale.X, prototype.MinWeightKg, prototype.MaxWeightKg);
+            var heightCm = Math.Clamp(prototype.HeightScaleToCm(Profile.Height), prototype.MinHeightCm, prototype.MaxHeightCm);
+            var widthKg = Math.Clamp(prototype.WidthScaleToKg(Profile.Width), prototype.MinWeightKg, prototype.MaxWeightKg);
             var defaultHeightCm = Math.Clamp(prototype.DefaultHeightCm, prototype.MinHeightCm, prototype.MaxHeightCm);
             var defaultWeightKg = Math.Clamp(prototype.DefaultWeightKg, prototype.MinWeightKg, prototype.MaxWeightKg);
 

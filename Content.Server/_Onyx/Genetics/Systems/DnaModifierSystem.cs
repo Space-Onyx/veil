@@ -72,10 +72,6 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
     private static readonly ProtoId<EmotePrototype> Scream = "Scream";
     private static readonly TimeSpan DnaModificationCooldown = TimeSpan.FromMinutes(2);
     private static readonly TimeSpan EvolutionKnockdownTime = TimeSpan.FromSeconds(4);
-    private const float StandardMinHeight = 0.85f;
-    private const float StandardMaxHeight = 2f;
-    private const float StandardMinWidth = 0.85f;
-    private const float StandardMaxWidth = 2f;
     private readonly HashSet<EntityUid> _entitiesUndergoingDnaChange = new();
     private readonly HashSet<EntityUid> _entitiesApplyingStoredDna = new();
     private readonly HashSet<EntityUid> _entitiesApplyingIdentityStabilizer = new();
@@ -935,10 +931,10 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
         var width = DecodeRangedBlock(uniqueIdentifiers.Width, widthRange.Min, widthRange.Max, humanoid.Comp.Width);
 
         if (!species.ScaleHeight)
-            height = species.DefaultHeight;
+            height = 1f;
 
         if (!species.ScaleWidth)
-            width = species.DefaultWidth;
+            width = 1f;
 
         _heightAdjust.SetScale(humanoid.Owner, new Vector2(width, height));
     }
@@ -1434,26 +1430,12 @@ public sealed partial class DnaModifierSystem : SharedDnaModifierSystem
 
     private (float Min, float Max) GetHeightRange(SpeciesPrototype species)
     {
-        return NormalizeScaleRange(species.MinHeight, species.MaxHeight, StandardMinHeight, StandardMaxHeight);
+        return (species.MinHeight, species.MaxHeight);
     }
 
     private (float Min, float Max) GetWidthRange(SpeciesPrototype species)
     {
-        return NormalizeScaleRange(species.MinWidth, species.MaxWidth, StandardMinWidth, StandardMaxWidth);
-    }
-
-    private (float Min, float Max) NormalizeScaleRange(float min, float max, float fallbackMin, float fallbackMax)
-    {
-        if (!float.IsFinite(min)
-            || !float.IsFinite(max)
-            || min <= 0f
-            || max <= 0f
-            || max <= min)
-        {
-            return (fallbackMin, fallbackMax);
-        }
-
-        return (min, max);
+        return (species.MinWidth, species.MaxWidth);
     }
 
     private string[] GetSpeciesBlockOrEmpty(ProtoId<SpeciesPrototype> species)
