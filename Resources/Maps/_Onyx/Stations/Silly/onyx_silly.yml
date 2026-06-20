@@ -127,7 +127,9 @@ entities:
       enabled: True
     - type: OceanMap
       swimSpeed: 3.5
+      staminaRecovery: 4
       minimumStaminaToSwim: 1
+      staminaToResumeSwimming: 20
       sprintSpeedMultiplier: 1.4
       sprintStaminaCostMultiplier: 2
       drowningStaminaThreshold: 0.1

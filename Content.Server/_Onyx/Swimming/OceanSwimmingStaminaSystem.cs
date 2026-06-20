@@ -1,6 +1,7 @@
 using Content.Goobstation.Common.Body.Components;
 using Content.Shared._Onyx.Swimming.Components;
 using Content.Shared._Onyx.Swimming.Events;
+using Content.Shared._Onyx.Swimming.Systems;
 using Content.Shared._Shitmed.Body.Components;
 using Content.Shared._Shitmed.Targeting;
 using Content.Shared.Damage;
@@ -57,9 +58,7 @@ public sealed class OceanSwimmingStaminaSystem : EntitySystem
                 continue;
             }
 
-            var staminaRemaining = MathF.Max(0f, stamina.CritThreshold - stamina.StaminaDamage);
-            var canSwim = !stamina.Critical &&
-                          staminaRemaining > MathF.Max(0f, ocean.MinimumStaminaToSwim);
+            var canSwim = OceanSwimmingStamina.CanSwim(swimming, stamina, ocean);
             var moving = mover.HasDirectionalMovement && mover.CanMove && canSwim;
 
             var staminaCost = MathF.Max(0f, ocean.StaminaCost);

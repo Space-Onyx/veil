@@ -13,4 +13,7 @@ public sealed partial class OceanSwimmingComponent : Component
 
     [ViewVariables]
     public TimeSpan NextDrowningDamage;
+
+    [ViewVariables]
+    public bool StaminaExhausted;
 }

@@ -1,6 +1,7 @@
 using System.Numerics;
 using Content.Shared._Onyx.Swimming.Components;
 using Content.Shared._Onyx.Swimming.Events;
+using Content.Shared._Onyx.Swimming.Systems;
 using Content.Shared.Damage.Components;
 using Content.Shared.Movement.Components;
 
@@ -32,8 +33,7 @@ public abstract partial class SharedMoverController
 
         if (TryComp<StaminaComponent>(uid, out var stamina))
         {
-            var staminaRemaining = MathF.Max(0f, stamina.CritThreshold - stamina.StaminaDamage);
-            if (stamina.Critical || staminaRemaining <= MathF.Max(0f, ocean.MinimumStaminaToSwim))
+            if (!OceanSwimmingStamina.CanSwim(swimming, stamina, ocean))
             {
                 swimming.NextStroke = Timing.CurTime;
                 swimming.StrokeUntil = TimeSpan.Zero;
