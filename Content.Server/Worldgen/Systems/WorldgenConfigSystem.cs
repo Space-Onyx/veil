@@ -11,6 +11,7 @@
 using Content.Server.Administration;
 using Content.Server.GameTicking;
 using Content.Server.GameTicking.Events;
+using Content.Server.Maps;
 using Content.Server.Worldgen.Components;
 using Content.Server.Worldgen.Prototypes;
 using Content.Shared.Administration;
@@ -32,6 +33,7 @@ public sealed class WorldgenConfigSystem : EntitySystem
     [Dependency] private readonly GameTicker _gameTicker = default!;
     [Dependency] private readonly IConfigurationManager _cfg = default!;
     [Dependency] private readonly IConsoleHost _conHost = default!;
+    [Dependency] private readonly IGameMapManager _gameMapManager = default!; // <Onyx-Maps>
     [Dependency] private readonly SharedMapSystem _map = default!;
     [Dependency] private readonly IPrototypeManager _proto = default!;
     [Dependency] private readonly ISerializationManager _ser = default!;
@@ -82,10 +84,17 @@ public sealed class WorldgenConfigSystem : EntitySystem
     {
         if (_enabled == false)
             return;
+        // <Onyx-Maps>
+        var gameMap = _gameMapManager.GetSelectedMap();
+        if (gameMap is { WorldgenEnabled: false })
+            return;
+        // </Onyx-Maps>
 
         var target = _map.GetMapOrInvalid(_gameTicker.DefaultMap);
         Log.Debug($"Trying to configure {_gameTicker.DefaultMap}, aka {ToPrettyString(target)} aka {target}");
-        var cfg = _proto.Index<WorldgenConfigPrototype>(_worldgenConfig);
+        var cfg = gameMap?.WorldgenConfig is { } worldgenConfig
+            ? _proto.Index(worldgenConfig)
+            : _proto.Index<WorldgenConfigPrototype>(_worldgenConfig); // <Onyx-Maps edited>
 
         cfg.Apply(target, _ser, EntityManager); // Apply the config to the map.
 

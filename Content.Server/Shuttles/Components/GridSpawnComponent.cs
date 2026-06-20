@@ -50,6 +50,18 @@ public interface IGridSpawnGroup
     /// <inheritdoc />
     int MaxCount { get; set; }
 
+    // <Onyx-Maps>
+    /// <summary>
+    /// Number of placement attempts before this spawn is skipped.
+    /// </summary>
+    int SpawnAttempts { get; }
+
+    /// <summary>
+    /// Empty space required around the spawned grid.
+    /// </summary>
+    float SpawnClearance { get; }
+    // </Onyx-Maps>
+
     /// <summary>
     /// Components to be added to any spawned grids.
     /// </summary>
@@ -78,6 +90,21 @@ public sealed partial class DungeonSpawnGroup : IGridSpawnGroup
     /// Prototypes we can choose from to spawn.
     /// </summary>
     public List<ProtoId<DungeonConfigPrototype>> Protos = new();
+
+    // <Onyx-Maps>
+    /// <summary>
+    /// Half-size of the square reserved around the dungeon spawn point.
+    /// Used to keep asynchronously generated grids from spawning inside each other.
+    /// </summary>
+    [DataField]
+    public float SpawnClearance { get; } = 64f;
+
+    /// <summary>
+    /// Number of cheap random placement attempts before this spawn is skipped.
+    /// </summary>
+    [DataField]
+    public int SpawnAttempts { get; } = 8;
+    // </Onyx-Maps>
 
     /// <inheritdoc />
     public float MinimumDistance { get; }
@@ -119,6 +146,8 @@ public sealed partial class GridSpawnGroup : IGridSpawnGroup
     public ProtoId<LocalizedDatasetPrototype>? NameDataset { get; }
     public int MinCount { get; set; } = 1;
     public int MaxCount { get; set; } = 1;
+    public int SpawnAttempts { get; } = 8; // <Onyx-Maps>
+    public float SpawnClearance { get; } = 5f; // <Onyx-Maps>
     public ComponentRegistry AddComponents { get; set; } = new();
     public bool Hide { get; set; } = false;
     public bool NameGrid { get; set; } = true;

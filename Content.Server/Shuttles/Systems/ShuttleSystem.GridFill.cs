@@ -98,6 +98,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System.Numerics;
+using Content.Server.Maps;
 using Content.Server.Shuttles.Components;
 using Content.Server.Station.Events;
 using Content.Shared.CCVar;
@@ -113,6 +114,10 @@ namespace Content.Server.Shuttles.Systems;
 
 public sealed partial class ShuttleSystem
 {
+    [Dependency] private readonly IGameMapManager _gameMapManager = default!; // <Onyx-Maps>
+
+    private readonly Dictionary<EntityUid, List<Box2>> _gridSpawnReservations = new(); // <Onyx-Maps>
+
     private void InitializeGridFills()
     {
         SubscribeLocalEvent<GridSpawnComponent, StationPostInitEvent>(OnGridSpawnPostInit);
@@ -166,18 +171,102 @@ public sealed partial class ShuttleSystem
 
         _mapSystem.CreateMap(out var mapId);
 
+        var reservations = GetGridSpawnReservations(uid, targetGrid.Value); // <Onyx-Maps>
         if (_loader.TryLoadGrid(mapId, component.Path, out var ent))
         {
-            if (HasComp<ShuttleComponent>(ent))
-                TryFTLProximity(ent.Value, targetGrid.Value);
-
-            _station.AddGridToStation(uid, ent.Value);
+            // <Onyx-Maps edited>
+            if (TryPlaceSpawnedGrid(ent.Value, targetGrid.Value, reservations))
+                _station.AddGridToStation(uid, ent.Value);
+            else
+                Log.Warning($"Failed to find a non-overlapping cargo shuttle position for {component.Path}");
+            // </Onyx-Maps edited>
         }
 
         _mapSystem.DeleteMap(mapId);
+        _gridSpawnReservations.Remove(uid);
     }
 
-    private bool TryDungeonSpawn(Entity<MapGridComponent?> targetGrid, DungeonSpawnGroup group, out EntityUid spawned)
+    // <Onyx-Maps>
+    private bool TryPlaceSpawnedGrid(
+        EntityUid gridUid,
+        EntityUid targetGrid,
+        List<Box2> reservations,
+        int attempts = 8,
+        float clearance = 5f)
+    {
+        if (!_gridQuery.TryComp(gridUid, out var grid) ||
+            !TryComp(targetGrid, out TransformComponent? targetXform) ||
+            targetXform.MapUid == null)
+            return false;
+
+        var targetBounds = _transform.GetWorldMatrix(targetXform)
+            .TransformBox(Comp<MapGridComponent>(targetGrid).LocalAABB);
+        var candidateRadius = MathF.Max(grid.LocalAABB.Width, grid.LocalAABB.Height) / 2f;
+        var targetRadius = MathF.Max(targetBounds.Width, targetBounds.Height) / 2f;
+
+        for (var attempt = 0; attempt < attempts; attempt++)
+        {
+            var angle = _random.NextAngle();
+            var radius = targetRadius + candidateRadius + clearance + _random.NextFloat(0f, 64f);
+            var center = targetBounds.Center + angle.RotateVec(new Vector2(radius, 0f));
+            var rotation = _random.NextAngle();
+            var origin = center - rotation.RotateVec(grid.LocalAABB.Center);
+            var bounds = new Box2Rotated(
+                    grid.LocalAABB.Translated(origin),
+                    rotation,
+                    origin)
+                .CalcBoundingBox()
+                .Enlarged(clearance);
+
+            if (IntersectsReservation(reservations, bounds))
+                continue;
+
+            _transform.SetMapCoordinates(gridUid, new MapCoordinates(origin, targetXform.MapID));
+            _transform.SetLocalRotation(gridUid, rotation);
+            reservations.Add(bounds);
+            return true;
+        }
+
+        return false;
+    }
+
+    private List<Box2> GetGridSpawnReservations(EntityUid stationUid, EntityUid targetGrid)
+    {
+        if (_gridSpawnReservations.TryGetValue(stationUid, out var reservations))
+            return reservations;
+
+        reservations = new List<Box2>();
+
+        if (TryComp(targetGrid, out TransformComponent? targetXform))
+        {
+            foreach (var grid in _mapManager.GetAllGrids(targetXform.MapID))
+            {
+                reservations.Add(_transform.GetWorldMatrix(grid)
+                    .TransformBox(grid.Comp.LocalAABB));
+            }
+        }
+
+        _gridSpawnReservations[stationUid] = reservations;
+        return reservations;
+    }
+
+    private static bool IntersectsReservation(List<Box2> reservations, Box2 bounds)
+    {
+        foreach (var reservation in reservations)
+        {
+            if (reservation.Intersects(bounds))
+                return true;
+        }
+
+        return false;
+    }
+    // </Onyx-Maps>
+
+    private bool TryDungeonSpawn(
+        Entity<MapGridComponent?> targetGrid,
+        DungeonSpawnGroup group,
+        List<Box2> reservedSpawns,
+        out EntityUid spawned) // <Onyx-Maps edited>
     {
         spawned = EntityUid.Invalid;
 
@@ -195,12 +284,40 @@ public sealed partial class ShuttleSystem
 
         var targetPhysics = _physicsQuery.Comp(targetGrid);
         var spawnCoords = new EntityCoordinates(targetGrid, targetPhysics.LocalCenter);
+        // <Onyx-Maps>
+        var foundPosition = false;
 
-        if (group.MinimumDistance > 0f)
+        for (var attempt = 0; attempt < group.SpawnAttempts; attempt++)
         {
-            var distancePadding = MathF.Max(targetGrid.Comp.LocalAABB.Width, targetGrid.Comp.LocalAABB.Height);
-            spawnCoords = spawnCoords.Offset(_random.NextVector2(distancePadding + group.MinimumDistance, distancePadding + group.MaximumDistance));
+            var candidate = new EntityCoordinates(targetGrid, targetPhysics.LocalCenter);
+
+            if (group.MinimumDistance > 0f)
+            {
+                var distancePadding = MathF.Max(targetGrid.Comp.LocalAABB.Width, targetGrid.Comp.LocalAABB.Height);
+                candidate = candidate.Offset(_random.NextVector2(
+                    distancePadding + group.MinimumDistance,
+                    distancePadding + group.MaximumDistance));
+            }
+
+            var mapCoords = _transform.ToMapCoordinates(candidate);
+            var clearance = new Vector2(group.SpawnClearance);
+            var bounds = new Box2(mapCoords.Position - clearance, mapCoords.Position + clearance);
+
+            if (IntersectsReservation(reservedSpawns, bounds))
+                continue;
+
+            spawnCoords = candidate;
+            reservedSpawns.Add(bounds);
+            foundPosition = true;
+            break;
         }
+
+        if (!foundPosition)
+        {
+            Log.Warning($"Failed to find a non-overlapping GridSpawn position for {dungeonProtoId}");
+            return false;
+        }
+        // </Onyx-Maps>
 
         _mapSystem.CreateMap(out var mapId);
 
@@ -213,7 +330,13 @@ public sealed partial class ShuttleSystem
         return true;
     }
 
-    private bool TryGridSpawn(EntityUid targetGrid, EntityUid stationUid, MapId mapId, GridSpawnGroup group, out EntityUid spawned)
+    private bool TryGridSpawn(
+        EntityUid targetGrid,
+        EntityUid stationUid,
+        MapId mapId,
+        GridSpawnGroup group,
+        List<Box2> reservedSpawns,
+        out EntityUid spawned) // <Onyx-Maps edited>
     {
         spawned = EntityUid.Invalid;
 
@@ -237,8 +360,18 @@ public sealed partial class ShuttleSystem
 
         if (_loader.TryLoadGrid(mapId, path, out var grid))
         {
-            if (HasComp<ShuttleComponent>(grid))
-                TryFTLProximity(grid.Value, targetGrid);
+            // <Onyx-Maps>
+            if (!TryPlaceSpawnedGrid(
+                    grid.Value,
+                    targetGrid,
+                    reservedSpawns,
+                    group.SpawnAttempts,
+                    group.SpawnClearance))
+            {
+                Log.Warning($"Failed to find a non-overlapping GridSpawn position for {path}");
+                return false;
+            }
+            // </Onyx-Maps>
 
             if (group.NameGrid)
             {
@@ -267,8 +400,14 @@ public sealed partial class ShuttleSystem
         // Spawn on a dummy map and try to FTL if possible, otherwise dump it.
         _mapSystem.CreateMap(out var mapId);
 
-        foreach (var group in component.Groups.Values)
+        var disabledGroups = _gameMapManager.GetSelectedMap()?.DisabledGridSpawnGroups; // <Onyx-Maps>
+        var reservedDungeonSpawns = GetGridSpawnReservations(uid, targetGrid.Value); // <Onyx-Maps>
+        // <Onyx-Maps edited>
+        foreach (var (groupId, group) in component.Groups)
         {
+            if (disabledGroups?.Contains(groupId) == true)
+                continue;
+
             var count = _random.Next(group.MinCount, group.MaxCount + 1);
 
             for (var i = 0; i < count; i++)
@@ -278,12 +417,22 @@ public sealed partial class ShuttleSystem
                 switch (group)
                 {
                     case DungeonSpawnGroup dungeon:
-                        if (!TryDungeonSpawn(targetGrid.Value, dungeon, out spawned))
+                        if (!TryDungeonSpawn(
+                                targetGrid.Value,
+                                dungeon,
+                                reservedDungeonSpawns,
+                                out spawned))
                             continue;
 
                         break;
                     case GridSpawnGroup grid:
-                        if (!TryGridSpawn(targetGrid.Value, uid, mapId, grid, out spawned))
+                        if (!TryGridSpawn(
+                                targetGrid.Value,
+                                uid,
+                                mapId,
+                                grid,
+                                reservedDungeonSpawns,
+                                out spawned))
                             continue;
 
                         break;
@@ -311,8 +460,12 @@ public sealed partial class ShuttleSystem
                 EntityManager.AddComponents(spawned, group.AddComponents);
             }
         }
+        // </Onyx-Maps edited>
 
         _mapSystem.DeleteMap(mapId);
+
+        if (!HasComp<StationCargoShuttleComponent>(uid)) // <Onyx-Maps>
+            _gridSpawnReservations.Remove(uid);
     }
 
     private void OnGridFillMapInit(EntityUid uid, GridFillComponent component, MapInitEvent args)

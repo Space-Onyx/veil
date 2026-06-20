@@ -105,7 +105,10 @@ public sealed partial class GameMapPrototype : IPrototype
             ID = ID,
             MapName = MapName,
             MapPath = mapPath,
-            _stations = _stations
+            _stations = _stations,
+            WorldgenEnabled = WorldgenEnabled, // <Onyx-Maps>
+            WorldgenConfig = WorldgenConfig, // <Onyx-Maps>
+            DisabledGridSpawnGroups = DisabledGridSpawnGroups // <Onyx-Maps>
         };
     }
 }
