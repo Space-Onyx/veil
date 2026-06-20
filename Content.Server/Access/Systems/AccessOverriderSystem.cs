@@ -25,6 +25,9 @@ using Content.Shared.Administration.Logs;
 using Content.Shared.Database;
 using Content.Shared.DoAfter;
 using Content.Shared.Interaction;
+using Content.Shared.StationRecords;
+using Content.Server.Station.Systems;
+using Content.Server.StationRecords.Systems;
 using JetBrains.Annotations;
 using Robust.Server.GameObjects;
 using Robust.Shared.Audio.Systems;
@@ -44,6 +47,8 @@ public sealed class AccessOverriderSystem : SharedAccessOverriderSystem
     [Dependency] private readonly PopupSystem _popupSystem = default!;
     [Dependency] private readonly SharedAudioSystem _audioSystem = default!;
     [Dependency] private readonly SharedDoAfterSystem _doAfterSystem = default!;
+    [Dependency] private readonly StationSystem _stationSystem = default!; // <Onyx-DnaAccess>
+    [Dependency] private readonly StationRecordsSystem _stationRecords = default!; // <Onyx-DnaAccess>
 
     public override void Initialize()
     {
@@ -60,6 +65,7 @@ public sealed class AccessOverriderSystem : SharedAccessOverriderSystem
             subs.Event<BoundUIOpenedEvent>(UpdateUserInterface);
             subs.Event<BoundUIClosedEvent>(OnClose);
             subs.Event<WriteToTargetAccessReaderIdMessage>(OnWriteToTargetAccessReaderIdMessage);
+            subs.Event<WriteToTargetAccessReaderDnaMessage>(OnWriteToTargetAccessReaderDnaMessage); // <Onyx-DnaAccess>
         });
     }
 
@@ -113,6 +119,18 @@ public sealed class AccessOverriderSystem : SharedAccessOverriderSystem
 
         UpdateUserInterface(uid, component, args);
     }
+    // <Onyx-DnaAccess>
+    private void OnWriteToTargetAccessReaderDnaMessage(EntityUid uid,
+        AccessOverriderComponent component,
+        WriteToTargetAccessReaderDnaMessage args)
+    {
+        if (args.Actor is not { Valid: true } player)
+            return;
+
+        TryWriteToTargetAccessReaderDna(uid, args.DnaAccess, player, component);
+        UpdateUserInterface(uid, component, args);
+    }
+    // </Onyx-DnaAccess>
 
     private void UpdateUserInterface(EntityUid uid, AccessOverriderComponent component, EntityEventArgs args)
     {
@@ -126,6 +144,7 @@ public sealed class AccessOverriderSystem : SharedAccessOverriderSystem
         ProtoId<AccessLevelPrototype>[]? possibleAccess = null;
         ProtoId<AccessLevelPrototype>[]? currentAccess = null;
         ProtoId<AccessLevelPrototype>[]? missingAccess = null;
+        var dnaAccessEntries = Array.Empty<DnaAccessEntry>(); // <Onyx-DnaAccess>
 
         if (component.TargetAccessReaderId is { Valid: true } accessReader)
         {
@@ -137,6 +156,7 @@ public sealed class AccessOverriderSystem : SharedAccessOverriderSystem
 
             var currentAccessHashsets = accessReaderEnt.Value.Comp.AccessLists;
             currentAccess = ConvertAccessHashSetsToList(currentAccessHashsets).ToArray();
+            dnaAccessEntries = GetDnaAccessEntries(accessReader, accessReaderEnt.Value.Comp); // <Onyx-DnaAccess>
         }
 
         if (component.PrivilegedIdSlot.Item is { Valid: true } idCard)
@@ -162,12 +182,31 @@ public sealed class AccessOverriderSystem : SharedAccessOverriderSystem
             currentAccess,
             possibleAccess,
             missingAccess,
+            dnaAccessEntries, // <Onyx-DnaAccess>
             privilegedIdName,
             targetLabel,
             targetLabelColor);
 
         _userInterface.SetUiState(uid, AccessOverriderUiKey.Key, newState);
     }
+    // <Onyx-DnaAccess>
+    private DnaAccessEntry[] GetDnaAccessEntries(EntityUid target, AccessReaderComponent reader)
+    {
+        var station = _stationSystem.GetOwningStation(target);
+        if (station == null)
+            return Array.Empty<DnaAccessEntry>();
+
+        return _stationRecords.GetRecordsOfType<GeneralStationRecord>(station.Value)
+            .Where(entry => !string.IsNullOrWhiteSpace(entry.Item2.DNA))
+            .GroupBy(entry => entry.Item2.DNA!)
+            .Select(group => new DnaAccessEntry(
+                string.Join(", ", group.Select(entry => entry.Item2.Name).Order()),
+                group.Key,
+                _accessReader.HasDnaAccess(reader, group.Key)))
+            .OrderBy(entry => entry.Name)
+            .ToArray();
+    }
+    // </Onyx-DnaAccess>
 
     private List<ProtoId<AccessLevelPrototype>> ConvertAccessHashSetsToList(List<HashSet<ProtoId<AccessLevelPrototype>>> accessHashsets)
     {
@@ -250,6 +289,51 @@ public sealed class AccessOverriderSystem : SharedAccessOverriderSystem
         var ev = new OnAccessOverriderAccessUpdatedEvent(player);
         RaiseLocalEvent(component.TargetAccessReaderId, ref ev);
     }
+    // <Onyx-DnaAccess>
+    private void TryWriteToTargetAccessReaderDna(EntityUid uid,
+        HashSet<string> newDnaAccess,
+        EntityUid player,
+        AccessOverriderComponent? component = null)
+    {
+        if (!Resolve(uid, ref component) || component.TargetAccessReaderId is not { Valid: true } target)
+            return;
+
+        if (!PrivilegedIdIsAuthorized(uid, component))
+            return;
+
+        if (!_interactionSystem.InRangeUnobstructed(player, target))
+        {
+            _popupSystem.PopupEntity(Loc.GetString("access-overrider-out-of-range"), player, player);
+            return;
+        }
+
+        if (!_accessReader.GetMainAccessReader(target, out var accessReaderEnt))
+            return;
+
+        var validDna = GetDnaAccessEntries(target, accessReaderEnt.Value.Comp)
+            .Select(entry => entry.Dna)
+            .ToHashSet();
+
+        if (!newDnaAccess.IsSubsetOf(validDna))
+        {
+            _sawmill.Warning($"User {ToPrettyString(player)} tried to write unknown DNA access.");
+            return;
+        }
+
+        if (_accessReader.DnaAccessEquals(accessReaderEnt.Value.Comp, newDnaAccess))
+            return;
+
+        var names = GetDnaAccessEntries(target, accessReaderEnt.Value.Comp)
+            .Where(entry => newDnaAccess.Contains(entry.Dna))
+            .Select(entry => entry.Name)
+            .ToArray();
+
+        _adminLogger.Add(LogType.Action, LogImpact.High,
+            $"{ToPrettyString(player):player} set DNA access on {ToPrettyString(accessReaderEnt.Value):entity} to [{string.Join(", ", names)}]");
+
+        _accessReader.SetDnaAccess(accessReaderEnt.Value, newDnaAccess);
+    }
+    // </Onyx-DnaAccess>
 
     /// <summary>
     /// Returns true if there is an ID in <see cref="AccessOverriderComponent.PrivilegedIdSlot"/> and said ID satisfies the requirements of <see cref="AccessReaderComponent"/>.

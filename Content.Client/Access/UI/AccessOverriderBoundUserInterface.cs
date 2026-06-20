@@ -39,6 +39,7 @@ namespace Content.Client.Access.UI
             RefreshAccess();
             _window.Title = EntMan.GetComponent<MetaDataComponent>(Owner).EntityName;
             _window.OnSubmit += SubmitData;
+            _window.OnDnaSubmit += SubmitDnaData; // <Onyx-DnaAccess>
 
             _window.PrivilegedIdButton.OnPressed += _ => SendMessage(new ItemSlotButtonPressedEvent(PrivilegedIdCardSlotId));
         }
@@ -84,5 +85,12 @@ namespace Content.Client.Access.UI
         {
             SendMessage(new WriteToTargetAccessReaderIdMessage(newAccessList));
         }
+
+        // <Onyx-DnaAccess>
+        private void SubmitDnaData(HashSet<string> dnaAccess)
+        {
+            SendMessage(new WriteToTargetAccessReaderDnaMessage(dnaAccess));
+        }
+        // </Onyx-DnaAccess>
     }
 }

@@ -125,15 +125,22 @@ public sealed partial class AccessReaderComponent : Component
     /// </summary>
     [DataField]
     public HashSet<StationRecordKey> AccessKeys = new();
+    // <Onyx-DnaAccess>
+    /// <summary>
+    /// DNA identifiers that grant access. A matching DNA is an alternative to satisfying an ID access list.
+    /// </summary>
+    [DataField]
+    public HashSet<string> DnaAccess = new();
+    // </Onyx-DnaAccess>
 
     /// <summary>
     /// If specified, then this access reader will instead pull access requirements from entities contained in the
     /// given container.
     /// </summary>
     /// <remarks>
-    /// This effectively causes <see cref="DenyTags"/>, <see cref="AccessLists"/>, and <see cref="AccessKeys"/> to be
-    /// ignored, though <see cref="Enabled"/> is still respected. Access is denied if there are no valid entities or
-    /// they all deny access.
+    /// This effectively causes <see cref="DenyTags"/>, <see cref="AccessLists"/>, <see cref="AccessKeys"/>, and
+    /// <see cref="DnaAccess"/> to be ignored, though <see cref="Enabled"/> is still respected. Access is denied if
+    /// there are no valid entities or they all deny access.
     /// </remarks>
     [DataField]
     public string? ContainerAccessProvider;
@@ -183,15 +190,23 @@ public sealed class AccessReaderComponentState : ComponentState
     public HashSet<ProtoId<AccessLevelPrototype>> DenyTags;
     public List<HashSet<ProtoId<AccessLevelPrototype>>> AccessLists;
     public List<(NetEntity, uint)> AccessKeys;
+    public HashSet<string> DnaAccess;
     public Queue<AccessRecord> AccessLog;
     public int AccessLogLimit;
 
-    public AccessReaderComponentState(bool enabled, HashSet<ProtoId<AccessLevelPrototype>> denyTags, List<HashSet<ProtoId<AccessLevelPrototype>>> accessLists, List<(NetEntity, uint)> accessKeys, Queue<AccessRecord> accessLog, int accessLogLimit)
+    public AccessReaderComponentState(bool enabled,
+        HashSet<ProtoId<AccessLevelPrototype>> denyTags,
+        List<HashSet<ProtoId<AccessLevelPrototype>>> accessLists,
+        List<(NetEntity, uint)> accessKeys,
+        HashSet<string> dnaAccess,
+        Queue<AccessRecord> accessLog,
+        int accessLogLimit)
     {
         Enabled = enabled;
         DenyTags = denyTags;
         AccessLists = accessLists;
         AccessKeys = accessKeys;
+        DnaAccess = dnaAccess;
         AccessLog = accessLog;
         AccessLogLimit = accessLogLimit;
     }

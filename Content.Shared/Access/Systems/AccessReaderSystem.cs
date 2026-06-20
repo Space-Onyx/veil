@@ -99,6 +99,7 @@ using Content.Shared.GameTicking;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.IdentityManagement;
 using Content.Shared.Inventory;
+using Content.Shared.Forensics.Components;
 using Content.Shared.NameIdentifier;
 using Content.Shared.PDA;
 using Content.Shared.StationRecords;
@@ -139,7 +140,7 @@ public sealed class AccessReaderSystem : EntitySystem
     private void OnGetState(EntityUid uid, AccessReaderComponent component, ref ComponentGetState args)
     {
         args.State = new AccessReaderComponentState(component.Enabled, component.DenyTags, component.AccessLists,
-            _recordsSystem.Convert(component.AccessKeys), component.AccessLog, component.AccessLogLimit);
+            _recordsSystem.Convert(component.AccessKeys), component.DnaAccess, component.AccessLog, component.AccessLogLimit); // <Onyx-DnaAccess>
     }
 
     private void OnHandleState(EntityUid uid, AccessReaderComponent component, ref ComponentHandleState args)
@@ -159,6 +160,7 @@ public sealed class AccessReaderSystem : EntitySystem
 
         component.AccessLists = new(state.AccessLists);
         component.DenyTags = new(state.DenyTags);
+        component.DnaAccess = new(state.DnaAccess); // <Onyx-DnaAccess>
         component.AccessLog = new(state.AccessLog);
         component.AccessLogLimit = state.AccessLogLimit;
     }
@@ -210,8 +212,9 @@ public sealed class AccessReaderSystem : EntitySystem
         var accessSources = FindPotentialAccessItems(user);
         var access = FindAccessTags(user, accessSources);
         FindStationRecordKeys(user, out var stationKeys, accessSources);
+        var dna = CompOrNull<DnaComponent>(user)?.DNA; // <Onyx-DnaAccess>
 
-        if (!IsAllowed(access, stationKeys, target, reader))
+        if (!IsAllowed(access, stationKeys, dna, target, reader)) // <Onyx-DnaAccess>
             return false;
 
         if (!_tag.HasTag(user, PreventAccessLoggingTag))
@@ -258,9 +261,23 @@ public sealed class AccessReaderSystem : EntitySystem
     /// <param name="stationKeys">A collection of station record keys being used on the access reader.</param>
     /// <param name="target">The entity being checked.</param>
     /// <param name="reader">The access reader being checked.</param>
+    // <Onyx-DnaAccess edited>
     public bool IsAllowed(
         ICollection<ProtoId<AccessLevelPrototype>> access,
         ICollection<StationRecordKey> stationKeys,
+        EntityUid target,
+        AccessReaderComponent reader)
+    {
+        return IsAllowed(access, stationKeys, null, target, reader);
+    }
+
+    /// <summary>
+    /// Check whether the given access permissions or DNA satisfy an access reader's requirements.
+    /// </summary>
+    public bool IsAllowed(
+        ICollection<ProtoId<AccessLevelPrototype>> access,
+        ICollection<StationRecordKey> stationKeys,
+        string? dna,
         EntityUid target,
         AccessReaderComponent reader)
     {
@@ -268,7 +285,7 @@ public sealed class AccessReaderSystem : EntitySystem
             return true;
 
         if (reader.ContainerAccessProvider == null)
-            return IsAllowedInternal(access, stationKeys, reader);
+            return IsAllowedInternal(access, stationKeys, dna, reader);
 
         if (!_containerSystem.TryGetContainer(target, reader.ContainerAccessProvider, out var container))
             return false;
@@ -283,19 +300,44 @@ public sealed class AccessReaderSystem : EntitySystem
             if (!TryComp(entity, out AccessReaderComponent? containedReader))
                 continue;
 
-            if (IsAllowed(access, stationKeys, entity, containedReader))
+            if (IsAllowed(access, stationKeys, dna, entity, containedReader))
                 return true;
         }
 
         return false;
     }
 
-    private bool IsAllowedInternal(ICollection<ProtoId<AccessLevelPrototype>> access, ICollection<StationRecordKey> stationKeys, AccessReaderComponent reader)
+    private bool IsAllowedInternal(
+        ICollection<ProtoId<AccessLevelPrototype>> access,
+        ICollection<StationRecordKey> stationKeys,
+        string? dna,
+        AccessReaderComponent reader)
     {
+        var hasIdentityRequirements = reader.AccessKeys.Count != 0 || reader.DnaAccess.Count != 0;
+        var tagsAllowed = (!hasIdentityRequirements || reader.AccessLists.Count != 0)
+                          && AreAccessTagsAllowed(access, reader);
+
         return !reader.Enabled
-               || AreAccessTagsAllowed(access, reader)
-               || AreStationRecordKeysAllowed(stationKeys, reader);
+               || tagsAllowed
+               || AreStationRecordKeysAllowed(stationKeys, reader)
+               || IsDnaAllowed(dna, reader);
     }
+
+    public bool IsDnaAllowed(string? dna, AccessReaderComponent reader)
+    {
+        return !string.IsNullOrEmpty(dna) && reader.DnaAccess.Contains(dna);
+    }
+
+    public bool HasDnaAccess(AccessReaderComponent reader, string dna)
+    {
+        return reader.DnaAccess.Contains(dna);
+    }
+
+    public bool DnaAccessEquals(AccessReaderComponent reader, ICollection<string> dnaAccess)
+    {
+        return reader.DnaAccess.SetEquals(dnaAccess);
+    }
+    // </Onyx-DnaAccess edied>
 
     /// <summary>
     /// Compares the given tags with the readers access list to see if it is allowed.
@@ -632,6 +674,46 @@ public sealed class AccessReaderSystem : EntitySystem
         ent.Comp.AccessKeys.Remove(key);
         Dirty(ent);
     }
+
+    #endregion
+
+    #region: DNA access API
+    // <Onyx-DnaAccess>
+    public void SetDnaAccess(Entity<AccessReaderComponent> ent, HashSet<string> dnaAccess)
+    {
+        ent.Comp.DnaAccess = new HashSet<string>(dnaAccess.Where(dna => !string.IsNullOrWhiteSpace(dna)));
+        Dirty(ent);
+        RaiseLocalEvent(ent, new AccessReaderConfigurationChangedEvent());
+    }
+
+    public void AddDnaAccess(Entity<AccessReaderComponent> ent, string dna)
+    {
+        if (string.IsNullOrWhiteSpace(dna) || !ent.Comp.DnaAccess.Add(dna))
+            return;
+
+        Dirty(ent);
+        RaiseLocalEvent(ent, new AccessReaderConfigurationChangedEvent());
+    }
+
+    public void RemoveDnaAccess(Entity<AccessReaderComponent> ent, string dna)
+    {
+        if (!ent.Comp.DnaAccess.Remove(dna))
+            return;
+
+        Dirty(ent);
+        RaiseLocalEvent(ent, new AccessReaderConfigurationChangedEvent());
+    }
+
+    public void ClearDnaAccess(Entity<AccessReaderComponent> ent)
+    {
+        if (ent.Comp.DnaAccess.Count == 0)
+            return;
+
+        ent.Comp.DnaAccess.Clear();
+        Dirty(ent);
+        RaiseLocalEvent(ent, new AccessReaderConfigurationChangedEvent());
+    }
+    // </Onyx-DnaAccess>
 
     #endregion
 

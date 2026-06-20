@@ -26,8 +26,11 @@ namespace Content.Client.Access.UI
     public sealed partial class AccessOverriderWindow : DefaultWindow
     {
         private readonly Dictionary<string, Button> _accessButtons = new();
+        private readonly Dictionary<string, Button> _dnaButtons = new(); // <Onyx-DnaAccess>
+
 
         public event Action<List<ProtoId<AccessLevelPrototype>>>? OnSubmit;
+        public event Action<HashSet<string>>? OnDnaSubmit; // <Onyx-DnaAccess>
 
         public AccessOverriderWindow()
         {
@@ -63,8 +66,37 @@ namespace Content.Client.Access.UI
             }
         }
 
+        // <Onyx-DnaAccess>
+        private void SetDnaAccessEntries(DnaAccessEntry[] entries)
+        {
+            _dnaButtons.Clear();
+            DnaAccessGrid.DisposeAllChildren();
+
+            foreach (var entry in entries)
+            {
+                var button = new Button
+                {
+                    Text = entry.Name,
+                    ToggleMode = true,
+                    Pressed = entry.Enabled,
+                };
+
+                DnaAccessGrid.AddChild(button);
+                _dnaButtons[entry.Dna] = button;
+                button.OnPressed += _ =>
+                {
+                    OnDnaSubmit?.Invoke(_dnaButtons
+                        .Where(pair => pair.Value.Pressed)
+                        .Select(pair => pair.Key)
+                        .ToHashSet());
+                };
+            }
+        }
+        // </Onyx-DnaAccess>
+
         public void UpdateState(IPrototypeManager protoManager, AccessOverriderBoundUserInterfaceState state)
         {
+            SetDnaAccessEntries(state.DnaAccessEntries); // <Onyx-DnaAccess>
             PrivilegedIdLabel.Text = state.PrivilegedIdName;
             PrivilegedIdButton.Text = state.IsPrivilegedIdPresent
                 ? Loc.GetString("access-overrider-window-eject-button")
@@ -105,6 +137,12 @@ namespace Content.Client.Access.UI
                     button.Disabled = (!state.AllowedModifyAccessList?.Contains((ProtoId<AccessLevelPrototype>) accessName)) ?? true;
                 }
             }
+            // <Onyx-DnaAccess>
+            foreach (var button in _dnaButtons.Values)
+            {
+                button.Disabled = !interfaceEnabled;
+            }
+            // </Onyx-DnaAccess>
         }
     }
 }

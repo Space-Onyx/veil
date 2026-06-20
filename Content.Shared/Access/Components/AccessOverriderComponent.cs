@@ -42,6 +42,22 @@ public sealed partial class AccessOverriderComponent : Component
         }
     }
 
+    // <Onyx-DnaAccess>
+    [Serializable, NetSerializable]
+    public sealed class WriteToTargetAccessReaderDnaMessage : BoundUserInterfaceMessage
+    {
+        public readonly HashSet<string> DnaAccess;
+
+        public WriteToTargetAccessReaderDnaMessage(HashSet<string> dnaAccess)
+        {
+            DnaAccess = dnaAccess;
+        }
+    }
+
+    [Serializable, NetSerializable]
+    public readonly record struct DnaAccessEntry(string Name, string Dna, bool Enabled);
+    // </Onyx-DnaAccess>
+
     [DataField, AutoNetworkedField]
     public List<ProtoId<AccessLevelPrototype>> AccessLevels = new();
 
@@ -60,12 +76,14 @@ public sealed partial class AccessOverriderComponent : Component
         public readonly ProtoId<AccessLevelPrototype>[]? TargetAccessReaderIdAccessList;
         public readonly ProtoId<AccessLevelPrototype>[]? AllowedModifyAccessList;
         public readonly ProtoId<AccessLevelPrototype>[]? MissingPrivilegesList;
+        public readonly DnaAccessEntry[] DnaAccessEntries;
 
         public AccessOverriderBoundUserInterfaceState(bool isPrivilegedIdPresent,
             bool isPrivilegedIdAuthorized,
             ProtoId<AccessLevelPrototype>[]? targetAccessReaderIdAccessList,
             ProtoId<AccessLevelPrototype>[]? allowedModifyAccessList,
             ProtoId<AccessLevelPrototype>[]? missingPrivilegesList,
+            DnaAccessEntry[] dnaAccessEntries,
             string privilegedIdName,
             string targetLabel,
             Color targetLabelColor)
@@ -75,6 +93,7 @@ public sealed partial class AccessOverriderComponent : Component
             TargetAccessReaderIdAccessList = targetAccessReaderIdAccessList;
             AllowedModifyAccessList = allowedModifyAccessList;
             MissingPrivilegesList = missingPrivilegesList;
+            DnaAccessEntries = dnaAccessEntries;
             PrivilegedIdName = privilegedIdName;
             TargetLabel = targetLabel;
             TargetLabelColor = targetLabelColor;

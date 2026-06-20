@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 -->
 
 <DefaultWindow xmlns="https://spacestation14.io"
-            MinSize="650 290">
+            MinSize="650 500">
     <BoxContainer Orientation="Vertical">
         <GridContainer Columns="2">
             <GridContainer Columns="3" HorizontalExpand="True">
@@ -22,6 +22,14 @@ SPDX-License-Identifier: MIT
             <!-- Access level buttons are added here by the C# code -->
 
         </GridContainer>
+        <!-- Onyx-DnaAccess -->
+        <Control MinSize="0 8"/>
+        <Label Text="{Loc 'access-overrider-window-dna-access'}" />
+        <ScrollContainer VerticalExpand="True" MinSize="0 150">
+            <GridContainer Name="DnaAccessGrid" Columns="3" HorizontalExpand="True">
+            </GridContainer>
+        </ScrollContainer>
+        <!-- Onyx-DnaAccess -->
         <Control MinSize="0 8"/>
         <Label Name="MissingPrivilegesLabel" />
         <Control MinSize="0 4"/>

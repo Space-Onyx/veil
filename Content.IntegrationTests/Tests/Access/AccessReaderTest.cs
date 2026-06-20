@@ -124,6 +124,43 @@ namespace Content.IntegrationTests.Tests.Access
             });
             await pair.CleanReturnAsync();
         }
+        // <Onyx-DnaAccess>
+        [Test]
+        public async Task TestDnaAccess()
+        {
+            await using var pair = await PoolManager.GetServerClient();
+            var server = pair.Server;
+            var entityManager = server.ResolveDependency<IEntityManager>();
 
+            await server.WaitAssertion(() =>
+            {
+                var system = entityManager.System<AccessReaderSystem>();
+                var ent = entityManager.SpawnEntity("TestAccessReader", MapCoordinates.Nullspace);
+                var reader = new Entity<AccessReaderComponent>(ent, entityManager.GetComponent<AccessReaderComponent>(ent));
+                var noTags = Array.Empty<ProtoId<AccessLevelPrototype>>();
+                var noKeys = Array.Empty<Content.Shared.StationRecords.StationRecordKey>();
+
+                system.AddDnaAccess(reader, "owner-dna");
+
+                Assert.Multiple(() =>
+                {
+                    Assert.That(system.IsAllowed(noTags, noKeys, "owner-dna", ent, reader.Comp), Is.True);
+                    Assert.That(system.IsAllowed(noTags, noKeys, "other-dna", ent, reader.Comp), Is.False);
+                    Assert.That(system.IsAllowed(noTags, noKeys, null, ent, reader.Comp), Is.False);
+                });
+
+                system.AddAccess(reader, "A");
+
+                Assert.Multiple(() =>
+                {
+                    Assert.That(system.IsAllowed(new[] { (ProtoId<AccessLevelPrototype>) "A" }, noKeys, null, ent, reader.Comp), Is.True);
+                    Assert.That(system.IsAllowed(noTags, noKeys, "owner-dna", ent, reader.Comp), Is.True);
+                    Assert.That(system.IsAllowed(noTags, noKeys, "other-dna", ent, reader.Comp), Is.False);
+                });
+            });
+
+            await pair.CleanReturnAsync();
+        }
+        // </Onyx-DnaAccess>
     }
 }
