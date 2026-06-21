@@ -53,9 +53,12 @@ public sealed class OceanSwimmingStaminaSystem : EntitySystem
 
         while (query.MoveNext(out var uid, out var swimming, out var mover, out var stamina, out var xform))
         {
+            var isSwimming = xform.GridUid == null && xform.ParentUid == xform.MapUid;
+
             if (xform.MapUid is not { } mapUid ||
-                !TryComp<OceanMapComponent>(mapUid, out var ocean))
+                !TryComp<OceanMapComponent>(mapUid, out var ocean) || !isSwimming)
             {
+                RemComp<OceanSwimmingComponent>(uid);
                 continue;
             }
 
