@@ -4,6 +4,7 @@ using Content.Shared._Onyx.Swimming.Events;
 using Content.Shared._Onyx.Swimming.Systems;
 using Content.Shared.Damage.Components;
 using Content.Shared.Movement.Components;
+using Content.Shared.Ghost;
 using Robust.Shared.Network;
 
 namespace Content.Shared.Movement.Systems;
@@ -26,7 +27,9 @@ public abstract partial class SharedMoverController
     {
         if (xform.MapUid is not { } mapUid ||
             !TryComp<OceanMapComponent>(mapUid, out var ocean) ||
-            xform.GridUid != null)
+            xform.GridUid != null ||
+            HasComp<GhostComponent>(uid) ||
+            HasComp<CanMoveInAirComponent>(uid))
         {
             return;
         }
