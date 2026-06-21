@@ -57,7 +57,7 @@
       - map: [ "enum.HumanoidVisualLayers.RHand" ]
       - map: [ "enum.HumanoidVisualLayers.LFoot" ]
       - map: [ "enum.HumanoidVisualLayers.RFoot" ]
-      - map: [ "socks" ] # Onyx
+      - map: [ "socks" ] # <Onyx-UnderWear>
       - map: [ "enum.HumanoidVisualLayers.Handcuffs" ]
         color: "#ffffff"
         sprite: Objects/Misc/handcuffs.rsi
@@ -106,8 +106,8 @@
     dehydratedMetabolizer: FeroxiDehydrated
     dehydrationThreshold: 150
   - type: SwimmingModifier # <Onyx-OceanSwimming>
-    speedMultiplier: 1.35
-    staminaCostMultiplier: 0.85
+    speedMultiplier: 1.5
+    staminaCostMultiplier: 0.60
   - type: LanguageKnowledge # The Den, give Feroxi their own language.
     speaks:
     - TauCetiBasic
@@ -165,6 +165,7 @@
     - map: [ "enum.HumanoidVisualLayers.Eyes" ]
     - map: [ "enum.HumanoidVisualLayers.RArm" ]
     - map: [ "enum.HumanoidVisualLayers.LArm" ]
+    - map: [ "socks" ] # <Onyx-UnderWear>
     - map: [ "enum.HumanoidVisualLayers.RLeg" ]
     - map: [ "enum.HumanoidVisualLayers.LLeg" ]
     - shader: StencilClear
@@ -174,6 +175,8 @@
       state: l_leg
       # - map: [ "enum.HumanoidVisualLayers.Underwear" ] # Onyx-removed
       # - map: [ "enum.HumanoidVisualLayers.Undershirt" ] # Onyx-removed
+    - map: [ "underwearb" ] # <Onyx-UnderWear>
+    - map: [ "underweart" ] # <Onyx-UnderWear>
     - map: [ "jumpsuit" ]
     - map: [ "enum.HumanoidVisualLayers.LHand" ]
     - map: [ "enum.HumanoidVisualLayers.RHand" ]

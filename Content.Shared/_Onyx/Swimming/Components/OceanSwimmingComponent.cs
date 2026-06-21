@@ -2,24 +2,24 @@ using Robust.Shared.GameStates;
 
 namespace Content.Shared._Onyx.Swimming.Components;
 
-[RegisterComponent, NetworkedComponent]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class OceanSwimmingComponent : Component
 {
-    [ViewVariables]
+    [ViewVariables, AutoNetworkedField]
     public TimeSpan NextStroke;
 
-    [ViewVariables]
+    [ViewVariables, AutoNetworkedField]
     public TimeSpan StrokeUntil;
 
-    [ViewVariables]
+    [ViewVariables, AutoNetworkedField]
     public TimeSpan NextDrowningDamage;
 
-    [ViewVariables]
+    [ViewVariables, AutoNetworkedField]
     public bool StaminaExhausted;
 
-    [ViewVariables]
+    [ViewVariables, AutoNetworkedField]
     public string? SuspendedSprintDrainKey;
 
-    [ViewVariables]
+    [ViewVariables, AutoNetworkedField]
     public float SuspendedSprintDrainRate;
 }

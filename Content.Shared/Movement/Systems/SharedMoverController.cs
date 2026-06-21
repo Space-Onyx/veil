@@ -139,6 +139,7 @@ using Content.Shared._vg.TileMovement;
 using Content.Shared.Standing; // Goobstation - kil mofs
 using Content.Goobstation.Common.MomentumSteering; // Goobstation - also kil mofs
 using PullableComponent = Content.Shared.Movement.Pulling.Components.PullableComponent;
+using Content.Shared._Onyx.Swimming.Components;
 
 namespace Content.Shared.Movement.Systems;
 
@@ -328,6 +329,8 @@ public abstract partial class SharedMoverController : VirtualController
             return;
         }
 
+        TryComp<OceanMapComponent>(xform.MapUid, out var oceanMap); // <Onyx-OceanSwimming>
+
         // If the body is in air but isn't weightless then it can't move
         // TODO: MAKE ISWEIGHTLESS EVENT BASED
         var weightless = _gravity.IsWeightless(uid, physicsComponent, xform);
@@ -458,9 +461,18 @@ public abstract partial class SharedMoverController : VirtualController
 
         // This way friction never exceeds acceleration when you're trying to move.
         // If you want to slow down an entity with "friction" you shouldn't be using this system.
+        // For swimming, we want to allow momentum to persist, so we are more careful with friction.
         if (wishDir != Vector2.Zero)
             friction = Math.Min(friction, accel);
-        friction = Math.Max(friction, _minDamping);
+        // <Onyx-OceanSwimming>
+        var isSwimming = TryComp<OceanSwimmingComponent>(uid, out _) || 
+                         (xform.MapUid != null && HasComp<OceanMapComponent>(xform.MapUid.Value) && xform.GridUid == null);
+
+        float targetFriction = isSwimming ? (oceanMap?.WaterDrag ?? _minDamping) : _minDamping;
+
+        friction = MathHelper.Lerp(friction, targetFriction, 0.2f);
+        // </Onyx-OceanSwimming>
+
         var minimumFrictionSpeed = moveSpeedComponent?.MinimumFrictionSpeed ?? MovementSpeedModifierComponent.DefaultMinimumFrictionSpeed;
         Friction(minimumFrictionSpeed, frameTime, friction, ref velocity);
 

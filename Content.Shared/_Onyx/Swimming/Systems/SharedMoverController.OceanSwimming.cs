@@ -4,6 +4,7 @@ using Content.Shared._Onyx.Swimming.Events;
 using Content.Shared._Onyx.Swimming.Systems;
 using Content.Shared.Damage.Components;
 using Content.Shared.Movement.Components;
+using Robust.Shared.Network;
 
 namespace Content.Shared.Movement.Systems;
 
@@ -13,6 +14,8 @@ public abstract partial class SharedMoverController
     private const float MinStrokeInterval = 0.05f;
     private const float MinStrokeDuration = 0.01f;
 
+    [Dependency] private readonly INetManager _netManager = default!;
+
     private void ApplyOceanSwimming(
         EntityUid uid,
         InputMoverComponent mover,
@@ -21,12 +24,14 @@ public abstract partial class SharedMoverController
         ref float acceleration,
         ref float friction)
     {
-        if (!TryComp<OceanSwimmingComponent>(uid, out var swimming) ||
-            xform.MapUid is not { } mapUid ||
-            !TryComp<OceanMapComponent>(mapUid, out var ocean))
+        if (xform.MapUid is not { } mapUid ||
+            !TryComp<OceanMapComponent>(mapUid, out var ocean) ||
+            xform.GridUid != null)
         {
             return;
         }
+
+        var swimming = EnsureComp<OceanSwimmingComponent>(uid);
 
         friction = MathF.Max(0f, ocean.WaterDrag);
         acceleration = MathF.Max(0f, ocean.StrokeAcceleration);
@@ -35,8 +40,10 @@ public abstract partial class SharedMoverController
         {
             if (!OceanSwimmingStamina.CanSwim(swimming, stamina, ocean))
             {
-                swimming.NextStroke = Timing.CurTime;
-                swimming.StrokeUntil = TimeSpan.Zero;
+                if (_netManager.IsServer) {
+                    swimming.NextStroke = Timing.CurTime;
+                    swimming.StrokeUntil = TimeSpan.Zero;
+                }
                 acceleration = 0f;
                 wishDir = Vector2.Zero;
                 return;
@@ -47,8 +54,6 @@ public abstract partial class SharedMoverController
 
         if (!mover.HasDirectionalMovement || wishLengthSquared <= 0f)
         {
-            swimming.NextStroke = Timing.CurTime;
-            swimming.StrokeUntil = TimeSpan.Zero;
             wishDir = Vector2.Zero;
             return;
         }
@@ -66,8 +71,10 @@ public abstract partial class SharedMoverController
 
         if (now >= swimming.NextStroke)
         {
-            swimming.NextStroke = now + interval;
-            swimming.StrokeUntil = now + duration;
+            if (_netManager.IsServer) {
+                swimming.NextStroke = now + interval;
+                swimming.StrokeUntil = now + duration;
+            }
         }
 
         var power = GetStrokePower(now, swimming.StrokeUntil, duration);

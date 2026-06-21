@@ -1,7 +1,9 @@
 using Content.Shared._Onyx.Swimming.Components;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
+using Robust.Client.Player;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Map;
 
 namespace Content.Client._Onyx.Swimming;
 
@@ -9,6 +11,7 @@ public sealed class OceanSwimmingVisualSystem : EntitySystem
 {
     private static readonly ProtoId<ShaderPrototype> OceanSubmersionShader = "OnyxOceanSubmersion";
     [Dependency] private readonly IPrototypeManager _prototypes = default!;
+    [Dependency] private readonly IPlayerManager _playerManager = default!;
     private readonly Dictionary<EntityUid, ShaderInstance> _shaders = new();
     private ShaderPrototype _shaderPrototype = default!;
 
@@ -17,29 +20,34 @@ public sealed class OceanSwimmingVisualSystem : EntitySystem
         base.Initialize();
 
         _shaderPrototype = _prototypes.Index(OceanSubmersionShader);
-
-        SubscribeLocalEvent<OceanSwimmingComponent, ComponentShutdown>(OnSwimmingShutdown);
     }
 
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
 
-        var query = EntityQueryEnumerator<OceanSwimmingComponent, SpriteComponent, TransformComponent>();
-        while (query.MoveNext(out var uid, out _, out var sprite, out var xform))
+        if (_playerManager.LocalPlayer?.ControlledEntity is not { } playerUid ||
+            !TryComp<SpriteComponent>(playerUid, out var sprite) ||
+            !TryComp<TransformComponent>(playerUid, out var xform))
         {
-            if (xform.MapUid is not { } mapUid ||
-                !TryComp<OceanMapComponent>(mapUid, out var ocean))
+            return;
+        }
+
+        var isSwimming = xform.MapUid is { } mapUid &&
+                         HasComp<OceanMapComponent>(mapUid) &&
+                         xform.GridUid == null;
+
+        if (isSwimming && TryComp<OceanMapComponent>(xform.MapUid!.Value, out var ocean))
+        {
+            if (TryApplyShader(playerUid, sprite, out var shader))
             {
-                RemoveShader(uid, sprite);
-                continue;
+                shader.SetParameter("submersionDepth", Math.Clamp(ocean.SubmersionDepth, 0f, 1f));
+                shader.SetParameter("submergedAlpha", Math.Clamp(ocean.SubmergedAlpha, 0f, 1f));
             }
-
-            if (!TryApplyShader(uid, sprite, out var shader))
-                continue;
-
-            shader.SetParameter("submersionDepth", Math.Clamp(ocean.SubmersionDepth, 0f, 1f));
-            shader.SetParameter("submergedAlpha", Math.Clamp(ocean.SubmergedAlpha, 0f, 1f));
+        }
+        else
+        {
+            RemoveShader(playerUid, sprite);
         }
     }
 
@@ -72,14 +80,6 @@ public sealed class OceanSwimmingVisualSystem : EntitySystem
         sprite.PostShader = shader;
 
         return true;
-    }
-
-    private void OnSwimmingShutdown(Entity<OceanSwimmingComponent> ent, ref ComponentShutdown args)
-    {
-        if (TryComp<SpriteComponent>(ent.Owner, out var sprite))
-            RemoveShader(ent.Owner, sprite);
-        else
-            _shaders.Remove(ent.Owner);
     }
 
     private void RemoveShader(EntityUid uid, SpriteComponent sprite)
