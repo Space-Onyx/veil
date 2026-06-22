@@ -6,17 +6,18 @@
   - OnyxKerberos
   - OnyxGate
   - OnyxOrigin
+  - CorvaxGlacier
 
   # Midpop 25–50
   - OnyxKettle
   - CorvaxPaper
+  - CorvaxBagel
 
   # Lowpop 0–25
   - OnyxOmega
   - OnyxSilly
   #- CorvaxMaus
   - OnyxBeta
-  #- OnyxAtlas
   - CorvaxPacked
   - CorvaxTushkan
   - CorvaxCluster
